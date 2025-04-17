@@ -1,0 +1,108 @@
+{
+	"wardCode": "PJUMMZ",
+	"wardName": "76병동",
+	"hospitalName": "강남 연세 세브란스",
+	"nursesTotalCnt": 10,
+	"nurses": [
+		{
+			"memberId": 22,
+			"name": "홍길동",
+			"gender": "M",
+			"role": "HN",
+			"grade": 5,
+			"shift": "ALL",
+			"skillLevel": "MID",
+			"memo": "E 선호"
+		},
+		{
+			"memberId": 23,
+			"name": "김민지",
+			"gender": "F",
+			"role": "RN",
+			"grade": 3,
+			"shift": "D",
+			"skillLevel": "MID",
+			"memo": "D 선호"
+		},
+		{
+			"memberId": 24,
+			"name": "이수진",
+			"gender": "F",
+			"role": "RN",
+			"grade": 4,
+			"shift": "E",
+			"skillLevel": "HIGH",
+			"memo": "야간 근무 불가"
+		},
+		{
+			"memberId": 25,
+			"name": "박지원",
+			"gender": "F",
+			"role": "RN",
+			"grade": 1,
+			"shift": "N",
+			"skillLevel": "LOW",
+			"memo": "신규 간호사"
+		},
+		{
+			"memberId": 26,
+			"name": "최영희",
+			"gender": "F",
+			"role": "RN",
+			"grade": 2,
+			"shift": "D",
+			"skillLevel": "LOW",
+			"memo": "교육 중"
+		},
+		{
+			"memberId": 27,
+			"name": "정현우",
+			"gender": "M",
+			"role": "RN",
+			"grade": 3,
+			"shift": "N",
+			"skillLevel": "MID",
+			"memo": "N 선호"
+		},
+		{
+			"memberId": 28,
+			"name": "강미란",
+			"gender": "F",
+			"role": "RN",
+			"grade": 6,
+			"shift": "E",
+			"skillLevel": "HIGH",
+			"memo": "프리셉터"
+		},
+		{
+			"memberId": 29,
+			"name": "송태호",
+			"gender": "M",
+			"role": "RN",
+			"grade": 2,
+			"shift": "D",
+			"skillLevel": "LOW",
+			"memo": ""
+		},
+		{
+			"memberId": 30,
+			"name": "임서연",
+			"gender": "F",
+			"role": "RN",
+			"grade": 4,
+			"shift": "ALL",
+			"skillLevel": "MID",
+			"memo": "유연근무 가능"
+		},
+		{
+			"memberId": 31,
+			"name": "윤하은",
+			"gender": "F",
+			"role": "RN",
+			"grade": 5,
+			"shift": "E",
+			"skillLevel": "HIGH",
+			"memo": "E 전담"
+		}
+	]
+}

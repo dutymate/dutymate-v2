@@ -1,0 +1,57 @@
+{
+	"id": "67a1ad592461030fbd1258c7",
+	"year": 2025,
+	"month": 3,
+	"duty": [
+		{
+			"memberId": 2,
+			"name": "김민성",
+			"shifts": "NDDNNNONODDNDNNONODDDNNNOOXXXNN"
+		},
+		{
+			"memberId": 3,
+			"name": "MIKE KIM",
+			"shifts": "NNNOODDDDNNNOOODDDNNNOODDDDNNND"
+		},
+		{
+			"memberId": 13,
+			"name": "김민호",
+			"shifts": "OOODDDNNNOOODDDNNNOOODDDNNNOOOE"
+		},
+		{
+			"memberId": 14,
+			"name": "박서연",
+			"shifts": "DDDEEENNNNNNDDDEEENNNOOODDDEEDN"
+		},
+		{
+			"memberId": 15,
+			"name": "이준호",
+			"shifts": "DEEENNNOOODDDEEENNNOOODDDEEENND"
+		},
+		{
+			"memberId": 16,
+			"name": "정유진",
+			"shifts": "NNNOOODDDEEENNNOOODDDEEENNNOOOE"
+		},
+		{
+			"memberId": 17,
+			"name": "최민서",
+			"shifts": "NOOODDDEEENNNOOODDDEEENNNOOODDD"
+		},
+		{
+			"memberId": 18,
+			"name": "강현우",
+			"shifts": "DDDNNNOOOXXXXXXXDDDNNNOOOXXXDDE"
+		},
+		{
+			"memberId": 19,
+			"name": "송지원",
+			"shifts": "NNNOOODDDNNNOONODDDNNNOODDDDNNN"
+		},
+		{
+			"memberId": 20,
+			"name": "임수진",
+			"shifts": "EOOODDDNNNOOODDDNNNOOODDDNNNNNN"
+		}
+	]
+}

@@ -1,0 +1,9 @@
+{
+	"token": "eyJhbGciOiJIUzUxMiJ9.eyJpYXQiOjE3Mzg5MDI3MjksImV4cCI6MTczODk4OTEyOSwibWVtYmVySWQiOjIyfQ.4_N1usHhzq6PjgBuFDG9eLkDfToePi286XYRWQyVFuJE0LkSje0nQd98DN77vkFrBeYURDktDLoF6KtEhrUcYg",
+	"memberId": 22,
+	"name": "홍길동",
+	"role": "HN",
+	"profileImg": null,
+	"existAdditionalInfo": true,
+	"existMyWard": true
+}

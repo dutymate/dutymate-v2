@@ -1,0 +1,161 @@
+stages:
+  - check_infrastructure
+  - check_frontend
+  - build_backend
+  - aws_ecr_login
+  - publish_backend
+  - deploy_backend
+  - build_frontend
+  - deploy_frontend
+
+check_infrastructure:
+  stage: check_infrastructure
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+      changes:
+        - infrastructure/**/*
+  image:
+    name: hashicorp/terraform:latest
+    entrypoint: [ "" ]
+  script:
+    - terraform fmt -recursive -check
+    - terraform validate
+  allow_failure: false
+
+check_frontend:
+  stage: check_frontend
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+      changes:
+        - frontend/**/*
+      when: always
+  image: node:22.13-alpine
+  cache:
+    paths:
+      - frontend/node_modules
+    key: $CI_PROJECT_NAME-frontend-cache
+  before_script:
+    - cd frontend
+    - npm ci
+  script:
+    - npm run lint
+    - npm run format
+
+build_backend:
+  stage: build_backend
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+      changes:
+        - backend/**/*
+      when: always
+  image: gradle:latest
+  cache:
+    paths:
+      - backend/.gradle/
+      - backend/build/
+    key: $CI_PROJECT_NAME-backend-cache
+  before_script:
+    - cd backend
+    - cp $ENV_FILE .env
+  script:
+    - gradle build --build-cache
+  after_script:
+    - cd backend
+    - chmod +x scripts/ci/generate-codequality-report-from-checkstyle.sh
+    - scripts/ci/generate-codequality-report-from-checkstyle.sh build/reports/checkstyle/main.xml > checkstyle-report.json
+  artifacts:
+    when: always
+    reports:
+      codequality:
+        - backend/checkstyle-report.json
+
+aws_ecr_login:
+  stage: aws_ecr_login
+  rules:
+    - if: '$CI_COMMIT_BRANCH =~ /^release.*/'
+  image:
+    name: amazon/aws-cli
+    entrypoint: [ "" ]
+  variables:
+    AWS_ACCESS_KEY_ID: $AWS_ECR_ACCESS_KEY_ID
+    AWS_SECRET_ACCESS_KEY: $AWS_ECR_SECRET_KEY
+    AWS_DEFAULT_REGION: $AWS_DEFAULT_REGION
+  script:
+    - aws ecr get-login-password --region $AWS_DEFAULT_REGION >> password.txt
+  artifacts:
+    paths:
+      - password.txt
+
+publish_backend:
+  stage: publish_backend
+  rules:
+    - if: '$CI_COMMIT_BRANCH =~ /^release.*/'
+  needs:
+    - job: aws_ecr_login
+      artifacts: true
+  image: gradle:latest
+  services:
+    - docker:dind
+  variables:
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_DRIVER: overlay2
+    DOCKER_TLS_CERTDIR: ""
+  before_script:
+    - cd backend
+  script:
+    - gradle jib -Djib.to.image=$AWS_ECR_REPO_URI -Djib.to.auth.username=AWS -Djib.to.auth.password=$(cat ../password.txt)
+
+deploy_backend:
+  stage: deploy_backend
+  rules:
+    - if: '$CI_COMMIT_BRANCH =~ /^release.*/'
+  needs:
+    - job: publish_backend
+  image:
+    name: amazon/aws-cli
+    entrypoint: [ "" ]
+  variables:
+    AWS_ACCESS_KEY_ID: $AWS_ECS_ACCESS_KEY_ID
+    AWS_SECRET_ACCESS_KEY: $AWS_ECS_SECRET_KEY
+    AWS_DEFAULT_REGION: $AWS_DEFAULT_REGION
+  script:
+    - aws ecs update-service --cluster $AWS_ECS_CLUSTER_NAME --service $AWS_ECS_SERVICE_NAME --force-new-deployment
+
+build_frontend:
+  stage: build_frontend
+  rules:
+    - if: '$CI_COMMIT_BRANCH =~ /^release.*/'
+  image: node:22.13-alpine
+  cache:
+    paths:
+      - frontend/node_modules
+    key: $CI_PROJECT_NAME-frontend-build-cache
+  before_script:
+    - cd frontend
+    - cp $FE_ENV_FILE .env
+    - npm ci
+  script:
+    - npm run build
+  artifacts:
+    paths:
+      - frontend/dist
+
+deploy_frontend:
+  stage: deploy_frontend
+  rules:
+    - if: '$CI_COMMIT_BRANCH =~ /^release.*/'
+  needs:
+    - job: build_frontend
+      artifacts: true
+  image:
+    name: amazon/aws-cli
+    entrypoint: [ "" ]
+  variables:
+    AWS_ACCESS_KEY_ID: $AWS_FRONTEND_ACCESS_KEY_ID
+    AWS_SECRET_ACCESS_KEY: $AWS_FRONTEND_SECRET_KEY
+    AWS_DEFAULT_REGION: $AWS_DEFAULT_REGION
+  before_script:
+    - export AWS_CLOUDFRONT_DISTRIBUTION_ID=$(aws cloudfront list-distributions --query "DistributionList.Items[?Origins.Items[?DomainName=='$AWS_FRONTEND_BUCKET_NAME.s3.$AWS_DEFAULT_REGION.amazonaws.com']].Id" --output text)
+  script:
+    - aws s3 sync frontend/dist s3://$AWS_FRONTEND_BUCKET_NAME --delete
+    - aws cloudfront create-invalidation --distribution-id $AWS_CLOUDFRONT_DISTRIBUTION_ID --paths "/*"

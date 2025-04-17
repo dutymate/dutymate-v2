@@ -1,0 +1,81 @@
+spring:
+  config:
+    import: optional:file:.env[.properties]
+  # MySQL DataSource 설정
+  datasource:
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+    driver-class-name: ${SPRING_DATASOURCE_DRIVER_CLASS_NAME}
+
+  data:
+    # MongoDB 설정
+    mongodb:
+      uri: ${SPRING_DATA_MONGODB_URI}
+      database: ${SPRING_DATA_MONGODB_DATABASE}  # 사용할 MongoDB 데이터베이스
+    # Redis 설정
+    redis:
+      host: ${SPRING_DATA_REDIS_HOST}
+      port: ${SPRING_DATA_REDIS_PORT}
+      ssl:
+        enabled: ${SPRING_DATA_REDIS_SSL_ENABLED}
+
+decorator:
+  datasource:
+    p6spy:
+      enable-logging: ${DECORATOR_DATASOURCE_P6SPY_ENABLE_LOGGING}
+
+# JWT 비밀키, 유효기간 설정
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: ${JWT_EXPIRATION}
+
+# KAKAO 소셜 로그인 환경변수
+kakao:
+  client:
+    id: ${KAKAO_CLIENT_ID}
+  token:
+    uri: ${KAKAO_TOKEN_URI}
+  user:
+    uri: ${KAKAO_USER_URI}
+  redirect:
+    uri: ${KAKAO_REDIRECT_URI}
+
+# GOOGLE 소셜 로그인 환경변수
+google:
+  client:
+    id: ${GOOGLE_CLIENT_ID}
+    secret: ${GOOGLE_CLIENT_SECRET}
+  token:
+    uri: ${GOOGLE_TOKEN_URI}
+  user:
+    uri: ${GOOGLE_USER_URI}
+  redirect:
+    uri: ${GOOGLE_REDIRECT_URI}
+
+#AWS
+cloud:
+  aws:
+    credentials:
+      access-key: ${CLOUD_AWS_CREDENTIALS_ACCESS_KEY}
+      secret-key: ${CLOUD_AWS_CREDENTIALS_SECRET_KEY}
+    region:
+      static: ${CLOUD_AWS_REGION_STATIC}   # 버킷의 리전
+    s3:
+      bucket: ${CLOUD_AWS_S3_BUCKET}   # 버킷 이름
+    stack:
+      auto: ${CLOUD_AWS_STACK_AUTO}
+
+# NAVER 환경변수
+naver:
+  client:
+    id: ${NAVER_CLIENT_ID}
+    secret: ${NAVER_CLIENT_SECRET}
+  news:
+    uri: https://openapi.naver.com/v1/search/news.json?query=간호사&display=50&start=1&sort=sim
+
+# OPENAI 환경변수
+openai:
+  uri: https://api.openai.com/v1/chat/completions
+  model: ${OPENAI_MODEL}
+  secret-key: ${OPENAI_SECRET_KEY}

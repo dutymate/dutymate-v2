@@ -1,0 +1,24 @@
+/* 기존 스타일 유지 */
+
+/* 커스텀 스크롤바 스타일 수정 */
+.custom-scrollbar::-webkit-scrollbar {
+	width: 8px; /* 스크롤바 너비 */
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+	background: transparent; /* 트랙 배경 투명하게 */
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+	background: #d9d9d9; /* 스크롤바 색상 */
+	border-radius: 10px; /* 스크롤바 모서리 둥글게 */
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+	background: #bdbdbd; /* 호버시 약간 어두워지게 */
+}
+
+/* 스크롤바 화살표 버튼 제거 */
+.custom-scrollbar::-webkit-scrollbar-button {
+	display: none;
+}

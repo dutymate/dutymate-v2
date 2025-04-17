@@ -1,0 +1,18 @@
+{
+	"wdayDCnt": 3,
+	"wdayECnt": 2,
+	"wdayNCnt": 2,
+	"wendDCnt": 2,
+	"wendECnt": 2,
+	"wendNCnt": 2,
+	"maxN": 6,
+	"prioMaxN": 3,
+	"minN": 4,
+	"prioMinN": 3,
+	"offCntAfterN": 2,
+	"prioOffCntAfterN": 2,
+	"maxShift": 5,
+	"prioMaxShift": 3,
+	"offCntAfterMaxShift": 2,
+	"prioOffCntAfterMaxShift": 2
+}

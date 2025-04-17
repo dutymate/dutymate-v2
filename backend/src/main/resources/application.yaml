@@ -1,0 +1,24 @@
+spring:
+  # 환경변수 파일 설정
+  profiles:
+    include: env
+
+  # JPA 설정
+  jpa:
+    database: mysql
+    database-platform: org.hibernate.dialect.MySQL8Dialect
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true
+
+  # 최대 이미지 파일 크기 설정
+  servlet:
+    multipart:
+      maxFileSize: 10MB
+      maxRequestSize: 10MB
+
+  # Object Mapper 타임존 설정
+  jackson:
+    time-zone: Asia/Seoul

@@ -1,0 +1,185 @@
+{
+	"id": "67a0fc5f9b85c0298342b473",
+	"year": 2025,
+	"month": 3,
+	"invalidCnt": 0,
+	"duty": [
+		{
+			"memberId": 2,
+			"name": "김민성",
+			"role": "HN",
+			"prevShifts": "XXXD",
+			"shifts": "NDDNNNONODDNDNNONODDDNNNOOXXXNN"
+		},
+		{
+			"memberId": 3,
+			"name": "MIKE KIM",
+			"role": "HN",
+			"prevShifts": "XXXX",
+			"shifts": "NNNOODDDDNNNOOODDDNNNOODDDDNNND"
+		},
+		{
+			"memberId": 13,
+			"name": "김민호",
+			"role": "HN",
+			"prevShifts": "XXXX",
+			"shifts": "OOODDDNNNOOODDDNNNOOODDDNNNOOOE"
+		},
+		{
+			"memberId": 14,
+			"name": "박서연",
+			"role": "RN",
+			"prevShifts": "XXXX",
+			"shifts": "DDDEEENNNNNNDDDEEENNNOOODDDEEDN"
+		},
+		{
+			"memberId": 15,
+			"name": "이준호",
+			"role": "RN",
+			"prevShifts": "XXXX",
+			"shifts": "DEEENNNOOODDDEEENNNOOODDDEEENND"
+		},
+		{
+			"memberId": 16,
+			"name": "정유진",
+			"role": "RN",
+			"prevShifts": "XXXX",
+			"shifts": "NNNOOODDDEEENNNOOODDDEEENNNOOOE"
+		},
+		{
+			"memberId": 17,
+			"name": "최민서",
+			"role": "RN",
+			"prevShifts": "XXXX",
+			"shifts": "NOOODDDEEENNNOOODDDEEENNNOOODDD"
+		},
+		{
+			"memberId": 18,
+			"name": "강현우",
+			"role": "RN",
+			"prevShifts": "XXXX",
+			"shifts": "DDDNNNOOOXXXXXXXDDDNNNOOOXXXDDE"
+		},
+		{
+			"memberId": 19,
+			"name": "송지원",
+			"role": "RN",
+			"prevShifts": "XXXX",
+			"shifts": "NNNOOODDDNNNOONODDDNNNOODDDDNNN"
+		},
+		{
+			"memberId": 20,
+			"name": "임수진",
+			"role": "RN",
+			"prevShifts": "XXXX",
+			"shifts": "EOOODDDNNNOOODDDNNNOOODDDNNNNNN"
+		}
+	],
+	"issues": [
+		{
+			"name": "김민성",
+			"startDate": 8,
+			"endDate": 10,
+			"endDateShift": "D",
+			"message": "NOD 형태의 근무는 불가능 합니다."
+		},
+		{
+			"name": "김민성",
+			"startDate": 17,
+			"endDate": 19,
+			"endDateShift": "D",
+			"message": "NOD 형태의 근무는 불가능 합니다."
+		},
+		{
+			"name": "김민성",
+			"startDate": 1,
+			"endDate": 2,
+			"endDateShift": "D",
+			"message": "ND 형태의 근무는 불가능 합니다."
+		},
+		{
+			"name": "김민성",
+			"startDate": 12,
+			"endDate": 13,
+			"endDateShift": "D",
+			"message": "ND 형태의 근무는 불가능 합니다."
+		},
+		{
+			"name": "MIKE KIM",
+			"startDate": 30,
+			"endDate": 31,
+			"endDateShift": "D",
+			"message": "ND 형태의 근무는 불가능 합니다."
+		},
+		{
+			"name": "박서연",
+			"startDate": 7,
+			"endDate": 10,
+			"endDateShift": "N",
+			"message": "NNNN 형태의 근무는 불가능 합니다."
+		},
+		{
+			"name": "박서연",
+			"startDate": 8,
+			"endDate": 11,
+			"endDateShift": "N",
+			"message": "NNNN 형태의 근무는 불가능 합니다."
+		},
+		{
+			"name": "박서연",
+			"startDate": 9,
+			"endDate": 12,
+			"endDateShift": "N",
+			"message": "NNNN 형태의 근무는 불가능 합니다."
+		},
+		{
+			"name": "박서연",
+			"startDate": 12,
+			"endDate": 13,
+			"endDateShift": "D",
+			"message": "ND 형태의 근무는 불가능 합니다."
+		},
+		{
+			"name": "박서연",
+			"startDate": 29,
+			"endDate": 30,
+			"endDateShift": "D",
+			"message": "ED 형태의 근무는 불가능 합니다."
+		},
+		{
+			"name": "이준호",
+			"startDate": 30,
+			"endDate": 31,
+			"endDateShift": "D",
+			"message": "ND 형태의 근무는 불가능 합니다."
+		},
+		{
+			"name": "송지원",
+			"startDate": 15,
+			"endDate": 17,
+			"endDateShift": "D",
+			"message": "NOD 형태의 근무는 불가능 합니다."
+		},
+		{
+			"name": "임수진",
+			"startDate": 26,
+			"endDate": 29,
+			"endDateShift": "N",
+			"message": "NNNN 형태의 근무는 불가능 합니다."
+		},
+		{
+			"name": "임수진",
+			"startDate": 27,
+			"endDate": 30,
+			"endDateShift": "N",
+			"message": "NNNN 형태의 근무는 불가능 합니다."
+		},
+		{
+			"name": "임수진",
+			"startDate": 28,
+			"endDate": 31,
+			"endDateShift": "N",
+			"message": "NNNN 형태의 근무는 불가능 합니다."
+		}
+	]
+}
