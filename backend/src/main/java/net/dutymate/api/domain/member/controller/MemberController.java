@@ -33,7 +33,6 @@ import net.dutymate.api.global.entity.Member;
 import net.dutymate.api.global.enums.EmailVerificationResult;
 
 import jakarta.validation.Valid;
-
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -50,7 +49,7 @@ public class MemberController {
 		String verifiedEmail = "email:verified:" + signUpRequestDto.getEmail();
 		String isVerified = redisTemplate.opsForValue().get(verifiedEmail);
 
-		if(!("true".equals(isVerified))){
+		if (!("true".equals(isVerified))) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "이메일 인증이 완료 되지 않았습니다.");
 		}
 
