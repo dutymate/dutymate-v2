@@ -1,11 +1,16 @@
 package net.dutymate.api.domain.member.service;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -32,12 +37,15 @@ import net.dutymate.api.domain.member.dto.MypageResponseDto;
 import net.dutymate.api.domain.member.dto.ProfileImgResponseDto;
 import net.dutymate.api.domain.member.dto.SignUpRequestDto;
 import net.dutymate.api.domain.member.repository.MemberRepository;
+import net.dutymate.api.domain.member.util.StringGenerator;
+import net.dutymate.api.domain.ward.dto.WardRequestDto;
 import net.dutymate.api.domain.ward.repository.EnterWaitingRepository;
 import net.dutymate.api.domain.ward.repository.WardRepository;
 import net.dutymate.api.domain.wardmember.repository.WardMemberRepository;
 import net.dutymate.api.domain.wardmember.service.WardMemberService;
 import net.dutymate.api.domain.wardschedules.collections.WardSchedule;
 import net.dutymate.api.domain.wardschedules.repository.WardScheduleRepository;
+import net.dutymate.api.domain.wardschedules.util.InitialDutyGenerator;
 import net.dutymate.api.global.auth.jwt.JwtUtil;
 import net.dutymate.api.global.entity.Member;
 import net.dutymate.api.global.entity.Ward;
@@ -57,6 +65,8 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 @RequiredArgsConstructor
 public class MemberService {
 
+	private static final String DEMO_MEMBER_PREFIX = "demo:member:";
+
 	private final MemberRepository memberRepository;
 	private final JwtUtil jwtUtil;
 	private final WardMemberRepository wardMemberRepository;
@@ -65,6 +75,8 @@ public class MemberService {
 	private final WardMemberService wardMemberService;
 	private final EnterWaitingRepository enterWaitingRepository;
 	private final WardRepository wardRepository;
+	private final InitialDutyGenerator initialDutyGenerator;
+	private final RedisTemplate<String, String> redisTemplate;
 
 	@Value("${kakao.client.id}")
 	private String kakaoClientId;
@@ -90,6 +102,9 @@ public class MemberService {
 	private String region;
 	@Value("${cloud.aws.s3.bucket}")
 	private String bucket;
+
+	@Value("${jwt.demo-expiration}")
+	private long demoExpiration;
 
 	@Transactional
 	public LoginResponseDto signUp(SignUpRequestDto signUpRequestDto) {
@@ -560,6 +575,102 @@ public class MemberService {
 		// 4. 새 비밀번호 암호화하여 저장하기
 		member.updatePassword(checkPasswordDto.getNewPassword());
 		memberRepository.save(member);
+	}
+
+	@Transactional
+	public LoginResponseDto demoLogin() {
+		final String demoEmail = StringGenerator.generateRandomString() + "@dutymate.demo";
+		final String demoPassword = "qwer1234!";
+		final String demoName = "데모계정";
+
+		SignUpRequestDto signUpRequestDto = SignUpRequestDto.builder()
+			.email(demoEmail)
+			.password(demoPassword)
+			.passwordConfirm(demoPassword)
+			.name(demoName)
+			.build();
+
+		// 회원가입
+		checkEmail(signUpRequestDto.getEmail());
+		Member newMember = signUpRequestDto.toMember(addBasicProfileImgUrl());
+		memberRepository.save(newMember);
+
+		// 부가정보 기입
+		AdditionalInfoRequestDto additionalInfoRequestDto = AdditionalInfoRequestDto.builder()
+			.role("HN").grade(10).gender("F").build();
+		addAdditionalInfo(newMember, additionalInfoRequestDto);
+
+		// 병동 생성
+		WardRequestDto wardRequestDto = WardRequestDto.builder()
+			.hospitalName("데모병원").wardName("데모병동").build();
+		// 2. Ward  생성 -> Rule 자동 생성
+		Ward ward = wardRequestDto.toWard(StringGenerator.generateWardCode());
+		wardRepository.save(ward);
+
+		// 3. WardMember 생성 (로그인한 사용자 추가)
+		WardMember wardMember = WardMember.builder()
+			.isSynced(true)
+			.ward(ward)
+			.member(newMember)
+			.build();
+		wardMemberRepository.save(wardMember);
+
+		// ward의 List에 wardMember 추가
+		ward.addWardMember(wardMember);
+
+		// 4. 현재 날짜 기준으로  year, month 생성
+		YearMonth yearMonth = YearMonth.nowYearMonth();
+
+		// 5. 병동 생성하는 멤버의 듀티표 초기화하여 mongodb에 저장하기
+		initialDutyGenerator.initializedDuty(wardMember, yearMonth);
+
+		// 로그인 (토큰 시간 1시간 설정)
+		// memberId로 AccessToken 생성
+		String accessToken = jwtUtil.create1HourToken(newMember.getMemberId());
+
+		// 레디스에 demo 계정 memberId 삽입
+		String key = DEMO_MEMBER_PREFIX + newMember.getMemberId();
+		redisTemplate.opsForValue().set(key, "demo", demoExpiration, TimeUnit.MILLISECONDS);
+
+		boolean existAdditionalInfo = true;
+		boolean existMyWard = true;
+		boolean sentWardCode = true;
+		return LoginResponseDto.of(newMember, accessToken, existAdditionalInfo, existMyWard, sentWardCode);
+	}
+
+	@Transactional
+	public void deleteDemoMember() {
+		// DEMO_MEMBER_PREFIX로 시작하는 모든 키를 SCAN으로 조회
+		ScanOptions options = ScanOptions.scanOptions().match(DEMO_MEMBER_PREFIX + "*").count(1000).build();
+
+		HashSet<Long> demoMemberIdSet = new HashSet<>();
+		try (Cursor<String> cursor = redisTemplate.scan(options)) {
+			while (cursor.hasNext()) {
+				String memberIdStr = cursor.next();
+				Long memberId = Long.parseLong(memberIdStr.substring(memberIdStr.lastIndexOf(":") + 1));
+				demoMemberIdSet.add(memberId);
+			}
+		}
+
+		// 데모계정 불러오기
+		List<Member> demoMembers = memberRepository.findByEmailEndingWith("@dutymate.demo");
+
+		// demoMemberIdSet에 없는 멤버는 삭제!!
+		for (Member demoMember : demoMembers) {
+			// 아직 데모 진행중인 경우 (레디스에 존재하는 경우) continue
+			if (demoMemberIdSet.contains(demoMember.getMemberId())) {
+				continue;
+			}
+
+			Ward ward = demoMember.getWardMember().getWard();
+			List<WardMember> wardMemberList = ward.getWardMemberList();
+
+			for (WardMember wardMember : wardMemberList) {
+				memberRepository.delete(wardMember.getMember());
+			}
+			wardScheduleRepository.deleteByWardId(ward.getWardId());
+			wardRepository.delete(ward);
+		}
 	}
 
 	// @Transactional

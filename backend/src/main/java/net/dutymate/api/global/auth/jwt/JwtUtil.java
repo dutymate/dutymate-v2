@@ -27,6 +27,8 @@ public class JwtUtil {
 	private String secretKey;
 	@Value("${jwt.expiration}")
 	private long expiration;
+	@Value("${jwt.demo-expiration}")
+	private long demoExpiration;
 
 	// SecretKey 생성
 	private SecretKey getSigningKey() {
@@ -38,6 +40,16 @@ public class JwtUtil {
 		return Jwts.builder()
 			.issuedAt(new Date())
 			.expiration(new Date(System.currentTimeMillis() + expiration))
+			.claim("memberId", memberId)
+			.signWith(getSigningKey())
+			.compact();
+	}
+
+	// Access Token 생성(1시간 유효기간)
+	public String create1HourToken(Long memberId) {
+		return Jwts.builder()
+			.issuedAt(new Date())
+			.expiration(new Date(System.currentTimeMillis() + demoExpiration))
 			.claim("memberId", memberId)
 			.signWith(getSigningKey())
 			.compact();

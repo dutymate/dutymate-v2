@@ -5,7 +5,7 @@ import java.util.List;
 
 import org.mindrot.jbcrypt.BCrypt;
 
-import net.dutymate.api.domain.member.util.NicknameGenerator;
+import net.dutymate.api.domain.member.util.StringGenerator;
 import net.dutymate.api.global.entity.community.Board;
 import net.dutymate.api.global.entity.community.BoardLikes;
 import net.dutymate.api.global.entity.community.Comment;
@@ -87,7 +87,7 @@ public class Member {
 	// 멤버 초기값 설정 (닉네임, 생성시각, 활성화여부)
 	@PrePersist
 	public void prePersist() {
-		this.nickname = NicknameGenerator.generateNickname();
+		this.nickname = StringGenerator.generateNickname();
 		this.createdAt = new Timestamp(System.currentTimeMillis());
 		this.isActive = true;
 	}

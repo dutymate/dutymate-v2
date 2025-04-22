@@ -1,8 +1,9 @@
 package net.dutymate.api.domain.member.util;
 
+import java.security.SecureRandom;
 import java.util.Random;
 
-public class NicknameGenerator {
+public class StringGenerator {
 	// 형용사 배열
 	private static final String[] adjectives = {
 		"귀여운", "발랄한", "사랑스런", "똑똑한", "활발한", "졸린", "쑥스러운", "용감한", "상냥한", "행복한",
@@ -15,6 +16,10 @@ public class NicknameGenerator {
 		"코끼리", "페르시안", "스피츠", "호랑이", "돌고래", "코뉴어", "페럿", "다람쥐", "이구아나", "비글"
 	};
 
+	private static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+	private static final int LENGTH = 15;
+	private static final SecureRandom random = new SecureRandom();
+
 	// 랜덤 닉네임 생성 함수
 	public static String generateNickname() {
 		Random random = new Random();
@@ -26,5 +31,26 @@ public class NicknameGenerator {
 		int number = random.nextInt(99) + 1;
 
 		return adjective + animal + number;
+	}
+
+	public static String generateRandomString() {
+		StringBuilder sb = new StringBuilder(LENGTH);
+		for (int i = 0; i < LENGTH; i++) {
+			int index = random.nextInt(CHARACTERS.length());
+			sb.append(CHARACTERS.charAt(index));
+		}
+		return sb.toString();
+	}
+
+	// wardCode : 랜덤한 6자리 대문자 + 숫자 조합 코드 생성
+	public static String generateWardCode() {
+		Random random = new Random();
+		StringBuilder code = new StringBuilder();
+		String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+		int wardCodeLength = 6;
+		while (wardCodeLength-- > 0) {
+			code.append(characters.charAt(random.nextInt(characters.length())));
+		}
+		return code.toString();
 	}
 }

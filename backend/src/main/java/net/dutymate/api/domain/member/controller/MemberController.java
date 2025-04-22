@@ -146,6 +146,18 @@ public class MemberController {
 		return ResponseEntity.ok().build();
 	}
 
+	@PostMapping("/login/demo")
+	public ResponseEntity<?> demoLogin() {
+		LoginResponseDto loginResponseDto = memberService.demoLogin();
+		return ResponseEntity.ok(loginResponseDto);
+	}
+
+	@DeleteMapping("/demo")
+	public ResponseEntity<?> deleteDemoMember() {
+		memberService.deleteDemoMember();
+		return ResponseEntity.ok().build();
+	}
+
 	@PostMapping("/email-verification")
 	public ResponseEntity<?> sendCodeToEmail(@RequestBody SendCodeRequestDto sendCodeRequestDto) {
 		emailService.sendCode(sendCodeRequestDto);
