@@ -72,6 +72,9 @@ public class Member {
 	@Column(columnDefinition = "tinyint(1)", nullable = false)
 	private Boolean isActive;
 
+	@Column(nullable = false)
+	private Boolean isVerified;
+
 	@OneToOne(mappedBy = "member", cascade = CascadeType.ALL)
 	private WardMember wardMember;
 
@@ -90,6 +93,7 @@ public class Member {
 		this.nickname = StringGenerator.generateNickname();
 		this.createdAt = new Timestamp(System.currentTimeMillis());
 		this.isActive = true;
+		this.isVerified = true;		// 신규 회원은 이메일 인증된 상태로 간주
 	}
 
 	public void changeAdditionalInfo(Integer grade, Gender gender, Role role) {
