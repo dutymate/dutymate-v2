@@ -62,31 +62,66 @@ const Landing = () => {
 				description="듀티메이트의 랜딩 페이지입니다."
 			/>
 			<LandingTemplate showIntroText={true}>
-				<Button
-					color="tertiary"
-					size="lg"
-					width="long"
-					onClick={handleStart}
-					className="mt-[0.0625rem] lg:mt-[3rem] h-[2.5rem] lg:h-[3rem] bg-primary hover:bg-primary-dark text-white"
-				>
-					<span className="text-[1.25rem] lg:text-[1rem]">시작하기</span>
-				</Button>
+				<div className="flex flex-col items-center gap-4 w-full">
+					{/* 모바일: 세로 스택, 데스크탑: 가로 배치 */}
+					<div className="flex flex-col sm:flex-row gap-3 w-full max-w-[23.2rem]">
+						<Button
+							color="secondary"
+							size="lg"
+							className="w-full h-[3.5rem] sm:h-[3rem] bg-white border border-gray-300 hover:text-black"
+							onClick={() => toast.info("준비 중입니다.")}
+						>
+							<span className="text-[1rem]">Google Play</span>
+						</Button>
 
-				<div className="flex gap-2 p-4">
-					사용법이 궁금하다면?
-					<span
-						className="text-primary-dark cursor-pointer font-semibold"
-						onClick={handleGoToTutorial}
+						<Button
+							color="secondary"
+							size="lg"
+							className="w-full h-[3.5rem] sm:h-[3rem] bg-white border border-gray-300 hover:text-black"
+							onClick={() => toast.info("준비 중입니다.")}
+						>
+							<span className="text-[1rem]">App Store</span>
+						</Button>
+					</div>
+
+					<Button
+						color="secondary"
+						size="lg"
+						width="long"
+						className="h-[3.5rem] sm:h-[3rem] bg-[#fff4ee] text-[#f47056] border-[0.5px] border-[#f47056] hover:bg-primary w-full max-w-[23.2rem]"
+						onClick={() => navigate("/intro")}
 					>
-						튜토리얼
-					</span>{" "}
-					|{" "}
-					<span
-						className="text-primary-dark cursor-pointer font-semibold"
-						onClick={handleGoToYoutube}
+						<span className="text-[1rem]">간편하게 기능 살펴보기</span>
+					</Button>
+
+					<Button
+						color="tertiary"
+						size="lg"
+						width="long"
+						onClick={handleStart}
+						className="h-[3.5rem] sm:h-[3rem] bg-primary hover:bg-primary-dark text-white w-full max-w-[23.2rem] mt-1 shadow-md"
 					>
-						소개영상
-					</span>
+						<span className="text-[1rem]">시작하기</span>
+					</Button>
+
+					<div className="w-full max-w-[23.2rem] mt-4 pt-4 border-t border-gray-200">
+						<p className="text-center text-gray-600">
+							사용법이 궁금하다면?{" "}
+							<span
+								className="text-primary-dark cursor-pointer font-semibold"
+								onClick={handleGoToTutorial}
+							>
+								튜토리얼
+							</span>{" "}
+							|{" "}
+							<span
+								className="text-primary-dark cursor-pointer font-semibold"
+								onClick={handleGoToYoutube}
+							>
+								소개영상
+							</span>
+						</p>
+					</div>
 				</div>
 			</LandingTemplate>
 		</>
