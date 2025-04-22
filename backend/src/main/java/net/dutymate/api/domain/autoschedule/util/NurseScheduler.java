@@ -802,6 +802,18 @@ public class NurseScheduler {
 		return schedule.toString();
 	}
 
+	public String midShiftBuilder(YearMonth yearMonth) {
+
+		StringBuilder schedule = new StringBuilder();
+		int daysInMonth = yearMonth.daysInMonth();
+
+		for (int day = 1; day <= daysInMonth; day++) {
+			schedule.append(yearMonth.isWeekend(day) ? 'O' : 'M');
+		}
+
+		return schedule.toString();
+	}
+
 	@Getter
 	@Builder
 	private static class Solution {

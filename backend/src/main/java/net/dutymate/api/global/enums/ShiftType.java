@@ -4,5 +4,6 @@ public enum ShiftType {
 	D,
 	E,
 	N,
+	M,
 	ALL
 }

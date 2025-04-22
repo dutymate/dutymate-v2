@@ -5,6 +5,7 @@ public enum Shift {
 	E("E"),
 	N("N"),
 	O("O"),
+	M("M"),
 	X("X");
 
 	private final String value;

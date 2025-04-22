@@ -87,6 +87,11 @@ public class AutoScheduleService {
 			.filter(wm -> wm.getShiftType() == ShiftType.D)
 			.toList();
 
+		//주중 Mid 전담 인원
+		List<WardMember> midWardMembers = wardMembers.stream()
+			.filter(wm -> wm.getShiftType() == ShiftType.M)
+			.toList();
+
 		int nightWardMemberCount = nightWardMembers.size();
 		int wardMemberCount = wardMembers.size();
 		int neededNurseCount = nurseScheduler.neededNurseCount(yearMonth, rule, nightWardMemberCount);
@@ -104,11 +109,10 @@ public class AutoScheduleService {
 
 		List<Request> requests = requestRepository.findAllWardRequests(member.getWardMember().getWard());
 
-		//night 전담 자동 로직에서 제거
-		wardMembers.removeIf(wm -> wm.getShiftType() == ShiftType.N);
-
 		//HN 자동 로직에서 제거
-		wardMembers.removeIf(wm -> wm.getShiftType() == ShiftType.D);
+		wardMembers.removeIf(wm -> wm.getShiftType() == ShiftType.D
+			|| wm.getShiftType() == ShiftType.M
+			|| wm.getShiftType() == ShiftType.N);
 
 		//HN 한명당 주간 근무 인원 한명 감소
 		rule.minusWdayDcnt(headWardMembers.size());
@@ -143,6 +147,15 @@ public class AutoScheduleService {
 			WardSchedule.NurseShift newNurseShift = WardSchedule.NurseShift.builder()
 				.memberId(wm.getMember().getMemberId())
 				.shifts(nurseScheduler.headShiftBuilder(yearMonth))
+				.build();
+
+			updatedShifts.add(newNurseShift);
+		}
+
+		for (WardMember wm : midWardMembers) {
+			WardSchedule.NurseShift newNurseShift = WardSchedule.NurseShift.builder()
+				.memberId(wm.getMember().getMemberId())
+				.shifts(nurseScheduler.midShiftBuilder(yearMonth))
 				.build();
 
 			updatedShifts.add(newNurseShift);
