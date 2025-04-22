@@ -31,6 +31,11 @@ module.exports = {
             dark: '#532FC8',      // duty-night-dark (rgb(83, 47, 200))
             bg: '#D5CCF5',        // duty-night-bg (rgb(213, 204, 245))
           },
+          mid: {
+            DEFAULT: '#68A6FC',   // duty-mid (rgb(104, 166, 252))
+            dark: '#5E9CFF',      // duty-mid-dark (rgb(94, 156, 255))
+            bg: '#D2E5FD',        // duty-mid-bg (rgb(210, 229, 253))
+          },
           off: {
             DEFAULT: '#999786',   // duty-off (rgb(153, 151, 134))
             dark: '#726F5A',      // duty-off-dark (rgb(114, 111, 90))

@@ -2,11 +2,11 @@ import axiosInstance from "../lib/axios";
 
 // 타입 정의
 export interface DayDuty {
-	myShift: "D" | "E" | "N" | "O";
+	myShift: "D" | "E" | "N" | "O" | "M";
 	otherShifts: {
 		grade: number;
 		name: string;
-		shift: "D" | "E" | "N" | "O";
+		shift: "D" | "E" | "N" | "O" | "M";
 	}[];
 }
 

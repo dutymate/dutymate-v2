@@ -1,5 +1,5 @@
 interface DutyBadgeProps {
-	type: "day" | "evening" | "night" | "off";
+	type: "day" | "evening" | "night" | "off" | "mid";
 	size?: "xxs" | "xs" | "sm" | "md";
 }
 
@@ -9,6 +9,7 @@ export const DutyBadgeKor = ({ type, size = "md" }: DutyBadgeProps) => {
 		evening: "bg-duty-evening-bg text-duty-evening",
 		night: "bg-duty-night-bg text-duty-night",
 		off: "bg-base-white text-duty-off border border-duty-off",
+		mid: "bg-duty-mid-bg text-duty-mid",
 	};
 
 	const borderWidthStyles = {
@@ -37,6 +38,7 @@ export const DutyBadgeKor = ({ type, size = "md" }: DutyBadgeProps) => {
 		evening: "이브닝",
 		night: "나이트",
 		off: "오프",
+		mid: "미드",
 	};
 
 	return (

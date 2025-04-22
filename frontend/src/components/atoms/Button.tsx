@@ -8,6 +8,7 @@ type ButtonColor =
 	| "evening"
 	| "night"
 	| "day"
+	| "mid"
 	| "off"
 	| "muted"
 	| "secondary"
@@ -96,6 +97,11 @@ const colorStyles: Record<
 		active: "bg-duty-day-bg text-duty-day",
 		hover: "hover:bg-duty-day hover:text-white",
 		pressed: "active:bg-duty-day-dark active:text-white",
+	},
+	mid: {
+		active: "bg-duty-mid-bg text-duty-mid",
+		hover: "hover:bg-duty-mid hover:text-white",
+		pressed: "active:bg-duty-mid-dark active:text-white",
 	},
 	off: {
 		active: "bg-duty-off-bg text-duty-off",

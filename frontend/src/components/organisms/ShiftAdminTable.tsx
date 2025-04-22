@@ -53,7 +53,7 @@ interface ShiftAdminTableProps {
 }
 
 // 근무 타입 정의 (D: 데이, E: 이브닝, N: 나이트, O: 오프, X: 미지정, ALL: 전체)
-type DutyType = "D" | "E" | "N" | "O" | "X" | "ALL";
+type DutyType = "D" | "E" | "N" | "O" | "X" | "ALL" | "M";
 // 유효한 근무 타입 (X와 ALL 제외)
 type ValidDutyType = Exclude<DutyType, "X" | "ALL">;
 // 근무 타입별 카운트 인터페이스
@@ -63,7 +63,9 @@ type DutyCounts = {
 
 // 유효한 근무 타입인지 확인하는 타입 가드 함수
 const isValidDuty = (duty: string): duty is ValidDutyType => {
-	return duty === "D" || duty === "E" || duty === "N" || duty === "O";
+	return (
+		duty === "D" || duty === "E" || duty === "N" || duty === "O" || duty === "M"
+	);
 };
 
 // Cell 컴포넌트를 분리하여 최적화
@@ -145,7 +147,7 @@ const DutyCell = memo(
 					<div className="relative z-[2]">
 						<div className="scale-[0.95]">
 							<DutyBadgeEng
-								type={duty as "D" | "E" | "N" | "O" | "X"}
+								type={duty as "D" | "E" | "N" | "O" | "X" | "M"}
 								size="sm"
 								isSelected={isSelected}
 							/>
@@ -251,7 +253,7 @@ const ShiftAdminTable = ({
 		(
 			nurseIndex: number,
 			dayIndex: number,
-			shift: "D" | "E" | "N" | "O" | "X",
+			shift: "D" | "E" | "N" | "O" | "X" | "M",
 		) => {
 			// nurseIndex나 dayIndex가 유효한지 확인
 			if (!duties[nurseIndex] || dayIndex < 0 || dayIndex >= daysInMonth) {
@@ -379,18 +381,25 @@ const ShiftAdminTable = ({
 					"ㅜ",
 					"ㅐ",
 					"ㅌ",
+					"M",
+					"ㅡ",
 				];
-				const keyMap: { [key: string]: "D" | "E" | "N" | "O" | "X" } = {
+				const keyMap: { [key: string]: "D" | "E" | "N" | "O" | "X" | "M" } = {
 					ㅇ: "D",
 					ㄷ: "E",
 					ㅜ: "N",
 					ㅐ: "O",
 					ㅌ: "X",
+					ㅡ: "M",
 				};
 
 				if (validKeys.includes(key)) {
 					const shiftKey = keyMap[key] || key;
-					handleShiftChange(row, col, shiftKey as "D" | "E" | "N" | "O" | "X");
+					handleShiftChange(
+						row,
+						col,
+						shiftKey as "D" | "E" | "N" | "O" | "X" | "M",
+					);
 
 					if (col < daysInMonth - 1) {
 						setSelectedCell({ row, col: col + 1 });
@@ -451,6 +460,7 @@ const ShiftAdminTable = ({
 		return Array.from({ length: 31 }, (_, dayIndex) => {
 			const counts: DutyCounts = {
 				D: 0,
+				M: 0,
 				E: 0,
 				N: 0,
 				O: 0,
@@ -476,6 +486,7 @@ const ShiftAdminTable = ({
 		return duties.map((nurseShifts: string[] = []) => {
 			const counts: Omit<DutyCounts, "total"> = {
 				D: 0,
+				M: 0,
 				E: 0,
 				N: 0,
 				O: 0,
@@ -782,6 +793,7 @@ const ShiftAdminTable = ({
 			"E",
 			"N",
 			"O",
+			"M",
 		];
 		tableData.push(headerRow);
 
@@ -1008,6 +1020,13 @@ const ShiftAdminTable = ({
 									<th className="p-0 text-center w-7 border-r border-gray-200">
 										<div className="flex items-center justify-center">
 											<div className="scale-[0.65]">
+												<DutyBadgeEng type="M" size="sm" variant="filled" />
+											</div>
+										</div>
+									</th>
+									<th className="p-0 text-center w-7 border-r border-gray-200">
+										<div className="flex items-center justify-center">
+											<div className="scale-[0.65]">
 												<DutyBadgeEng type="O" size="sm" variant="filled" />
 											</div>
 										</div>
@@ -1032,7 +1051,14 @@ const ShiftAdminTable = ({
 													<div key={index} className="scale-[0.65]">
 														<DutyBadgeEng
 															type={
-																shift as "X" | "D" | "E" | "N" | "O" | "ALL"
+																shift as
+																	| "X"
+																	| "D"
+																	| "E"
+																	| "N"
+																	| "O"
+																	| "ALL"
+																	| "M"
 															}
 															size="sm"
 															isSelected={false}

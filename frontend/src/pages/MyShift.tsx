@@ -13,13 +13,14 @@ import { useNavigate } from "react-router-dom";
 import { SEO } from "../components/SEO";
 // Duty 타입 변환 유틸리티 함수
 const convertDutyType = (
-	duty: "D" | "E" | "N" | "O",
-): "day" | "evening" | "night" | "off" => {
+	duty: "D" | "E" | "N" | "O" | "M",
+): "day" | "evening" | "night" | "off" | "mid" => {
 	const dutyMap = {
 		D: "day",
 		E: "evening",
 		N: "night",
 		O: "off",
+		M: "mid",
 	} as const;
 	return dutyMap[duty];
 };
@@ -27,7 +28,7 @@ const convertDutyType = (
 const MyShift = () => {
 	const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 	const [selectedDuty, setSelectedDuty] = useState<
-		"day" | "evening" | "night" | "off"
+		"day" | "evening" | "night" | "off" | "mid"
 	>("day");
 	const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 	const [myDutyData, setMyDutyData] = useState<{
@@ -38,11 +39,11 @@ const MyShift = () => {
 		nextShifts: string;
 	} | null>(null);
 	const [dayDutyData, setDayDutyData] = useState<{
-		myShift: "D" | "E" | "N" | "O";
+		myShift: "D" | "E" | "N" | "O" | "M";
 		otherShifts: {
 			grade: number;
 			name: string;
-			shift: "D" | "E" | "N" | "O";
+			shift: "D" | "E" | "N" | "O" | "M";
 		}[];
 	} | null>(null);
 	const [loading, setLoading] = useState(false);

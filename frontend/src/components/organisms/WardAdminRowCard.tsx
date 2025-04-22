@@ -164,7 +164,7 @@ const WardAdminRowCard = ({
 		setOpenSkillDropdown(false);
 	};
 
-	const handleShiftChange = (shift: "D" | "E" | "N" | "ALL") => {
+	const handleShiftChange = (shift: "D" | "E" | "N" | "M" | "ALL") => {
 		onUpdate(nurse.memberId, {
 			shift,
 			skillLevel: nurse.skillLevel || null,
@@ -293,7 +293,7 @@ const WardAdminRowCard = ({
 		}
 	};
 
-	const getDutyLabel = (duty: "D" | "N" | "ALL") => {
+	const getDutyLabel = (duty: "D" | "N" | "ALL" | "M") => {
 		if (useCustomDutyLabels && duty === "D") {
 			return {
 				label: "D",
@@ -306,20 +306,28 @@ const WardAdminRowCard = ({
 				useSmallText: false,
 			};
 		}
+		if (duty === "M") {
+			return {
+				label: "M",
+				useSmallText: true,
+			};
+		}
 		return {
 			label: duty,
 			useSmallText: false,
 		};
 	};
 
-	const getDutyMessage = (duty: "D" | "N" | "ALL") => {
+	const getDutyMessage = (duty: "D" | "N" | "M" | "ALL") => {
 		switch (duty) {
-			case "D":
-				return "평일 Day 근무만 해요.";
+			// case "D":
+			// 	return "평일 Day 근무만 해요.";
 			case "N":
-				return "Night 전담 근무자에요.";
+				return "Night 전담 근무자예요.";
 			case "ALL":
-				return "평간호사에요.";
+				return "평간호사예요.";
+			case "M":
+				return "Mid 전담 근무자예요.";
 			default:
 				return "";
 		}
@@ -495,7 +503,7 @@ const WardAdminRowCard = ({
 							)}
 						</div>
 						<div className="flex gap-[0.5rem] w-[9.6875rem]">
-							{(["D", "N", "ALL"] as const).map((duty) => {
+							{(["M", "N", "ALL"] as const).map((duty) => {
 								const dutyDisplay = getDutyLabel(duty);
 								return (
 									<DutyTooltip key={duty} message={getDutyMessage(duty)}>

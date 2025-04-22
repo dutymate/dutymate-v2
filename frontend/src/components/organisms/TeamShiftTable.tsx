@@ -216,6 +216,7 @@ const TeamShiftTable = () => {
 														| "N"
 														| "O"
 														| "X"
+														| "M"
 												}
 												variant="letter"
 												size="sm"

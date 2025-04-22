@@ -29,7 +29,7 @@ export interface Nurse {
 	/** 경력 */
 	grade: number;
 	/** 근무 유형 */
-	shift: "D" | "E" | "N" | "ALL";
+	shift: "D" | "E" | "N" | "ALL" | "M";
 	/** 숙련도 */
 	skillLevel: "LOW" | "MID" | "HIGH";
 	/** 메모 */
@@ -44,7 +44,7 @@ export interface Nurse {
  */
 export interface NurseUpdateRequest {
 	/** 근무 유형 */
-	shift: "D" | "E" | "N" | "ALL";
+	shift: "D" | "E" | "N" | "ALL" | "M";
 	/** 숙련도 */
 	skillLevel: "LOW" | "MID" | "HIGH";
 	/** 메모 */
@@ -76,7 +76,7 @@ export type Role = "HN" | "RN";
 /**
  * 근무 유형 타입
  */
-export type Shift = "D" | "E" | "N" | "ALL";
+export type Shift = "D" | "E" | "N" | "ALL" | "M";
 
 /**
  * 숙련도 타입

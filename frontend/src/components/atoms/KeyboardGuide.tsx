@@ -30,6 +30,12 @@ const KeyboardGuide = () => {
 						O
 					</kbd>
 				</div>
+				<div className="flex items-center gap-1">
+					<DutyBadgeEng type="M" size="xs" />
+					<kbd className="px-1 py-0.5 bg-gray-100 rounded font-medium text-gray-600">
+						M
+					</kbd>
+				</div>
 			</div>
 
 			<div className="h-5 w-[1px] bg-gray-200" />

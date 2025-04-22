@@ -42,13 +42,13 @@ const HistoryList = () => {
 		return (
 			<div className="flex items-center gap-2">
 				<DutyBadgeEng
-					type={item.before as "D" | "E" | "N" | "O" | "X"}
+					type={item.before as "D" | "E" | "N" | "O" | "X" | "M"}
 					size="xs"
 					variant="filled"
 				/>
 				<Icon name="right" size={12} className="text-gray-400" />
 				<DutyBadgeEng
-					type={item.after as "D" | "E" | "N" | "O" | "X"}
+					type={item.after as "D" | "E" | "N" | "O" | "X" | "M"}
 					size="xs"
 					variant="filled"
 				/>

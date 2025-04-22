@@ -71,7 +71,7 @@ const MyShiftCalendar = ({
 	const getDutyFromShifts = (
 		date: Date,
 		day: number,
-	): "day" | "evening" | "night" | "off" | null => {
+	): "day" | "evening" | "night" | "off" | "mid" | null => {
 		if (!dutyData) return null;
 
 		const currentMonth = currentDate.getMonth() + 1;
@@ -104,14 +104,17 @@ const MyShiftCalendar = ({
 		// shift가 undefined이거나 'X'인 경우 null 반환
 		if (!shift || shift === "X") return null;
 
-		const dutyMap: Record<string, "day" | "evening" | "night" | "off" | null> =
-			{
-				D: "day",
-				E: "evening",
-				N: "night",
-				O: "off",
-				X: null,
-			};
+		const dutyMap: Record<
+			string,
+			"day" | "evening" | "night" | "off" | "mid" | null
+		> = {
+			D: "day",
+			E: "evening",
+			N: "night",
+			O: "off",
+			M: "mid",
+			X: null,
+		};
 
 		return dutyMap[shift] || null;
 	};

@@ -22,13 +22,13 @@ const koreanWeekDays: Record<WeekDay, string> = {
 
 interface TodayShiftModalProps {
 	date: Date | null;
-	duty: "day" | "evening" | "night" | "off";
+	duty: "day" | "evening" | "night" | "off" | "mid";
 	dutyData: {
-		myShift: "D" | "E" | "N" | "O" | "X";
+		myShift: "D" | "E" | "N" | "O" | "X" | "M";
 		otherShifts: {
 			grade: number;
 			name: string;
-			shift: "D" | "E" | "N" | "O" | "X";
+			shift: "D" | "E" | "N" | "O" | "X" | "M";
 		}[];
 	};
 	isMobile: boolean;
@@ -137,6 +137,7 @@ const TodayShiftModal = ({
 										N: 2, // night
 										O: 3, // off
 										X: 4, // 근무 없음
+										M: 5, // mid
 									};
 									return dutyOrder[a.shift] - dutyOrder[b.shift];
 								})
