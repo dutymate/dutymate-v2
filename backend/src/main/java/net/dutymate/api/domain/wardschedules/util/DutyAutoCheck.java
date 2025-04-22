@@ -22,10 +22,9 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class DutyAutoCheck {
 
-	private static final String[] SHIFTS = {"D", "E", "N"};
 	private static final String NIGHT_SHIFT_VIOLATION_MESSAGE = "Night 근무 규칙을 위반했습니다.";
 	private static final String MAX_SHIFT_VIOLATION_MESSAGE = "최대 근무일 규칙을 위반했습니다.";
-	private static final String[] FORBIDDEN_PATTERNS = {"ND", "NE", "ED", "NOD"};
+	private static final String[] FORBIDDEN_PATTERNS = {"ND", "NE", "ED", "NOD", "NM", "EM", "NOM"};
 	private final RuleService ruleService;
 	private final MemberService memberService;
 
@@ -210,7 +209,7 @@ public class DutyAutoCheck {
 	}
 
 	private boolean isWorkingShift(char shift) {
-		return shift == 'D' || shift == 'E' || shift == 'N';
+		return shift == 'D' || shift == 'E' || shift == 'N' || shift == 'M';
 	}
 
 	private void specificPatternIssuesGenerator(Long memberId, String name, int prevShiftsDay,
@@ -322,21 +321,4 @@ public class DutyAutoCheck {
 		return result;
 	}
 
-	public List<String> generateAllCombinations(int maxShift) {
-		List<String> result = new ArrayList<>();
-		generateCombinations("", maxShift, result);
-		return result;
-	}
-
-	private void generateCombinations(String current, int remaining, List<String> result) {
-		// 기저 조건: 원하는 길이에 도달했을 때
-		if (remaining == 0) {
-			result.add(current);
-			return;
-		}
-
-		for (String shift : SHIFTS) {
-			generateCombinations(current + shift, remaining - 1, result);
-		}
-	}
 }
