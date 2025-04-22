@@ -53,9 +53,12 @@ import net.dutymate.api.global.entity.WardMember;
 import net.dutymate.api.global.enums.Gender;
 import net.dutymate.api.global.enums.Provider;
 import net.dutymate.api.global.enums.Role;
+import net.dutymate.api.global.exception.EmailNotVerifiedException;
 
 import io.netty.handler.codec.http.HttpHeaderValues;
 import lombok.RequiredArgsConstructor;
+
+import jakarta.validation.constraints.Email;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
@@ -140,6 +143,11 @@ public class MemberService {
 		// 아이디 확인
 		Member member = memberRepository.findMemberByEmail(loginRequestDto.getEmail())
 			.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "아이디 또는 비밀번호 오류입니다."));
+
+		// 이메일 인증 확인
+		if(!member.getIsVerified()){
+			throw new EmailNotVerifiedException("이메일 인증을 진행해주세요.", member.getMemberId());
+		}
 
 		// 만약 소셜 로그인한 이력이 있는 경우 예외 처리
 		checkAnotherSocialLogin(member, Provider.NONE);
