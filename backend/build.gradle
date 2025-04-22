@@ -31,26 +31,41 @@ ext {
 }
 
 dependencies {
+    // Core Spring Boot Starters
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-aop'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+
+    // Database & Persistence
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
-    implementation 'org.springframework.boot:spring-boot-starter-web'
-    implementation 'org.springframework.boot:spring-boot-starter-webflux'
-    implementation 'org.springframework.boot:spring-boot-starter-aop'
     implementation 'com.mysql:mysql-connector-j'
     implementation 'com.github.gavlyukovskiy:p6spy-spring-boot-starter:1.9.2'
+
+    // Security & Auth
     implementation 'io.jsonwebtoken:jjwt-api:0.12.6'
-    implementation 'org.mindrot:jbcrypt:0.4'
-    implementation 'org.springframework.boot:spring-boot-starter-actuator'
-    implementation 'software.amazon.awssdk:s3:2.29.52'
-    implementation 'org.springframework.boot:spring-boot-starter-validation'
     runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.6'
     runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.6'
-    compileOnly 'org.projectlombok:lombok'
+    implementation 'org.mindrot:jbcrypt:0.4'
+
+    // Mail
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
+
+    // AWS SDK
+    implementation 'software.amazon.awssdk:s3:2.29.52'
+
+    // 개발 편의성
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
+    compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
+
+    // 테스트
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
 }
 
 tasks.named('test') {

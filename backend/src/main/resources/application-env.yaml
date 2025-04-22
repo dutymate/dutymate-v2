@@ -13,12 +13,27 @@ spring:
     mongodb:
       uri: ${SPRING_DATA_MONGODB_URI}
       database: ${SPRING_DATA_MONGODB_DATABASE}  # 사용할 MongoDB 데이터베이스
+
     # Redis 설정
     redis:
       host: ${SPRING_DATA_REDIS_HOST}
       port: ${SPRING_DATA_REDIS_PORT}
       ssl:
         enabled: ${SPRING_DATA_REDIS_SSL_ENABLED}
+
+  # GOOGLE MAIL SMTP 설정
+  mail:
+    host: ${GOOGLE_SMTP_HOST:smtp.gmail.com}
+    port: ${GOOGLE_SMTP_PORT:587}
+    username: ${GOOGLE_SMTP_USERNAME}
+    password: ${GOOGLE_SMTP_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          timeout: ${GOOGLE_SMTP_TIMEOUT}
+          starttls:
+            enable: true
 
 decorator:
   datasource:
