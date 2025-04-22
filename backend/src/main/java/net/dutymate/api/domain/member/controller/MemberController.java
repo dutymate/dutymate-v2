@@ -1,5 +1,6 @@
 package net.dutymate.api.domain.member.controller;
 
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -42,9 +43,17 @@ public class MemberController {
 
 	private final MemberService memberService;
 	private final EmailService emailService;
+	private final RedisTemplate<String, String> redisTemplate;
 
 	@PostMapping
 	public ResponseEntity<?> signUp(@Valid @RequestBody SignUpRequestDto signUpRequestDto) {
+		String verifiedEmail = "email:verified:" + signUpRequestDto.getEmail();
+		String isVerified = redisTemplate.opsForValue().get(verifiedEmail);
+
+		if(!("true".equals(isVerified))){
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "이메일 인증이 완료 되지 않았습니다.");
+		}
+
 		LoginResponseDto loginResponseDto = memberService.signUp(signUpRequestDto);
 		return ResponseEntity.ok(loginResponseDto);
 	}
