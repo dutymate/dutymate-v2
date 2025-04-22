@@ -23,6 +23,8 @@ public class WebConfig implements WebMvcConfigurer {
 	private final String[] excludePath = {
 		"/error",
 		"/api/member/login", "/api/member/login/**", "/api/member/check-email",
+		"/api/member/email-verification",           // 인증 메일 전송
+		"/api/member/email-verification/confirm"	// 인증 코드 확인
 	};
 
 	@Override

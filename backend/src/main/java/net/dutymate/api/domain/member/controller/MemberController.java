@@ -1,5 +1,6 @@
 package net.dutymate.api.domain.member.controller;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import net.dutymate.api.domain.member.dto.AdditionalInfoRequestDto;
 import net.dutymate.api.domain.member.dto.AdditionalInfoResponseDto;
@@ -20,12 +22,17 @@ import net.dutymate.api.domain.member.dto.LoginRequestDto;
 import net.dutymate.api.domain.member.dto.LoginResponseDto;
 import net.dutymate.api.domain.member.dto.MypageEditRequestDto;
 import net.dutymate.api.domain.member.dto.MypageResponseDto;
+import net.dutymate.api.domain.member.dto.SendCodeRequestDto;
 import net.dutymate.api.domain.member.dto.SignUpRequestDto;
+import net.dutymate.api.domain.member.dto.VerifyCodeRequestDto;
+import net.dutymate.api.domain.member.service.EmailService;
 import net.dutymate.api.domain.member.service.MemberService;
 import net.dutymate.api.global.auth.annotation.Auth;
 import net.dutymate.api.global.entity.Member;
+import net.dutymate.api.global.enums.EmailVerificationResult;
 
 import jakarta.validation.Valid;
+
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -34,6 +41,7 @@ import lombok.RequiredArgsConstructor;
 public class MemberController {
 
 	private final MemberService memberService;
+	private final EmailService emailService;
 
 	@PostMapping
 	public ResponseEntity<?> signUp(@Valid @RequestBody SignUpRequestDto signUpRequestDto) {
@@ -130,4 +138,20 @@ public class MemberController {
 		return ResponseEntity.ok().build();
 	}
 
+	@PostMapping("/email-verification")
+	public ResponseEntity<?> sendCodeToEmail(@RequestBody SendCodeRequestDto sendCodeRequestDto) {
+		emailService.sendCode(sendCodeRequestDto);
+		return ResponseEntity.ok().build();
+	}
+
+	@PostMapping("/email-verification/confirm")
+	public ResponseEntity<?> sendCodeToEmailConfirm(@RequestBody VerifyCodeRequestDto verifyCodeRequestDto) {
+		EmailVerificationResult result = emailService.verifyCode(verifyCodeRequestDto);
+
+		return switch (result) {
+			case SUCCESS -> ResponseEntity.ok().build();
+			case CODE_EXPIRED -> throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "만료된 인증 코드입니다.");
+			case CODE_INVALID -> throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "인증 코드가 일치하지 않습니다");
+		};
+	}
 }
