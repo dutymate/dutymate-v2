@@ -92,4 +92,28 @@ public class GlobalExceptionHandler {
 			return fullClassName.substring(fullClassName.lastIndexOf('.') + 1); // 패키지명 제외
 		}
 	}
+
+	// 이메일 인증 예외처리
+	@ExceptionHandler(EmailNotVerifiedException.class)
+	protected ResponseEntity<?> handleEmailNotVerifiedException(EmailNotVerifiedException ex) {
+		final StackTraceElement source = getFirstRelevantStackTrace(ex);
+		final String methodName = source.getMethodName();
+		final String className = getSimpleClassName(source.getClassName());
+		final String status = HttpStatus.UNAUTHORIZED.name();
+		final String message = ex.getMessage();
+
+		log.error(LINE_SEPARATOR);
+		log.error(ERROR_LOG_START, methodName);
+		log.error(CLASS_FORMAT, className);
+		log.error(STATUS_FORMAT, status);
+		log.error(MESSAGE_FORMAT, message);
+
+		Map<String, Object> body = new HashMap<>();
+		body.put(TIMESTAMP_KEY, LocalDateTime.now());
+		body.put(STATUS_KEY, status);
+		body.put(MESSAGE_KEY, message);
+		body.put("memberId", ex.getMemberId());
+
+		return new ResponseEntity<>(body, HttpStatus.UNAUTHORIZED);
+	}
 }
