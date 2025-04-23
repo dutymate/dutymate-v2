@@ -26,6 +26,7 @@ public class GoogleUserResponseDto {
 			.name(name)
 			.profileImg(Optional.ofNullable(picture).orElse(defaultProfileImage))
 			.provider(Provider.GOOGLE)
+			.isVerified(true)
 			.build();
 	}
 }

@@ -49,6 +49,7 @@ public class KakaoUserResponseDto {
 				.name(profile.getNickname())
 				.profileImg(Optional.ofNullable(profile.getProfileImageUrl()).orElse(defaultProfileImageUrl))
 				.provider(Provider.KAKAO)
+				.isVerified(true)
 				.build();
 		}
 
