@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -25,6 +26,7 @@ import net.dutymate.api.domain.member.dto.MypageEditRequestDto;
 import net.dutymate.api.domain.member.dto.MypageResponseDto;
 import net.dutymate.api.domain.member.dto.SendCodeRequestDto;
 import net.dutymate.api.domain.member.dto.SignUpRequestDto;
+import net.dutymate.api.domain.member.dto.UpdateEmailVerificationRequestDto;
 import net.dutymate.api.domain.member.dto.VerifyCodeRequestDto;
 import net.dutymate.api.domain.member.service.EmailService;
 import net.dutymate.api.domain.member.service.MemberService;
@@ -173,5 +175,13 @@ public class MemberController {
 			case CODE_EXPIRED -> throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "만료된 인증 코드입니다.");
 			case CODE_INVALID -> throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "인증 코드가 일치하지 않습니다");
 		};
+	}
+
+	@PutMapping("/email-verification/{memberId}")
+	public ResponseEntity<?> updateVerifiedEmail(@PathVariable Long memberId, @RequestBody
+		UpdateEmailVerificationRequestDto updateEmailVerificationRequestDto) {
+
+		memberService.verifyAndUpdateEmail(memberId, updateEmailVerificationRequestDto);
+		return ResponseEntity.ok().build();
 	}
 }

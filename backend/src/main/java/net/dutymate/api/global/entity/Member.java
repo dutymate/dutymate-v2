@@ -144,4 +144,9 @@ public class Member {
 		this.provider = enterMember.getProvider();
 		this.profileImg = enterMember.getProfileImg();
 	}
+
+	public void updateVerifiedEmail(String email) {
+		this.email = email;
+		this.isVerified = true;
+	}
 }

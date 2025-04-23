@@ -36,6 +36,7 @@ import net.dutymate.api.domain.member.dto.MypageEditRequestDto;
 import net.dutymate.api.domain.member.dto.MypageResponseDto;
 import net.dutymate.api.domain.member.dto.ProfileImgResponseDto;
 import net.dutymate.api.domain.member.dto.SignUpRequestDto;
+import net.dutymate.api.domain.member.dto.UpdateEmailVerificationRequestDto;
 import net.dutymate.api.domain.member.repository.MemberRepository;
 import net.dutymate.api.domain.member.util.StringGenerator;
 import net.dutymate.api.domain.ward.dto.WardRequestDto;
@@ -56,13 +57,14 @@ import net.dutymate.api.global.enums.Role;
 import net.dutymate.api.global.exception.EmailNotVerifiedException;
 
 import io.netty.handler.codec.http.HttpHeaderValues;
-import lombok.RequiredArgsConstructor;
 
 import jakarta.validation.constraints.Email;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -144,17 +146,17 @@ public class MemberService {
 		Member member = memberRepository.findMemberByEmail(loginRequestDto.getEmail())
 			.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "아이디 또는 비밀번호 오류입니다."));
 
-		// 이메일 인증 확인
-		if(!member.getIsVerified()){
-			throw new EmailNotVerifiedException("이메일 인증을 진행해주세요.", member.getMemberId());
-		}
-
 		// 만약 소셜 로그인한 이력이 있는 경우 예외 처리
 		checkAnotherSocialLogin(member, Provider.NONE);
 
 		// 비밀번호 확인
 		if (!BCrypt.checkpw(loginRequestDto.getPassword(), member.getPassword())) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "아이디 또는 비밀번호 오류입니다.");
+		}
+
+		// 이메일 인증 확인
+		if (!member.getIsVerified()) {
+			throw new EmailNotVerifiedException("이메일 인증을 진행해주세요.", member.getMemberId());
 		}
 
 		// memberId로 AccessToken 생성
@@ -588,6 +590,29 @@ public class MemberService {
 		// 4. 새 비밀번호 암호화하여 저장하기
 		member.updatePassword(checkPasswordDto.getNewPassword());
 		memberRepository.save(member);
+	}
+
+	// 인증된 이메일로 업데이트하기
+	@Transactional
+	public void verifyAndUpdateEmail(Long memberId,
+		UpdateEmailVerificationRequestDto updateEmailVerificationRequestDto) {
+		// 인증 완료 여부 확인하기
+		String redisKey = "email:verified:" + updateEmailVerificationRequestDto.email();
+		String verified = redisTemplate.opsForValue().get(redisKey);
+
+		if (!"true".equals(verified)) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "인증이 완료되지 않았습니다.");
+		}
+
+		// DB에 업데이트하기
+		Member member = memberRepository.findById(memberId)
+			.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "회원 정보를 찾을 수 없습니다."));
+
+		// 인증된 이메일과 isVerified -> true로 update
+		member.updateVerifiedEmail(updateEmailVerificationRequestDto.email());
+
+		// 인증 상태 Redis에서 삭제하기
+		redisTemplate.delete(redisKey);
 	}
 
 	@Transactional
