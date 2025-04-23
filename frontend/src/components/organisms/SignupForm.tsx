@@ -1,7 +1,7 @@
-import { EmailInput, PasswordInput, Input } from "../atoms/Input";
+import { EmailInput, PasswordInput, Input, AuthCodeInput } from "../atoms/Input";
 // import googleIcon from "../../assets/google.logo.png";  // 제거
 // import kakao_logo from "../../assets/kakao_logo.png";  // 제거
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import userService from "@/services/userService";
 import { Link, useNavigate } from "react-router-dom";
@@ -42,6 +42,35 @@ const SignupForm = () => {
 		passwordConfirm?: string;
 		name?: string;
 	}>({});
+
+	const [authCodeSent, setAuthCodeSent] = useState(false);
+	const [authCode, setAuthCode] = useState(""); // 사용자가 입력하는 인증 코드
+	// const [serverCode, setServerCode] = useState(""); // 서버에서 받은 인증 코드
+	const [isVerified, setIsVerified] = useState(false);
+	const [authCodeStatus, setAuthCodeStatus] = useState<"idle" | "success" | "error">("idle");
+
+
+	// 상태
+	const [timer, setTimer] = useState(300); // 5분
+	const [authCodeExpired, setAuthCodeExpired] = useState(false);
+	
+	useEffect(() => {
+		if (!authCodeSent || timer <= 0) return;
+	
+		const interval = setInterval(() => {
+			setTimer((prev) => {
+				if (prev <= 1) {
+					clearInterval(interval);
+					setAuthCodeExpired(true); // 만료 처리
+					return 0;
+				}
+				return prev - 1;
+			});
+		}, 1000);
+	
+		return () => clearInterval(interval);
+	}, [authCodeSent, timer]);
+	
 
 	const handleKakaoSignup = () => {
 		window.location.href = import.meta.env.VITE_KAKAO_LOGIN_URL;
@@ -199,10 +228,73 @@ const SignupForm = () => {
 				}
 			} else {
 				// 네트워크 에러 또는 기타 에러 처리
-				toast.error(error.message);
+				toast.error(error.message, {
+					autoClose:1000
+				});
 			}
 		}
 	};
+
+	// 이메일 인증 코드 전송하는 버튼튼
+	const handleSendAuthCode = async () => {
+		const email = signupData.email.trim();
+	let isValid = true;
+
+	// 입력값 검증
+	if (!email) {
+		setError((prevError) => ({
+			...prevError,
+			email: "이메일을 입력해 주세요.",
+		}));
+		isValid = false;
+	} else if (!validateEmail(email)) {
+		setError((prevError) => ({
+			...prevError,
+			email: "올바른 이메일 형식이 아닙니다.",
+		}));
+		isValid = false;
+	}
+
+	if (!isValid) return;
+
+		try {
+			await userService.sendEmailAuthCode(signupData.email.trim());
+			setAuthCodeSent(true);
+			setTimer(300);
+			toast.success("인증번호가 발송되었습니다.");
+		}catch (error:any) {
+			toast.error(error.message);
+		}
+	};
+
+	// 인증코드 확인하기 버튼
+	const handleVerifyCode = async () => {
+		if (authCodeExpired) {
+			toast.error("인증 코드가 만료되었습니다. 다시 요청해주세요.");
+			return;
+		}
+
+		try {
+			const response = await userService.verifyEmailCode({
+				email: signupData.email.trim(),
+				code: authCode.trim(),
+			});
+	
+			if (response.status === 200) {
+				setIsVerified(true); // 인증 성공
+				setAuthCodeStatus("success");
+			} else {
+				setIsVerified(false); // 인증 실패
+				setAuthCodeStatus("error");
+			}
+		} catch (error: any) {
+			setIsVerified(false);
+			setAuthCodeStatus("error");
+			toast.error(error.message);
+		}
+	};
+	
+	
 
 	return (
 		<div className="bg-white rounded-[0.925rem] shadow-[0_0_0.9375rem_rgba(0,0,0,0.1)] px-[1.5em] py-[1.5rem] w-[20rem] sm:w-[25rem] sm:px-[2rem] sm:py-[2rem] lg:px-[3rem] lg:py-[3rem]">
@@ -220,7 +312,39 @@ const SignupForm = () => {
 						onFocus={handleSignupFocus}
 						error={error.email}
 						placeholder="이메일"
+						rightElement={
+							 (
+								<button
+									type="button"
+									className="text-xs bg-primary-20 text-primary-dark px-3 py-2 rounded"
+									onClick={handleSendAuthCode}
+								>
+									인증번호 발송
+								</button>
+							)
+						}
 					/>
+					<p className="text-xs text-gray-500 pb-1">*인증번호를 받기 위해 정확한 이메일 주소를 입력하세요. </p>
+					{/* 인증번호 입력 및 타이머 */}
+{authCodeSent && (
+	<div className="flex items-center space-x-2">
+		<AuthCodeInput
+	id="signup-authcode"
+	name="authCode"
+	value={authCode}
+	onChange={(e) => setAuthCode(e.target.value)}
+	timer={timer}
+	onVerifyClick={handleVerifyCode}
+	isVerified={isVerified}
+	status={authCodeStatus}
+	error={authCodeStatus === "error" ? "인증 코드가 일치하지 않습니다." : undefined}
+	successText={authCodeStatus === "success" ? "인증되었습니다." : undefined}
+/>
+
+
+	</div>
+)}
+
 					<PasswordInput
 						id="signup-password"
 						label=""

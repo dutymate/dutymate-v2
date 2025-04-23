@@ -4,7 +4,7 @@ export interface InputProps {
 	id: string;
 	name: string;
 	type?: string;
-	label: string;
+	label?: string;
 	placeholder?: string;
 	helpText?: string;
 	error?: string;
@@ -17,7 +17,12 @@ export interface InputProps {
 	onInvalid?: (e: React.InvalidEvent<HTMLInputElement>) => void;
 	onInput?: (e: React.FormEvent<HTMLInputElement>) => void;
 	onFocus?: (e: React.FocusEvent<HTMLInputElement>) => void;
+	rightElement?: React.ReactNode;
+	successText?: string; // 성공 메시지
+	status?: "idle" | "success" | "error"; // 인증 상태
 }
+
+
 
 export const Input = ({
 	id,
@@ -36,12 +41,34 @@ export const Input = ({
 	onInvalid,
 	onInput,
 	onFocus,
+	rightElement,
+	successText,
+	status
+	
 }: InputProps) => {
-	const inputClasses = error
-		? "col-start-1 row-start-1 block w-full rounded-md bg-white py-2.5 pr-10 pl-3 text-base text-red-900 outline outline-[0.125rem] outline-red-300/50 placeholder:text-red-300 focus:outline-[0.125rem] focus:outline-red-600/50 sm:py-3 sm:text-lg"
-		: "block w-full rounded-md bg-white px-3 py-2.5 text-base text-gray-900 outline outline-[0.125rem] outline-gray-300/50 placeholder:text-gray-400 focus:outline-[0.125rem] focus:outline-primary/50 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500 disabled:outline-gray-200/50 sm:py-3 sm:text-lg";
-
-	return (
+	const getStatusClass = () => {
+		if (status === "success") {
+			return "outline-green-500 focus:outline-green-600/50";
+		}
+		if (error || status === "error") {
+			return "text-red-900 placeholder:text-red-300 outline-red-300/50 focus:outline-red-600/50";
+		}
+		return ""; // 기본값은 변화 없음
+	};
+	
+	const inputClasses = `
+		block w-full rounded-md bg-white px-3 py-2.5 text-base text-gray-900
+		outline outline-[0.125rem] outline-gray-300/50
+		placeholder:text-gray-400
+		focus:outline-[0.125rem] focus:outline-primary/50
+		disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500 disabled:outline-gray-200/50
+		sm:py-3 sm:text-lg
+		${rightElement ? "pr-[6.5rem]" : ""}
+		${getStatusClass()}
+	`;
+	
+		
+		return (
 		<div>
 			<div className="flex justify-between items-center">
 				<label
@@ -62,7 +89,7 @@ export const Input = ({
 					</span>
 				)}
 			</div>
-			<div className={`mt-1 sm:mt-2 ${error ? "grid grid-cols-1" : ""}`}>
+			<div className={`relative mt-1 sm:mt-2 ${error ? "grid grid-cols-1" : ""}`}>
 				<input
 					id={id}
 					name={name}
@@ -86,8 +113,14 @@ export const Input = ({
 									? `${id}-optional`
 									: undefined
 					}
-					className={inputClasses}
+					className={`${inputClasses} ${rightElement ? "pr-[6.5rem]" : ""}`}
 				/>
+				{/* rightElement 버튼 추가 */}
+	{rightElement && (
+		<div className="absolute top-1/2 right-2 -translate-y-1/2">
+			{rightElement}
+		</div>
+	)}
 				{error && (
 					<HiExclamationCircle
 						aria-hidden="true"
@@ -103,6 +136,11 @@ export const Input = ({
 					{helpText}
 				</p>
 			)}
+			{status === "success" && successText && (
+	<p className="mt-2 text-sm text-green-600 sm:text-base">
+		{successText}
+	</p>
+)}
 		</div>
 	);
 };
@@ -113,6 +151,49 @@ export const EmailInput = (props: Omit<InputProps, "type">) => {
 			{...props}
 			type="email"
 			placeholder={props.placeholder || "example@domain.com"}
+		/>
+	);
+};
+
+interface AuthCodeInputProps extends Omit<InputProps, "type" | "rightElement"> {
+	timer: number;
+	isVerified : boolean;
+	onVerifyClick: () => void;
+}
+
+export const AuthCodeInput = ({
+	timer,
+	onVerifyClick,
+	status,
+	error,
+	successText,
+	isVerified,
+	...props
+}: AuthCodeInputProps) => {
+	const formattedTime = `${Math.floor(timer / 60)}:${(timer % 60).toString().padStart(2, "0")}`;
+
+	return (
+		<Input
+			{...props}
+			type="text"
+			error={status === "error" ? error : undefined}
+			successText={status === "success" ? successText : undefined}
+			status={status}
+			placeholder="인증번호를 입력하세요"
+			rightElement={
+				<div className="flex items-center space-x-1">
+					<span className="text-red-500 font-bold text-xs w-[3rem] text-right">
+						{isVerified ? "" : formattedTime}
+					</span>
+					<button
+						type="button"
+						className="bg-gray-300 text-gray-800 px-2 py-1 rounded text-xs hover:bg-gray-400"
+						onClick={onVerifyClick}
+					>
+					확인
+					</button>
+				</div>
+			}
 		/>
 	);
 };
