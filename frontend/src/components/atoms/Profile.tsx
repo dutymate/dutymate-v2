@@ -1,19 +1,86 @@
 import useUserAuthStore from "@/store/userAuthStore";
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Icon } from "./Icon";
+import { MdOutlineAccessTime } from "react-icons/md"
 
 const Profile = () => {
-	const userAuthStore = useUserAuthStore();
-	const userInfo = userAuthStore.userInfo;
+	const { userInfo } = useUserAuthStore();
 	const location = useLocation();
 
 	const isMypage = location.pathname === "/my-page";
 	const privacyPolicyUrl = import.meta.env.VITE_PRIVACY_POLICY_URL || "#";
 
+	const isDemo = userInfo?.isDemo;
+	const [timeLeft, setTimeLeft] = useState<number>(0);
+
+	const formatTime = (sec: number) => {
+		const h = String(Math.floor(sec / 3600)).padStart(2, "0");
+		const m = String(Math.floor((sec % 3600) / 60)).padStart(2, "0");
+		const s = String(sec % 60).padStart(2, "0");
+		return `${h}:${m}:${s}`;
+	};
+
+
+	useEffect(() => {
+		if(!isDemo) return;
+
+		const startTime = sessionStorage.getItem("demo-start-time");
+	if (!startTime) return;
+
+	const startTimestamp = parseInt(startTime, 10);
+	const now = Date.now();
+	const elapsedSeconds = Math.floor((now - startTimestamp) / 1000);
+	const remaining = 60 * 60 - elapsedSeconds;
+
+	if (remaining <= 0) {
+		useUserAuthStore.getState().logout();
+		window.location.href = "/";
+	} else {
+		setTimeLeft(remaining);
+	}
+}, [isDemo]);
+
+// 3️⃣ 1초마다 줄어드는 타이머 추가
+useEffect(() => {
+	if (!isDemo || timeLeft <= 0) return;
+
+	const interval = setInterval(() => {
+		setTimeLeft((prev) => {
+			if (prev <= 1) {
+				clearInterval(interval);
+				useUserAuthStore.getState().logout();
+				window.location.href = "/";
+				return 0;
+			}
+			return prev - 1;
+		});
+	}, 1000);
+
+	return () => clearInterval(interval);
+}, [isDemo, timeLeft]);
+
+
+
 	return (
 		<div className="px-[1.3rem] pb-10">
 			<div className="flex flex-col">
+
+		{/* ✅ 데모 타이머 */}
+		{isDemo && timeLeft !== null && (
+					<div className="flex items-center justify-start bg-primary-10 text-primary rounded-lg px-4 py-2 mb-4">
+						<div className="w-[2.4rem] flex justify-start ml-2">
+							<MdOutlineAccessTime className="text-primary text-5xl" />
+						</div>
+						<div className="ml-3 flex flex-col items-center justify-center text-sm">
+							<div className="font-semibold text-orange-500">이용 가능 시간</div>
+							<div className="text-[1.5rem] font-bold text-gray-800">
+								{formatTime(timeLeft)}
+							</div>
+						</div>
+					</div>
+				)}
+
 				{/* 마이페이지 텍스트와 아이콘 */}
 				<Link
 					to="/my-page"
@@ -44,6 +111,7 @@ const Profile = () => {
 							`}
 						/>
 					)}
+					
 					<span className="text-sm font-semibold">마이페이지</span>
 				</Link>
 

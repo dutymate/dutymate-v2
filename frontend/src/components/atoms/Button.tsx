@@ -1,5 +1,6 @@
 import React from "react";
 import { IoIosAddCircleOutline } from "react-icons/io";
+import { toast } from "react-toastify";
 
 type ButtonSize = "xs" | "sm" | "md" | "lg" | "xl" | "register";
 type ButtonWidth = "short" | "long" | "fit" | "full";
@@ -231,11 +232,23 @@ export const EnterWardLogoutButton = ({
 export const CommunityWriteButton = ({
 	onClick,
 	className,
-}: { onClick?: () => void; className?: string }) => {
+	isDemo = false,
+}: { onClick?: () => void; className?: string; isDemo?: boolean }) => {
+
+	const handleClick = () => {
+		if (isDemo) {
+			toast.info("로그인 후 이용 가능합니다.");
+			return;
+		}
+		onClick?.();
+	};
+
 	return (
 		<button
-			onClick={onClick}
-			className={`px-6 py-2 min-w-[7rem] bg-primary hover:bg-primary-dark text-white rounded-lg transition-colors text-sm ${className || ""}`}
+			onClick={handleClick}
+			className={`px-6 py-2 min-w-[7rem] ${
+				isDemo ? "bg-[#9CA3AF] hover:bg-[#9CA3AF] cursor-not-allowed" : "bg-primary hover:bg-primary-dark"
+			} text-white rounded-lg transition-colors text-sm ${className || ""}`}
 		>
 			글쓰기
 		</button>

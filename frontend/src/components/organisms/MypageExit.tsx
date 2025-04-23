@@ -40,7 +40,11 @@ const MypageExit = () => {
 		}
 	};
 
+	const isDemo = useUserAuthStore((state) => state.userInfo?.isDemo);
+
 	return (
+		<>
+		{!isDemo && (
 		<div className="flex flex-row justify-center items-center gap-0.5rem">
 			<button
 				onClick={handleExitButton}
@@ -55,6 +59,8 @@ const MypageExit = () => {
 				회원 탈퇴하기
 			</button>
 		</div>
+		)}
+		</>
 	);
 };
 

@@ -6,14 +6,25 @@ import "../styles/animations.css";
 import { toast } from "react-toastify";
 import { AxiosError } from "axios";
 import { SEO } from "../components/SEO";
+import axiosInstance from "@/lib/axios";
+import useUserAuthStore from "@/store/userAuthStore";
+// import { userInfo } from "os";
 
 const Landing = () => {
 	const navigate = useNavigate();
+	const setUserInfo = useUserAuthStore((state) => state.setUserInfo); //상태 업데이트 함수 
 
+	// useEffect(() => {
+	// 	// 랜딩 페이지로 접근 시, 토큰 삭제
+	// 	sessionStorage.removeItem("user-auth-storage");
+	// }, []);
 	useEffect(() => {
-		// 랜딩 페이지로 접근 시, 토큰 삭제
-		sessionStorage.removeItem("user-auth-storage");
+		const pathname = window.location.pathname;
+		if (pathname !== "/shift-admin") {
+			sessionStorage.removeItem("user-auth-storage");
+		}
 	}, []);
+	
 
 	const handleStart = async () => {
 		try {
@@ -36,6 +47,54 @@ const Landing = () => {
 			}
 			// 그 외의 모든 에러는 에러 페이지로 이동
 			navigate("/error");
+		}
+	};
+
+	const handleDemoLogin = async () => { 
+		try{
+			const { data } = await axiosInstance.post("/member/login/demo");
+
+			setUserInfo({
+				token: data.token,
+				memberId:data.memberId,
+				name: data.name,
+				role: data.role,
+				provider: data.provider,
+				profileImg: data.profileImg,
+				existAdditionalInfo: data.existAdditionalInfo,
+				existMyWard: data.existMyWard,
+				sentWardCode: data.sentWardCode,
+				isDemo: true,
+			});
+			sessionStorage.setItem("demo-start-time",Date.now().toString());
+
+			sessionStorage.setItem(
+				"user-auth-storage",
+				JSON.stringify({
+					state: {
+						userInfo: {
+							name: data.name,
+							role: data.role,
+							profileImg: data.profileImg,
+							provider: data.provider,
+							token: data.token,
+							existAdditionalInfo: data.existAdditionalInfo,
+							existMyWard: data.existMyWard,
+							sentWardCode: data.sentWardCode,
+							isDemo: true,
+						},
+					},
+				})
+			);
+
+			//이동 
+			setTimeout(() => {
+				navigate("/shift-admin");
+			  }, 50);
+
+		}catch(error) {
+			toast.error("데모 로그인 실패. 다시 시도해주세요.");
+			// console.error(error);
 		}
 	};
 
@@ -89,7 +148,7 @@ const Landing = () => {
 						size="lg"
 						width="long"
 						className="h-[3.5rem] sm:h-[3rem] bg-[#fff4ee] text-[#f47056] border-[0.5px] border-[#f47056] hover:bg-primary w-full max-w-[23.2rem]"
-						onClick={() => navigate("/intro")}
+						onClick={handleDemoLogin}
 					>
 						<span className="text-[1rem]">간편하게 기능 살펴보기</span>
 					</Button>

@@ -10,6 +10,8 @@ import boardService, {
 	RecommendedPost,
 } from "@/services/boardService";
 import { formatTimeAgo } from "@/utils/dateUtiles";
+import useUserAuthStore from "@/store/userAuthStore";
+import { toast } from "react-toastify";
 
 interface CommunityFormProps {
 	onWrite: () => void;
@@ -102,6 +104,8 @@ const CommunityForm = ({ onWrite, onPostClick }: CommunityFormProps) => {
 		}
 	};
 
+	const isDemo = useUserAuthStore((state) => state.userInfo?.isDemo);
+
 	return (
 		<>
 			<div className="bg-white rounded-xl p-4 lg:p-6 shadow-[0_0.25rem_0.75rem_rgba(0,0,0,0.1)]">
@@ -113,7 +117,9 @@ const CommunityForm = ({ onWrite, onPostClick }: CommunityFormProps) => {
 							selectedCategory={selectedCategory}
 						/>
 					</div>
-					<CommunityWriteButton onClick={onWrite} className="hidden lg:block" />
+					
+					<CommunityWriteButton onClick={onWrite} className="hidden lg:block" isDemo={isDemo}/>
+				
 				</div>
 
 				{/* 추천 게시글 영역 */}
@@ -234,12 +240,27 @@ const CommunityForm = ({ onWrite, onPostClick }: CommunityFormProps) => {
 			</div>
 
 			{/* 모바일 플로팅 버튼 */}
+		
 			<button
-				onClick={onWrite}
-				className="lg:hidden fixed bottom-6 left-1/2 transform -translate-x-1/2 w-[3.5rem] h-[3.5rem] rounded-full bg-primary-20 shadow-[0_0.25rem_0.75rem_rgba(0,0,0,0.1)] flex items-center justify-center hover:bg-primary-30 transition-colors"
-			>
-				<Icon name="edit" size={24} className="text-primary-dark" />
-			</button>
+	onClick={() => {
+		if (isDemo) {
+			toast.info("로그인 후 이용 가능합니다.");
+			return;
+		}
+		onWrite();
+	}}
+	className={`lg:hidden fixed bottom-6 left-1/2 transform -translate-x-1/2 w-[3.5rem] h-[3.5rem] rounded-full 
+		${isDemo ? "bg-[#9CA3AF] hover:bg-[#9CA3AF] cursor-not-allowed" : "bg-primary-20 hover:bg-primary-30"} 
+		shadow-[0_0.25rem_0.75rem_rgba(0,0,0,0.1)] flex items-center justify-center transition-colors`}
+>
+	<Icon
+		name="edit"
+		size={24}
+		className={isDemo ? "text-white" : "text-primary-dark"}
+	/>
+</button>
+
+			
 		</>
 	);
 };
