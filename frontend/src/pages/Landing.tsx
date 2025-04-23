@@ -12,7 +12,7 @@ import useUserAuthStore from "@/store/userAuthStore";
 
 const Landing = () => {
 	const navigate = useNavigate();
-	const setUserInfo = useUserAuthStore((state) => state.setUserInfo); //상태 업데이트 함수 
+	const setUserInfo = useUserAuthStore((state) => state.setUserInfo); //상태 업데이트 함수
 
 	// useEffect(() => {
 	// 	// 랜딩 페이지로 접근 시, 토큰 삭제
@@ -24,7 +24,6 @@ const Landing = () => {
 			sessionStorage.removeItem("user-auth-storage");
 		}
 	}, []);
-	
 
 	const handleStart = async () => {
 		try {
@@ -50,15 +49,13 @@ const Landing = () => {
 		}
 	};
 
-	const handleDemoLogin = async () => { 
-		try{
+	const handleDemoLogin = async () => {
+		try {
 			const { data } = await axiosInstance.post("/member/login/demo");
-
-
 
 			setUserInfo({
 				token: data.token,
-				memberId:data.memberId,
+				memberId: data.memberId,
 				name: data.name,
 				role: data.role,
 				provider: data.provider,
@@ -68,7 +65,7 @@ const Landing = () => {
 				sentWardCode: data.sentWardCode,
 				isDemo: true,
 			});
-			sessionStorage.setItem("demo-start-time",Date.now().toString());
+			sessionStorage.setItem("demo-start-time", Date.now().toString());
 
 			sessionStorage.setItem(
 				"user-auth-storage",
@@ -86,17 +83,14 @@ const Landing = () => {
 							isDemo: true,
 						},
 					},
-				})
+				}),
 			);
 
-
-
-			//이동 
+			//이동
 			setTimeout(() => {
 				navigate("/shift-admin");
-			  }, 50);
-
-		}catch(error) {
+			}, 50);
+		} catch (error) {
 			toast.error("데모 로그인 실패. 다시 시도해주세요.");
 			console.error(error);
 		}

@@ -176,7 +176,7 @@ const CommunityDetail = ({ post }: CommunityDetailProps) => {
 	};
 
 	const handleAddComment = async () => {
-		if(isDemo) {
+		if (isDemo) {
 			toast.info("로그인 후 이용 가능합니다.");
 			return;
 		}
@@ -488,9 +488,10 @@ const CommunityDetail = ({ post }: CommunityDetailProps) => {
 					onClick={handleAddComment}
 					disabled={isDemo}
 					className={`absolute bottom-3 right-1.5 flex px-3 py-1 text-sm rounded transition-colors
-						${isDemo
-							? "bg-gray-300 text-gray-500 cursor-not-allowed"
-							: "bg-primary hover:bg-primary-dark text-white"
+						${
+							isDemo
+								? "bg-gray-300 text-gray-500 cursor-not-allowed"
+								: "bg-primary hover:bg-primary-dark text-white"
 						}`}
 				>
 					<FaArrowUpLong className="w-4 h-4 sm:hidden" />

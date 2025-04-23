@@ -59,7 +59,7 @@ const Mypage = () => {
 				title="마이페이지 | Dutymate"
 				description="듀티메이트의 마이페이지입니다."
 			/>
-			
+
 			<div className="w-full min-h-screen flex flex-row bg-[#F4F4F4]">
 				{/* 데스크톱 Sidebar */}
 				<div className="hidden lg:block w-[14.875rem] shrink-0">
@@ -85,19 +85,18 @@ const Mypage = () => {
 							<Title title="마이페이지" subtitle="나의 정보를 확인해보세요" />
 						</div>
 						{!isDemo && (
-						<button
-							onClick={handleLogoutButton}
-							className="flex-shrink-0 w-[6.25rem] px-[0.75rem] py-[0.5rem] bg-white text-gray-900 border border-gray-200 rounded-md hover:bg-gray-50 text-xs lg:text-sm h-[2.25rem]"
-						>
-							로그아웃
-						</button>
+							<button
+								onClick={handleLogoutButton}
+								className="flex-shrink-0 w-[6.25rem] px-[0.75rem] py-[0.5rem] bg-white text-gray-900 border border-gray-200 rounded-md hover:bg-gray-50 text-xs lg:text-sm h-[2.25rem]"
+							>
+								로그아웃
+							</button>
 						)}
-
 					</div>
 					<div className="mt-4 flex justify-center">
 						<div className="w-full lg:w-[87.5rem] space-y-4">
 							<MypageProfile />
-							{!isDemo && <MypagePassword /> }
+							{!isDemo && <MypagePassword />}
 							<MypageExit />
 						</div>
 					</div>

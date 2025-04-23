@@ -2,7 +2,7 @@ import useUserAuthStore from "@/store/userAuthStore";
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Icon } from "./Icon";
-import { MdOutlineAccessTime } from "react-icons/md"
+import { MdOutlineAccessTime } from "react-icons/md";
 
 const Profile = () => {
 	const { userInfo } = useUserAuthStore();
@@ -21,76 +21,69 @@ const Profile = () => {
 		return `${h}:${m}:${s}`;
 	};
 
-
 	useEffect(() => {
-		if(!isDemo) return;
+		if (!isDemo) return;
 
 		const startTime = sessionStorage.getItem("demo-start-time");
-	if (!startTime) return;
+		if (!startTime) return;
 
-	const startTimestamp = parseInt(startTime, 10);
-	const now = Date.now();
-	const elapsedSeconds = Math.floor((now - startTimestamp) / 1000);
-	const remaining = 60 * 60 - elapsedSeconds;
+		const startTimestamp = parseInt(startTime, 10);
+		const now = Date.now();
+		const elapsedSeconds = Math.floor((now - startTimestamp) / 1000);
+		const remaining = 60 * 60 - elapsedSeconds;
 
+		if (remaining <= 0) {
+			useUserAuthStore.getState().logout();
+			window.location.href = "/";
+		} else {
+			setTimeLeft(remaining);
+		}
+	}, [isDemo]);
 
-	if (remaining <= 0) {
-		useUserAuthStore.getState().logout();
-		window.location.href = "/";
-	} else {
-		setTimeLeft(remaining);
-	}
-}, [isDemo]);
+	// 3️⃣ 1초마다 줄어드는 타이머 추가
+	useEffect(() => {
+		if (!isDemo || timeLeft <= 0) return;
 
-// 3️⃣ 1초마다 줄어드는 타이머 추가
-useEffect(() => {
+		const interval = setInterval(() => {
+			setTimeLeft((prev) => {
+				if (prev <= 1) {
+					clearInterval(interval);
+					useUserAuthStore.getState().logout();
+					window.location.href = "/";
+					return 0;
+				}
+				return prev - 1;
+			});
+		}, 1000);
 
-
-	if (!isDemo || timeLeft <= 0) return;
-
-	const interval = setInterval(() => {
-		setTimeLeft((prev) => {
-			if (prev <= 1) {
-				clearInterval(interval);
-				useUserAuthStore.getState().logout();
-				window.location.href = "/";
-				return 0;
-			}
-			return prev - 1;
-		});
-	}, 1000);
-
-	return () => clearInterval(interval);
-}, [isDemo, timeLeft]);
-
-
+		return () => clearInterval(interval);
+	}, [isDemo, timeLeft]);
 
 	return (
 		<div className="px-[1.3rem] pb-10">
 			<div className="flex flex-col">
+				{/* ✅ 데모 타이머 */}
+				{isDemo && timeLeft !== null && (
+					<div className="flex items-center justify-start bg-primary-10 text-primary rounded-lg px-4 py-2 mb-4">
+						{/* 아이콘 */}
+						<div className="w-[2.4rem] flex justify-start ml-2">
+							<MdOutlineAccessTime className="text-primary text-5xl" />
+						</div>
 
-		{/* ✅ 데모 타이머 */}
-		{isDemo && timeLeft !== null && (
-	<div className="flex items-center justify-start bg-primary-10 text-primary rounded-lg px-4 py-2 mb-4">
-		{/* 아이콘 */}
-		<div className="w-[2.4rem] flex justify-start ml-2">
-			<MdOutlineAccessTime className="text-primary text-5xl" />
-		</div>
+						{/* 오른쪽 영역: 타이틀 + 숫자 */}
+						<div className="ml-2 flex flex-col justify-center text-sm">
+							{/* ⬇️ 타이틀을 숫자와 분리 */}
+							<div className="ml-4 font-semibold text-orange-500 text-left whitespace-nowrap mb-1">
+								이용 가능 시간
+							</div>
 
-		{/* 오른쪽 영역: 타이틀 + 숫자 */}
-		<div className="ml-2 flex flex-col justify-center text-sm">
-			{/* ⬇️ 타이틀을 숫자와 분리 */}
-			<div className="ml-4 font-semibold text-orange-500 text-left whitespace-nowrap mb-1">
-				이용 가능 시간
-			</div>
-
-			{/* 타이머 숫자 */}
-			<div className="text-[1.5rem] font-bold text-gray-800 tracking-wider min-w-[7.5rem] text-left">
-				{formatTime(timeLeft)}
-			</div>
-		</div>
-	</div>
-)}
+							{/* 타이머 숫자 */}
+							<div className="text-[1.5rem] font-bold text-gray-800 tracking-wider min-w-[7.5rem] text-left">
+								{formatTime(timeLeft)}
+							</div>
+						</div>
+					</div>
+				)}
 
 				{/* 마이페이지 텍스트와 아이콘 */}
 				<Link
@@ -122,7 +115,7 @@ useEffect(() => {
 							`}
 						/>
 					)}
-					
+
 					<span className="text-sm font-semibold">마이페이지</span>
 				</Link>
 

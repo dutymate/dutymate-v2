@@ -11,8 +11,8 @@ interface UserInfo {
 	profileImg: string | null;
 	existAdditionalInfo: boolean;
 	existMyWard: boolean;
-	sentWardCode: boolean; 
-	isDemo?:boolean; //데모 계정 여부 추가
+	sentWardCode: boolean;
+	isDemo?: boolean; //데모 계정 여부 추가
 }
 
 // 부가 정보 타입

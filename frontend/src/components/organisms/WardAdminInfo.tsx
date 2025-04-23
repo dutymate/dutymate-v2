@@ -1,7 +1,7 @@
 import { Icon } from "../atoms/Icon";
 // import { SmallSearchInput } from "../atoms/Input";
 // import { SortButton, FilterButton } from "../atoms/SubButton";
-import useUserAuthStore from "@/store/userAuthStore"; 
+import useUserAuthStore from "@/store/userAuthStore";
 
 import {
 	WaitingNurseInfo,
@@ -78,7 +78,7 @@ const WardAdminInfo = ({ wardInfo, onAddTempNurse }: WardAdminInfoProps) => {
 		);
 	};
 
-	const {userInfo} = useUserAuthStore();
+	const { userInfo } = useUserAuthStore();
 	const isDemo = userInfo?.isDemo;
 
 	return (
