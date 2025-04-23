@@ -15,11 +15,13 @@ resource "aws_db_instance" "db" {
   username               = var.mysql_username
   password               = var.mysql_password
   identifier             = "dutymate-db"
-  skip_final_snapshot    = true
   multi_az               = false
   db_subnet_group_name   = aws_db_subnet_group.dbsg.name
   vpc_security_group_ids = [var.sg_mysql_id]
   parameter_group_name   = aws_db_parameter_group.db_params.name
+  kms_key_id             = var.kms_rds_key_arn
+  storage_encrypted      = true
+  skip_final_snapshot    = true
 
   tags = {
     Name = "dutymate-db"

@@ -90,6 +90,7 @@ module "networking" {
 module "rds" {
   source           = "./Modules/RDS"
   database_subnets = module.networking.database_subnets
+  kms_rds_key_arn  = module.kms.kms_rds_key_arn
   mysql_password   = var.mysql_password
   mysql_username   = var.mysql_username
   sg_mysql_id      = module.security_group.sg_mysql_id
