@@ -63,7 +63,6 @@ export const Input = ({
 		focus:outline-[0.125rem] focus:outline-primary/50
 		disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500 disabled:outline-gray-200/50
 		sm:py-3 sm:text-lg
-		${rightElement ? "pr-[6.5rem]" : ""}
 		${getStatusClass()}
 	`;
 	
@@ -113,21 +112,26 @@ export const Input = ({
 									? `${id}-optional`
 									: undefined
 					}
-					className={`${inputClasses} ${rightElement ? "pr-[6.5rem]" : ""}`}
+					className={`${inputClasses}`}
 				/>
-				{/* rightElement 버튼 추가 */}
-	{rightElement && (
-		<div className="absolute top-1/2 right-2 -translate-y-1/2">
-			{rightElement}
-		</div>
-	)}
+
 				{error && (
 					<HiExclamationCircle
 						aria-hidden="true"
-						className="pointer-events-none col-start-1 row-start-1 mr-3 size-5 self-center justify-self-end text-red-500 sm:size-6"
+						className={`
+							absolute top-1/2 -translate-y-1/2 text-red-500 w-5 h-5 sm:w-6 sm:h-6 z-10
+							right-3
+						  `}
 					/>
 				)}
+					{/* rightElement 버튼 추가 */}
+	{rightElement && (
+		<div className={`absolute top-1/2 -translate-y-1/2 z-10 ${error ? "right-10" : "right-3"}`}>
+			{rightElement}
+		</div>
+	)}
 			</div>
+						
 			{helpText && !error && (
 				<p
 					id={`${id}-description`}

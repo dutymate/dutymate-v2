@@ -99,7 +99,7 @@ const SignupForm = () => {
 		} else if (name === "password") {
 			if (!validatePassword(value.trim())) {
 				errorMessage =
-					"비밀번호는 8자 이상, 숫자 및 특수문자를 포함해야 합니다.";
+					"8자 이상, 숫자 및 특수문자를 포함해야 합니다.";
 			}
 			// 비밀번호가 변경되면 passwordConfirm 재검사
 			if (
