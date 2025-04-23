@@ -12,6 +12,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import net.dutymate.api.domain.member.dto.SendCodeRequestDto;
 import net.dutymate.api.domain.member.dto.VerifyCodeRequestDto;
+import net.dutymate.api.domain.member.repository.MemberRepository;
 import net.dutymate.api.global.enums.EmailVerificationResult;
 
 import jakarta.mail.internet.MimeMessage;
@@ -28,9 +29,24 @@ public class EmailService {
 	private static final String EMAIL_CODE_PREFIX = "email:code:";
 	private static final String TITLE = "[듀티메이트] 이메일 인증 코드 발송 안내";
 	private static final String TEXT_PREFIX = "아래 인증 코드를 복사 후 입력해주세요. \n인증코드:  ";
+	private final MemberRepository memberRepository;
 
 	// 이메일로 인증 코드 보내기
 	public void sendCode(SendCodeRequestDto sendCodeRequestDto) {
+		String email = sendCodeRequestDto.email();
+
+		// 이메일 중복 확인 (이미 회원가입한 경우 체크)
+		memberRepository.findMemberByEmail(email).ifPresent(existingMember -> {
+			String message = switch (existingMember.getProvider()){
+				case KAKAO -> "카카오 계정으로 회원가입된 이메일입니다. 카카오 로그인을 이용해주세요.";
+				case GOOGLE -> "구글 계정으로 회원가입된 이메일입니다. 구글 로그인을 이용해주세요.";
+				case NONE -> "이미 가입된 이메일입니다.";
+			};
+			
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, message);
+		});
+
+		// 인증 코드 생성 및 전송
 		String code = generateCode();
 		sendEmail(sendCodeRequestDto.email(), code);
 		saveCodeToRedis(sendCodeRequestDto.email(), code);
