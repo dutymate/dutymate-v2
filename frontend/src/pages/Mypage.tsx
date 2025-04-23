@@ -28,7 +28,6 @@ const Mypage = () => {
 					navigate("/login");
 				},
 				(error: ApiErrorResponse) => {
-					console.error("로그아웃 실패:", error);
 					if (error instanceof Error) {
 						if (error.message === "서버 연결 실패") {
 							toast.error("잠시 후 다시 시도해주세요.");
@@ -48,7 +47,6 @@ const Mypage = () => {
 				},
 			);
 		} catch (error) {
-			console.error("로그아웃 중 에러 발생:", error);
 			navigate("/error");
 		}
 	};

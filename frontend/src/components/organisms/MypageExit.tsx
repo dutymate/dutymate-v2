@@ -15,7 +15,6 @@ const MypageExit = () => {
 			profileService.exitWard(
 				() => {
 					navigate("/extra-info");
-					// console.log("병동 나가기 성공");
 				},
 				(error: ApiErrorResponse) => {
 					toast.error(error.message);

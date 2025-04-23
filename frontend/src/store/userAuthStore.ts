@@ -46,11 +46,12 @@ export const useUserAuthStore = create<UserAuthState>()(
 			additionalInfo: null,
 
 			// 액션
-			setUserInfo: (userInfo: UserInfo) =>
+			setUserInfo: (userInfo: UserInfo) => {
 				set({
 					isAuthenticated: true,
 					userInfo,
-				}),
+				});
+			},
 
 			setAdditionalInfo: (additionalInfo: AdditionalInfo) => {
 				const currentState = get();

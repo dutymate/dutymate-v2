@@ -54,6 +54,8 @@ const Landing = () => {
 		try{
 			const { data } = await axiosInstance.post("/member/login/demo");
 
+
+
 			setUserInfo({
 				token: data.token,
 				memberId:data.memberId,
@@ -87,6 +89,8 @@ const Landing = () => {
 				})
 			);
 
+
+
 			//이동 
 			setTimeout(() => {
 				navigate("/shift-admin");
@@ -94,7 +98,7 @@ const Landing = () => {
 
 		}catch(error) {
 			toast.error("데모 로그인 실패. 다시 시도해주세요.");
-			// console.error(error);
+			console.error(error);
 		}
 	};
 

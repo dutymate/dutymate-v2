@@ -33,6 +33,7 @@ const Profile = () => {
 	const elapsedSeconds = Math.floor((now - startTimestamp) / 1000);
 	const remaining = 60 * 60 - elapsedSeconds;
 
+
 	if (remaining <= 0) {
 		useUserAuthStore.getState().logout();
 		window.location.href = "/";
@@ -43,6 +44,8 @@ const Profile = () => {
 
 // 3️⃣ 1초마다 줄어드는 타이머 추가
 useEffect(() => {
+
+
 	if (!isDemo || timeLeft <= 0) return;
 
 	const interval = setInterval(() => {
@@ -68,18 +71,26 @@ useEffect(() => {
 
 		{/* ✅ 데모 타이머 */}
 		{isDemo && timeLeft !== null && (
-					<div className="flex items-center justify-start bg-primary-10 text-primary rounded-lg px-4 py-2 mb-4">
-						<div className="w-[2.4rem] flex justify-start ml-2">
-							<MdOutlineAccessTime className="text-primary text-5xl" />
-						</div>
-						<div className="ml-3 flex flex-col items-center justify-center text-sm">
-							<div className="font-semibold text-orange-500">이용 가능 시간</div>
-							<div className="text-[1.5rem] font-bold text-gray-800">
-								{formatTime(timeLeft)}
-							</div>
-						</div>
-					</div>
-				)}
+	<div className="flex items-center justify-start bg-primary-10 text-primary rounded-lg px-4 py-2 mb-4">
+		{/* 아이콘 */}
+		<div className="w-[2.4rem] flex justify-start ml-2">
+			<MdOutlineAccessTime className="text-primary text-5xl" />
+		</div>
+
+		{/* 오른쪽 영역: 타이틀 + 숫자 */}
+		<div className="ml-2 flex flex-col justify-center text-sm">
+			{/* ⬇️ 타이틀을 숫자와 분리 */}
+			<div className="ml-4 font-semibold text-orange-500 text-left whitespace-nowrap mb-1">
+				이용 가능 시간
+			</div>
+
+			{/* 타이머 숫자 */}
+			<div className="text-[1.5rem] font-bold text-gray-800 tracking-wider min-w-[7.5rem] text-left">
+				{formatTime(timeLeft)}
+			</div>
+		</div>
+	</div>
+)}
 
 				{/* 마이페이지 텍스트와 아이콘 */}
 				<Link

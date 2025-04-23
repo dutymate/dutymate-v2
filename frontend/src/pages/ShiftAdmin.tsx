@@ -19,6 +19,8 @@ const DutyManagement = () => {
 	// if(!userInfo) return <PageLoadingSpinner />;
 
 	useEffect(() => {
+
+
 		// URL에서 year와 month 파라미터 가져오기
 		const url = new URL(window.location.href);
 		const urlYear = url.searchParams.get("year");
