@@ -89,7 +89,6 @@ public class WardMemberService {
 		if (nextMonthSchedule != null) {
 			deleteWardMemberDuty(nextMonthSchedule, member);
 		}
-		// TODO 임시 간호사이면 탈퇴처리까지 해버리기
 	}
 
 	public void deleteWardMemberDuty(WardSchedule existingSchedule, Member member) {
