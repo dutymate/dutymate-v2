@@ -22,13 +22,11 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class EmailService {
 
-	private final JavaMailSender mailSender;
-	private final RedisTemplate<String, String> redisTemplate;
-
 	private static final long EXPIRE_MINUTES = 5;
 	private static final String EMAIL_CODE_PREFIX = "email:code:";
 	private static final String TITLE = "[듀티메이트] 이메일 인증 코드 발송 안내";
-	private static final String TEXT_PREFIX = "아래 인증 코드를 복사 후 입력해주세요. \n인증코드:  ";
+	private final JavaMailSender mailSender;
+	private final RedisTemplate<String, String> redisTemplate;
 	private final MemberRepository memberRepository;
 
 	// 이메일로 인증 코드 보내기
@@ -37,12 +35,12 @@ public class EmailService {
 
 		// 이메일 중복 확인 (이미 회원가입한 경우 체크)
 		memberRepository.findMemberByEmail(email).ifPresent(existingMember -> {
-			String message = switch (existingMember.getProvider()){
+			String message = switch (existingMember.getProvider()) {
 				case KAKAO -> "카카오 계정으로 회원가입된 이메일입니다. 카카오 로그인을 이용해주세요.";
 				case GOOGLE -> "구글 계정으로 회원가입된 이메일입니다. 구글 로그인을 이용해주세요.";
 				case NONE -> "이미 가입된 이메일입니다.";
 			};
-			
+
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, message);
 		});
 

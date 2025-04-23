@@ -57,14 +57,11 @@ import net.dutymate.api.global.enums.Role;
 import net.dutymate.api.global.exception.EmailNotVerifiedException;
 
 import io.netty.handler.codec.http.HttpHeaderValues;
-
-import jakarta.validation.constraints.Email;
+import lombok.RequiredArgsConstructor;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-
-import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
