@@ -71,6 +71,10 @@ module "iam" {
   source = "./Modules/IAM"
 }
 
+module "kms" {
+  source = "./Modules/KMS"
+}
+
 module "networking" {
   source                     = "./Modules/Networking"
   aws_region                 = var.aws_region
