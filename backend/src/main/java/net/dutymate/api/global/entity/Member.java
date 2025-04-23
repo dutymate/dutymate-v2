@@ -153,4 +153,8 @@ public class Member {
 		this.email = email;
 		this.isVerified = true;
 	}
+
+	public void updateAutoGenCnt(int changeNum) {
+		this.autoGenCnt = this.autoGenCnt + changeNum;
+	}
 }

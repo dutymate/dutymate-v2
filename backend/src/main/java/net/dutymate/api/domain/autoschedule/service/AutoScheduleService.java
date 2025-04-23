@@ -194,6 +194,8 @@ public class AutoScheduleService {
 		if (!isChanged) {
 			throw new ResponseStatusException(HttpStatus.METHOD_NOT_ALLOWED, "모든 조건을 만족하는 최적의 근무표입니다.");
 		}
+
+		member.updateAutoGenCnt(-1);
 		return ResponseEntity.ok("자동 생성 완료");
 	}
 
