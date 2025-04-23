@@ -273,7 +273,7 @@ const SignupForm = () => {
 			toast.error("인증 코드가 만료되었습니다. 다시 요청해주세요.");
 			return;
 		}
-
+	
 		try {
 			const response = await userService.verifyEmailCode({
 				email: signupData.email.trim(),
@@ -281,18 +281,31 @@ const SignupForm = () => {
 			});
 	
 			if (response.status === 200) {
-				setIsVerified(true); // 인증 성공
+				setIsVerified(true);
 				setAuthCodeStatus("success");
+	
+				setTimer(0);
+				setAuthCodeExpired(false);
 			} else {
-				setIsVerified(false); // 인증 실패
+				setIsVerified(false);
 				setAuthCodeStatus("error");
+	
+				setTimer(0);
+				setAuthCodeExpired(false);
+				setAuthCode("");
 			}
 		} catch (error: any) {
 			setIsVerified(false);
 			setAuthCodeStatus("error");
-			toast.error(error.message);
+	
+			setTimer(0);
+			setAuthCodeExpired(false);
+			setAuthCode("");
+	
+			// toast.error(error.message);
 		}
 	};
+	
 	
 	
 
@@ -326,7 +339,7 @@ const SignupForm = () => {
 					/>
 					<p className="text-xs text-gray-500 pb-1">*인증번호를 받기 위해 정확한 이메일 주소를 입력하세요. </p>
 					{/* 인증번호 입력 및 타이머 */}
-{authCodeSent && (
+{authCodeSent  && (
 	<div className="flex items-center space-x-2">
 		<AuthCodeInput
 	id="signup-authcode"
