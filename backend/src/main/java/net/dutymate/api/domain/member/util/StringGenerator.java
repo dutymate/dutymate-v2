@@ -16,7 +16,9 @@ public class StringGenerator {
 		"코끼리", "페르시안", "스피츠", "호랑이", "돌고래", "코뉴어", "페럿", "다람쥐", "이구아나", "비글"
 	};
 
-	private static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+	private static final String UPPER_LOWER_NUM_CHARS
+		= "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+	private static final String UPPER_NUM_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 	private static final int LENGTH = 15;
 	private static final SecureRandom random = new SecureRandom();
 
@@ -36,8 +38,8 @@ public class StringGenerator {
 	public static String generateRandomString() {
 		StringBuilder sb = new StringBuilder(LENGTH);
 		for (int i = 0; i < LENGTH; i++) {
-			int index = random.nextInt(CHARACTERS.length());
-			sb.append(CHARACTERS.charAt(index));
+			int index = random.nextInt(UPPER_LOWER_NUM_CHARS.length());
+			sb.append(UPPER_LOWER_NUM_CHARS.charAt(index));
 		}
 		return sb.toString();
 	}
@@ -46,10 +48,9 @@ public class StringGenerator {
 	public static String generateWardCode() {
 		Random random = new Random();
 		StringBuilder code = new StringBuilder();
-		String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 		int wardCodeLength = 6;
 		while (wardCodeLength-- > 0) {
-			code.append(characters.charAt(random.nextInt(characters.length())));
+			code.append(UPPER_NUM_CHARS.charAt(random.nextInt(UPPER_NUM_CHARS.length())));
 		}
 		return code.toString();
 	}

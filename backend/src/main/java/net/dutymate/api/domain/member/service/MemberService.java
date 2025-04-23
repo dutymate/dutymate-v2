@@ -66,6 +66,11 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 public class MemberService {
 
 	private static final String DEMO_MEMBER_PREFIX = "demo:member:";
+	private static final String DEMO_EMAIL_SUFFIX = "@dutymate.demo";
+	private static final String DEMO_PASSWORD = "qwer1234!";
+	private static final String DEMO_NAME = "데모계정";
+	private static final String DEMO_HOSPITAL_NAME = "듀티메이트병원";
+	private static final String DEMO_WARD_NAME = "듀티병동";
 
 	private final MemberRepository memberRepository;
 	private final JwtUtil jwtUtil;
@@ -579,15 +584,11 @@ public class MemberService {
 
 	@Transactional
 	public LoginResponseDto demoLogin() {
-		final String demoEmail = StringGenerator.generateRandomString() + "@dutymate.demo";
-		final String demoPassword = "qwer1234!";
-		final String demoName = "데모계정";
-
 		SignUpRequestDto signUpRequestDto = SignUpRequestDto.builder()
-			.email(demoEmail)
-			.password(demoPassword)
-			.passwordConfirm(demoPassword)
-			.name(demoName)
+			.email(StringGenerator.generateRandomString() + DEMO_EMAIL_SUFFIX)
+			.password(DEMO_PASSWORD)
+			.passwordConfirm(DEMO_PASSWORD)
+			.name(DEMO_NAME)
 			.build();
 
 		// 회원가입
@@ -602,7 +603,7 @@ public class MemberService {
 
 		// 병동 생성
 		WardRequestDto wardRequestDto = WardRequestDto.builder()
-			.hospitalName("데모병원").wardName("데모병동").build();
+			.hospitalName(DEMO_HOSPITAL_NAME).wardName(DEMO_WARD_NAME).build();
 		// 2. Ward  생성 -> Rule 자동 생성
 		Ward ward = wardRequestDto.toWard(StringGenerator.generateWardCode());
 		wardRepository.save(ward);
@@ -641,7 +642,7 @@ public class MemberService {
 	@Transactional
 	public void deleteDemoMember() {
 		// DEMO_MEMBER_PREFIX로 시작하는 모든 키를 SCAN으로 조회
-		ScanOptions options = ScanOptions.scanOptions().match(DEMO_MEMBER_PREFIX + "*").count(1000).build();
+		ScanOptions options = ScanOptions.scanOptions().match(DEMO_MEMBER_PREFIX + "*").count(1_000).build();
 
 		HashSet<Long> demoMemberIdSet = new HashSet<>();
 		try (Cursor<String> cursor = redisTemplate.scan(options)) {
@@ -653,7 +654,7 @@ public class MemberService {
 		}
 
 		// 데모계정 불러오기
-		List<Member> demoMembers = memberRepository.findByEmailEndingWith("@dutymate.demo");
+		List<Member> demoMembers = memberRepository.findByEmailEndingWith(DEMO_EMAIL_SUFFIX);
 
 		// demoMemberIdSet에 없는 멤버는 삭제!!
 		for (Member demoMember : demoMembers) {

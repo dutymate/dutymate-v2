@@ -3,7 +3,6 @@ package net.dutymate.api.domain.ward.service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.Random;
 
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
@@ -14,6 +13,7 @@ import org.springframework.web.server.ResponseStatusException;
 import net.dutymate.api.domain.common.utils.YearMonth;
 import net.dutymate.api.domain.member.repository.MemberRepository;
 import net.dutymate.api.domain.member.service.MemberService;
+import net.dutymate.api.domain.member.util.StringGenerator;
 import net.dutymate.api.domain.ward.dto.AddNurseCntRequestDto;
 import net.dutymate.api.domain.ward.dto.EnterWaitingResponseDto;
 import net.dutymate.api.domain.ward.dto.HospitalNameResponseDto;
@@ -65,7 +65,7 @@ public class WardService {
 		}
 
 		// 2. Ward  생성 -> Rule 자동 생성
-		Ward ward = requestWardDto.toWard(generateWardCode());
+		Ward ward = requestWardDto.toWard(StringGenerator.generateWardCode());
 		wardRepository.save(ward);
 
 		// 3. WardMember 생성 (로그인한 사용자 추가)
@@ -374,7 +374,7 @@ public class WardService {
 		wardScheduleService.updateWardSchedules(ward.getWardId(), newWardMemberList);
 	}
 
-	// wardCode : 랜덤한 6자리 대문자 + 숫자 조합 코드 생성
+	/*// wardCode : 랜덤한 6자리 대문자 + 숫자 조합 코드 생성
 	private String generateWardCode() {
 		Random random = new Random();
 		StringBuilder code = new StringBuilder();
@@ -391,7 +391,7 @@ public class WardService {
 		List<WardMember> tempNurses = wardMemberRepository.findByWardAndIsSynced(ward, false);
 
 		return "간호사" + (tempNurses.size() + index);
-	}
+	}*/
 
 	@Transactional
 	public void changeVirtualMember(
