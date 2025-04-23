@@ -94,7 +94,8 @@ public class AutoScheduleService {
 
 		int nightWardMemberCount = nightWardMembers.size();
 		int wardMemberCount = wardMembers.size();
-		int neededNurseCount = nurseScheduler.neededNurseCount(yearMonth, rule, nightWardMemberCount);
+		int neededNurseCount = nurseScheduler.neededNurseCount(yearMonth, rule, nightWardMemberCount)
+			+ midWardMembers.size();
 
 		if (wardMemberCount
 			< neededNurseCount) {
