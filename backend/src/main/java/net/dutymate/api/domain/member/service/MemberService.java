@@ -166,7 +166,7 @@ public class MemberService {
 
 		boolean sentWardCode = enterWaitingRepository.existsByMember(member);
 
-		return LoginResponseDto.of(member, accessToken, existAdditionalInfo, existMyWard, sentWardCode);
+		return LoginResponseDto.of(member, accessToken, existAdditionalInfo, existMyWard, sentWardCode, false);
 	}
 
 	@Transactional
@@ -192,7 +192,7 @@ public class MemberService {
 
 		boolean sentWardCode = enterWaitingRepository.existsByMember(member);
 
-		return LoginResponseDto.of(member, accessToken, existAdditionalInfo, existMyWard, sentWardCode);
+		return LoginResponseDto.of(member, accessToken, existAdditionalInfo, existMyWard, sentWardCode, false);
 	}
 
 	@Transactional
@@ -218,7 +218,7 @@ public class MemberService {
 
 		boolean sentWardCode = enterWaitingRepository.existsByMember(member);
 
-		return LoginResponseDto.of(member, accessToken, existAdditionalInfo, existMyWard, sentWardCode);
+		return LoginResponseDto.of(member, accessToken, existAdditionalInfo, existMyWard, sentWardCode, false);
 	}
 
 	@Transactional
@@ -663,10 +663,7 @@ public class MemberService {
 		String key = DEMO_MEMBER_PREFIX + newMember.getMemberId();
 		redisTemplate.opsForValue().set(key, "demo", demoExpiration, TimeUnit.MILLISECONDS);
 
-		boolean existAdditionalInfo = true;
-		boolean existMyWard = true;
-		boolean sentWardCode = true;
-		return LoginResponseDto.of(newMember, accessToken, existAdditionalInfo, existMyWard, sentWardCode);
+		return LoginResponseDto.of(newMember, accessToken, true, true, true, true);
 	}
 
 	@Transactional
