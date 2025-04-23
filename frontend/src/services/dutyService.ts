@@ -322,4 +322,14 @@ export const dutyService = {
 			throw error;
 		}
 	},
+
+	getAutoGenCount: async () => {
+		try {
+			const response = await axiosInstance.get("/payment");
+			return response.data.autoGenCnt;
+		} catch (error) {
+			console.error("자동 생성 횟수 조회 실패:", error);
+			throw error;
+		}
+	},
 };

@@ -27,6 +27,8 @@ import NurseCountModal from "./NurseCountModal";
 import { ruleService } from "../../services/ruleService";
 import { WardRule } from "../../services/ruleService";
 import AutoGenerateConfirmModal from "./AutoGenerateConfirmModal";
+import AutoGenCountModal from "./AutoGenCountModal";
+import PaymentModal from "./PaymentModal";
 
 // 근무표 관리자 테이블의 props 인터페이스
 interface ShiftAdminTableProps {
@@ -176,6 +178,11 @@ const ShiftAdminTable = ({
 
 	const selectedCell = useShiftStore((state) => state.selectedCell);
 	const setSelectedCell = useShiftStore((state) => state.setSelectedCell);
+
+	const [isAutoGenCountModalOpen, setIsAutoGenCountModalOpen] = useState(false);
+	const [autoGenCnt, setAutoGenCnt] = useState(0);
+
+	const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
 
 	// Add hover state management at component level
 	const [hoveredCell, setHoveredCell] = useState<{
@@ -622,8 +629,13 @@ const ShiftAdminTable = ({
 		setIsAutoGenerateModalOpen(true);
 	};
 
-	const handleAutoGenerateConfirm = async () => {
+	const handleAutoGenerateConfirm = () => {
 		setIsAutoGenerateModalOpen(false);
+		setIsAutoGenCountModalOpen(true);
+	};
+
+	const executeAutoGenerate = async () => {
+		setIsAutoGenCountModalOpen(false);
 		try {
 			setIsAutoCreating(true);
 			// 자동생성 중임을 알림
@@ -645,6 +657,9 @@ const ShiftAdminTable = ({
 				autoClose: 2000,
 				position: "top-center",
 			});
+
+			// 자동 생성 횟수 감소
+			setAutoGenCnt((prev) => prev - 1);
 		} catch (error: any) {
 			// 로딩 토스트 제거
 			toast.dismiss();
@@ -690,6 +705,31 @@ const ShiftAdminTable = ({
 			}
 		} finally {
 			setIsAutoCreating(false);
+		}
+	};
+
+	const handleSubscribe = async (plan: "monthly" | "quarterly" | "yearly") => {
+		try {
+			// 결제 API 호출 (임시 로직)
+			await new Promise((resolve) => setTimeout(resolve, 1000));
+
+			// 성공 메시지
+			toast.success(`${plan} 구독이 완료되었습니다!`, {
+				position: "top-center",
+				autoClose: 2000,
+			});
+
+			// 모달 닫기 및 자동 생성 횟수 갱신
+			setIsPaymentModalOpen(false);
+			setAutoGenCnt(10); // 결제 후 적절한 횟수로 변경
+
+			// 바로 자동 생성 모달 표시
+			setIsAutoGenCountModalOpen(true);
+		} catch (error) {
+			toast.error("구독 처리 중 오류가 발생했습니다.", {
+				position: "top-center",
+				autoClose: 2000,
+			});
 		}
 	};
 
@@ -859,6 +899,19 @@ const ShiftAdminTable = ({
 		if (count === targetCount) return "text-green-600 font-medium";
 		return "text-red-600 font-medium";
 	};
+
+	useEffect(() => {
+		const fetchAutoGenCount = async () => {
+			try {
+				const data = await dutyService.getAutoGenCount();
+				setAutoGenCnt(data); // API 응답 구조에 따라 조정
+			} catch (error) {
+				console.error("자동 생성 횟수 조회 실패:", error);
+			}
+		};
+
+		fetchAutoGenCount();
+	}, []);
 
 	return (
 		<div>
@@ -1723,6 +1776,22 @@ const ShiftAdminTable = ({
 					setIsRuleModalOpen(true);
 				}}
 				wardRules={wardRules}
+			/>
+
+			<AutoGenCountModal
+				isOpen={isAutoGenCountModalOpen}
+				onClose={() => setIsAutoGenCountModalOpen(false)}
+				onConfirm={executeAutoGenerate}
+				autoGenCnt={autoGenCnt}
+				onOpenPayment={() => {
+					setIsPaymentModalOpen(true);
+				}}
+			/>
+
+			<PaymentModal
+				isOpen={isPaymentModalOpen}
+				onClose={() => setIsPaymentModalOpen(false)}
+				onSubscribe={handleSubscribe}
 			/>
 		</div>
 	);
