@@ -6,6 +6,7 @@ import { FaArrowUpLong } from "react-icons/fa6";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { Icon } from "../atoms/Icon";
+import useUserAuthStore from "@/store/userAuthStore";
 
 interface Comment {
 	commentId: number;
@@ -51,6 +52,9 @@ const CommunityDetail = ({ post }: CommunityDetailProps) => {
 	const navigate = useNavigate();
 	const [isEditing, setIsEditing] = useState<number | null>(null);
 	const [editContent, setEditContent] = useState("");
+
+	const { userInfo } = useUserAuthStore();
+	const isDemo = userInfo?.isDemo;
 
 	// 드롭다운 외부 클릭 처리
 	useEffect(() => {
@@ -172,6 +176,11 @@ const CommunityDetail = ({ post }: CommunityDetailProps) => {
 	};
 
 	const handleAddComment = async () => {
+		if(isDemo) {
+			toast.info("로그인 후 이용 가능합니다.");
+			return;
+		}
+
 		if (!newComment.trim()) {
 			toast.error("댓글을 입력해주세요.");
 			return;
@@ -477,7 +486,12 @@ const CommunityDetail = ({ post }: CommunityDetailProps) => {
 				/>
 				<button
 					onClick={handleAddComment}
-					className="absolute bottom-3 right-1.5 flex px-3 py-1 text-sm text-white bg-primary hover:bg-primary-dark rounded"
+					disabled={isDemo}
+					className={`absolute bottom-3 right-1.5 flex px-3 py-1 text-sm rounded transition-colors
+						${isDemo
+							? "bg-gray-300 text-gray-500 cursor-not-allowed"
+							: "bg-primary hover:bg-primary-dark text-white"
+						}`}
 				>
 					<FaArrowUpLong className="w-4 h-4 sm:hidden" />
 					<span className="hidden sm:block">등록</span>

@@ -1,6 +1,8 @@
 import { Icon } from "../atoms/Icon";
 // import { SmallSearchInput } from "../atoms/Input";
 // import { SortButton, FilterButton } from "../atoms/SubButton";
+import useUserAuthStore from "@/store/userAuthStore"; 
+
 import {
 	WaitingNurseInfo,
 	WardInfo,
@@ -76,6 +78,9 @@ const WardAdminInfo = ({ wardInfo, onAddTempNurse }: WardAdminInfoProps) => {
 		);
 	};
 
+	const {userInfo} = useUserAuthStore();
+	const isDemo = userInfo?.isDemo;
+
 	return (
 		<div className="w-full">
 			<div className="bg-white rounded-[1.15rem] p-4">
@@ -126,7 +131,7 @@ const WardAdminInfo = ({ wardInfo, onAddTempNurse }: WardAdminInfoProps) => {
 							</button>
 						</div>
 						<p className="font-semibold border border-gray-300 rounded-[0.375rem] px-3 py-1 text-center">
-							{wardInfo.wardCode}
+							{isDemo ? "로그인 후 이용 가능합니다." : wardInfo.wardCode}
 						</p>
 					</div>
 
