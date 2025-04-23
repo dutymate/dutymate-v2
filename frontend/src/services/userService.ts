@@ -169,10 +169,10 @@ export const userService = {
 	/**
 	 * 이메일 인증 코드 API
 	 */
-	sendEmailAuthCode : async (email: string):Promise<void> =>{
+	sendEmailAuthCode: async (email: string): Promise<void> => {
 		try {
-			await axiosInstance.post("/member/email-verification", {email});
-		}catch(error) {
+			await axiosInstance.post("/member/email-verification", { email });
+		} catch (error) {
 			if (axios.isAxiosError(error)) {
 				throw error.response?.data;
 			}
@@ -185,10 +185,13 @@ export const userService = {
 	 */
 	verifyEmailCode: async ({ email, code }: { email: string; code: string }) => {
 		try {
-			const response= await axiosInstance.post("/member/email-verification/confirm", {
-				email,
-				code,
-			});
+			const response = await axiosInstance.post(
+				"/member/email-verification/confirm",
+				{
+					email,
+					code,
+				},
+			);
 			return response;
 		} catch (error) {
 			if (axios.isAxiosError(error)) {
@@ -196,8 +199,7 @@ export const userService = {
 			}
 			throw error;
 		}
-	}
-	
+	},
 };
 
 export default userService;

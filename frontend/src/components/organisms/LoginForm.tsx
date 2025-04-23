@@ -1,6 +1,4 @@
 import { EmailInput, PasswordInput } from "../atoms/Input";
-// import googleIcon from "../../assets/google.logo.png";  // 제거
-// import kakao_logo from "../../assets/kakao_logo.png";  // 제거
 import { useState } from "react";
 import userService from "@/services/userService";
 import { toast } from "react-toastify";
@@ -11,13 +9,16 @@ interface LoginData {
 	email: string;
 	password: string;
 }
+interface LoginFormProps {
+	onRequireVerification: (memberId: number, email: string) => void;
+}
 
 // 이메일 형식 검증
 const validateEmail = (email: string) => {
 	return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 };
 
-const LoginForm = () => {
+const LoginForm = ({ onRequireVerification }: LoginFormProps) => {
 	const navigate = useNavigate();
 	const userAuthStore = useUserAuthStore();
 
@@ -112,9 +113,20 @@ const LoginForm = () => {
 					navigate("/my-shift");
 				}
 			}
-		} catch (error) {
+		} catch (error: any) {
+			console.log("error :>> ", error);
+			// 이메일 인증이 안 된 경우,
+			if (
+				// error?.status === "UNAUTHORIZED" &&
+				error?.message === "이메일 인증을 진행해주세요."
+			) {
+				const memberId = error.memberId;
+				onRequireVerification(memberId, loginData.email);
+				return;
+			}
+
 			toast.error("이메일 또는 비밀번호가 일치하지 않습니다.");
-			navigate("/login");
+			// navigate("/login");
 		}
 	};
 

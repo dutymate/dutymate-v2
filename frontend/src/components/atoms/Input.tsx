@@ -22,8 +22,6 @@ export interface InputProps {
 	status?: "idle" | "success" | "error"; // 인증 상태
 }
 
-
-
 export const Input = ({
 	id,
 	name,
@@ -43,8 +41,7 @@ export const Input = ({
 	onFocus,
 	rightElement,
 	successText,
-	status
-	
+	status,
 }: InputProps) => {
 	const getStatusClass = () => {
 		if (status === "success") {
@@ -55,7 +52,7 @@ export const Input = ({
 		}
 		return ""; // 기본값은 변화 없음
 	};
-	
+
 	const inputClasses = `
 		block w-full rounded-md bg-white px-3 py-2.5 text-base text-gray-900
 		outline outline-[0.125rem] outline-gray-300/50
@@ -63,11 +60,10 @@ export const Input = ({
 		focus:outline-[0.125rem] focus:outline-primary/50
 		disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500 disabled:outline-gray-200/50
 		sm:py-3 sm:text-lg
-		${getStatusClass()}
+		${getStatusClass()} pr-[6rem] 
 	`;
-	
-		
-		return (
+
+	return (
 		<div>
 			<div className="flex justify-between items-center">
 				<label
@@ -88,7 +84,9 @@ export const Input = ({
 					</span>
 				)}
 			</div>
-			<div className={`relative mt-1 sm:mt-2 ${error ? "grid grid-cols-1" : ""}`}>
+			<div
+				className={`relative mt-1 sm:mt-2 ${error ? "grid grid-cols-1" : ""}`}
+			>
 				<input
 					id={id}
 					name={name}
@@ -124,14 +122,16 @@ export const Input = ({
 						  `}
 					/>
 				)}
-					{/* rightElement 버튼 추가 */}
-	{rightElement && (
-		<div className={`absolute top-1/2 -translate-y-1/2 z-10 ${error ? "right-10" : "right-3"}`}>
-			{rightElement}
-		</div>
-	)}
+				{/* rightElement 버튼 추가 */}
+				{rightElement && (
+					<div
+						className={`absolute top-1/2 -translate-y-1/2 z-10 ${error ? "right-10" : "right-3"}`}
+					>
+						{rightElement}
+					</div>
+				)}
 			</div>
-						
+
 			{helpText && !error && (
 				<p
 					id={`${id}-description`}
@@ -141,10 +141,10 @@ export const Input = ({
 				</p>
 			)}
 			{status === "success" && successText && (
-	<p className="mt-2 text-sm text-green-600 sm:text-base">
-		{successText}
-	</p>
-)}
+				<p className="mt-2 text-sm text-green-600 sm:text-base">
+					{successText}
+				</p>
+			)}
 		</div>
 	);
 };
@@ -161,7 +161,7 @@ export const EmailInput = (props: Omit<InputProps, "type">) => {
 
 interface AuthCodeInputProps extends Omit<InputProps, "type" | "rightElement"> {
 	timer: number;
-	isVerified : boolean;
+	isVerified: boolean;
 	onVerifyClick: () => void;
 }
 
@@ -194,7 +194,7 @@ export const AuthCodeInput = ({
 						className="bg-gray-300 text-gray-800 px-2 py-1 rounded text-xs hover:bg-gray-400"
 						onClick={onVerifyClick}
 					>
-					확인
+						확인
 					</button>
 				</div>
 			}
