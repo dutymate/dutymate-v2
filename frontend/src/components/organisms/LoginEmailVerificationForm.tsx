@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
-import { toast } from "react-toastify";
+import { useEmailVerification } from "@/hooks/useEmailVerification"; // 재사용 훅
 import { EmailInput, AuthCodeInput } from "../atoms/Input";
+import { toast } from "react-toastify";
 import userService from "@/services/userService";
 
 interface Props {
@@ -9,105 +9,32 @@ interface Props {
 	onSuccess: () => void;
 }
 
-const validateEmail = (email: string) =>
-	/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-
 const LoginEmailVerificationForm = ({ memberId, email, onSuccess }: Props) => {
-	const [emailInput, setEmailInput] = useState("");
-	const [authCode, setAuthCode] = useState("");
-	const [authCodeSent, setAuthCodeSent] = useState(false);
-	const [authCodeStatus, setAuthCodeStatus] = useState<
-		"idle" | "success" | "error"
-	>("idle");
-	const [isVerified, setIsVerified] = useState(false);
-	const [timer, setTimer] = useState(300);
-	const [authCodeExpired, setAuthCodeExpired] = useState(false);
-	const [emailError, setEmailError] = useState<string | undefined>(undefined);
-	const [isSending, setIsSending] = useState(false); // 메일이 발송되었는지
-
-	useEffect(() => {
-		if (!authCodeSent || timer <= 0) return;
-		const interval = setInterval(() => {
-			setTimer((prev) => {
-				if (prev <= 1) {
-					clearInterval(interval);
-					setAuthCodeExpired(true);
-					return 0;
-				}
-				return prev - 1;
-			});
-		}, 1000);
-		return () => clearInterval(interval);
-	}, [authCodeSent, timer]);
-
-	const handleSendAuthCode = async () => {
-		if (!validateEmail(emailInput.trim())) {
-			setEmailError("올바른 이메일 형식이 아닙니다.");
-
-			setTimeout(() => setEmailError(undefined), 3000); // 3초 뒤 자동 제거
-			return;
-		}
-
-		try {
-			// 상태 초기화
-			setAuthCode("");
-			setAuthCodeStatus("idle");
-			setIsVerified(false);
-
-			setIsSending(true); // 로딩 시작
-			await userService.sendEmailAuthCode(emailInput.trim(), "login");
-			setAuthCodeSent(true);
-			setTimer(300);
-			setAuthCodeExpired(false);
-			setEmailError(undefined);
-			toast.success("인증번호가 발송되었습니다.");
-		} catch (err) {
-			toast.error("인증번호 발송에 실패했습니다.");
-			setEmailError(undefined);
-		} finally {
-			setIsSending(false); // 로딩 종료
-		}
-	};
-
-	const handleVerifyCode = async () => {
-		if (authCodeExpired) {
-			toast.error("인증 코드가 만료되었습니다.");
-			return;
-		}
-
-		try {
-			const res = await userService.verifyEmailCode({
-				email: emailInput.trim(),
-				code: authCode.trim(),
-			});
-
-			if (res.status === 200) {
-				setAuthCodeStatus("success");
-				setIsVerified(true);
-				setTimer(0);
-				toast.success("이메일 인증이 완료되었습니다.");
-			} else {
-				setAuthCodeStatus("error");
-				setIsVerified(false);
-			}
-		} catch (err) {
-			setAuthCodeStatus("error");
-			setIsVerified(false);
-			setTimer(0);
-			setAuthCode("");
-			toast.error("인증 코드가 올바르지 않습니다.");
-		}
-	};
+	const {
+		email: emailInput,
+		setEmail,
+		authCode,
+		setAuthCode,
+		authCodeSent,
+		authCodeStatus,
+		isVerified,
+		timer,
+		emailError,
+		isSending,
+		sendCode,
+		verifyCode,
+	} = useEmailVerification("login");
 
 	const handleBackToLogin = async () => {
 		if (!isVerified) {
 			toast.error("이메일 인증이 완료되지 않았습니다.");
 			return;
 		}
+
 		try {
 			await userService.verifyEmailUpdate(memberId, emailInput.trim());
-			onSuccess();
 			toast.success("성공적으로 이메일 인증 되었습니다. 다시 로그인 해주세요.");
+			onSuccess();
 		} catch (error) {
 			console.error(error);
 		}
@@ -129,14 +56,15 @@ const LoginEmailVerificationForm = ({ memberId, email, onSuccess }: Props) => {
 					label=""
 					name="email"
 					value={emailInput}
-					onChange={(e) => setEmailInput(e.target.value)}
+					onChange={(e) => setEmail(e.target.value)}
 					error={emailError}
 					placeholder="이메일"
 					rightElement={
 						<button
 							type="button"
 							className="text-xs bg-primary-20 text-primary-dark px-3 py-2 rounded"
-							onClick={handleSendAuthCode}
+							onClick={sendCode}
+							disabled={isSending}
 						>
 							{isSending ? "발송 중..." : "인증번호 발송"}
 						</button>
@@ -150,7 +78,7 @@ const LoginEmailVerificationForm = ({ memberId, email, onSuccess }: Props) => {
 						value={authCode}
 						onChange={(e) => setAuthCode(e.target.value)}
 						timer={timer}
-						onVerifyClick={handleVerifyCode}
+						onVerifyClick={verifyCode}
 						isVerified={isVerified}
 						status={authCodeStatus}
 						error={

@@ -4,13 +4,12 @@ import {
 	Input,
 	AuthCodeInput,
 } from "../atoms/Input";
-// import googleIcon from "../../assets/google.logo.png";  // 제거
-// import kakao_logo from "../../assets/kakao_logo.png";  // 제거
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { toast } from "react-toastify";
 import userService from "@/services/userService";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { useEmailVerification } from "@/hooks/useEmailVerification";
 
 interface SignupData {
 	email: string;
@@ -19,17 +18,10 @@ interface SignupData {
 	name: string;
 }
 
-// 이메일 형식 검증
-const validateEmail = (email: string) => {
-	return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-};
-
-// 비밀번호 검증 (8자 이상, 숫자 및 특수문자 포함)
-const validatePassword = (password: string) => {
-	return /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(
-		password,
-	);
-};
+const validateEmail = (email: string) =>
+	/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+const validatePassword = (password: string) =>
+	/^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(password);
 
 const SignupForm = () => {
 	const navigate = useNavigate();
@@ -48,265 +40,118 @@ const SignupForm = () => {
 		name?: string;
 	}>({});
 
-	const [authCodeSent, setAuthCodeSent] = useState(false);
-	const [authCode, setAuthCode] = useState(""); // 사용자가 입력하는 인증 코드
-	// const [serverCode, setServerCode] = useState(""); // 서버에서 받은 인증 코드
-	const [isVerified, setIsVerified] = useState(false);
-	const [authCodeStatus, setAuthCodeStatus] = useState<
-		"idle" | "success" | "error"
-	>("idle");
-
-	// 상태
-	const [timer, setTimer] = useState(300); // 5분
-	const [authCodeExpired, setAuthCodeExpired] = useState(false);
-
-	useEffect(() => {
-		if (!authCodeSent || timer <= 0) return;
-
-		const interval = setInterval(() => {
-			setTimer((prev) => {
-				if (prev <= 1) {
-					clearInterval(interval);
-					setAuthCodeExpired(true); // 만료 처리
-					return 0;
-				}
-				return prev - 1;
-			});
-		}, 1000);
-
-		return () => clearInterval(interval);
-	}, [authCodeSent, timer]);
+	const {
+		email,
+		setEmail,
+		authCode,
+		setAuthCode,
+		authCodeSent,
+		authCodeStatus,
+		isVerified,
+		timer,
+		emailError,
+		isSending,
+		sendCode,
+		verifyCode,
+	} = useEmailVerification("signup");
 
 	const handleKakaoSignup = () => {
 		window.location.href = import.meta.env.VITE_KAKAO_LOGIN_URL;
 	};
-
 	const handleGoogleSignup = () => {
 		window.location.href = import.meta.env.VITE_GOOGLE_LOGIN_URL;
 	};
 
 	const handleSignupChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const { name, value } = e.target;
-
-		// 입력 값 업데이트
-		setSignupData((prevData) => ({
-			...prevData,
-			[name]: value,
-		}));
+		setSignupData((prevData) => ({ ...prevData, [name]: value }));
 
 		let errorMessage = "";
-
-		// 입력 중 실시간 유효성 검사
 		if (name === "email") {
-			if (!validateEmail(value.trim())) {
+			setEmail(value);
+			if (!validateEmail(value.trim()))
 				errorMessage = "올바른 이메일 형식이 아닙니다.";
-			}
 		} else if (name === "password") {
-			if (!validatePassword(value.trim())) {
+			if (!validatePassword(value.trim()))
 				errorMessage = "8자 이상, 숫자 및 특수문자를 포함해야 합니다.";
-			}
-			// 비밀번호가 변경되면 passwordConfirm 재검사
 			if (
 				signupData.passwordConfirm &&
 				value.trim() !== signupData.passwordConfirm.trim()
 			) {
-				setError((prevError) => ({
-					...prevError,
+				setError((prev) => ({
+					...prev,
 					passwordConfirm: "비밀번호가 일치하지 않습니다.",
 				}));
 			}
 		} else if (name === "passwordConfirm") {
-			if (value.trim() !== signupData.password.trim()) {
+			if (value.trim() !== signupData.password.trim())
 				errorMessage = "비밀번호가 일치하지 않습니다.";
-			}
 		}
-
-		// 오류 메시지 업데이트
-		setError((prevError) => ({
-			...prevError,
-			[name]: errorMessage,
-		}));
-	};
-
-	const handleSignupFocus = (e: React.FocusEvent<HTMLInputElement>) => {
-		const { name, value } = e.target;
-
-		let isValid = true;
-
-		if (name === "email") {
-			isValid = validateEmail(value.trim());
-		} else if (name === "password") {
-			isValid = validatePassword(value.trim());
-		} else if (name === "passwordConfirm") {
-			isValid = value.trim() === signupData.password.trim();
-		} else if (name === "name") {
-			isValid = value.trim().length > 0;
-		}
-
-		// 입력값이 유효하면 에러 메시지를 지움
-		if (isValid) {
-			setError((prevError) => ({
-				...prevError,
-				[name]: "",
-			}));
-		}
+		setError((prevError) => ({ ...prevError, [name]: errorMessage }));
 	};
 
 	const handleSignupSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
-
 		let isValid = true;
 		let newErrors: typeof error = {};
 
-		// 최종 입력값 검증
-		if (!signupData.email.trim()) {
-			newErrors.email = "이메일을 입력해 주세요.";
-			isValid = false;
-		} else if (!validateEmail(signupData.email.trim())) {
-			newErrors.email = "올바른 이메일 형식이 아닙니다.";
+		if (!signupData.email.trim() || !validateEmail(signupData.email.trim())) {
+			newErrors.email = !signupData.email.trim()
+				? "이메일을 입력해 주세요."
+				: "올바른 이메일 형식이 아닙니다.";
 			isValid = false;
 		}
-
-		if (!signupData.password.trim()) {
-			newErrors.password = "비밀번호를 입력해주세요.";
-			isValid = false;
-		} else if (!validatePassword(signupData.password.trim())) {
-			newErrors.password =
-				"비밀번호는 8자 이상, 숫자 및 특수문자를 포함해야 합니다.";
+		if (
+			!signupData.password.trim() ||
+			!validatePassword(signupData.password.trim())
+		) {
+			newErrors.password = !signupData.password.trim()
+				? "비밀번호를 입력해주세요."
+				: "비밀번호는 8자 이상, 숫자 및 특수문자를 포함해야 합니다.";
 			isValid = false;
 		}
-
-		if (!signupData.passwordConfirm.trim()) {
-			newErrors.passwordConfirm = "비밀번호 확인을 입력해주세요.";
-			isValid = false;
-		} else if (
+		if (
+			!signupData.passwordConfirm.trim() ||
 			signupData.passwordConfirm.trim() !== signupData.password.trim()
 		) {
-			newErrors.passwordConfirm = "비밀번호가 일치하지 않습니다.";
+			newErrors.passwordConfirm = !signupData.passwordConfirm.trim()
+				? "비밀번호 확인을 입력해주세요."
+				: "비밀번호가 일치하지 않습니다.";
 			isValid = false;
 		}
-
 		if (!signupData.name.trim()) {
 			newErrors.name = "이름을 입력해 주세요.";
 			isValid = false;
 		}
-
-		// 입력값이 하나라도 비어 있으면 회원가입 요청 중단
+		if (!isAgreed) {
+			toast.error("개인정보 수집 및 이용에 동의해주세요.");
+			return;
+		}
 		if (!isValid) {
 			setError(newErrors);
 			return;
 		}
 
-		// 약관 동의 확인
-		if (!isAgreed) {
-			toast.error("개인정보 수집 및 이용에 동의해주세요.");
-			return;
-		}
-
 		try {
-			// 1. 이메일 중복 체크 API 호출 실행
 			await userService.checkEmail(signupData.email.trim());
-
-			// 2. 이메일이 사용 가능하다면, 회원가입 진행
 			await userService.signup({
 				email: signupData.email.trim(),
 				password: signupData.password.trim(),
 				passwordConfirm: signupData.passwordConfirm.trim(),
 				name: signupData.name.trim(),
 			});
-
 			toast.success("정상적으로 회원가입 되었습니다.");
 			navigate("/login");
 		} catch (error: any) {
-			// Axios 에러인지 확인
 			if (axios.isAxiosError(error)) {
-				console.error("Axios response error:", error.response);
-
 				if (error.response?.status === 400) {
-					setError((prevError) => ({
-						...prevError,
-						email: "이미 가입된 이메일입니다.",
-					}));
+					setError((prev) => ({ ...prev, email: "이미 가입된 이메일입니다." }));
 				} else {
 					toast.error(error.message);
 				}
 			} else {
-				// 네트워크 에러 또는 기타 에러 처리
-				toast.error(error.message, {
-					autoClose: 1000,
-				});
+				toast.error(error.message, { autoClose: 1000 });
 			}
-		}
-	};
-
-	// 이메일 인증 코드 전송하는 버튼
-	const handleSendAuthCode = async () => {
-		const email = signupData.email.trim();
-		let isValid = true;
-
-		// 입력값 검증
-		if (!email) {
-			setError((prevError) => ({
-				...prevError,
-				email: "이메일을 입력해 주세요.",
-			}));
-			isValid = false;
-		} else if (!validateEmail(email)) {
-			setError((prevError) => ({
-				...prevError,
-				email: "올바른 이메일 형식이 아닙니다.",
-			}));
-			isValid = false;
-		}
-
-		if (!isValid) return;
-
-		try {
-			await userService.sendEmailAuthCode(signupData.email.trim(), "signup");
-			setAuthCodeSent(true);
-			setTimer(300);
-			toast.success("인증번호가 발송되었습니다.");
-		} catch (error: any) {
-			toast.error(error.message);
-		}
-	};
-
-	// 인증코드 확인하기 버튼
-	const handleVerifyCode = async () => {
-		if (authCodeExpired) {
-			toast.error("인증 코드가 만료되었습니다. 다시 요청해주세요.");
-			return;
-		}
-
-		try {
-			const response = await userService.verifyEmailCode({
-				email: signupData.email.trim(),
-				code: authCode.trim(),
-			});
-
-			if (response.status === 200) {
-				setIsVerified(true);
-				setAuthCodeStatus("success");
-
-				setTimer(0);
-				setAuthCodeExpired(false);
-			} else {
-				setIsVerified(false);
-				setAuthCodeStatus("error");
-
-				setTimer(0);
-				setAuthCodeExpired(false);
-				setAuthCode("");
-			}
-		} catch (error: any) {
-			setIsVerified(false);
-			setAuthCodeStatus("error");
-
-			setTimer(0);
-			setAuthCodeExpired(false);
-			setAuthCode("");
-
-			// toast.error(error.message);
 		}
 	};
 
@@ -323,23 +168,22 @@ const SignupForm = () => {
 						name="email"
 						value={signupData.email}
 						onChange={handleSignupChange}
-						onFocus={handleSignupFocus}
-						error={error.email}
+						error={emailError || error.email}
 						placeholder="이메일"
 						rightElement={
 							<button
 								type="button"
 								className="text-xs bg-primary-20 text-primary-dark px-3 py-2 rounded"
-								onClick={handleSendAuthCode}
+								onClick={sendCode}
+								disabled={isSending}
 							>
-								인증번호 발송
+								{isSending ? "발송 중..." : "인증번호 발송"}
 							</button>
 						}
 					/>
 					<p className="text-xs text-gray-500 pb-1">
-						*인증번호를 받기 위해 정확한 이메일 주소를 입력하세요.{" "}
+						*인증번호를 받기 위해 정확한 이메일 주소를 입력하세요.
 					</p>
-					{/* 인증번호 입력 및 타이머 */}
 					{authCodeSent && (
 						<div className="flex items-center space-x-2">
 							<AuthCodeInput
@@ -348,7 +192,7 @@ const SignupForm = () => {
 								value={authCode}
 								onChange={(e) => setAuthCode(e.target.value)}
 								timer={timer}
-								onVerifyClick={handleVerifyCode}
+								onVerifyClick={verifyCode}
 								isVerified={isVerified}
 								status={authCodeStatus}
 								error={
@@ -362,14 +206,12 @@ const SignupForm = () => {
 							/>
 						</div>
 					)}
-
 					<PasswordInput
 						id="signup-password"
 						label=""
 						name="password"
 						value={signupData.password}
 						onChange={handleSignupChange}
-						onFocus={handleSignupFocus}
 						error={error.password}
 						placeholder="비밀번호"
 					/>
@@ -379,7 +221,6 @@ const SignupForm = () => {
 						name="passwordConfirm"
 						value={signupData.passwordConfirm}
 						onChange={handleSignupChange}
-						onFocus={handleSignupFocus}
 						error={error.passwordConfirm}
 						placeholder="비밀번호 확인"
 					/>
@@ -389,7 +230,6 @@ const SignupForm = () => {
 						label=""
 						value={signupData.name}
 						onChange={handleSignupChange}
-						onFocus={handleSignupFocus}
 						error={error.name}
 						placeholder="이름"
 					/>
