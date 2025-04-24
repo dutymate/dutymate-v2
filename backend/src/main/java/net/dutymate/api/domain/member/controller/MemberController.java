@@ -1,5 +1,6 @@
 package net.dutymate.api.domain.member.controller;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -45,6 +46,9 @@ public class MemberController {
 	private final MemberService memberService;
 	private final EmailService emailService;
 	private final RedisTemplate<String, String> redisTemplate;
+
+	@Value("${api.demo.secret}")
+	private String apiDemoSecret;
 
 	@PostMapping
 	public ResponseEntity<?> signUp(@Valid @RequestBody SignUpRequestDto signUpRequestDto) {
@@ -155,7 +159,10 @@ public class MemberController {
 	}
 
 	@DeleteMapping("/demo")
-	public ResponseEntity<?> deleteDemoMember() {
+	public ResponseEntity<?> deleteDemoMember(@RequestHeader(value = "X-API-KEY", required = false) String apiKey) {
+		if (apiKey == null || !apiKey.equals(apiDemoSecret)) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid API Key");
+		}
 		memberService.deleteDemoMember();
 		return ResponseEntity.ok().build();
 	}
@@ -178,8 +185,8 @@ public class MemberController {
 	}
 
 	@PutMapping("/email-verification/{memberId}")
-	public ResponseEntity<?> updateVerifiedEmail(@PathVariable Long memberId, @RequestBody
-		UpdateEmailVerificationRequestDto updateEmailVerificationRequestDto) {
+	public ResponseEntity<?> updateVerifiedEmail(@PathVariable Long memberId,
+		@RequestBody UpdateEmailVerificationRequestDto updateEmailVerificationRequestDto) {
 
 		memberService.verifyAndUpdateEmail(memberId, updateEmailVerificationRequestDto);
 		return ResponseEntity.ok().build();
