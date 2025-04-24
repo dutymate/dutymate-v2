@@ -1,41 +1,22 @@
-import LandingTemplate from "../components/templates/LandingTemplate";
-import LoginForm from "../components/organisms/LoginForm";
-import { useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
-import { toast } from "react-toastify";
-import { AxiosError } from "axios";
-import { SEO } from "../components/SEO";
 import LoginEmailVerificationForm from "@/components/organisms/LoginEmailVerificationForm";
+import { useLoginStepStore } from "@/store/useLoginStepStore";
+import { useEffect, useState } from "react";
+import LoginForm from "../components/organisms/LoginForm";
+import { SEO } from "../components/SEO";
+import LandingTemplate from "../components/templates/LandingTemplate";
 const Login = () => {
-	const navigate = useNavigate();
-	const [step, setStep] = useState<"login" | "verify">("login");
+	const {step, setStep} = useLoginStepStore();
 	const [pendingMemberId, setPendingMemberId] = useState<number | null>(null);
 	const [pendingEmail, setPendingEmail] = useState<string>("");
 
 	useEffect(() => {
-		try {
-			// 로그인 페이지로 접근 시, 토큰 삭제
+		console.log("Login 컴포넌트 마운트됨");
+		console.log('step1414 :>> ', step);
+		setStep("login");
+			// 일반 로그인 페이지 진입 시만 토큰 삭제
 			sessionStorage.removeItem("user-auth-storage");
-		} catch (error) {
-			console.error("로그인 페이지 접근 실패:", error);
-			if (error instanceof Error) {
-				if (error.message === "서버 연결 실패") {
-					toast.error("잠시 후 다시 시도해주세요.");
-					return;
-				}
-				// if (error.message === "UNAUTHORIZED") {
-				// 	// navigate("/login");
-				// 	return;
-				// }
-			}
-			if ((error as AxiosError)?.response?.status === 400) {
-				toast.error("잘못된 접근입니다.");
-				return;
-			}
-			// 그 외의 모든 에러는 에러 페이지로 이동
-			navigate("/error");
-		}
-	}, [navigate]);
+	}, []);
+	console.log('step1818 :>> ', step);
 
 	const handleRequireVerification = (memberId: number, email: string) => {
 		setPendingMemberId(memberId);

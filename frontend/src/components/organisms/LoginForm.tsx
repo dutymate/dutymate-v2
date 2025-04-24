@@ -4,6 +4,7 @@ import userService from "@/services/userService";
 import { toast } from "react-toastify";
 import useUserAuthStore from "@/store/userAuthStore";
 import { useNavigate, Link } from "react-router-dom";
+import { AxiosError } from "axios";
 
 interface LoginData {
 	email: string;
@@ -115,9 +116,12 @@ const LoginForm = ({ onRequireVerification }: LoginFormProps) => {
 			}
 		} catch (error: any) {
 			console.log("error :>> ", error);
+			console.log('error.status :>> ', error.status);
+			console.log('error.message :>> ', error.message);
+
 			// 이메일 인증이 안 된 경우,
 			if (
-				// error?.status === "UNAUTHORIZED" &&
+				error?.status === "BAD_REQUEST" &&
 				error?.message === "이메일 인증을 진행해주세요."
 			) {
 				const memberId = error.memberId;
@@ -126,7 +130,6 @@ const LoginForm = ({ onRequireVerification }: LoginFormProps) => {
 			}
 
 			toast.error("이메일 또는 비밀번호가 일치하지 않습니다.");
-			// navigate("/login");
 		}
 	};
 

@@ -262,7 +262,7 @@ const SignupForm = () => {
 		if (!isValid) return;
 
 		try {
-			await userService.sendEmailAuthCode(signupData.email.trim());
+			await userService.sendEmailAuthCode(signupData.email.trim(), "signup");
 			setAuthCodeSent(true);
 			setTimer(300);
 			toast.success("인증번호가 발송되었습니다.");
