@@ -149,7 +149,6 @@ export const NurseAssignModal = ({
 	onClose,
 	fetchNurses,
 }: NurseAssignModalProps) => {
-
 	const [selectedNurse, setSelectedNurse] = useState<number | null>(null);
 	const [tempNurses, setTempNurses] = useState<TempNurse[]>([]);
 	const [isLoading, setIsLoading] = useState(true);

@@ -115,7 +115,6 @@ const LoginForm = ({ onRequireVerification }: LoginFormProps) => {
 				}
 			}
 		} catch (error: any) {
-
 			// 이메일 인증이 안 된 경우,
 			if (
 				error?.status === "BAD_REQUEST" &&
