@@ -336,7 +336,7 @@ export const dutyService = {
 	},
 
 	// 구독 API 호출 함수 추가
-	subscribe: async (plan: SubscriptionPlan) => {
+	subscribe: async () => {
 		try {
 			const response = await axiosInstance.patch("/payment");
 			return response.data;

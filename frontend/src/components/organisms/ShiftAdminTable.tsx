@@ -725,7 +725,7 @@ const ShiftAdminTable = ({
 	const handleSubscribe = async (plan: SubscriptionPlan) => {
 		try {
 			// 결제 API 호출
-			const response = await dutyService.subscribe(plan);
+			const response = await dutyService.subscribe();
 
 			// 모달 닫기 및 자동 생성 횟수 갱신
 			setIsPaymentModalOpen(false);

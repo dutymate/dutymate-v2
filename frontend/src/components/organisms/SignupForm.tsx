@@ -41,7 +41,7 @@ const SignupForm = () => {
 	}>({});
 
 	const {
-		email,
+		// email,
 		setEmail,
 		authCode,
 		setAuthCode,
