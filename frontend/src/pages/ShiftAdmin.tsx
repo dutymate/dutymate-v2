@@ -9,6 +9,8 @@ import useUserAuthStore from "../store/userAuthStore";
 import useShiftStore from "../store/shiftStore";
 import PageLoadingSpinner from "@/components/atoms/Loadingspinner";
 import { SEO } from "../components/SEO";
+import DemoTimer from "@/components/atoms/DemoTimer";
+
 const DutyManagement = () => {
 	const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
@@ -94,6 +96,7 @@ const DutyManagement = () => {
 						className="lg:hidden mb-[1rem] p-[0.5rem] hover:bg-gray-100 rounded-lg"
 					>
 						<IoMdMenu className="w-6 h-6 text-gray-600" />
+						<DemoTimer />
 					</button>
 
 					<div className="flex flex-col gap-[0.75rem] pb-[2rem]">

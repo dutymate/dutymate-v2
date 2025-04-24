@@ -13,6 +13,11 @@
 @layer base {
 	html {
 		font-family: "Pretendard", system-ui, sans-serif;
+		background-color: white;
+	}
+
+	.dark html {
+		background-color: #1a1a1a;
 	}
 }
 

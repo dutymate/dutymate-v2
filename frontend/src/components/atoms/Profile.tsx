@@ -64,7 +64,7 @@ const Profile = () => {
 			<div className="flex flex-col">
 				{/* ✅ 데모 타이머 */}
 				{isDemo && timeLeft !== null && (
-					<div className="flex items-center justify-start bg-primary-10 text-primary rounded-lg px-4 py-2 mb-4">
+					<div className="hidden lg:flex items-center justify-start bg-primary-10 text-primary rounded-lg px-4 py-2 mb-4">
 						{/* 아이콘 */}
 						<div className="w-[2.4rem] flex justify-start ml-2">
 							<MdOutlineAccessTime className="text-primary text-5xl" />

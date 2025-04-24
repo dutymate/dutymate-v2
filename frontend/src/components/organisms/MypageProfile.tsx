@@ -6,6 +6,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import useProfileStore from "../../store/profileStore";
 import { toast } from "react-toastify";
 import debounce from "lodash/debounce";
+import DarkModeToggle from "../atoms/DarkModeToggle";
 
 const MypageProfile = () => {
 	const {
@@ -176,7 +177,10 @@ const MypageProfile = () => {
 	};
 
 	return (
-		<div className="bg-white rounded-lg shadow-md p-[1rem]">
+		<div className="relative bg-white rounded-lg shadow-md p-[1rem]">
+			<div className="absolute -right-[0rem] z-50">
+				<DarkModeToggle />
+			</div>
 			<h2 className="text-sm font-semibold text-gray-900 mb-[0.5rem]">
 				프로필 설정
 			</h2>

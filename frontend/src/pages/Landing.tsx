@@ -122,7 +122,7 @@ const Landing = () => {
 				<div className="flex flex-col items-center gap-4 w-full">
 					{/* 모바일: 세로 스택, 데스크탑: 가로 배치 */}
 					<div className="flex flex-col sm:flex-row gap-3 w-full max-w-[23.2rem]">
-						<Button
+						{/* <Button
 							color="secondary"
 							size="lg"
 							className="w-full h-[3.5rem] sm:h-[3rem] bg-white border border-gray-300 hover:text-black"
@@ -138,7 +138,7 @@ const Landing = () => {
 							onClick={() => toast.info("준비 중입니다.")}
 						>
 							<span className="text-[1rem]">App Store</span>
-						</Button>
+						</Button> */}
 					</div>
 
 					<Button
@@ -148,7 +148,7 @@ const Landing = () => {
 						className="h-[3.5rem] sm:h-[3rem] bg-[#fff4ee] text-[#f47056] border-[0.5px] border-[#f47056] hover:bg-primary w-full max-w-[23.2rem]"
 						onClick={handleDemoLogin}
 					>
-						<span className="text-[1rem]">간편하게 기능 살펴보기</span>
+						<span className="text-[1rem]">서비스 맛보기</span>
 					</Button>
 
 					<Button
