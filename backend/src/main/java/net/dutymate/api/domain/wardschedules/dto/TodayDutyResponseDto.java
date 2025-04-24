@@ -2,7 +2,7 @@ package net.dutymate.api.domain.wardschedules.dto;
 
 import java.util.List;
 
-import net.dutymate.api.global.enums.Shift;
+import net.dutymate.api.domain.autoschedule.Shift;
 
 import lombok.Builder;
 import lombok.Data;

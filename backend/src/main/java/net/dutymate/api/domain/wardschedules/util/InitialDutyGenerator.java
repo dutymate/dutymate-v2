@@ -6,10 +6,10 @@ import java.util.List;
 import org.springframework.stereotype.Component;
 
 import net.dutymate.api.domain.common.utils.YearMonth;
+import net.dutymate.api.domain.ward.Ward;
+import net.dutymate.api.domain.wardmember.WardMember;
 import net.dutymate.api.domain.wardschedules.collections.WardSchedule;
 import net.dutymate.api.domain.wardschedules.repository.WardScheduleRepository;
-import net.dutymate.api.global.entity.Ward;
-import net.dutymate.api.global.entity.WardMember;
 
 import lombok.RequiredArgsConstructor;
 

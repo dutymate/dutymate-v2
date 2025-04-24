@@ -2,7 +2,7 @@ package net.dutymate.api.domain.request.dto;
 
 import java.sql.Date;
 
-import net.dutymate.api.global.entity.Request;
+import net.dutymate.api.domain.request.Request;
 
 import lombok.Builder;
 import lombok.Data;

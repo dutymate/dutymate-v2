@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import net.dutymate.api.domain.member.EmailVerificationResult;
+import net.dutymate.api.domain.member.Member;
 import net.dutymate.api.domain.member.dto.AdditionalInfoRequestDto;
 import net.dutymate.api.domain.member.dto.AdditionalInfoResponseDto;
 import net.dutymate.api.domain.member.dto.CheckNicknameRequestDto;
@@ -32,8 +34,6 @@ import net.dutymate.api.domain.member.dto.VerifyCodeRequestDto;
 import net.dutymate.api.domain.member.service.EmailService;
 import net.dutymate.api.domain.member.service.MemberService;
 import net.dutymate.api.global.auth.annotation.Auth;
-import net.dutymate.api.global.entity.Member;
-import net.dutymate.api.global.enums.EmailVerificationResult;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

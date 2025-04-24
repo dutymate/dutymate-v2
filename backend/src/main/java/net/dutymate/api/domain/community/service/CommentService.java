@@ -5,13 +5,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import net.dutymate.api.domain.community.Board;
+import net.dutymate.api.domain.community.Comment;
 import net.dutymate.api.domain.community.dto.BoardDetailResponseDto;
 import net.dutymate.api.domain.community.dto.CommentRequestDto;
 import net.dutymate.api.domain.community.repository.BoardRepository;
 import net.dutymate.api.domain.community.repository.CommentRepository;
-import net.dutymate.api.global.entity.Member;
-import net.dutymate.api.global.entity.community.Board;
-import net.dutymate.api.global.entity.community.Comment;
+import net.dutymate.api.domain.member.Member;
 
 import lombok.RequiredArgsConstructor;
 

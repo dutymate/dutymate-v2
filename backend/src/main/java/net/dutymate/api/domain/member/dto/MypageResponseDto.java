@@ -1,7 +1,7 @@
 package net.dutymate.api.domain.member.dto;
 
-import net.dutymate.api.global.entity.Member;
-import net.dutymate.api.global.entity.WardMember;
+import net.dutymate.api.domain.member.Member;
+import net.dutymate.api.domain.wardmember.WardMember;
 
 import lombok.Builder;
 import lombok.Data;

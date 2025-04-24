@@ -1,7 +1,7 @@
 package net.dutymate.api.domain.community.dto;
 
-import net.dutymate.api.global.entity.community.Board;
-import net.dutymate.api.global.enums.Category;
+import net.dutymate.api.domain.community.Board;
+import net.dutymate.api.domain.community.Category;
 
 import lombok.Builder;
 import lombok.Data;

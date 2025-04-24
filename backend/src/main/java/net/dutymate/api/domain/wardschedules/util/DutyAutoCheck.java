@@ -10,11 +10,11 @@ import java.util.stream.IntStream;
 
 import org.springframework.stereotype.Component;
 
+import net.dutymate.api.domain.autoschedule.Shift;
 import net.dutymate.api.domain.member.service.MemberService;
 import net.dutymate.api.domain.rule.dto.RuleResponseDto;
 import net.dutymate.api.domain.rule.service.RuleService;
 import net.dutymate.api.domain.wardschedules.dto.WardScheduleResponseDto;
-import net.dutymate.api.global.enums.Shift;
 
 import lombok.RequiredArgsConstructor;
 

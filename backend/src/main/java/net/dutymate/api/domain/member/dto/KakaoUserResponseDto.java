@@ -2,8 +2,8 @@ package net.dutymate.api.domain.member.dto;
 
 import java.util.Optional;
 
-import net.dutymate.api.global.entity.Member;
-import net.dutymate.api.global.enums.Provider;
+import net.dutymate.api.domain.member.Member;
+import net.dutymate.api.domain.member.Provider;
 
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;

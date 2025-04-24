@@ -7,12 +7,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import net.dutymate.api.domain.member.Member;
+import net.dutymate.api.domain.rule.Rule;
 import net.dutymate.api.domain.rule.dto.RuleResponseDto;
 import net.dutymate.api.domain.rule.dto.RuleUpdateRequestDto;
 import net.dutymate.api.domain.rule.repository.RuleRepository;
-import net.dutymate.api.global.entity.Member;
-import net.dutymate.api.global.entity.Rule;
-import net.dutymate.api.global.entity.WardMember;
+import net.dutymate.api.domain.wardmember.WardMember;
 
 import lombok.RequiredArgsConstructor;
 

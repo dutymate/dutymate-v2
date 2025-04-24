@@ -1,6 +1,6 @@
-package net.dutymate.api.global.entity.community;
+package net.dutymate.api.domain.community;
 
-import net.dutymate.api.global.entity.Member;
+import net.dutymate.api.domain.member.Member;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;

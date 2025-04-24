@@ -12,8 +12,8 @@ import org.springframework.web.bind.annotation.RestController;
 import net.dutymate.api.domain.community.dto.BoardDetailResponseDto;
 import net.dutymate.api.domain.community.dto.CommentRequestDto;
 import net.dutymate.api.domain.community.service.CommentService;
+import net.dutymate.api.domain.member.Member;
 import net.dutymate.api.global.auth.annotation.Auth;
-import net.dutymate.api.global.entity.Member;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

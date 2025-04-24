@@ -3,10 +3,10 @@ package net.dutymate.api.domain.request.dto;
 import java.sql.Date;
 import java.sql.Timestamp;
 
-import net.dutymate.api.global.entity.Member;
-import net.dutymate.api.global.entity.Request;
-import net.dutymate.api.global.enums.RequestStatus;
-import net.dutymate.api.global.enums.Shift;
+import net.dutymate.api.domain.autoschedule.Shift;
+import net.dutymate.api.domain.member.Member;
+import net.dutymate.api.domain.request.Request;
+import net.dutymate.api.domain.request.RequestStatus;
 
 import jakarta.validation.constraints.Size;
 import lombok.Builder;

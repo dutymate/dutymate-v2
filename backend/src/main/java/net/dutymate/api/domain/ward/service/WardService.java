@@ -11,9 +11,15 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import net.dutymate.api.domain.common.utils.YearMonth;
+import net.dutymate.api.domain.member.Gender;
+import net.dutymate.api.domain.member.Member;
+import net.dutymate.api.domain.member.Provider;
 import net.dutymate.api.domain.member.repository.MemberRepository;
 import net.dutymate.api.domain.member.service.MemberService;
 import net.dutymate.api.domain.member.util.StringGenerator;
+import net.dutymate.api.domain.ward.EnterWaiting;
+import net.dutymate.api.domain.ward.Hospital;
+import net.dutymate.api.domain.ward.Ward;
 import net.dutymate.api.domain.ward.dto.AddNurseCntRequestDto;
 import net.dutymate.api.domain.ward.dto.EnterWaitingResponseDto;
 import net.dutymate.api.domain.ward.dto.HospitalNameResponseDto;
@@ -25,19 +31,13 @@ import net.dutymate.api.domain.ward.dto.WardRequestDto;
 import net.dutymate.api.domain.ward.repository.EnterWaitingRepository;
 import net.dutymate.api.domain.ward.repository.HospitalRepository;
 import net.dutymate.api.domain.ward.repository.WardRepository;
+import net.dutymate.api.domain.wardmember.Role;
+import net.dutymate.api.domain.wardmember.WardMember;
 import net.dutymate.api.domain.wardmember.repository.WardMemberRepository;
 import net.dutymate.api.domain.wardschedules.collections.WardSchedule;
 import net.dutymate.api.domain.wardschedules.repository.WardScheduleRepository;
 import net.dutymate.api.domain.wardschedules.service.WardScheduleService;
 import net.dutymate.api.domain.wardschedules.util.InitialDutyGenerator;
-import net.dutymate.api.global.entity.EnterWaiting;
-import net.dutymate.api.global.entity.Hospital;
-import net.dutymate.api.global.entity.Member;
-import net.dutymate.api.global.entity.Ward;
-import net.dutymate.api.global.entity.WardMember;
-import net.dutymate.api.global.enums.Gender;
-import net.dutymate.api.global.enums.Provider;
-import net.dutymate.api.global.enums.Role;
 
 import lombok.RequiredArgsConstructor;
 

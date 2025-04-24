@@ -12,6 +12,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import net.dutymate.api.domain.community.Board;
+import net.dutymate.api.domain.community.BoardLikes;
+import net.dutymate.api.domain.community.Category;
+import net.dutymate.api.domain.community.HotBoard;
 import net.dutymate.api.domain.community.dto.BoardCreateRequestDto;
 import net.dutymate.api.domain.community.dto.BoardDetailResponseDto;
 import net.dutymate.api.domain.community.dto.BoardImgResponseDto;
@@ -19,11 +23,7 @@ import net.dutymate.api.domain.community.dto.BoardListResponseDto;
 import net.dutymate.api.domain.community.repository.BoardLikesRepository;
 import net.dutymate.api.domain.community.repository.BoardRepository;
 import net.dutymate.api.domain.community.repository.HotBoardRepository;
-import net.dutymate.api.global.entity.Member;
-import net.dutymate.api.global.entity.community.Board;
-import net.dutymate.api.global.entity.community.BoardLikes;
-import net.dutymate.api.global.entity.community.HotBoard;
-import net.dutymate.api.global.enums.Category;
+import net.dutymate.api.domain.member.Member;
 
 import lombok.RequiredArgsConstructor;
 import software.amazon.awssdk.core.sync.RequestBody;

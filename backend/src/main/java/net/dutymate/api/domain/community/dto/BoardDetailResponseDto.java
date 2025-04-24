@@ -2,10 +2,10 @@ package net.dutymate.api.domain.community.dto;
 
 import java.util.List;
 
-import net.dutymate.api.global.entity.Member;
-import net.dutymate.api.global.entity.community.Board;
-import net.dutymate.api.global.entity.community.Comment;
-import net.dutymate.api.global.enums.Category;
+import net.dutymate.api.domain.community.Board;
+import net.dutymate.api.domain.community.Category;
+import net.dutymate.api.domain.community.Comment;
+import net.dutymate.api.domain.member.Member;
 
 import lombok.Builder;
 import lombok.Data;

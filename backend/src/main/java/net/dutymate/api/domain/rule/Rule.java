@@ -1,4 +1,4 @@
-package net.dutymate.api.global.entity;
+package net.dutymate.api.domain.rule;
 
 import net.dutymate.api.domain.rule.dto.RuleUpdateRequestDto;
 

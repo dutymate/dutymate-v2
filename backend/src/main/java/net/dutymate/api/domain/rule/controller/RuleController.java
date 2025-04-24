@@ -7,11 +7,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import net.dutymate.api.domain.member.Member;
 import net.dutymate.api.domain.rule.dto.RuleResponseDto;
 import net.dutymate.api.domain.rule.dto.RuleUpdateRequestDto;
 import net.dutymate.api.domain.rule.service.RuleService;
 import net.dutymate.api.global.auth.annotation.Auth;
-import net.dutymate.api.global.entity.Member;
 
 import lombok.RequiredArgsConstructor;
 

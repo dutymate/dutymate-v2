@@ -8,18 +8,18 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import net.dutymate.api.domain.autoschedule.Shift;
+import net.dutymate.api.domain.member.Member;
 import net.dutymate.api.domain.member.repository.MemberRepository;
+import net.dutymate.api.domain.request.Request;
+import net.dutymate.api.domain.request.RequestStatus;
 import net.dutymate.api.domain.request.dto.EditRequestStatusRequestDto;
 import net.dutymate.api.domain.request.dto.MyRequestResponseDto;
 import net.dutymate.api.domain.request.dto.RequestCreateDto;
 import net.dutymate.api.domain.request.dto.WardRequestResponseDto;
 import net.dutymate.api.domain.request.repository.RequestRepository;
+import net.dutymate.api.domain.ward.Ward;
 import net.dutymate.api.domain.wardschedules.util.ShiftUtil;
-import net.dutymate.api.global.entity.Member;
-import net.dutymate.api.global.entity.Request;
-import net.dutymate.api.global.entity.Ward;
-import net.dutymate.api.global.enums.RequestStatus;
-import net.dutymate.api.global.enums.Shift;
 
 import lombok.RequiredArgsConstructor;
 

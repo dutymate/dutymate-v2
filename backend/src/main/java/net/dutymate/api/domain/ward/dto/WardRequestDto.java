@@ -1,7 +1,7 @@
 package net.dutymate.api.domain.ward.dto;
 
-import net.dutymate.api.global.entity.Rule;
-import net.dutymate.api.global.entity.Ward;
+import net.dutymate.api.domain.rule.Rule;
+import net.dutymate.api.domain.ward.Ward;
 
 import jakarta.validation.constraints.Size;
 import lombok.Builder;

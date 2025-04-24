@@ -6,11 +6,11 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import net.dutymate.api.domain.member.Member;
 import net.dutymate.api.domain.payment.dto.AddAutoGenCntResponseDto;
 import net.dutymate.api.domain.payment.dto.AutoGenCntResponseDto;
 import net.dutymate.api.domain.payment.service.PaymentService;
 import net.dutymate.api.global.auth.annotation.Auth;
-import net.dutymate.api.global.entity.Member;
 
 import lombok.RequiredArgsConstructor;
 

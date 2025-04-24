@@ -11,12 +11,12 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import net.dutymate.api.domain.member.EmailVerificationResult;
+import net.dutymate.api.domain.member.Member;
+import net.dutymate.api.domain.member.Provider;
 import net.dutymate.api.domain.member.dto.SendCodeRequestDto;
 import net.dutymate.api.domain.member.dto.VerifyCodeRequestDto;
 import net.dutymate.api.domain.member.repository.MemberRepository;
-import net.dutymate.api.global.entity.Member;
-import net.dutymate.api.global.enums.EmailVerificationResult;
-import net.dutymate.api.global.enums.Provider;
 
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;

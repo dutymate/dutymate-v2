@@ -1,6 +1,6 @@
 package net.dutymate.api.domain.rule.dto;
 
-import net.dutymate.api.global.entity.Rule;
+import net.dutymate.api.domain.rule.Rule;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

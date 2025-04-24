@@ -5,9 +5,9 @@ import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import net.dutymate.api.global.entity.Member;
-import net.dutymate.api.global.entity.Ward;
-import net.dutymate.api.global.entity.WardMember;
+import net.dutymate.api.domain.member.Member;
+import net.dutymate.api.domain.ward.Ward;
+import net.dutymate.api.domain.wardmember.WardMember;
 
 @Repository
 public interface WardMemberRepository extends JpaRepository<WardMember, Long> {

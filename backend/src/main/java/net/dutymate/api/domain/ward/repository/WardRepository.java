@@ -5,7 +5,7 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import net.dutymate.api.global.entity.Ward;
+import net.dutymate.api.domain.ward.Ward;
 
 @Repository
 public interface WardRepository extends JpaRepository<Ward, Long> {

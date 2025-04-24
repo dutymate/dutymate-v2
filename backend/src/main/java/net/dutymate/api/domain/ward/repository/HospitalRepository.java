@@ -5,7 +5,7 @@ import java.util.List;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import net.dutymate.api.global.entity.Hospital;
+import net.dutymate.api.domain.ward.Hospital;
 
 public interface HospitalRepository extends JpaRepository<Hospital, Long> {
 

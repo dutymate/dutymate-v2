@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import net.dutymate.api.domain.member.Member;
 import net.dutymate.api.domain.ward.dto.AddNurseCntRequestDto;
 import net.dutymate.api.domain.ward.dto.EnterWaitingResponseDto;
 import net.dutymate.api.domain.ward.dto.HospitalNameResponseDto;
@@ -23,7 +24,6 @@ import net.dutymate.api.domain.ward.dto.WardInfoResponseDto;
 import net.dutymate.api.domain.ward.dto.WardRequestDto;
 import net.dutymate.api.domain.ward.service.WardService;
 import net.dutymate.api.global.auth.annotation.Auth;
-import net.dutymate.api.global.entity.Member;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

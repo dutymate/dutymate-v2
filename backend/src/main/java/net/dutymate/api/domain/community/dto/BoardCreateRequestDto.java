@@ -1,8 +1,8 @@
 package net.dutymate.api.domain.community.dto;
 
-import net.dutymate.api.global.entity.Member;
-import net.dutymate.api.global.entity.community.Board;
-import net.dutymate.api.global.enums.Category;
+import net.dutymate.api.domain.community.Board;
+import net.dutymate.api.domain.community.Category;
+import net.dutymate.api.domain.member.Member;
 
 import jakarta.validation.constraints.Size;
 import lombok.Builder;

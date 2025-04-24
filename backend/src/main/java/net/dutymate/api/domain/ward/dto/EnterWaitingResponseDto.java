@@ -1,8 +1,8 @@
 package net.dutymate.api.domain.ward.dto;
 
-import net.dutymate.api.global.entity.EnterWaiting;
-import net.dutymate.api.global.entity.Member;
-import net.dutymate.api.global.enums.Gender;
+import net.dutymate.api.domain.member.Gender;
+import net.dutymate.api.domain.member.Member;
+import net.dutymate.api.domain.ward.EnterWaiting;
 
 import lombok.Builder;
 import lombok.Data;

@@ -1,4 +1,4 @@
-package net.dutymate.api.global.entity.community;
+package net.dutymate.api.domain.community;
 
 import java.sql.Timestamp;
 

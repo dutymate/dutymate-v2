@@ -1,4 +1,4 @@
-package net.dutymate.api.global.enums;
+package net.dutymate.api.domain.request;
 
 public enum RequestStatus {
 	ACCEPTED,

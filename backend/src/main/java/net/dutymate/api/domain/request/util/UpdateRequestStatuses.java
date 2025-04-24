@@ -5,9 +5,9 @@ import java.util.List;
 import org.springframework.stereotype.Component;
 
 import net.dutymate.api.domain.common.utils.YearMonth;
+import net.dutymate.api.domain.request.Request;
+import net.dutymate.api.domain.request.RequestStatus;
 import net.dutymate.api.domain.wardschedules.collections.WardSchedule;
-import net.dutymate.api.global.entity.Request;
-import net.dutymate.api.global.enums.RequestStatus;
 
 @Component
 public class UpdateRequestStatuses {

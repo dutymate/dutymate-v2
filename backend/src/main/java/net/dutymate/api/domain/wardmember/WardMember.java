@@ -1,13 +1,13 @@
-package net.dutymate.api.global.entity;
+package net.dutymate.api.domain.wardmember;
 
 import java.util.List;
 
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
-import net.dutymate.api.global.enums.Role;
-import net.dutymate.api.global.enums.ShiftType;
-import net.dutymate.api.global.enums.SkillLevel;
+import net.dutymate.api.domain.member.Member;
+import net.dutymate.api.domain.request.Request;
+import net.dutymate.api.domain.ward.Ward;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;

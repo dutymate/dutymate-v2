@@ -1,6 +1,6 @@
 package net.dutymate.api.domain.ward.dto;
 
-import net.dutymate.api.global.enums.Gender;
+import net.dutymate.api.domain.member.Gender;
 
 import jakarta.validation.constraints.Size;
 import lombok.Builder;

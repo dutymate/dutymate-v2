@@ -1,4 +1,4 @@
-package net.dutymate.api.global.entity;
+package net.dutymate.api.domain.ward;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

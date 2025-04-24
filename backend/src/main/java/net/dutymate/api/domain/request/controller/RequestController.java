@@ -11,13 +11,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import net.dutymate.api.domain.member.Member;
 import net.dutymate.api.domain.request.dto.EditRequestStatusRequestDto;
 import net.dutymate.api.domain.request.dto.MyRequestResponseDto;
 import net.dutymate.api.domain.request.dto.RequestCreateDto;
 import net.dutymate.api.domain.request.dto.WardRequestResponseDto;
 import net.dutymate.api.domain.request.service.RequestService;
 import net.dutymate.api.global.auth.annotation.Auth;
-import net.dutymate.api.global.entity.Member;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

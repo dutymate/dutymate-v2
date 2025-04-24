@@ -1,8 +1,11 @@
-package net.dutymate.api.global.entity;
+package net.dutymate.api.domain.ward;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+
+import net.dutymate.api.domain.rule.Rule;
+import net.dutymate.api.domain.wardmember.WardMember;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;

@@ -1,6 +1,6 @@
 package net.dutymate.api.domain.ward.dto;
 
-import net.dutymate.api.global.entity.Hospital;
+import net.dutymate.api.domain.ward.Hospital;
 
 import lombok.Builder;
 import lombok.Data;

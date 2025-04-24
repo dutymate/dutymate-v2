@@ -1,17 +1,16 @@
-package net.dutymate.api.global.entity;
+package net.dutymate.api.domain.member;
 
 import java.sql.Timestamp;
 import java.util.List;
 
 import org.mindrot.jbcrypt.BCrypt;
 
+import net.dutymate.api.domain.community.Board;
+import net.dutymate.api.domain.community.BoardLikes;
+import net.dutymate.api.domain.community.Comment;
 import net.dutymate.api.domain.member.util.StringGenerator;
-import net.dutymate.api.global.entity.community.Board;
-import net.dutymate.api.global.entity.community.BoardLikes;
-import net.dutymate.api.global.entity.community.Comment;
-import net.dutymate.api.global.enums.Gender;
-import net.dutymate.api.global.enums.Provider;
-import net.dutymate.api.global.enums.Role;
+import net.dutymate.api.domain.wardmember.Role;
+import net.dutymate.api.domain.wardmember.WardMember;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;

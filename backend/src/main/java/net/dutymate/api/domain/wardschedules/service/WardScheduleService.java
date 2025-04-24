@@ -13,10 +13,17 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import net.dutymate.api.domain.autoschedule.Shift;
 import net.dutymate.api.domain.common.utils.YearMonth;
+import net.dutymate.api.domain.member.Member;
 import net.dutymate.api.domain.member.repository.MemberRepository;
+import net.dutymate.api.domain.request.RequestStatus;
 import net.dutymate.api.domain.request.repository.RequestRepository;
 import net.dutymate.api.domain.request.util.UpdateRequestStatuses;
+import net.dutymate.api.domain.ward.Ward;
+import net.dutymate.api.domain.wardmember.Role;
+import net.dutymate.api.domain.wardmember.ShiftType;
+import net.dutymate.api.domain.wardmember.WardMember;
 import net.dutymate.api.domain.wardschedules.collections.WardSchedule;
 import net.dutymate.api.domain.wardschedules.dto.AllWardDutyResponseDto;
 import net.dutymate.api.domain.wardschedules.dto.EditDutyRequestDto;
@@ -26,13 +33,6 @@ import net.dutymate.api.domain.wardschedules.dto.WardScheduleResponseDto;
 import net.dutymate.api.domain.wardschedules.repository.WardScheduleRepository;
 import net.dutymate.api.domain.wardschedules.util.DutyAutoCheck;
 import net.dutymate.api.domain.wardschedules.util.InitialDutyGenerator;
-import net.dutymate.api.global.entity.Member;
-import net.dutymate.api.global.entity.Ward;
-import net.dutymate.api.global.entity.WardMember;
-import net.dutymate.api.global.enums.RequestStatus;
-import net.dutymate.api.global.enums.Role;
-import net.dutymate.api.global.enums.Shift;
-import net.dutymate.api.global.enums.ShiftType;
 
 import lombok.RequiredArgsConstructor;
 

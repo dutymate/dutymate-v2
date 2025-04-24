@@ -1,10 +1,10 @@
-package net.dutymate.api.global.entity;
+package net.dutymate.api.domain.request;
 
 import java.sql.Date;
 import java.sql.Timestamp;
 
-import net.dutymate.api.global.enums.RequestStatus;
-import net.dutymate.api.global.enums.Shift;
+import net.dutymate.api.domain.autoschedule.Shift;
+import net.dutymate.api.domain.wardmember.WardMember;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

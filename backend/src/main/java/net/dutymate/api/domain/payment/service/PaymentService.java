@@ -3,10 +3,10 @@ package net.dutymate.api.domain.payment.service;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import net.dutymate.api.domain.member.Member;
 import net.dutymate.api.domain.member.repository.MemberRepository;
 import net.dutymate.api.domain.payment.dto.AddAutoGenCntResponseDto;
 import net.dutymate.api.domain.payment.dto.AutoGenCntResponseDto;
-import net.dutymate.api.global.entity.Member;
 
 import lombok.RequiredArgsConstructor;
 

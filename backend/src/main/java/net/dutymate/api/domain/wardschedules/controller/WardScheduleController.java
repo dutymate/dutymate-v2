@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import net.dutymate.api.domain.common.utils.YearMonth;
+import net.dutymate.api.domain.member.Member;
 import net.dutymate.api.domain.wardschedules.dto.AllWardDutyResponseDto;
 import net.dutymate.api.domain.wardschedules.dto.EditDutyRequestDto;
 import net.dutymate.api.domain.wardschedules.dto.MyDutyResponseDto;
@@ -19,7 +20,6 @@ import net.dutymate.api.domain.wardschedules.dto.TodayDutyResponseDto;
 import net.dutymate.api.domain.wardschedules.dto.WardScheduleResponseDto;
 import net.dutymate.api.domain.wardschedules.service.WardScheduleService;
 import net.dutymate.api.global.auth.annotation.Auth;
-import net.dutymate.api.global.entity.Member;
 
 import lombok.RequiredArgsConstructor;
 

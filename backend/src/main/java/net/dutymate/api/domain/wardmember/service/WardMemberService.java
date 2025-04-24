@@ -9,16 +9,16 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import net.dutymate.api.domain.common.utils.YearMonth;
+import net.dutymate.api.domain.member.Member;
 import net.dutymate.api.domain.member.repository.MemberRepository;
+import net.dutymate.api.domain.ward.Ward;
+import net.dutymate.api.domain.wardmember.Role;
+import net.dutymate.api.domain.wardmember.WardMember;
 import net.dutymate.api.domain.wardmember.dto.NurseInfoRequestDto;
 import net.dutymate.api.domain.wardmember.repository.WardMemberRepository;
 import net.dutymate.api.domain.wardschedules.collections.WardSchedule;
 import net.dutymate.api.domain.wardschedules.repository.WardScheduleRepository;
 import net.dutymate.api.domain.wardschedules.util.InitialDutyGenerator;
-import net.dutymate.api.global.entity.Member;
-import net.dutymate.api.global.entity.Ward;
-import net.dutymate.api.global.entity.WardMember;
-import net.dutymate.api.global.enums.Role;
 
 import lombok.RequiredArgsConstructor;
 

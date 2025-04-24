@@ -2,8 +2,8 @@ package net.dutymate.api.domain.member.dto;
 
 import org.mindrot.jbcrypt.BCrypt;
 
-import net.dutymate.api.global.entity.Member;
-import net.dutymate.api.global.enums.Provider;
+import net.dutymate.api.domain.member.Member;
+import net.dutymate.api.domain.member.Provider;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Size;

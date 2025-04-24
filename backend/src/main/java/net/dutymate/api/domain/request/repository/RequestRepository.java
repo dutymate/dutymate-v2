@@ -7,9 +7,9 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import net.dutymate.api.global.entity.Request;
-import net.dutymate.api.global.entity.Ward;
-import net.dutymate.api.global.entity.WardMember;
+import net.dutymate.api.domain.request.Request;
+import net.dutymate.api.domain.ward.Ward;
+import net.dutymate.api.domain.wardmember.WardMember;
 
 @Repository
 public interface RequestRepository extends JpaRepository<Request, Long> {

@@ -7,8 +7,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import net.dutymate.api.domain.community.dto.RecommendResponseDto;
 import net.dutymate.api.domain.community.service.BoardCurationService;
+import net.dutymate.api.domain.member.Member;
 import net.dutymate.api.global.auth.annotation.Auth;
-import net.dutymate.api.global.entity.Member;
 
 import lombok.RequiredArgsConstructor;
 

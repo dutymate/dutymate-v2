@@ -1,4 +1,4 @@
-package net.dutymate.api.global.enums;
+package net.dutymate.api.domain.wardmember;
 
 public enum ShiftType {
 	D,

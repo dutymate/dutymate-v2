@@ -8,11 +8,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
 
+import net.dutymate.api.domain.autoschedule.Shift;
+import net.dutymate.api.domain.member.Member;
+import net.dutymate.api.domain.ward.Ward;
 import net.dutymate.api.domain.wardschedules.collections.WardSchedule;
 import net.dutymate.api.domain.wardschedules.repository.WardScheduleRepository;
-import net.dutymate.api.global.entity.Member;
-import net.dutymate.api.global.entity.Ward;
-import net.dutymate.api.global.enums.Shift;
 
 import lombok.RequiredArgsConstructor;
 

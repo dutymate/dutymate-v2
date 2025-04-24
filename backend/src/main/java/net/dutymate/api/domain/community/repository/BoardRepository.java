@@ -6,9 +6,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import net.dutymate.api.global.entity.Member;
-import net.dutymate.api.global.entity.community.Board;
-import net.dutymate.api.global.enums.Category;
+import net.dutymate.api.domain.community.Board;
+import net.dutymate.api.domain.community.Category;
+import net.dutymate.api.domain.member.Member;
 
 @Repository
 public interface BoardRepository extends JpaRepository<Board, Long> {

@@ -8,8 +8,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import net.dutymate.api.domain.autoschedule.service.AutoScheduleService;
 import net.dutymate.api.domain.common.utils.YearMonth;
+import net.dutymate.api.domain.member.Member;
 import net.dutymate.api.global.auth.annotation.Auth;
-import net.dutymate.api.global.entity.Member;
 
 import lombok.RequiredArgsConstructor;
 

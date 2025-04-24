@@ -2,13 +2,13 @@ package net.dutymate.api.domain.ward.dto;
 
 import java.util.List;
 
-import net.dutymate.api.global.entity.Member;
-import net.dutymate.api.global.entity.Ward;
-import net.dutymate.api.global.entity.WardMember;
-import net.dutymate.api.global.enums.Gender;
-import net.dutymate.api.global.enums.Role;
-import net.dutymate.api.global.enums.ShiftType;
-import net.dutymate.api.global.enums.SkillLevel;
+import net.dutymate.api.domain.member.Gender;
+import net.dutymate.api.domain.member.Member;
+import net.dutymate.api.domain.ward.Ward;
+import net.dutymate.api.domain.wardmember.Role;
+import net.dutymate.api.domain.wardmember.ShiftType;
+import net.dutymate.api.domain.wardmember.SkillLevel;
+import net.dutymate.api.domain.wardmember.WardMember;
 
 import lombok.Builder;
 import lombok.Data;
