@@ -9,7 +9,7 @@ interface Props {
 	onSuccess: () => void;
 }
 
-const LoginEmailVerificationForm = ({ memberId, email, onSuccess }: Props) => {
+const LoginEmailVerificationForm = ({ memberId, onSuccess }: Props) => {
 	const {
 		email: emailInput,
 		setEmail,
