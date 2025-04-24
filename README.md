@@ -4,15 +4,16 @@
 
 ## 📋 목차
 
-- [서비스 개요](#서비스-개요)
-- [문제 정의](#문제-정의)
-- [해결 방안](#해결-방안)
-- [주요 기능](#주요-기능)
-- [1차 배포 목표](#1차-배포-목표-진행-중)
-- [자율 프로젝트 로드맵](#자율-프로젝트-로드맵)
-- [기술 스택](#기술-스택)
-- [브랜드 아이덴티티](#브랜드-아이덴티티)
-- [팀원 소개](#팀원-소개)
+- [서비스 개요](#-서비스-개요)
+- [문제 정의](#-문제-정의)
+- [해결 방안](#-해결-방안)
+- [주요 기능](#-주요-기능)
+- [1차 배포 목표](#-1차-배포-목표-진행-중)
+- [자율 프로젝트 로드맵](#-자율-프로젝트-로드맵)
+- [기술 스택](#-기술-스택)
+- [아키텍처 구성](#-아키텍처-구성)
+- [브랜드 아이덴티티](#-브랜드-아이덴티티)
+- [팀원 소개](#-팀원-소개)
 
 ## 📝 서비스 개요
 
@@ -179,9 +180,20 @@
 - **Database**: MySQL, MongoDB, Redis
 - **ORM**: Spring Data JPA
 - **인증/보안**: JWT, BCrypt
-- **스토리지**: AWS S3
 - **이메일 서비스**: Spring Mail
 - **개발 도구**: Lombok, P6Spy, Checkstyle
+
+### Infra
+
+- **Containerization**: Docker
+- **CI/CD**: GitLab CI
+- **IaC**: Terraform
+- **Cloud**: AWS ECS, ECR, RDS, ElastiCache, DocumentDB, DynamoDB, S3, CloudFront, Route53, CloudWatch, WAF, IAM, KMS
+- **FinOps**: Infracost
+
+## 📐 아키텍처 구성
+
+<img src="./assets/images/dutymate-architecture.png" alt="dutymate-architecture" width="1000px" />
 
 ## 🎨 브랜드 아이덴티티
 
@@ -200,47 +212,10 @@
   </div>
 </div>
 
-### 색상 팔레트
-
-#### 주요 컬러
-
-<div style="display: flex; gap: 10px; margin-bottom: 10px;">
-  <div style="background-color: #F5A281; width: 100px; height: 50px; display: flex; align-items: center; justify-content: center; border-radius: 4px;">
-    <span style="color: white; font-weight: bold;">Primary</span>
-  </div>
-  <div style="background-color: #F37C4C; width: 100px; height: 50px; display: flex; align-items: center; justify-content: center; border-radius: 4px;">
-    <span style="color: white; font-weight: bold;">Primary DK</span>
-  </div>
-  <div style="background-color: #FCE3D9; width: 100px; height: 50px; display: flex; align-items: center; justify-content: center; border-radius: 4px;">
-    <span style="color: #4D4D4D; font-weight: bold;">Primary BG</span>
-  </div>
-</div>
-
-#### 근무 유형별 색상
-
-<div style="display: flex; gap: 10px; margin-bottom: 10px;">
-  <div style="background-color: #61A86A; width: 80px; height: 50px; display: flex; align-items: center; justify-content: center; border-radius: 4px;">
-    <span style="color: white; font-weight: bold;">Day</span>
-  </div>
-  <div style="background-color: #F68585; width: 80px; height: 50px; display: flex; align-items: center; justify-content: center; border-radius: 4px;">
-    <span style="color: white; font-weight: bold;">Evening</span>
-  </div>
-  <div style="background-color: #7454DF; width: 80px; height: 50px; display: flex; align-items: center; justify-content: center; border-radius: 4px;">
-    <span style="color: white; font-weight: bold;">Night</span>
-  </div>
-  <div style="background-color: #68A6FC; width: 80px; height: 50px; display: flex; align-items: center; justify-content: center; border-radius: 4px;">
-    <span style="color: white; font-weight: bold;">Mid</span>
-  </div>
-  <div style="background-color: #999786; width: 80px; height: 50px; display: flex; align-items: center; justify-content: center; border-radius: 4px;">
-    <span style="color: white; font-weight: bold;">Off</span>
-  </div>
-</div>
-
 ## 👥 팀원 소개
 
-- 이재현: PM, FE
-- 김서현: FE
-- 김민성: BE, 알고리즘
-- 김현진: BE, FE
-- 임태호: BE
-- 한종우: BE, INFRA
+| <img alt="profile" src ="https://github.com/marunturtle.png" width ="100px"> | <img alt="profile" src ="https://github.com/ksh0125.png" width ="100px"> | <img alt="profile" src ="https://github.com/minssungkim.png" width ="100px"> | <img alt="profile" src ="https://avatars.githubusercontent.com/u/154870548?v=4" width ="100px"> | <img alt="profile" src ="https://github.com/taeho99.png" width ="100px"> | <img alt="profile" src ="https://github.com/jongwooo.png" width ="100px"> |
+|:-:|:-:|:-:|:-:|:-:|:-:|
+| 이재현 (팀장)                                                                     | 김서현 | 김민성 | 김현진 | 임태호 | 한종우 |
+| PM, FE                                                                       | FE | BE  | BE | BE | INFRA |
+| [marunturtle](https://github.com/marunturtle)                                | [ksh0125](https://github.com/ksh0125) | [minssungkim](https://github.com/minssungkim) | [hyun0zin](https://github.com/hyun0zin) | [taeho99](https://github.com/taeho99) | [jongwooo](https://github.com/jongwooo) |
