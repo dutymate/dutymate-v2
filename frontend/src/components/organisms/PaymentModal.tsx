@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { IoMdClose } from "react-icons/io";
+import SubscriptionSuccessModal from "./SubscriptionSuccessModal";
 
 interface PaymentModalProps {
 	isOpen: boolean;
@@ -8,11 +8,39 @@ interface PaymentModalProps {
 }
 
 const PaymentModal = ({ isOpen, onClose, onSubscribe }: PaymentModalProps) => {
+	const [hoveredPlan, setHoveredPlan] = useState<string | null>("quarterly");
 	const [selectedPlan, setSelectedPlan] = useState<
-		"monthly" | "quarterly" | "yearly"
-	>("quarterly");
+		"monthly" | "quarterly" | "yearly" | null
+	>(null);
+	const [autoGenCnt] = useState(100); // 기본값 설정
 
 	if (!isOpen) return null;
+
+	const handleOverlayClick = (e: React.MouseEvent) => {
+		if (e.target === e.currentTarget) {
+			onClose();
+		}
+	};
+
+	const handleMouseLeave = (planType: string) => {
+		setHoveredPlan(planType === "quarterly" ? "quarterly" : null);
+	};
+
+	const handleSubscribe = (planType: "monthly" | "quarterly" | "yearly") => {
+		setSelectedPlan(planType);
+		onSubscribe(planType);
+	};
+
+	const handleCompleteModalClose = () => {
+		setSelectedPlan(null);
+		onClose();
+	};
+
+	const handleConfirm = () => {
+		if (selectedPlan) {
+			handleCompleteModalClose();
+		}
+	};
 
 	const plans = [
 		{
@@ -21,15 +49,12 @@ const PaymentModal = ({ isOpen, onClose, onSubscribe }: PaymentModalProps) => {
 			price: "4,900",
 			period: "WON",
 			billingText: "Billed months",
-			buttonText: "1개월 구독",
+			buttonText: "1개월 구독 예약",
 			features: [
 				"병동 단위 결제",
 				"광고 제거 기능",
-				"커뮤니티 다크 모드 지원",
 				"1개월 근무표 무한 자동 생성 가능",
 			],
-			background: "bg-gray-700",
-			textColor: "text-white",
 		},
 		{
 			type: "quarterly",
@@ -37,16 +62,12 @@ const PaymentModal = ({ isOpen, onClose, onSubscribe }: PaymentModalProps) => {
 			price: "12,900",
 			period: "WON",
 			billingText: "Billed every 3 months",
-			buttonText: "3개월 구독",
+			buttonText: "3개월 구독 예약",
 			features: [
 				"병동 단위 결제",
 				"광고 제거 기능",
-				"커뮤니티 다크 모드 지원",
 				"3개월 근무표 무한 자동 생성 가능",
 			],
-			background: "bg-white",
-			textColor: "text-black",
-			isPopular: true,
 		},
 		{
 			type: "yearly",
@@ -54,84 +75,79 @@ const PaymentModal = ({ isOpen, onClose, onSubscribe }: PaymentModalProps) => {
 			price: "50,000",
 			period: "WON",
 			billingText: "Billed annually",
-			buttonText: "1년 구독",
+			buttonText: "1년 구독 예약",
 			features: [
 				"병동 단위 결제",
 				"광고 제거 기능",
-				"커뮤니티 다크 모드 지원",
 				"1년 근무표 무한 자동 생성 가능",
 			],
-			background: "bg-gray-700",
-			textColor: "text-white",
 		},
 	];
 
 	return (
-		<div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 overflow-y-auto">
-			<div className="bg-white rounded-xl shadow-lg w-[90%] max-w-[900px] my-8 relative">
-				{/* 닫기 버튼 */}
-				<button
-					onClick={onClose}
-					className="absolute right-4 top-4 text-gray-600 hover:text-gray-800 z-10"
+		<>
+			<div
+				className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 overflow-y-auto py-8"
+				onClick={handleOverlayClick}
+			>
+				<div
+					className="grid grid-cols-1 md:grid-cols-3 gap-6 w-[90%] max-w-[900px]"
+					onClick={(e) => e.stopPropagation()}
 				>
-					<IoMdClose size={24} />
-				</button>
-
-				{/* 헤더 */}
-				<div className="p-6 text-center">
-					<h2 className="text-2xl font-bold mb-2">자동 생성 구독하기</h2>
-					<p className="text-gray-600">
-						듀티메이트의 자동 생성 기능을 무제한으로 사용해보세요
-					</p>
-				</div>
-
-				{/* 요금제 */}
-				<div className="px-6 pb-8 grid grid-cols-1 md:grid-cols-3 gap-6">
 					{plans.map((plan) => (
 						<div
 							key={plan.type}
-							className={`rounded-xl overflow-hidden shadow-lg ${plan.background} ${
-								plan.textColor
-							} transition-transform duration-300 ${
-								selectedPlan === plan.type
-									? "transform scale-105 border-2 border-primary"
-									: ""
-							} cursor-pointer`}
-							onClick={() => setSelectedPlan(plan.type as any)}
+							className={`rounded-[20px] shadow-lg transform transition-all duration-300 cursor-pointer
+								${
+									hoveredPlan === plan.type
+										? "bg-white text-black scale-105"
+										: "bg-[#4A4A4A] text-white"
+								}`}
+							onMouseEnter={() => setHoveredPlan(plan.type)}
+							onMouseLeave={() => handleMouseLeave(plan.type)}
+							onClick={() =>
+								handleSubscribe(plan.type as "monthly" | "quarterly" | "yearly")
+							}
 						>
 							{/* 카드 헤더 */}
 							<div className="p-6">
-								<div className="text-lg mb-2">{plan.title}</div>
-								<div className="flex items-end">
-									<span className="text-4xl font-bold">{plan.price}</span>
-									<span className="ml-2 mb-1">{plan.period}</span>
+								<div className="text-sm mb-2">{plan.title}</div>
+								<div className="flex items-end gap-1 mb-1">
+									<span className="text-[2rem] font-bold leading-none">
+										{plan.price}
+									</span>
+									<span className="text-sm mb-1">{plan.period}</span>
 								</div>
-								<div className="text-sm opacity-70 mt-1">
-									{plan.billingText}
-								</div>
+								<div className="text-xs opacity-70">{plan.billingText}</div>
 							</div>
 
 							{/* 구독 버튼 */}
 							<div className="px-6 mb-6">
 								<button
-									className={`w-full py-3 rounded-lg text-center font-medium ${
-										plan.isPopular
-											? "bg-[#F8A076] text-white hover:bg-[#F6926A]"
-											: "bg-gray-500 text-white hover:bg-gray-600"
+									className={`w-full py-2 rounded-lg text-center text-sm ${
+										hoveredPlan === plan.type
+											? "bg-primary text-white hover:bg-primary-dark"
+											: "bg-[#666666] text-white hover:bg-[#555555]"
 									}`}
-									onClick={() => onSubscribe(plan.type as any)}
 								>
 									{plan.buttonText}
 								</button>
 							</div>
 
 							{/* 기능 목록 */}
-							<div className="px-6 pb-6">
-								<ul className="space-y-4">
+							<div className="px-6 pb-4">
+								<ul className="space-y-0">
 									{plan.features.map((feature, index) => (
-										<li key={index} className="flex items-start">
+										<li
+											key={index}
+											className={`flex items-start gap-2 py-2 border-b ${
+												hoveredPlan === plan.type
+													? "border-gray-200"
+													: "border-gray-600"
+											}`}
+										>
 											<svg
-												className={`h-5 w-5 mr-2 text-[#F8A076]`}
+												className="h-4 w-4 mt-0.5 shrink-0 text-primary"
 												fill="none"
 												viewBox="0 0 24 24"
 												stroke="currentColor"
@@ -151,13 +167,15 @@ const PaymentModal = ({ isOpen, onClose, onSubscribe }: PaymentModalProps) => {
 						</div>
 					))}
 				</div>
-
-				{/* 안내 문구 */}
-				<div className="px-6 pb-6 text-center text-sm text-gray-500">
-					구독은 선택한 기간동안 자동으로 갱신되며, 언제든지 해지할 수 있습니다.
-				</div>
 			</div>
-		</div>
+			<SubscriptionSuccessModal
+				isOpen={selectedPlan !== null}
+				onClose={handleCompleteModalClose}
+				onConfirm={handleConfirm}
+				plan={selectedPlan || "monthly"}
+				autoGenCnt={autoGenCnt}
+			/>
+		</>
 	);
 };
 

@@ -49,27 +49,29 @@ const AutoGenCountModal = ({
 			}}
 		>
 			<div
-				className="bg-white rounded-xl shadow-lg w-[90%] max-w-[22.5rem]"
+				className="bg-white rounded-2xl shadow-lg w-[90%] max-w-[22.5rem]"
 				onClick={(e) => e.stopPropagation()}
 			>
-				<div className="p-[1.5rem]">
+				<div className="p-6">
 					{/* 제목 */}
-					<h2 className="text-lg font-bold text-left mb-[1rem]">{title}</h2>
+					<h2 className="text-[0.9375rem] font-medium text-left mb-2">
+						{title}
+					</h2>
 
 					{/* 메시지 표시 */}
-					<p className="text-left mb-[2rem] text-gray-700">
+					<p className="text-left mb-6 text-[0.9375rem]">
 						사용 가능 횟수가{" "}
-						<span className="text-primary font-bold">{autoGenCnt}회</span>{" "}
+						<span className="text-primary font-medium">{autoGenCnt}회</span>{" "}
 						남았어요.
 					</p>
 
 					{/* 버튼 영역 */}
-					<div className="flex gap-[0.5rem] justify-center">
+					<div className="flex gap-2">
 						<Button
 							size="md"
 							color="muted"
 							onClick={onClose}
-							className="flex-1"
+							className="flex-1 bg-[#F1F1F1] hover:bg-[#E5E5E5] active:bg-[#DADADA] text-black font-normal rounded-xl py-3 transition-colors"
 						>
 							취소
 						</Button>
@@ -77,7 +79,7 @@ const AutoGenCountModal = ({
 							size="md"
 							color="primary"
 							onClick={handleButtonClick} // 이 함수가 제대로 동작해야 함
-							className="flex-1"
+							className="flex-1 bg-primary hover:bg-primary-dark active:bg-primary-darker text-white font-normal rounded-xl py-3 transition-colors"
 						>
 							{buttonText}
 						</Button>

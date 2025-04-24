@@ -178,7 +178,7 @@ const MypageProfile = () => {
 	return (
 		<div className="relative bg-white rounded-lg shadow-md p-[1rem]">
 			<div className="absolute -right-[0rem] z-50">
-				<DarkModeToggle />
+				{/* <DarkModeToggle /> */}
 			</div>
 			<h2 className="text-sm font-semibold text-gray-900 mb-[0.5rem]">
 				프로필 설정

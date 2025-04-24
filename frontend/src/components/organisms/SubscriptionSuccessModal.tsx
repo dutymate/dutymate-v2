@@ -40,7 +40,7 @@ const SubscriptionSuccessModal = ({
 					{/* 메시지 표시 */}
 					<p className="text-left mb-[2rem] text-gray-700">
 						<span className="text-primary font-bold">{autoGenCnt}</span> 회
-						무료로 충전되었습니다다.
+						무료로 충전되었습니다.
 						<br />
 						<br />
 						지금 바로 자동 생성을 시작해보세요!

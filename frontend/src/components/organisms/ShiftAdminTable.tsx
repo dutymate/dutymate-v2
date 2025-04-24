@@ -724,21 +724,8 @@ const ShiftAdminTable = ({
 
 	const handleSubscribe = async (plan: SubscriptionPlan) => {
 		try {
-			// 구독 처리 중 상태 표시
-			const loadingToast = toast.loading("구독 처리 중...", {
-				position: "top-center",
-			});
-
 			// 결제 API 호출
 			const response = await dutyService.subscribe(plan);
-
-			// 토스트 업데이트
-			toast.update(loadingToast, {
-				render: `구독이 완료되었습니다!`,
-				type: "success",
-				isLoading: false,
-				autoClose: 2000,
-			});
 
 			// 모달 닫기 및 자동 생성 횟수 갱신
 			setIsPaymentModalOpen(false);
@@ -762,10 +749,8 @@ const ShiftAdminTable = ({
 			// 수정된 부분: 자동 생성 모달 대신 구독 성공 모달 표시
 			setIsSubscriptionSuccessModalOpen(true);
 		} catch (error) {
-			toast.error("구독 처리 중 오류가 발생했습니다.", {
-				position: "top-center",
-				autoClose: 2000,
-			});
+			console.error("Subscription error:", error);
+			setIsPaymentModalOpen(false);
 		}
 	};
 
@@ -1617,13 +1602,7 @@ const ShiftAdminTable = ({
 																	<div key={index} className="scale-[0.65]">
 																		<DutyBadgeEng
 																			type={
-																				shift as
-																					| "X"
-																					| "D"
-																					| "E"
-																					| "N"
-																					| "O"
-																					| "ALL"
+																				shift as "X" | "D" | "E" | "N" | "O"
 																			}
 																			size="sm"
 																			isSelected={false}
