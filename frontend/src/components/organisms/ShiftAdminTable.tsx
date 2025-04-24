@@ -6,7 +6,7 @@ import { Button } from "../atoms/Button";
 import { Icon } from "../atoms/Icon";
 import { ProgressChecker } from "../atoms/ProgressChecker";
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
-import { dutyService } from "../../services/dutyService";
+import { dutyService, SubscriptionPlan } from "../../services/dutyService";
 import { toast } from "react-toastify";
 import useShiftStore from "../../store/shiftStore";
 import FaultLayer from "../atoms/FaultLayer";
@@ -29,6 +29,7 @@ import { WardRule } from "../../services/ruleService";
 import AutoGenerateConfirmModal from "./AutoGenerateConfirmModal";
 import AutoGenCountModal from "./AutoGenCountModal";
 import PaymentModal from "./PaymentModal";
+import SubscriptionSuccessModal from "./SubscriptionSuccessModal";
 
 // 근무표 관리자 테이블의 props 인터페이스
 interface ShiftAdminTableProps {
@@ -183,6 +184,10 @@ const ShiftAdminTable = ({
 	const [autoGenCnt, setAutoGenCnt] = useState(0);
 
 	const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+
+	const [isSubscriptionSuccessModalOpen, setIsSubscriptionSuccessModalOpen] =
+		useState(false);
+	const [currentPlan, setCurrentPlan] = useState<SubscriptionPlan>("monthly");
 
 	// Add hover state management at component level
 	const [hoveredCell, setHoveredCell] = useState<{
@@ -708,29 +713,56 @@ const ShiftAdminTable = ({
 		}
 	};
 
-	const handleSubscribe = async (plan: "monthly" | "quarterly" | "yearly") => {
+	const handleSubscribe = async (plan: SubscriptionPlan) => {
 		try {
-			// 결제 API 호출 (임시 로직)
-			await new Promise((resolve) => setTimeout(resolve, 1000));
-
-			// 성공 메시지
-			toast.success(`${plan} 구독이 완료되었습니다!`, {
+			// 구독 처리 중 상태 표시
+			const loadingToast = toast.loading("구독 처리 중...", {
 				position: "top-center",
+			});
+
+			// 결제 API 호출
+			const response = await dutyService.subscribe(plan);
+
+			// 토스트 업데이트
+			toast.update(loadingToast, {
+				render: `구독이 완료되었습니다!`,
+				type: "success",
+				isLoading: false,
 				autoClose: 2000,
 			});
 
 			// 모달 닫기 및 자동 생성 횟수 갱신
 			setIsPaymentModalOpen(false);
-			setAutoGenCnt(10); // 결제 후 적절한 횟수로 변경
 
-			// 바로 자동 생성 모달 표시
-			setIsAutoGenCountModalOpen(true);
+			// 응답에서 자동 생성 횟수 사용
+			if (response && response.addNum !== undefined) {
+				setAutoGenCnt(response.addNum);
+			} else {
+				// 응답에 횟수가 없는 경우 플랜에 따라 기본값 설정
+				const defaultCounts = {
+					monthly: 100,
+					quarterly: 100,
+					yearly: 100,
+				};
+				setAutoGenCnt(defaultCounts[plan]);
+			}
+
+			// 현재 선택된 플랜 저장
+			setCurrentPlan(plan);
+
+			// 수정된 부분: 자동 생성 모달 대신 구독 성공 모달 표시
+			setIsSubscriptionSuccessModalOpen(true);
 		} catch (error) {
 			toast.error("구독 처리 중 오류가 발생했습니다.", {
 				position: "top-center",
 				autoClose: 2000,
 			});
 		}
+	};
+
+	const handleStartAutoGenerate = () => {
+		setIsSubscriptionSuccessModalOpen(false);
+		executeAutoGenerate();
 	};
 
 	// 근무표 다운로드 기능
@@ -1792,6 +1824,14 @@ const ShiftAdminTable = ({
 				isOpen={isPaymentModalOpen}
 				onClose={() => setIsPaymentModalOpen(false)}
 				onSubscribe={handleSubscribe}
+			/>
+
+			<SubscriptionSuccessModal
+				isOpen={isSubscriptionSuccessModalOpen}
+				onClose={() => setIsSubscriptionSuccessModalOpen(false)}
+				onConfirm={handleStartAutoGenerate}
+				plan={currentPlan}
+				autoGenCnt={autoGenCnt}
 			/>
 		</div>
 	);

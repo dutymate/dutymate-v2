@@ -77,6 +77,8 @@ export interface DutyUpdateRequest {
 	};
 }
 
+export type SubscriptionPlan = "monthly" | "quarterly" | "yearly";
+
 // API 서비스
 export const dutyService = {
 	/**
@@ -329,6 +331,17 @@ export const dutyService = {
 			return response.data.autoGenCnt;
 		} catch (error) {
 			console.error("자동 생성 횟수 조회 실패:", error);
+			throw error;
+		}
+	},
+
+	// 구독 API 호출 함수 추가
+	subscribe: async (plan: SubscriptionPlan) => {
+		try {
+			const response = await axiosInstance.patch("/payment");
+			return response.data;
+		} catch (error) {
+			console.error("구독 처리 중 오류 발생:", error);
 			throw error;
 		}
 	},
