@@ -168,7 +168,8 @@ public class MemberController {
 	}
 
 	@PostMapping("/email-verification")
-	public ResponseEntity<?> sendCodeToEmail(@RequestBody SendCodeRequestDto sendCodeRequestDto, @RequestParam String path) {
+	public ResponseEntity<?> sendCodeToEmail(@RequestBody SendCodeRequestDto sendCodeRequestDto,
+		@RequestParam String path) {
 		emailService.sendCode(sendCodeRequestDto, path);
 		return ResponseEntity.ok().build();
 	}
@@ -187,7 +188,7 @@ public class MemberController {
 	@PutMapping("/email-verification/{memberId}")
 	public ResponseEntity<?> updateVerifiedEmail(@PathVariable Long memberId,
 		@RequestBody UpdateEmailVerificationRequestDto updateEmailVerificationRequestDto) {
-
+			
 		memberService.verifyAndUpdateEmail(memberId, updateEmailVerificationRequestDto);
 		return ResponseEntity.ok().build();
 	}

@@ -53,22 +53,18 @@ public class EmailService {
 					// 인증이 이미 된 일반 사용자 or 소셜 로그인 사용자
 					throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "이미 인증된 계정입니다. 로그인해주세요.");
 				}
-			}
+			} else if ("signup".equals(path)) {
+				// 회원가입 요청인 경우
+				// 이미 있는 사용자의 경우
+				String message = switch (provider) {
+					case KAKAO -> "카카오 계정으로 회원가입된 이메일입니다. 카카오 로그인을 이용해주세요.";
+					case GOOGLE -> "구글 계정으로 회원가입된 이메일입니다. 구글 로그인을 이용해주세요.";
+					case NONE -> "이미 가입된 이메일입니다.";
+				};
+				throw new ResponseStatusException(HttpStatus.BAD_REQUEST, message);
 
-			// 회원가입 요청인 경우
-			else if ("signup".equals(path)) {
-					// 이미 있는 사용자의 경우
-					String message = switch (provider) {
-						case KAKAO -> "카카오 계정으로 회원가입된 이메일입니다. 카카오 로그인을 이용해주세요.";
-						case GOOGLE -> "구글 계정으로 회원가입된 이메일입니다. 구글 로그인을 이용해주세요.";
-						case NONE -> "이미 가입된 이메일입니다.";
-					};
-					throw new ResponseStatusException(HttpStatus.BAD_REQUEST, message);
-
-			}
-
-			// 예외: path 값이 login/signup이 아닌 경우
-			else {
+			} else {
+				// 예외: path 값이 login/signup이 아닌 경우
 				throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "유효하지 않은 요청입니다.");
 			}
 		}
@@ -78,8 +74,6 @@ public class EmailService {
 		sendEmail(email, code);
 		saveCodeToRedis(email, code);
 	}
-
-
 
 	private String generateCode() {
 		Random random = new Random();
