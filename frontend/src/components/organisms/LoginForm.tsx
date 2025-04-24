@@ -116,8 +116,8 @@ const LoginForm = ({ onRequireVerification }: LoginFormProps) => {
 			}
 		} catch (error: any) {
 			console.log("error :>> ", error);
-			console.log('error.status :>> ', error.status);
-			console.log('error.message :>> ', error.message);
+			console.log("error.status :>> ", error.status);
+			console.log("error.message :>> ", error.message);
 
 			// 이메일 인증이 안 된 경우,
 			if (

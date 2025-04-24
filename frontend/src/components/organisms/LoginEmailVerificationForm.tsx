@@ -4,8 +4,8 @@ import { EmailInput, AuthCodeInput } from "../atoms/Input";
 import userService from "@/services/userService";
 
 interface Props {
-	memberId : number;
-	email : string;
+	memberId: number;
+	email: string;
 	onSuccess: () => void;
 }
 
@@ -16,12 +16,14 @@ const LoginEmailVerificationForm = ({ memberId, email, onSuccess }: Props) => {
 	const [emailInput, setEmailInput] = useState("");
 	const [authCode, setAuthCode] = useState("");
 	const [authCodeSent, setAuthCodeSent] = useState(false);
-	const [authCodeStatus, setAuthCodeStatus] = useState<"idle" | "success" | "error">("idle");
+	const [authCodeStatus, setAuthCodeStatus] = useState<
+		"idle" | "success" | "error"
+	>("idle");
 	const [isVerified, setIsVerified] = useState(false);
 	const [timer, setTimer] = useState(300);
 	const [authCodeExpired, setAuthCodeExpired] = useState(false);
 	const [emailError, setEmailError] = useState<string | undefined>(undefined);
-	const [isSending, setIsSending] = useState(false); // 메일이 발송되었는지 
+	const [isSending, setIsSending] = useState(false); // 메일이 발송되었는지
 
 	useEffect(() => {
 		if (!authCodeSent || timer <= 0) return;
@@ -42,18 +44,17 @@ const LoginEmailVerificationForm = ({ memberId, email, onSuccess }: Props) => {
 		if (!validateEmail(emailInput.trim())) {
 			setEmailError("올바른 이메일 형식이 아닙니다.");
 
-			setTimeout(()=> setEmailError(undefined), 3000); // 3초 뒤 자동 제거 
+			setTimeout(() => setEmailError(undefined), 3000); // 3초 뒤 자동 제거
 			return;
 		}
 
 		try {
-			// 상태 초기화 
+			// 상태 초기화
 			setAuthCode("");
-		setAuthCodeStatus("idle");
-		setIsVerified(false);
+			setAuthCodeStatus("idle");
+			setIsVerified(false);
 
-		
-			setIsSending(true); // 로딩 시작 
+			setIsSending(true); // 로딩 시작
 			await userService.sendEmailAuthCode(emailInput.trim(), "login");
 			setAuthCodeSent(true);
 			setTimer(300);
@@ -63,8 +64,8 @@ const LoginEmailVerificationForm = ({ memberId, email, onSuccess }: Props) => {
 		} catch (err) {
 			toast.error("인증번호 발송에 실패했습니다.");
 			setEmailError(undefined);
-		}finally{
-		setIsSending(false); // 로딩 종료 
+		} finally {
+			setIsSending(false); // 로딩 종료
 		}
 	};
 
@@ -98,20 +99,19 @@ const LoginEmailVerificationForm = ({ memberId, email, onSuccess }: Props) => {
 		}
 	};
 
-	const handleBackToLogin = async() => {
-		if(!isVerified){
-			toast.error("이메일 인증이 완료되지 않았습니다.")
+	const handleBackToLogin = async () => {
+		if (!isVerified) {
+			toast.error("이메일 인증이 완료되지 않았습니다.");
 			return;
 		}
-		try{
+		try {
 			await userService.verifyEmailUpdate(memberId, emailInput.trim());
 			onSuccess();
-			toast.success("성공적으로 이메일 인증 되었습니다. 다시 로그인 해주세요.")
-		}catch(error){
+			toast.success("성공적으로 이메일 인증 되었습니다. 다시 로그인 해주세요.");
+		} catch (error) {
 			console.error(error);
 		}
-
-	}
+	};
 
 	return (
 		<div className="bg-white rounded-lg shadow px-6 py-8 w-[20rem] sm:w-[25rem] lg:w-[28rem]">
@@ -138,7 +138,7 @@ const LoginEmailVerificationForm = ({ memberId, email, onSuccess }: Props) => {
 							className="text-xs bg-primary-20 text-primary-dark px-3 py-2 rounded"
 							onClick={handleSendAuthCode}
 						>
-							{isSending ? "발송 중...": "인증번호 발송"}
+							{isSending ? "발송 중..." : "인증번호 발송"}
 						</button>
 					}
 				/>
@@ -154,7 +154,9 @@ const LoginEmailVerificationForm = ({ memberId, email, onSuccess }: Props) => {
 						isVerified={isVerified}
 						status={authCodeStatus}
 						error={
-							authCodeStatus === "error" ? "인증 코드가 일치하지 않습니다." : undefined
+							authCodeStatus === "error"
+								? "인증 코드가 일치하지 않습니다."
+								: undefined
 						}
 						successText={
 							authCodeStatus === "success" ? "인증되었습니다." : undefined

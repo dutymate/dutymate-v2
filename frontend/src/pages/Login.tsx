@@ -5,18 +5,18 @@ import LoginForm from "../components/organisms/LoginForm";
 import { SEO } from "../components/SEO";
 import LandingTemplate from "../components/templates/LandingTemplate";
 const Login = () => {
-	const {step, setStep} = useLoginStepStore();
+	const { step, setStep } = useLoginStepStore();
 	const [pendingMemberId, setPendingMemberId] = useState<number | null>(null);
 	const [pendingEmail, setPendingEmail] = useState<string>("");
 
 	useEffect(() => {
 		console.log("Login 컴포넌트 마운트됨");
-		console.log('step1414 :>> ', step);
+		console.log("step1414 :>> ", step);
 		setStep("login");
-			// 일반 로그인 페이지 진입 시만 토큰 삭제
-			sessionStorage.removeItem("user-auth-storage");
+		// 일반 로그인 페이지 진입 시만 토큰 삭제
+		sessionStorage.removeItem("user-auth-storage");
 	}, []);
-	console.log('step1818 :>> ', step);
+	console.log("step1818 :>> ", step);
 
 	const handleRequireVerification = (memberId: number, email: string) => {
 		setPendingMemberId(memberId);

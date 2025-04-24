@@ -169,11 +169,15 @@ export const userService = {
 	/**
 	 * 이메일 인증 코드 API
 	 */
-	sendEmailAuthCode: async (email: string, path : string): Promise<void> => {
+	sendEmailAuthCode: async (email: string, path: string): Promise<void> => {
 		try {
-			await axiosInstance.post("/member/email-verification", { email }, {
-				params: { path }, // 쿼리 파라미터
-			});
+			await axiosInstance.post(
+				"/member/email-verification",
+				{ email },
+				{
+					params: { path }, // 쿼리 파라미터
+				},
+			);
 		} catch (error) {
 			if (axios.isAxiosError(error)) {
 				throw error.response?.data;
@@ -206,9 +210,11 @@ export const userService = {
 	/**
 	 * 인증된 사용자 Email update
 	 */
-	verifyEmailUpdate : async (memberId : number, email : string):Promise<void> =>{
-		await axiosInstance.put(`/member/email-verification/${memberId}`, {email});
-	}
+	verifyEmailUpdate: async (memberId: number, email: string): Promise<void> => {
+		await axiosInstance.put(`/member/email-verification/${memberId}`, {
+			email,
+		});
+	},
 };
 
 export default userService;
