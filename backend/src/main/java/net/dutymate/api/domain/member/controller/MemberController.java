@@ -168,8 +168,8 @@ public class MemberController {
 	}
 
 	@PostMapping("/email-verification")
-	public ResponseEntity<?> sendCodeToEmail(@RequestBody SendCodeRequestDto sendCodeRequestDto) {
-		emailService.sendCode(sendCodeRequestDto);
+	public ResponseEntity<?> sendCodeToEmail(@RequestBody SendCodeRequestDto sendCodeRequestDto, @RequestParam String path) {
+		emailService.sendCode(sendCodeRequestDto, path);
 		return ResponseEntity.ok().build();
 	}
 

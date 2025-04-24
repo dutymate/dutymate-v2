@@ -99,7 +99,7 @@ public class GlobalExceptionHandler {
 		final StackTraceElement source = getFirstRelevantStackTrace(ex);
 		final String methodName = source.getMethodName();
 		final String className = getSimpleClassName(source.getClassName());
-		final String status = HttpStatus.UNAUTHORIZED.name();
+		final String status = HttpStatus.BAD_REQUEST.name();
 		final String message = ex.getMessage();
 
 		log.error(LINE_SEPARATOR);
@@ -114,6 +114,6 @@ public class GlobalExceptionHandler {
 		body.put(MESSAGE_KEY, message);
 		body.put("memberId", ex.getMemberId());
 
-		return new ResponseEntity<>(body, HttpStatus.UNAUTHORIZED);
+		return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
 	}
 }

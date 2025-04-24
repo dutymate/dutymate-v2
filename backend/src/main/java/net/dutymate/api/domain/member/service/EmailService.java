@@ -1,5 +1,6 @@
 package net.dutymate.api.domain.member.service;
 
+import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
@@ -13,7 +14,9 @@ import org.springframework.web.server.ResponseStatusException;
 import net.dutymate.api.domain.member.dto.SendCodeRequestDto;
 import net.dutymate.api.domain.member.dto.VerifyCodeRequestDto;
 import net.dutymate.api.domain.member.repository.MemberRepository;
+import net.dutymate.api.global.entity.Member;
 import net.dutymate.api.global.enums.EmailVerificationResult;
+import net.dutymate.api.global.enums.Provider;
 
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
@@ -30,25 +33,53 @@ public class EmailService {
 	private final MemberRepository memberRepository;
 
 	// 이메일로 인증 코드 보내기
-	public void sendCode(SendCodeRequestDto sendCodeRequestDto) {
+	public void sendCode(SendCodeRequestDto sendCodeRequestDto, String path) {
 		String email = sendCodeRequestDto.email();
 
-		// 이메일 중복 확인 (이미 회원가입한 경우 체크)
-		memberRepository.findMemberByEmail(email).ifPresent(existingMember -> {
-			String message = switch (existingMember.getProvider()) {
-				case KAKAO -> "카카오 계정으로 회원가입된 이메일입니다. 카카오 로그인을 이용해주세요.";
-				case GOOGLE -> "구글 계정으로 회원가입된 이메일입니다. 구글 로그인을 이용해주세요.";
-				case NONE -> "이미 가입된 이메일입니다.";
-			};
+		Optional<Member> optionalMember = memberRepository.findMemberByEmail(email);
 
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, message);
-		});
+		if (optionalMember.isPresent()) {
+			Member existingMember = optionalMember.get();
+			Provider provider = existingMember.getProvider();
+			boolean isVerified = existingMember.getIsVerified();
+
+			// 로그인 요청인 경우
+			if ("login".equals(path)) {
+				if (provider == Provider.NONE && !isVerified) {
+					// 일반 로그인 + 인증되지 않음 → 인증 코드 전송 허용
+					// → 그냥 통과 (아래 코드 전송 로직으로 진행)
+					// return;
+				} else {
+					// 인증이 이미 된 일반 사용자 or 소셜 로그인 사용자
+					throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "이미 인증된 계정입니다. 로그인해주세요.");
+				}
+			}
+
+			// 회원가입 요청인 경우
+			else if ("signup".equals(path)) {
+					// 이미 있는 사용자의 경우
+					String message = switch (provider) {
+						case KAKAO -> "카카오 계정으로 회원가입된 이메일입니다. 카카오 로그인을 이용해주세요.";
+						case GOOGLE -> "구글 계정으로 회원가입된 이메일입니다. 구글 로그인을 이용해주세요.";
+						case NONE -> "이미 가입된 이메일입니다.";
+					};
+					throw new ResponseStatusException(HttpStatus.BAD_REQUEST, message);
+
+			}
+
+			// 예외: path 값이 login/signup이 아닌 경우
+			else {
+				throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "유효하지 않은 요청입니다.");
+			}
+		}
 
 		// 인증 코드 생성 및 전송
 		String code = generateCode();
-		sendEmail(sendCodeRequestDto.email(), code);
-		saveCodeToRedis(sendCodeRequestDto.email(), code);
+		sendEmail(email, code);
+		saveCodeToRedis(email, code);
 	}
+
+
 
 	private String generateCode() {
 		Random random = new Random();
