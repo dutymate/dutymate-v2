@@ -188,7 +188,6 @@ public class MemberController {
 	@PutMapping("/email-verification/{memberId}")
 	public ResponseEntity<?> updateVerifiedEmail(@PathVariable Long memberId,
 		@RequestBody UpdateEmailVerificationRequestDto updateEmailVerificationRequestDto) {
-			
 		memberService.verifyAndUpdateEmail(memberId, updateEmailVerificationRequestDto);
 		return ResponseEntity.ok().build();
 	}
