@@ -61,6 +61,13 @@ const DutyManagement = () => {
 			urlYear ? parseInt(urlYear) : undefined,
 			urlMonth ? parseInt(urlMonth) : undefined,
 		);
+
+		// cleanup 함수 추가
+		return () => {
+			if (logoutTimer) {
+				clearTimeout(logoutTimer);
+			}
+		};
 	}, [userInfo]);
 
 	if (loading && !dutyInfo) {

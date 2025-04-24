@@ -7,6 +7,7 @@ import MSidebar from "./MSidebar";
 import CommunityNews from "./CommunityNews";
 import { createPortal } from "react-dom";
 import { IoNewspaperOutline } from "react-icons/io5";
+import DemoTimer from "../atoms/DemoTimer";
 
 // 모달 컴포넌트
 const Modal = ({ isOpen, onClose, children }: any) => {
@@ -72,6 +73,7 @@ const CommunityLayout = ({ title, subtitle, children }: any) => {
 					className="lg:hidden mb-4 p-2 hover:bg-gray-100 rounded-lg"
 				>
 					<IoMdMenu className="w-6 h-6 text-gray-600" />
+					<DemoTimer />
 				</button>
 
 				<div className="flex items-center gap-[0.75rem]">

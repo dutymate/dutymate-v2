@@ -12,6 +12,7 @@ import useUserAuthStore from "../store/userAuthStore";
 import useWardStore from "../store/wardStore";
 import { useLoadingStore } from "@/store/loadingStore";
 import { SEO } from "../components/SEO";
+import DemoTimer from "@/components/atoms/DemoTimer";
 
 const WardAdmin = () => {
 	const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -88,6 +89,7 @@ const WardAdmin = () => {
 						className="lg:hidden mb-4 p-2 hover:bg-gray-100 rounded-lg"
 					>
 						<IoMdMenu className="w-[1.5rem] h-[1.5rem] text-gray-600" />
+						<DemoTimer />
 					</button>
 
 					<div className="mb-3">

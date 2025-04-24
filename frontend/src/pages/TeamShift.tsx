@@ -6,6 +6,7 @@ import { useState } from "react";
 import { IoMdMenu } from "react-icons/io";
 import useUserAuthStore from "../store/userAuthStore";
 import { SEO } from "../components/SEO";
+import DemoTimer from "@/components/atoms/DemoTimer";
 const TeamShift = () => {
 	const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 	const { userInfo } = useUserAuthStore();
@@ -35,6 +36,7 @@ const TeamShift = () => {
 						className="lg:hidden mb-4 p-2 hover:bg-gray-100 rounded-lg"
 					>
 						<IoMdMenu className="w-6 h-6 text-gray-600" />
+						<DemoTimer />
 					</button>
 
 					<Title

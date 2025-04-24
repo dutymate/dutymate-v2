@@ -12,6 +12,7 @@ import { toast } from "react-toastify";
 import { ApiErrorResponse, profileService } from "@/services/profileService";
 import { AxiosError } from "axios";
 import { SEO } from "../components/SEO";
+import DemoTimer from "@/components/atoms/DemoTimer";
 
 const Mypage = () => {
 	const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -79,6 +80,7 @@ const Mypage = () => {
 						className="lg:hidden mb-2 p-2 hover:bg-gray-100 rounded-lg"
 					>
 						<IoMdMenu className="w-6 h-6 text-gray-600" />
+						<DemoTimer />
 					</button>
 					<div className="flex items-center gap-[0.75rem]">
 						<div className="flex-1">

@@ -11,6 +11,7 @@ import { toast } from "react-toastify";
 import { useLoadingStore } from "@/store/loadingStore";
 import { useNavigate } from "react-router-dom";
 import { SEO } from "../components/SEO";
+import DemoTimer from "@/components/atoms/DemoTimer";
 // Duty 타입 변환 유틸리티 함수
 const convertDutyType = (
 	duty: "D" | "E" | "N" | "O" | "M",
@@ -130,6 +131,7 @@ const MyShift = () => {
 						className="lg:hidden mb-[1rem] p-[0.5rem] hover:bg-gray-100 rounded-lg"
 					>
 						<IoMdMenu className="w-6 h-6 text-gray-600" />
+						<DemoTimer />
 					</button>
 
 					{/* Title 컴포넌트의 위치 조정 */}
