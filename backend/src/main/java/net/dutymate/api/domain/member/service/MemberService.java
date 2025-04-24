@@ -67,8 +67,8 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 @RequiredArgsConstructor
 public class MemberService {
 
+	public static final String DEMO_EMAIL_SUFFIX = "@dutymate.demo";
 	private static final String DEMO_MEMBER_PREFIX = "demo:member:";
-	private static final String DEMO_EMAIL_SUFFIX = "@dutymate.demo";
 	private static final String DEMO_PASSWORD = "qwer1234!";
 	private static final String DEMO_NAME = "데모계정";
 	private static final String DEMO_HOSPITAL_NAME = "듀티메이트병원";

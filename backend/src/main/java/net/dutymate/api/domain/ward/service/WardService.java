@@ -273,7 +273,12 @@ public class WardService {
 		// 4. 입장 대기 인원 조회
 		long enterWaitingCnt = enterWaitingRepository.countByWard(ward);
 
-		return WardInfoResponseDto.of(ward, wardMemberList, enterWaitingCnt);
+		// 데모계정인 경우 -> 병동 코드를 빈 문자열로 삽입
+		WardInfoResponseDto wardInfoResponseDto = WardInfoResponseDto.of(ward, wardMemberList, enterWaitingCnt);
+		if (member.getEmail().endsWith(MemberService.DEMO_EMAIL_SUFFIX)) {
+			wardInfoResponseDto.setWardCode("");
+		}
+		return wardInfoResponseDto;
 	}
 
 	@Transactional(readOnly = true)
