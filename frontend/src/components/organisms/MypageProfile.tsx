@@ -97,7 +97,6 @@ const MypageProfile = () => {
 						message: "닉네임 확인 중 오류가 발생했습니다.",
 					});
 				}
-				console.log(nicknameStatus);
 			} else {
 				setNicknameStatus({ isValid: null, message: "" });
 			}
