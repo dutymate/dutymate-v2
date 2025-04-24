@@ -7,6 +7,8 @@ interface RuleEditModalProps {
 	onClose: () => void;
 	buttonRef: React.RefObject<HTMLButtonElement>;
 	onRuleUpdate: (newRules: WardRule) => void;
+	isFromAutoGenerate?: boolean; // 자동생성 경로에서 왔는지 여부
+	onRuleUpdateFromAutoGenerate?: (newRules: WardRule) => void; // 자동생성 경로에서 온 경우 호출될 콜백
 }
 
 interface WardRule {
@@ -42,7 +44,12 @@ const getFontWeight = (value: number) => {
 	}
 };
 
-const RuleEditModal = ({ onClose, onRuleUpdate }: RuleEditModalProps) => {
+const RuleEditModal = ({
+	onClose,
+	onRuleUpdate,
+	isFromAutoGenerate = false,
+	onRuleUpdateFromAutoGenerate,
+}: RuleEditModalProps) => {
 	const [rules, setRules] = useState<WardRule | null>(null);
 	const [isLoading, setIsLoading] = useState(true);
 	const [isSubmitting, setIsSubmitting] = useState(false);
@@ -95,9 +102,15 @@ const RuleEditModal = ({ onClose, onRuleUpdate }: RuleEditModalProps) => {
 		setIsSubmitting(true);
 		try {
 			await ruleService.updateWardRules(rules);
-			onRuleUpdate(rules);
-			toast.success("규칙이 저장되었습니다");
-			onClose();
+
+			// 자동생성 경로에서 왔는지에 따라 다른 콜백 실행
+			if (isFromAutoGenerate && onRuleUpdateFromAutoGenerate) {
+				onRuleUpdateFromAutoGenerate(rules);
+			} else {
+				onRuleUpdate(rules);
+				toast.success("규칙이 저장되었습니다");
+				onClose();
+			}
 		} catch (error: any) {
 			console.error("Failed to update rules:", error);
 			if (error.response) {

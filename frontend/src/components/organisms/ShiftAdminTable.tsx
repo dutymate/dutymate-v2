@@ -631,7 +631,16 @@ const ShiftAdminTable = ({
 			return;
 		}
 
-		setIsAutoGenerateModalOpen(true);
+		try {
+			// 규칙 정보 먼저 가져오기
+			const rules = await ruleService.getWardRules();
+			setWardRules(rules);
+			setIsFromAutoGenerate(true);
+			setIsAutoGenerateModalOpen(true);
+		} catch (error) {
+			console.error("Failed to fetch rules:", error);
+			toast.error("규칙을 불러오는데 실패했습니다");
+		}
 	};
 
 	const handleAutoGenerateConfirm = () => {
@@ -895,6 +904,7 @@ const ShiftAdminTable = ({
 	const [showWebDownloadDropdown, setShowWebDownloadDropdown] = useState(false);
 
 	const [wardRules, setWardRules] = useState<WardRule | null>(null);
+	const [isFromAutoGenerate, setIsFromAutoGenerate] = useState(false);
 
 	useEffect(() => {
 		const fetchShiftRules = async () => {
@@ -944,6 +954,27 @@ const ShiftAdminTable = ({
 
 		fetchAutoGenCount();
 	}, []);
+
+	// 규칙 설정 버튼 클릭 핸들러 추가
+	const handleRuleButtonClick = async () => {
+		try {
+			// 규칙 정보 가져오기
+			const rules = await ruleService.getWardRules();
+			setWardRules(rules);
+			setIsFromAutoGenerate(false);
+			setIsRuleModalOpen(true);
+		} catch (error) {
+			console.error("Failed to fetch rules:", error);
+			toast.error("규칙을 불러오는데 실패했습니다");
+		}
+	};
+
+	// 자동생성 경로에서 규칙 수정 후 처리하는 핸들러 추가
+	const handleRuleUpdateFromAutoGenerate = (newRules: WardRule) => {
+		setWardRules(newRules);
+		setIsRuleModalOpen(false);
+		setIsAutoGenerateModalOpen(true);
+	};
 
 	return (
 		<div>
@@ -1009,7 +1040,7 @@ const ShiftAdminTable = ({
 										ref={ruleButtonRef}
 										onClick={() => {
 											setIsDropdownOpen(false);
-											setIsRuleModalOpen(true);
+											handleRuleButtonClick();
 										}}
 										className="w-full px-3 py-2 text-sm text-left text-gray-700 hover:bg-gray-100 flex items-center gap-2"
 									>
@@ -1391,7 +1422,7 @@ const ShiftAdminTable = ({
 									size="register"
 									color="primary"
 									className="py-0.5 px-1.5 sm:py-1 sm:px-2"
-									onClick={() => setIsRuleModalOpen(true)}
+									onClick={() => handleRuleButtonClick()}
 								>
 									규칙 설정
 								</Button>
@@ -1784,9 +1815,14 @@ const ShiftAdminTable = ({
 			{/* 공통 모달 영역 - 뷰포트 외부에 배치 */}
 			{isRuleModalOpen && (
 				<RuleEditModal
-					onClose={() => setIsRuleModalOpen(false)}
+					onClose={() => {
+						setIsRuleModalOpen(false);
+						setIsFromAutoGenerate(false);
+					}}
 					buttonRef={ruleButtonRef}
 					onRuleUpdate={(newRules) => setWardRules(newRules)}
+					isFromAutoGenerate={isFromAutoGenerate}
+					onRuleUpdateFromAutoGenerate={handleRuleUpdateFromAutoGenerate}
 				/>
 			)}
 			<NurseCountModal
@@ -1801,7 +1837,10 @@ const ShiftAdminTable = ({
 
 			<AutoGenerateConfirmModal
 				isOpen={isAutoGenerateModalOpen}
-				onClose={() => setIsAutoGenerateModalOpen(false)}
+				onClose={() => {
+					setIsAutoGenerateModalOpen(false);
+					setIsFromAutoGenerate(false);
+				}}
 				onConfirm={handleAutoGenerateConfirm}
 				onModify={() => {
 					setIsAutoGenerateModalOpen(false);
