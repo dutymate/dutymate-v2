@@ -93,7 +93,7 @@ public class WardMember {
 	@PrePersist
 	protected void prePersist() {
 		if (this.member.getRole() == Role.HN) {
-			this.shiftType = ShiftType.D;
+			this.shiftType = ShiftType.M;
 		} else {
 			this.shiftType = ShiftType.ALL;
 		}
