@@ -137,7 +137,7 @@ const LoginForm = ({ onRequireVerification }: LoginFormProps) => {
 						id="login-email"
 						name="email"
 						label="이메일"
-						placeholder="ssafynurse@dutymate.com"
+						placeholder="이메일"
 						value={loginData.email}
 						onChange={handleLoginChange}
 						error={error.email}
@@ -147,6 +147,7 @@ const LoginForm = ({ onRequireVerification }: LoginFormProps) => {
 						id="login-password"
 						name="password"
 						label="비밀번호"
+						placeholder="비밀번호"
 						value={loginData.password}
 						onChange={handleLoginChange}
 						error={error.password}
