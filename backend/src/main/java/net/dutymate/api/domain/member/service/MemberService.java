@@ -723,8 +723,6 @@ public class MemberService {
 
 	@Transactional
 	public void deleteDemoMember() {
-		// TODO 리소스가 너무 크다.. 데모 계정 10개 -> 3초 소요. 추후 벌크 연산 쿼리를 고려해보자
-
 		// DEMO_MEMBER_PREFIX로 시작하는 모든 키를 SCAN으로 조회
 		ScanOptions options = ScanOptions.scanOptions().match(DEMO_MEMBER_PREFIX + "*").count(1_000).build();
 
@@ -740,6 +738,8 @@ public class MemberService {
 		// 데모계정 불러오기
 		List<Member> demoMembers = memberRepository.findByEmailEndingWith(DEMO_EMAIL_SUFFIX);
 
+		List<Long> wardIdsToDelete = new ArrayList<>();
+
 		// demoMemberIdSet에 없는 멤버는 삭제!!
 		for (Member demoMember : demoMembers) {
 			// 아직 데모 진행중인 경우 (레디스에 존재하는 경우) continue
@@ -748,14 +748,27 @@ public class MemberService {
 			}
 
 			Ward ward = demoMember.getWardMember().getWard();
-			List<WardMember> wardMemberList = ward.getWardMemberList();
-
-			for (WardMember wardMember : wardMemberList) {
-				memberRepository.delete(wardMember.getMember());
-			}
-			wardScheduleRepository.deleteByWardId(ward.getWardId());
-			wardRepository.delete(ward);
+			wardIdsToDelete.add(ward.getWardId());
 		}
+
+		if (wardIdsToDelete.isEmpty()) {
+			return; // 삭제할 게 없으면 끝
+		}
+
+		// Ward + WardMember + Member를 fetch join으로 한 번에 가져오기
+		List<Ward> wards = wardRepository.findWardsWithMembersByWardIdIn(wardIdsToDelete);
+
+		List<Member> membersToDelete = new ArrayList<>();
+		for (Ward ward : wards) {
+			for (WardMember wardMember : ward.getWardMemberList()) {
+				membersToDelete.add(wardMember.getMember());
+			}
+		}
+
+		// 벌크 삭제 처리
+		wardScheduleRepository.deleteByWardIdIn(wardIdsToDelete);
+		wardRepository.deleteAllInBatch(wards);
+		memberRepository.deleteAllInBatch(membersToDelete);
 	}
 
 	// @Transactional
