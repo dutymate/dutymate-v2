@@ -652,7 +652,7 @@ const ShiftAdminTable = ({
 					const startTimestamp = parseInt(startTime, 10);
 					const now = Date.now();
 					const elapsedSeconds = Math.floor((now - startTimestamp) / 1000);
-					const remaining = 60 * 60 - elapsedSeconds;
+					const remaining = 60 * 10 - elapsedSeconds;
 					setDemoTimeLeft(Math.max(0, remaining));
 				} else {
 					setDemoTimeLeft(0);
