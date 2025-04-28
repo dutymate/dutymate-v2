@@ -1073,7 +1073,7 @@ const ShiftAdminTable = ({
 											setIsDropdownOpen(false);
 											handleDownloadWardSchedule();
 										}}
-										className={`w-full px-3 py-2 text-sm text-left ${userInfo?.isDemo ? 'text-gray-400 cursor-not-allowed' : 'text-gray-700 hover:bg-gray-100'}`}
+										className={`w-full px-3 py-2 text-sm text-left ${userInfo?.isDemo ? "text-gray-400 cursor-not-allowed" : "text-gray-700 hover:bg-gray-100"}`}
 										disabled={userInfo?.isDemo}
 									>
 										이미지 다운로드
@@ -1083,7 +1083,7 @@ const ShiftAdminTable = ({
 											setIsDropdownOpen(false);
 											handleExportToExcel();
 										}}
-										className={`w-full px-3 py-2 text-sm text-left ${userInfo?.isDemo ? 'text-gray-400 cursor-not-allowed' : 'text-gray-700 hover:bg-gray-100'}`}
+										className={`w-full px-3 py-2 text-sm text-left ${userInfo?.isDemo ? "text-gray-400 cursor-not-allowed" : "text-gray-700 hover:bg-gray-100"}`}
 										disabled={userInfo?.isDemo}
 									>
 										엑셀로 다운로드
@@ -1483,8 +1483,11 @@ const ShiftAdminTable = ({
 										text-size="md"
 										size="register"
 										color="off"
-										className={`py-0.5 px-1.5 sm:py-1 sm:px-2 ${userInfo?.isDemo ? 'opacity-50 cursor-not-allowed' : ''}`}
-										onClick={() => !userInfo?.isDemo && setShowWebDownloadDropdown((prev) => !prev)}
+										className={`py-0.5 px-1.5 sm:py-1 sm:px-2 ${userInfo?.isDemo ? "opacity-50 cursor-not-allowed" : ""}`}
+										onClick={() =>
+											!userInfo?.isDemo &&
+											setShowWebDownloadDropdown((prev) => !prev)
+										}
 									>
 										<div className="flex items-center gap-1">
 											다운로드
