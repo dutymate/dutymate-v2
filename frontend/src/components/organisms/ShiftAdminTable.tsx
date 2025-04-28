@@ -30,6 +30,8 @@ import AutoGenerateConfirmModal from "./AutoGenerateConfirmModal";
 import AutoGenCountModal from "./AutoGenCountModal";
 import PaymentModal from "./PaymentModal";
 import SubscriptionSuccessModal from "./SubscriptionSuccessModal";
+import DemoSignupModal from "./DemoSignupModal";
+import useUserAuthStore from "@/store/userAuthStore";
 
 // 근무표 관리자 테이블의 props 인터페이스
 interface ShiftAdminTableProps {
@@ -622,6 +624,11 @@ const ShiftAdminTable = ({
 	};
 
 	const navigate = useNavigate();
+	const [isDemoSignupModalOpen, setIsDemoSignupModalOpen] = useState(false);
+	const { userInfo } = useUserAuthStore();
+	const isDemo = userInfo?.isDemo;
+	const [demoTimeLeft, setDemoTimeLeft] = useState(0);
+
 	const handleAutoCreate = async () => {
 		if (isAutoCreating) {
 			toast.warning("이미 자동생성 중입니다.", {
@@ -636,6 +643,23 @@ const ShiftAdminTable = ({
 			const rules = await ruleService.getWardRules();
 			setWardRules(rules);
 			setIsFromAutoGenerate(true);
+
+			// DEMO: autogenCnt 0 & demo 계정이면 회원가입 유도 모달
+			if (autoGenCnt <= 0 && isDemo) {
+				// 남은 데모 시간 계산 (DemoTimer와 동일 로직)
+				const startTime = sessionStorage.getItem("demo-start-time");
+				if (startTime) {
+					const startTimestamp = parseInt(startTime, 10);
+					const now = Date.now();
+					const elapsedSeconds = Math.floor((now - startTimestamp) / 1000);
+					const remaining = 60 * 60 - elapsedSeconds;
+					setDemoTimeLeft(Math.max(0, remaining));
+				} else {
+					setDemoTimeLeft(0);
+				}
+				setIsDemoSignupModalOpen(true);
+				return;
+			}
 
 			// 자동 생성 횟수가 0 이하인 경우 결제 모달로 이동
 			if (autoGenCnt <= 0) {
@@ -1846,6 +1870,17 @@ const ShiftAdminTable = ({
 				onConfirm={handleStartAutoGenerate}
 				plan={currentPlan}
 				autoGenCnt={autoGenCnt}
+			/>
+
+			<DemoSignupModal
+				isOpen={isDemoSignupModalOpen}
+				onClose={() => setIsDemoSignupModalOpen(false)}
+				onSignup={() => {
+					setIsDemoSignupModalOpen(false);
+					navigate("/sign-up");
+				}}
+				onContinue={() => setIsDemoSignupModalOpen(false)}
+				timeLeft={demoTimeLeft}
 			/>
 		</div>
 	);

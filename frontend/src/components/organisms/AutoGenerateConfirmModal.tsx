@@ -75,7 +75,6 @@ const AutoGenerateConfirmModal = ({
 	const handleOpenRuleEditModal = () => {
 		setIsRuleEditModalOpen(true);
 	};
-
 	// 규칙 수정 완료 처리
 	const handleRuleUpdateFromAutoGenerate = (newRules: WardRule) => {
 		setUpdatedRules(newRules);
