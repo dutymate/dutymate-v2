@@ -21,6 +21,29 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class Rule {
 
+	private static final int WEEKDAY_DUTY_COUNT = 2;
+	private static final int WEEKDAY_EVENING_COUNT = 2;
+	private static final int WEEKDAY_NIGHT_COUNT = 2;
+	private static final int WEEKEND_DUTY_COUNT = 2;
+	private static final int WEEKEND_EVENING_COUNT = 2;
+	private static final int WEEKEND_NIGHT_COUNT = 2;
+
+	private static final int MAX_CONTINUOUS_SHIFT = 5;
+	private static final int MAX_NIGHT_SHIFT = 3;
+	private static final int MIN_NIGHT_SHIFT = 2;
+	private static final int OFF_DAYS_AFTER_NIGHT = 2;
+	private static final int OFF_DAYS_AFTER_MAX_SHIFT = 2;
+
+	private static final int PRIORITY_MAX_NIGHT_SHIFT = 3;
+	private static final int PRIORITY_MIN_NIGHT_SHIFT = 3;
+	private static final int PRIORITY_OFF_DAYS_AFTER_NIGHT = 2;
+	private static final int PRIORITY_MAX_CONTINUOUS_SHIFT = 3;
+	private static final int PRIORITY_OFF_DAYS_AFTER_MAX_SHIFT = 2;
+
+	private static final int PRIORITY_VERY_IMPORTANT = 3;
+	private static final int PRIORITY_IMPORTANT = 2;
+	private static final int PRIORITY_NORMAL = 1;
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long ruleId;
@@ -76,22 +99,22 @@ public class Rule {
 	// 기본값이 설정된 Builder
 	@PrePersist
 	protected void onCreate() {
-		this.wdayDCnt = 3;
-		this.wdayECnt = 2;
-		this.wdayNCnt = 2;
-		this.wendDCnt = 2;
-		this.wendECnt = 2;
-		this.wendNCnt = 2;
-		this.maxN = 3;
-		this.prioMaxN = 3;
-		this.minN = 2;
-		this.prioMinN = 3;
-		this.offCntAfterN = 2;
-		this.prioOffCntAfterN = 2;
-		this.maxShift = 5;
-		this.prioMaxShift = 3;
-		this.offCntAfterMaxShift = 2;
-		this.prioOffCntAfterMaxShift = 2;
+		this.wdayDCnt = WEEKDAY_DUTY_COUNT;
+		this.wdayECnt = WEEKDAY_EVENING_COUNT;
+		this.wdayNCnt = WEEKDAY_NIGHT_COUNT;
+		this.wendDCnt = WEEKEND_DUTY_COUNT;
+		this.wendECnt = WEEKEND_EVENING_COUNT;
+		this.wendNCnt = WEEKEND_NIGHT_COUNT;
+		this.maxN = MAX_NIGHT_SHIFT;
+		this.prioMaxN = PRIORITY_VERY_IMPORTANT;
+		this.minN = MIN_NIGHT_SHIFT;
+		this.prioMinN = PRIORITY_VERY_IMPORTANT;
+		this.offCntAfterN = OFF_DAYS_AFTER_NIGHT;
+		this.prioOffCntAfterN = PRIORITY_IMPORTANT;
+		this.maxShift = MAX_CONTINUOUS_SHIFT;
+		this.prioMaxShift = PRIORITY_VERY_IMPORTANT;
+		this.offCntAfterMaxShift = OFF_DAYS_AFTER_MAX_SHIFT;
+		this.prioOffCntAfterMaxShift = PRIORITY_IMPORTANT;
 	}
 
 	public void update(RuleUpdateRequestDto dto) {
