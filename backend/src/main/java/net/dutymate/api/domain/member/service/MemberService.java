@@ -73,6 +73,8 @@ public class MemberService {
 	private static final String DEMO_NAME = "데모계정";
 	private static final String DEMO_HOSPITAL_NAME = "듀티메이트병원";
 	private static final String DEMO_WARD_NAME = "듀티병동";
+	private static final Integer DEMO_AUTO_GEN_CNT = 3;
+	private static final Integer DEFAULT_AUTO_GEN_CNT = 5;
 
 	private final MemberRepository memberRepository;
 	private final JwtUtil jwtUtil;
@@ -123,7 +125,7 @@ public class MemberService {
 		checkEmail(signUpRequestDto.getEmail());
 
 		Member newMember = signUpRequestDto.toMember(addBasicProfileImgUrl());
-
+		newMember.setAutoGenCnt(DEFAULT_AUTO_GEN_CNT);
 		memberRepository.save(newMember);
 		return login(signUpRequestDto.toLoginRequestDto());
 	}
@@ -635,6 +637,7 @@ public class MemberService {
 			.password(DEMO_PASSWORD)
 			.passwordConfirm(DEMO_PASSWORD)
 			.name(DEMO_NAME)
+			.autoGenCnt(DEMO_AUTO_GEN_CNT)
 			.build();
 
 		// 회원가입

@@ -96,7 +96,6 @@ public class Member {
 		this.createdAt = new Timestamp(System.currentTimeMillis());
 		this.isActive = true;
 		this.isVerified = true;		// 신규 회원은 이메일 인증된 상태로 간주
-		this.autoGenCnt = 5;
 	}
 
 	public void changeAdditionalInfo(Integer grade, Gender gender, Role role) {
@@ -155,5 +154,9 @@ public class Member {
 
 	public void updateAutoGenCnt(int changeNum) {
 		this.autoGenCnt = this.autoGenCnt + changeNum;
+	}
+
+	public void setAutoGenCnt(int autoGenCnt) {
+		this.autoGenCnt = autoGenCnt;
 	}
 }

@@ -21,6 +21,7 @@ public class SignUpRequestDto {
 	private String passwordConfirm;
 	@Size(max = 20, message = "이름은 최대 20자입니다.")
 	private String name;
+	private Integer autoGenCnt;
 
 	public Member toMember(String defaultProfileImg) {
 		return Member.builder()
@@ -29,6 +30,7 @@ public class SignUpRequestDto {
 			.name(name)
 			.provider(Provider.NONE)
 			.profileImg(defaultProfileImg)
+			.autoGenCnt(autoGenCnt)
 			.build();
 	}
 

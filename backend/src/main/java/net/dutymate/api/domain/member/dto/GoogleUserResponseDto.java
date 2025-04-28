@@ -18,6 +18,8 @@ public class GoogleUserResponseDto {
 	private String name;
 	private String picture;
 
+	private static final Integer DEFAULT_AUTO_GEN_CNT = 5;
+
 	// GoogleUser(DTO) -> Member Entity
 	public Member toMember(String defaultProfileImage) {
 		return Member.builder()
@@ -27,6 +29,7 @@ public class GoogleUserResponseDto {
 			.profileImg(Optional.ofNullable(picture).orElse(defaultProfileImage))
 			.provider(Provider.GOOGLE)
 			.isVerified(true)
+			.autoGenCnt(DEFAULT_AUTO_GEN_CNT)
 			.build();
 	}
 }
