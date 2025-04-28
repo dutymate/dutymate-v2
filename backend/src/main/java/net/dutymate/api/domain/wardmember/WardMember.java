@@ -28,6 +28,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Getter
@@ -55,6 +56,7 @@ public class WardMember {
 	@OneToMany(mappedBy = "wardMember", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<Request> requestList;
 
+	@Setter
 	@Enumerated(EnumType.STRING)
 	@Column(name = "shift")
 	private ShiftType shiftType;
@@ -92,10 +94,12 @@ public class WardMember {
 
 	@PrePersist
 	protected void prePersist() {
-		if (this.member.getRole() == Role.HN) {
-			this.shiftType = ShiftType.M;
-		} else {
-			this.shiftType = ShiftType.ALL;
+		if (this.shiftType == null) {
+			if (this.member.getRole() == Role.HN) {
+				this.shiftType = ShiftType.M;
+			} else {
+				this.shiftType = ShiftType.ALL;
+			}
 		}
 	}
 }

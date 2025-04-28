@@ -1,5 +1,6 @@
 package net.dutymate.api.domain.member.service;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -47,6 +48,7 @@ import net.dutymate.api.domain.ward.dto.WardRequestDto;
 import net.dutymate.api.domain.ward.repository.EnterWaitingRepository;
 import net.dutymate.api.domain.ward.repository.WardRepository;
 import net.dutymate.api.domain.wardmember.Role;
+import net.dutymate.api.domain.wardmember.ShiftType;
 import net.dutymate.api.domain.wardmember.WardMember;
 import net.dutymate.api.domain.wardmember.repository.WardMemberRepository;
 import net.dutymate.api.domain.wardmember.service.WardMemberService;
@@ -73,6 +75,7 @@ public class MemberService {
 	private static final String DEMO_NAME = "데모계정";
 	private static final String DEMO_HOSPITAL_NAME = "듀티메이트병원";
 	private static final String DEMO_WARD_NAME = "듀티병동";
+	private static final Integer DEMO_TEMP_NURSE_CNT = 10;
 	private static final Integer DEMO_AUTO_GEN_CNT = 3;
 	private static final Integer DEFAULT_AUTO_GEN_CNT = 5;
 
@@ -640,39 +643,72 @@ public class MemberService {
 			.autoGenCnt(DEMO_AUTO_GEN_CNT)
 			.build();
 
-		// 회원가입
+		// 1. 데모 계정 회원가입
 		checkEmail(signUpRequestDto.getEmail());
 		Member newMember = signUpRequestDto.toMember(addBasicProfileImgUrl());
 		memberRepository.save(newMember);
 
-		// 부가정보 기입
+		// 2. 데모 계정 부가정보 기입
 		AdditionalInfoRequestDto additionalInfoRequestDto = AdditionalInfoRequestDto.builder()
 			.role("HN").grade(10).gender("F").build();
 		addAdditionalInfo(newMember, additionalInfoRequestDto);
 
-		// 병동 생성
+		// 3. 데모 병동 생성
 		WardRequestDto wardRequestDto = WardRequestDto.builder()
 			.hospitalName(DEMO_HOSPITAL_NAME).wardName(DEMO_WARD_NAME).build();
-		// 2. Ward  생성 -> Rule 자동 생성
 		Ward ward = wardRequestDto.toWard(StringGenerator.generateWardCode());
 		wardRepository.save(ward);
 
-		// 3. WardMember 생성 (로그인한 사용자 추가)
+		// 4. 데모 WardMember 생성
 		WardMember wardMember = WardMember.builder()
 			.isSynced(true)
 			.ward(ward)
 			.member(newMember)
 			.build();
 		wardMemberRepository.save(wardMember);
-
-		// ward의 List에 wardMember 추가
 		ward.addWardMember(wardMember);
 
-		// 4. 현재 날짜 기준으로  year, month 생성
+		// 5. 새로운 임시간호사 리스트 생성
+		List<Member> newMemberList = new ArrayList<>();
+		List<WardMember> newWardMemberList = new ArrayList<>();
+		for (int tempNurseSeq = 1; tempNurseSeq <= DEMO_TEMP_NURSE_CNT; tempNurseSeq++) {
+			String tempNurseName = "간호사" + tempNurseSeq;
+
+			Member tempMember = Member.builder()
+				.email("tempEmail@temp.com")
+				.name(tempNurseName)
+				.password("tempPassword123!!")
+				.grade(1)
+				.role(Role.RN)
+				.gender(Gender.F)
+				.provider(Provider.NONE)
+				.profileImg(addBasicProfileImgUrl())
+				.autoGenCnt(0)
+				.build();
+			WardMember tempWardMember = WardMember.builder()
+				.isSynced(false)
+				.ward(ward)
+				.member(tempMember)
+				.build();
+			// 5-1. 9번과 10번 간호사는 근무 유형을 Night로 설정
+			if (tempNurseSeq == 9 || tempNurseSeq == 10) {
+				tempWardMember.setShiftType(ShiftType.N);
+			}
+			newMemberList.add(tempMember);
+			newWardMemberList.add(tempWardMember);
+			ward.addWardMember(tempWardMember);
+		}
+
+		ward.changeTempNurseSeq(DEMO_TEMP_NURSE_CNT);
+		// 6. 임시 간호사 리스트를 RDB에 저장
+		memberRepository.saveAll(newMemberList);
+		wardMemberRepository.saveAll(newWardMemberList);
+
+		// 7. 현재 날짜 기준으로  year, month 생성
 		YearMonth yearMonth = YearMonth.nowYearMonth();
 
-		// 5. 병동 생성하는 멤버의 듀티표 초기화하여 mongodb에 저장하기
-		initialDutyGenerator.initializedDuty(wardMember, yearMonth);
+		// 8. 병동 생성하는 멤버의 듀티표 초기화하여 mongodb에 저장하기
+		initialDutyGenerator.createNewWardSchedule(ward, ward.getWardMemberList(), yearMonth);
 
 		// 로그인 (토큰 시간 1시간 설정)
 		// memberId로 AccessToken 생성
@@ -687,6 +723,8 @@ public class MemberService {
 
 	@Transactional
 	public void deleteDemoMember() {
+		// TODO 리소스가 너무 크다.. 데모 계정 10개 -> 3초 소요. 추후 벌크 연산 쿼리를 고려해보자
+
 		// DEMO_MEMBER_PREFIX로 시작하는 모든 키를 SCAN으로 조회
 		ScanOptions options = ScanOptions.scanOptions().match(DEMO_MEMBER_PREFIX + "*").count(1_000).build();
 

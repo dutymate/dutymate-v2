@@ -38,15 +38,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AutoScheduleService {
 
-	private final MemberService memberService;
-	private final WardMemberService wardMemberService;
-	private final WardService wardService;
-	private final RuleService ruleService;
-
 	private final WardMemberRepository wardMemberRepository;
-	private final MemberRepository memberRepository;
-	private final WardRepository wardRepository;
-	private final RuleRepository ruleRepository;
 
 	private final WardScheduleRepository wardScheduleRepository;
 	private final RequestRepository requestRepository;
@@ -56,7 +48,7 @@ public class AutoScheduleService {
 
 	@Transactional
 	public ResponseEntity<?> generateAutoSchedule(YearMonth yearMonth, Member member) {
-
+		// TODO 자동 생성 횟수 남아있는지 체크
 		Long wardId = member.getWardMember().getWard().getWardId();
 		//전월 달 근무 호출
 		YearMonth prevYearMonth = yearMonth.prevYearMonth();
