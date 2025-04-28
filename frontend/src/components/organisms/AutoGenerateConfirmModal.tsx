@@ -7,8 +7,9 @@ interface AutoGenerateConfirmModalProps {
 	isOpen: boolean;
 	onClose: () => void;
 	onConfirm: () => void;
-	onModify: () => void;
+	onModify: (newRules: WardRule) => void;
 	wardRules: WardRule | null;
+	autoGenCnt: number;
 }
 
 // 중요도에 따른 폰트 굵기 설정 함수
@@ -44,14 +45,27 @@ const AutoGenerateConfirmModal = ({
 	onClose,
 	onConfirm,
 	wardRules,
+	autoGenCnt,
 }: AutoGenerateConfirmModalProps) => {
+	// 열려있지 않거나 규칙이 없는 경우 렌더링하지 않음
+	if (!isOpen) {
+		return null;
+	}
+
+	// 규칙이 없는 경우도 렌더링하지 않음
+	if (!wardRules) {
+		return null;
+	}
+
+	// 자동 생성 횟수가 0 이하일 때는 모달을 표시하지 않음
+	if (autoGenCnt <= 0) {
+		return null;
+	}
+
 	// 규칙 수정 모달 상태 관리
 	const [isRuleEditModalOpen, setIsRuleEditModalOpen] = useState(false);
 	// 업데이트된 규칙 상태 관리
 	const [updatedRules, setUpdatedRules] = useState<WardRule | null>(null);
-
-	// 열려있지 않거나 규칙이 없는 경우 렌더링하지 않음
-	if (!isOpen) return null;
 
 	// 규칙이 없는 경우도 렌더링하지 않음
 	const currentRules = updatedRules || wardRules;

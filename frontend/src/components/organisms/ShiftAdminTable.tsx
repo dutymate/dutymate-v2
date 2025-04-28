@@ -636,9 +636,15 @@ const ShiftAdminTable = ({
 			const rules = await ruleService.getWardRules();
 			setWardRules(rules);
 			setIsFromAutoGenerate(true);
+
+			// 자동 생성 횟수가 0 이하인 경우 결제 모달로 이동
+			if (autoGenCnt <= 0) {
+				setIsPaymentModalOpen(true);
+				return;
+			}
+
 			setIsAutoGenerateModalOpen(true);
 		} catch (error) {
-			console.error("Failed to fetch rules:", error);
 			toast.error("규칙을 불러오는데 실패했습니다");
 		}
 	};
@@ -749,7 +755,6 @@ const ShiftAdminTable = ({
 			// 수정된 부분: 자동 생성 모달 대신 구독 성공 모달 표시
 			setIsSubscriptionSuccessModalOpen(true);
 		} catch (error) {
-			console.error("Subscription error:", error);
 			setIsPaymentModalOpen(false);
 		}
 	};
@@ -932,9 +937,7 @@ const ShiftAdminTable = ({
 			try {
 				const data = await dutyService.getAutoGenCount();
 				setAutoGenCnt(data); // API 응답 구조에 따라 조정
-			} catch (error) {
-				console.error("자동 생성 횟수 조회 실패:", error);
-			}
+			} catch (error) {}
 		};
 
 		fetchAutoGenCount();
@@ -949,7 +952,6 @@ const ShiftAdminTable = ({
 			setIsFromAutoGenerate(false);
 			setIsRuleModalOpen(true);
 		} catch (error) {
-			console.error("Failed to fetch rules:", error);
 			toast.error("규칙을 불러오는데 실패했습니다");
 		}
 	};
@@ -1814,11 +1816,12 @@ const ShiftAdminTable = ({
 					setIsFromAutoGenerate(false);
 				}}
 				onConfirm={handleAutoGenerateConfirm}
-				onModify={() => {
+				onModify={(newRules) => {
+					setWardRules(newRules);
 					setIsAutoGenerateModalOpen(false);
-					setIsRuleModalOpen(true);
 				}}
 				wardRules={wardRules}
+				autoGenCnt={autoGenCnt}
 			/>
 
 			<AutoGenCountModal

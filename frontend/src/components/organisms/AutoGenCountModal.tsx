@@ -15,7 +15,16 @@ const AutoGenCountModal = ({
 	autoGenCnt,
 	onOpenPayment,
 }: AutoGenCountModalProps) => {
-	if (!isOpen) return null;
+	// 자동 생성 횟수가 0 이하일 때는 모달을 표시하지 않고 바로 결제창으로 이동
+	if (isOpen && autoGenCnt <= 0) {
+		onClose();
+		onOpenPayment();
+		return null;
+	}
+
+	if (!isOpen) {
+		return null;
+	}
 
 	// 자동 생성 횟수에 따라 타이틀과 메시지 변경
 	const title =
