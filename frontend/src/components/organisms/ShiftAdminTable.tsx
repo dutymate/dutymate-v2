@@ -1121,13 +1121,6 @@ const ShiftAdminTable = ({
 									<th className="p-0 text-center w-7 border-r border-gray-200">
 										<div className="flex items-center justify-center">
 											<div className="scale-[0.65]">
-												<DutyBadgeEng type="M" size="sm" variant="filled" />
-											</div>
-										</div>
-									</th>
-									<th className="p-0 text-center w-7 border-r border-gray-200">
-										<div className="flex items-center justify-center">
-											<div className="scale-[0.65]">
 												<DutyBadgeEng type="O" size="sm" variant="filled" />
 											</div>
 										</div>
