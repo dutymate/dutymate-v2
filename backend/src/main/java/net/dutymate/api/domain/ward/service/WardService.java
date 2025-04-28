@@ -354,6 +354,7 @@ public class WardService {
 				.gender(Gender.F)
 				.provider(Provider.NONE)
 				.profileImg(defaultProfileImgUrl)
+				.autoGenCnt(0)
 				.build();
 			newMemberList.add(virtualMember);
 		}
