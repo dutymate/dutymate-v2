@@ -103,6 +103,8 @@ const MyShift = () => {
 		}
 	};
 
+	const isDemo = userInfo?.isDemo;
+
 	return (
 		<>
 			<SEO
@@ -113,13 +115,17 @@ const MyShift = () => {
 			<div className="w-full h-screen flex flex-row bg-[#F4F4F4]">
 				{/* 데스크톱 Sidebar */}
 				<div className="hidden lg:block w-[14.875rem] shrink-0">
-					<Sidebar userType={userInfo?.role as "HN" | "RN"} />
+					<Sidebar
+						userType={userInfo?.role as "HN" | "RN"}
+						isDemo={isDemo ?? false}
+					/>
 				</div>
 
 				{/* 모바일 Sidebar */}
 				<MSidebar
 					userType={userInfo?.role as "HN" | "RN"}
 					isOpen={isSidebarOpen}
+					isDemo={isDemo ?? false}
 					onClose={() => setIsSidebarOpen(false)}
 				/>
 

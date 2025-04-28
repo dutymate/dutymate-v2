@@ -7,6 +7,8 @@ import { dutyService } from "../../services/dutyService"; //실제 API 호출에
 import { toast } from "react-toastify";
 import { useLoadingStore } from "@/store/loadingStore";
 import { toPng } from "html-to-image";
+import { useUserAuthStore } from "../../store/userAuthStore";
+import { Tooltip } from "../atoms/Tooltip";
 // import mockData from "../../services/response-json/duty/GetApiDutyWard.json"; // 임시 데이터 import
 
 // interface DutyMember {
@@ -47,6 +49,7 @@ const TeamShiftTable = () => {
 		};
 	});
 	const tableRef = useRef<HTMLDivElement>(null);
+	const { userInfo } = useUserAuthStore();
 
 	useEffect(() => {
 		const fetchWardDuty = async () => {
@@ -159,10 +162,21 @@ const TeamShiftTable = () => {
 					</Button>
 					<Button
 						color="off"
-						className="whitespace-nowrap px-4 w-[45%] sm:w-auto text-base"
-						onClick={handleDownloadWardSchedule}
+						className={`whitespace-nowrap px-4 w-[45%] sm:w-auto text-base ${userInfo?.isDemo ? "opacity-50 cursor-not-allowed" : ""}`}
+						onClick={() => !userInfo?.isDemo && handleDownloadWardSchedule()}
 					>
-						다운로드
+						<div className="flex items-center gap-1">
+							다운로드
+							{userInfo?.isDemo && (
+								<div className="hidden sm:block">
+									<Tooltip
+										content="로그인 후 이용해주세요"
+										className="ml-1"
+										width="w-40"
+									/>
+								</div>
+							)}
+						</div>
 					</Button>
 				</div>
 			</div>

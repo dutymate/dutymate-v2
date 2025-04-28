@@ -10,6 +10,7 @@ import DemoTimer from "@/components/atoms/DemoTimer";
 const ReqAdmin = () => {
 	const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 	const { userInfo } = useUserAuthStore();
+	const isDemo = userInfo?.isDemo;
 
 	return (
 		<>
@@ -20,12 +21,16 @@ const ReqAdmin = () => {
 			<div className="w-full min-h-screen flex flex-row bg-[#F4F4F4]">
 				{/* 데스크톱 Sidebar */}
 				<div className="hidden lg:block w-[14.875rem] shrink-0">
-					<Sidebar userType={userInfo?.role as "HN" | "RN"} />
+					<Sidebar
+						userType={userInfo?.role as "HN" | "RN"}
+						isDemo={isDemo ?? false}
+					/>
 				</div>
 				{/* 모바일 Sidebar */}
 				<MSidebar
 					userType={userInfo?.role as "HN" | "RN"}
 					isOpen={isSidebarOpen}
+					isDemo={isDemo ?? false}
 					onClose={() => setIsSidebarOpen(false)}
 				/>
 				{/* 메인 컨텐츠 영역 */}

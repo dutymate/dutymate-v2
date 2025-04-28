@@ -1073,18 +1073,20 @@ const ShiftAdminTable = ({
 											setIsDropdownOpen(false);
 											handleDownloadWardSchedule();
 										}}
-										className="w-full px-3 py-2 text-sm text-left text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+										className={`w-full px-3 py-2 text-sm text-left ${userInfo?.isDemo ? 'text-gray-400 cursor-not-allowed' : 'text-gray-700 hover:bg-gray-100'}`}
+										disabled={userInfo?.isDemo}
 									>
-										<span>이미지 다운로드</span>
+										이미지 다운로드
 									</button>
 									<button
 										onClick={() => {
 											setIsDropdownOpen(false);
 											handleExportToExcel();
 										}}
-										className="w-full px-3 py-2 text-sm text-left text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+										className={`w-full px-3 py-2 text-sm text-left ${userInfo?.isDemo ? 'text-gray-400 cursor-not-allowed' : 'text-gray-700 hover:bg-gray-100'}`}
+										disabled={userInfo?.isDemo}
 									>
-										<span>엑셀로 다운로드</span>
+										엑셀로 다운로드
 									</button>
 								</div>
 							</>
@@ -1481,12 +1483,21 @@ const ShiftAdminTable = ({
 										text-size="md"
 										size="register"
 										color="off"
-										className="py-0.5 px-1.5 sm:py-1 sm:px-2"
-										onClick={() => setShowWebDownloadDropdown((prev) => !prev)}
+										className={`py-0.5 px-1.5 sm:py-1 sm:px-2 ${userInfo?.isDemo ? 'opacity-50 cursor-not-allowed' : ''}`}
+										onClick={() => !userInfo?.isDemo && setShowWebDownloadDropdown((prev) => !prev)}
 									>
-										다운로드
+										<div className="flex items-center gap-1">
+											다운로드
+											{userInfo?.isDemo && (
+												<Tooltip
+													content="로그인 후 이용해주세요"
+													className="ml-1"
+													width="w-40"
+												/>
+											)}
+										</div>
 									</Button>
-									{showWebDownloadDropdown && (
+									{showWebDownloadDropdown && !userInfo?.isDemo && (
 										<div className="absolute right-0 top-full mt-1 bg-white rounded-lg shadow-lg z-50 min-w-[8rem] py-1">
 											<button
 												onClick={() => {
@@ -1500,7 +1511,7 @@ const ShiftAdminTable = ({
 											<button
 												onClick={() => {
 													setShowWebDownloadDropdown(false);
-													handleExportToExcel(); // 엑셀 다운로드 함수 추가 필요
+													handleExportToExcel();
 												}}
 												className="w-full px-3 py-2 text-sm text-left text-gray-700 hover:bg-gray-100"
 											>

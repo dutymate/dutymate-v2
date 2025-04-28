@@ -20,6 +20,7 @@ import { ReactElement } from "react";
 import Game from "../pages/Game";
 import TeamShift from "../pages/TeamShift";
 import WardAdmin from "../pages/WardAdmin";
+import useUserAuthStore from "@/store/userAuthStore";
 
 interface ProtectedRouteProps {
 	element: ReactElement;
@@ -27,7 +28,22 @@ interface ProtectedRouteProps {
 
 const ProtectedRoute = ({ element }: ProtectedRouteProps) => {
 	const token = sessionStorage.getItem("user-auth-storage");
-	return token ? element : <Navigate to="/login" replace />;
+	const { userInfo } = useUserAuthStore();
+
+	if (!token) {
+		return <Navigate to="/login" replace />;
+	}
+
+	// 데모 버전에서 커뮤니티 페이지와 마이페이지 접근 차단
+	if (
+		userInfo?.isDemo &&
+		(window.location.pathname.startsWith("/community") ||
+			window.location.pathname === "/my-page")
+	) {
+		return <Navigate to="/error" replace />;
+	}
+
+	return element;
 };
 
 const Router = () => {

@@ -64,13 +64,17 @@ const Mypage = () => {
 			<div className="w-full min-h-screen flex flex-row bg-[#F4F4F4]">
 				{/* 데스크톱 Sidebar */}
 				<div className="hidden lg:block w-[14.875rem] shrink-0">
-					<Sidebar userType={userInfo?.role as "HN" | "RN"} />
+					<Sidebar
+						userType={userInfo?.role as "HN" | "RN"}
+						isDemo={isDemo ?? false}
+					/>
 				</div>
 				{/* 모바일 Sidebar */}
 				<MSidebar
 					userType={userInfo?.role as "HN" | "RN"}
 					isOpen={isSidebarOpen}
 					onClose={() => setIsSidebarOpen(false)}
+					isDemo={isDemo ?? false}
 				/>
 				{/* 메인 컨텐츠 영역 */}
 				<div className="flex-1 min-w-0 px-4 lg:px-8 py-6 overflow-y-auto">

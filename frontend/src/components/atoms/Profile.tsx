@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Icon } from "./Icon";
 import { MdOutlineAccessTime } from "react-icons/md";
+import { Tooltip } from "./Tooltip";
 
 const Profile = () => {
 	const { userInfo } = useUserAuthStore();
@@ -84,40 +85,76 @@ const Profile = () => {
 						</div>
 					</div>
 				)}
-
-				{/* 마이페이지 텍스트와 아이콘 */}
-				<Link
-					to="/my-page"
-					className={`
+				{isDemo ? (
+					<Tooltip content="로그인 후 이용 가능합니다." width="w-40">
+						<div>
+							<Link
+								to="#"
+								onClick={(e) => e.preventDefault()}
+								className={`
+          flex items-center gap-x-6 px-4 mb-4 rounded-lg py-2
+          text-gray-400 cursor-not-allowed
+        `}
+							>
+								{userInfo?.profileImg ? (
+									<img
+										src={userInfo.profileImg}
+										alt="프로필 이미지"
+										className="w-[1.125rem] h-[1.125rem] min-w-[1.125rem] text-gray-500 rounded-full"
+										onError={(e) => {
+											e.currentTarget.onerror = null;
+											e.currentTarget.style.display = "none";
+										}}
+									/>
+								) : (
+									<Icon
+										name="user"
+										className="w-[1.125rem] h-[1.125rem] min-w-[1.125rem] rounded-full text-gray-500"
+									/>
+								)}
+								<span className="text-sm font-semibold">마이페이지</span>
+							</Link>
+						</div>
+					</Tooltip>
+				) : (
+					<Link
+						to={isDemo ? "#" : "/my-page"}
+						onClick={(e) => {
+							if (isDemo) e.preventDefault();
+						}}
+						className={`
 						flex items-center gap-x-6 px-4 mb-4 rounded-lg py-2
 						${
 							isMypage
 								? "bg-gray-100 text-gray-700"
-								: "text-gray-700 hover:bg-gray-100"
+								: isDemo
+									? "text-gray-400 cursor-not-allowed"
+									: "text-gray-700 hover:bg-gray-100"
 						}
 					`}
-				>
-					{userInfo?.profileImg ? (
-						<img
-							src={userInfo.profileImg}
-							alt="프로필 이미지"
-							className="w-[1.125rem] h-[1.125rem] min-w-[1.125rem] text-gray-500 rounded-full"
-							onError={(e) => {
-								e.currentTarget.onerror = null;
-								e.currentTarget.style.display = "none";
-							}}
-						/>
-					) : (
-						<Icon
-							name="user"
-							className={`w-[1.125rem] h-[1.125rem] min-w-[1.125rem] rounded-full
+					>
+						{userInfo?.profileImg ? (
+							<img
+								src={userInfo.profileImg}
+								alt="프로필 이미지"
+								className="w-[1.125rem] h-[1.125rem] min-w-[1.125rem] text-gray-500 rounded-full"
+								onError={(e) => {
+									e.currentTarget.onerror = null;
+									e.currentTarget.style.display = "none";
+								}}
+							/>
+						) : (
+							<Icon
+								name="user"
+								className={`w-[1.125rem] h-[1.125rem] min-w-[1.125rem] rounded-full
 								${isMypage ? "text-primary-dark" : "text-gray-500"}
 							`}
-						/>
-					)}
+							/>
+						)}
 
-					<span className="text-sm font-semibold">마이페이지</span>
-				</Link>
+						<span className="text-sm font-semibold">마이페이지</span>
+					</Link>
+				)}
 
 				{/* 가운데 정렬된 선 */}
 				<div className="mx-2 mb-4">
