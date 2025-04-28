@@ -1,23 +1,50 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/logo.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Dutymate.</title>
-    <!-- Google tag (gtag.js) -->
+
+    <!-- Google Tag Manager (GTM) 설정 -->
+    <!-- GTM은 웹사이트의 태그를 관리하는 도구입니다. 
+         이 스크립트는 GTM을 웹사이트에 설치하는 코드입니다.
+         GTM-M9XTN3B3는 여러분의 GTM 컨테이너 ID입니다. -->
+    <script>
+      (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+      new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+      j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+      'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+      })(window,document,'script','dataLayer','GTM-M9XTN3B3');
+    </script>
+    <!-- End Google Tag Manager -->
+
+    <!-- Google Analytics 4 (GA4) 설정 -->
+    <!-- GA4는 구글의 웹 분석 도구입니다. 
+         이 스크립트는 GA4를 웹사이트에 설치하는 코드입니다.
+         G-ZCF7VCE51W는 여러분의 GA4 측정 ID입니다. -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZCF7VCE51W"></script>
     <script>
+      // dataLayer는 GTM과 GA4가 데이터를 주고받는 공간입니다.
       window.dataLayer = window.dataLayer || [];
+      // gtag 함수는 GA4에 이벤트를 전송하는 함수입니다.
       function gtag(){dataLayer.push(arguments);}
+      // GA4 초기화
       gtag('js', new Date());
-
+      // GA4 설정 (측정 ID 설정)
       gtag('config', 'G-ZCF7VCE51W');
     </script>
   </head>
   <body>
     <div id="root"></div>
     <!-- Google Tag Manager (noscript) -->
+    <!-- 이 부분은 JavaScript가 비활성화된 브라우저에서도 GTM이 작동할 수 있도록 하는 백업 코드입니다. -->
+    <noscript>
+      <iframe src="https://www.googletagmanager.com/ns.html?id=GTM-M9XTN3B3"
+              height="0" width="0" style="display:none;visibility:hidden">
+      </iframe>
+    </noscript>
+    <!-- End Google Tag Manager (noscript) -->
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
