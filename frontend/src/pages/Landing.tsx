@@ -1,23 +1,25 @@
 import LandingTemplate from "../components/templates/LandingTemplate";
 import { Button } from "../components/atoms/Button";
 import { useNavigate } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import "../styles/animations.css";
 import { toast } from "react-toastify";
 import { AxiosError } from "axios";
 import { SEO } from "../components/SEO";
 import axiosInstance from "@/lib/axios";
 import useUserAuthStore from "@/store/userAuthStore";
-// import { userInfo } from "os";
+import UpdateNoticeModal from "@/components/organisms/UpdateNoticeModal";
+import Cookies from "js-cookie";
 
 const Landing = () => {
 	const navigate = useNavigate();
 	const setUserInfo = useUserAuthStore((state) => state.setUserInfo); //상태 업데이트 함수
 
-	// useEffect(() => {
-	// 	// 랜딩 페이지로 접근 시, 토큰 삭제
-	// 	sessionStorage.removeItem("user-auth-storage");
-	// }, []);
+	useEffect(() => {
+		// 랜딩 페이지로 접근 시, 토큰 삭제
+		sessionStorage.removeItem("user-auth-storage");
+	}, []);
+
 	useEffect(() => {
 		const pathname = window.location.pathname;
 		if (pathname !== "/shift-admin") {
@@ -112,12 +114,37 @@ const Landing = () => {
 		}
 	};
 
+	const [showNoticeModal, setShowNoticeModal] = useState(false);
+
+	useEffect(() => {
+		const isHiddenToday = Cookies.get("dutyMateNoticeHidden");
+
+		if (!isHiddenToday) {
+			setShowNoticeModal(true);
+		}
+	}, []);
+
+	const handleCloseModal = () => {
+		setShowNoticeModal(false);
+	};
+
+	const handleDoNotShowToday = () => {
+		Cookies.set("dutyMateNoticeHidden", "true", { expires: 1 }); // 1일 후 자동 삭제
+		setShowNoticeModal(false);
+	};
+
 	return (
 		<>
 			<SEO
 				title="랜딩 | Dutymate"
 				description="듀티메이트의 랜딩 페이지입니다."
 			/>
+			{showNoticeModal && (
+				<UpdateNoticeModal
+					onClose={handleCloseModal}
+					onDoNotShowToday={handleDoNotShowToday}
+				/>
+			)}
 			<LandingTemplate showIntroText={true}>
 				<div className="flex flex-col items-center gap-4 w-full">
 					{/* 모바일: 세로 스택, 데스크탑: 가로 배치 */}

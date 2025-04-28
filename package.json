@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "dayjs": "^1.11.13",
+    "js-cookie": "^3.0.5"
+  },
+  "devDependencies": {
+    "@types/js-cookie": "^3.0.6"
+  }
+}
