@@ -1,6 +1,12 @@
 spring:
   config:
     import: optional:file:.env[.properties]
+
+  devtools:
+    restart:
+      enabled: ${DEVTOOLS_RESTART_ENABLED}
+    liveReload:
+      enabled: ${DEVTOOLS_LIVE_RELOAD_ENABLED}
   # MySQL DataSource 설정
   datasource:
     url: ${SPRING_DATASOURCE_URL}
