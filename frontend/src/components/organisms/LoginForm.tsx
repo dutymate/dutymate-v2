@@ -145,7 +145,6 @@ const LoginForm = ({ onRequireVerification }: LoginFormProps) => {
 						onChange={handleLoginChange}
 						error={error.email}
 					/>
-
 					<PasswordInput
 						id="login-password"
 						name="password"
@@ -165,7 +164,14 @@ const LoginForm = ({ onRequireVerification }: LoginFormProps) => {
 						로그인
 					</button>
 				</div>
-				<div className="mt-[2rem] space-y-[0.75rem]">
+				<div className="mt-[1rem] space-y-[0.75rem]">
+					<div className="flex items-center">
+						<div className="flex-grow h-[0.0625rem] bg-gray-200"></div>
+						<span className="px-[0.75rem] text-[0.75rem] sm:text-[0.875rem] text-gray-500">
+							또는
+						</span>
+						<div className="flex-grow h-[0.0625rem] bg-gray-200"></div>
+					</div>
 					<button
 						type="button"
 						className="w-full px-[0.75rem] py-[0.6rem] sm:py-[0.5rem] text-[0.75rem] sm:text-[0.875rem] font-medium text-[#000000] bg-[#FEE500] rounded-md hover:bg-[#FDD835] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#FEE500] relative"
