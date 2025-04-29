@@ -28,12 +28,14 @@ interface UserAuthState {
 	isAuthenticated: boolean;
 	userInfo: UserInfo | null;
 	additionalInfo: AdditionalInfo | null;
+	isTimeout: boolean;
 
 	// 액션
 	setUserInfo: (userInfo: UserInfo) => void;
 	setAdditionalInfo: (additionalInfo: AdditionalInfo) => void;
 	logout: () => void;
 	setProfileImg: (profileImgUrl: string | null) => void;
+	setTimeout: (isTimeout: boolean) => void;
 }
 
 // Zustand 스토어 생성
@@ -44,6 +46,7 @@ export const useUserAuthStore = create<UserAuthState>()(
 			isAuthenticated: false,
 			userInfo: null,
 			additionalInfo: null,
+			isTimeout: false,
 
 			// 액션
 			setUserInfo: (userInfo: UserInfo) => {
@@ -95,6 +98,8 @@ export const useUserAuthStore = create<UserAuthState>()(
 					},
 				});
 			},
+
+			setTimeout: (isTimeout: boolean) => set({ isTimeout }),
 		}),
 		{
 			name: "user-auth-storage",
