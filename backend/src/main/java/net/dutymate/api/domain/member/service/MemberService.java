@@ -78,6 +78,7 @@ public class MemberService {
 	private static final Integer DEMO_TEMP_NURSE_CNT = 10;
 	private static final Integer DEMO_AUTO_GEN_CNT = 3;
 	private static final Integer DEFAULT_AUTO_GEN_CNT = 5;
+	public static final String TEMP_NURSE_EMAIL = "tempEmail@temp.com";
 
 	private final MemberRepository memberRepository;
 	private final JwtUtil jwtUtil;
@@ -121,7 +122,7 @@ public class MemberService {
 	@Transactional
 	public LoginResponseDto signUp(SignUpRequestDto signUpRequestDto) {
 		// 이메일이 @dutymate.demo로 끝나는지 확인
-		if (signUpRequestDto.getEmail().toLowerCase().endsWith("@dutymate.demo")) {
+		if (signUpRequestDto.getEmail().toLowerCase().endsWith(MemberService.DEMO_EMAIL_SUFFIX)) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "해당 이메일은 사용할 수 없습니다.");
 		}
 
@@ -157,7 +158,7 @@ public class MemberService {
 	@Transactional(readOnly = true)
 	public LoginResponseDto login(LoginRequestDto loginRequestDto) {
 		// 이메일이 @dutymate.demo로 끝나는지 확인
-		if (loginRequestDto.getEmail().toLowerCase().endsWith("@dutymate.demo")) {
+		if (loginRequestDto.getEmail().toLowerCase().endsWith(MemberService.DEMO_EMAIL_SUFFIX)) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "아이디 또는 비밀번호 오류입니다.");
 		}
 
@@ -552,7 +553,7 @@ public class MemberService {
 					.anyMatch(wardMember -> {
 						System.out.println(wardMember.getMember().getEmail());
 						return wardMember.getMember() != member
-							&& !"tempEmail@temp.com".equals(wardMember.getMember().getEmail());
+							&& !TEMP_NURSE_EMAIL.equals(wardMember.getMember().getEmail());
 					});
 
 				// HN이 있으면 나만 병동에서 삭제
@@ -692,7 +693,7 @@ public class MemberService {
 			String tempNurseName = "간호사" + tempNurseSeq;
 
 			Member tempMember = Member.builder()
-				.email("tempEmail@temp.com")
+				.email(TEMP_NURSE_EMAIL)
 				.name(tempNurseName)
 				.password("tempPassword123!!")
 				.grade(1)

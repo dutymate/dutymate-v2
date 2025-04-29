@@ -11,6 +11,7 @@ import org.springframework.web.server.ResponseStatusException;
 import net.dutymate.api.domain.common.utils.YearMonth;
 import net.dutymate.api.domain.member.Member;
 import net.dutymate.api.domain.member.repository.MemberRepository;
+import net.dutymate.api.domain.member.service.MemberService;
 import net.dutymate.api.domain.ward.Ward;
 import net.dutymate.api.domain.wardmember.Role;
 import net.dutymate.api.domain.wardmember.WardMember;
@@ -69,6 +70,11 @@ public class WardMemberService {
 
 		// RDB에서 wardMember 삭제하기
 		ward.removeWardMember(wardMemeber); // 리스트에서 제거(연관관계 제거)
+
+		// 임시 간호사이면 탈퇴 처리
+		if (member.getEmail().equals(MemberService.TEMP_NURSE_EMAIL)) {
+			memberRepository.delete(member);
+		}
 
 		// MongoDB 에서 내보내는 wardmember 찾아서 삭제 (이전 달은 상관 X)
 		// 이번달 듀티에서 삭제

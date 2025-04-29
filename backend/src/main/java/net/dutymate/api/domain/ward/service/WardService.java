@@ -346,7 +346,7 @@ public class WardService {
 
 			// 4. 병동 회원으로 가상 간호사 추가하기
 			Member virtualMember = Member.builder()
-				.email("tempEmail@temp.com")
+				.email(MemberService.TEMP_NURSE_EMAIL)
 				.name(virtualNurseName)
 				.password("tempPassword123!!")
 				.grade(1)
