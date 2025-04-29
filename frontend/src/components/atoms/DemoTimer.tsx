@@ -26,8 +26,8 @@ const DemoTimer = () => {
 		const startTimestamp = parseInt(startTime, 10);
 		const now = Date.now();
 		const elapsedSeconds = Math.floor((now - startTimestamp) / 1000);
-		// const remaining = 60 * 10 - elapsedSeconds; // 10분 타이머 (주석처리)
-		const remaining = 5 - elapsedSeconds; // 5초 타이머 (테스트용)
+		const remaining = 60 * 10 - elapsedSeconds; // 10분 타이머 (주석처리)
+		// const remaining = 5 - elapsedSeconds; // 5초 타이머 (테스트용)
 
 		if (remaining <= 0) {
 			setTimeout(true);
