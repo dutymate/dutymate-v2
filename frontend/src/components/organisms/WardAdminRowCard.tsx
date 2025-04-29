@@ -1,7 +1,7 @@
 // import { FaUserCircle } from "react-icons/fa";
 import { Icon, IconName } from "../atoms/Icon";
 import DutyBadgeEng from "../atoms/DutyBadgeEng";
-import { Nurse } from "../../services/wardService";
+import { Nurse } from "@/services/wardService";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Badge } from "../atoms/Badge";
 import { Dropdown } from "../atoms/Dropdown";
@@ -10,6 +10,7 @@ import { toast } from "react-toastify";
 import useUserAuthStore from "@/store/userAuthStore";
 import { useNavigate } from "react-router-dom";
 import DutyTooltip from "../atoms/DutyTooltip";
+import RemoveAdminConfirmModal from "./RemoveAdminConfirmModal";
 
 interface WardAdminRowCardProps {
 	nurse: Nurse;
@@ -36,6 +37,11 @@ const WardAdminRowCard = ({
 	const [dropdownPosition, setDropdownPosition] = useState<"top" | "bottom">(
 		"bottom",
 	);
+	const [removeTarget, setRemoveTarget] = useState<"self" | "admin" | null>(
+		null,
+	);
+	const [isRemoveAdminConfirmModalOpen, setIsRemoveAdminConfirmModalOpen] =
+		useState(false);
 	const authorityDropdownRef = useRef<HTMLDivElement>(null);
 	const skillButtonRef = useRef<HTMLButtonElement>(null);
 	const skillDropdownRef = useRef<HTMLDivElement>(null);
@@ -205,28 +211,15 @@ const WardAdminRowCard = ({
 
 	const handleRemoveNurse = async () => {
 		try {
-			// 관리자 본인 : 병동 관리 페이지에서 내보내기 불가(마이페이지로 이동)
-			if (nurse.memberId === userAuthStore.userInfo?.memberId) {
-				const confirm = window.confirm(
-					"관리자는 마이페이지에서 병동 나가기를 통해 병동을 나갈 수 있습니다. 마이페이지로 이동하시겠습니까?",
-				);
-				if (confirm) {
-					navigate("/my-page");
-				}
+			// 관리자 내보내기
+			if (
+				nurse.memberId === userAuthStore.userInfo?.memberId ||
+				nurse.role === "HN"
+			) {
+				await removeAdminNurse();
 				return;
 			}
 
-			// 본인 제외 관리자 : 병동 내보내기 시, confirm 띄우기기
-			if (
-				nurse.memberId !== userAuthStore.userInfo?.memberId &&
-				nurse.role === "HN"
-			) {
-				const confirm = window.confirm("관리자를 내보내시겠습니까?");
-				if (confirm) {
-					await removeNurse(nurse.memberId);
-				}
-				return;
-			}
 			// 그 외 내보내기
 			await removeNurse(nurse.memberId);
 			toast.success("간호사가 병동에서 제외되었습니다");
@@ -237,6 +230,16 @@ const WardAdminRowCard = ({
 			}
 			toast.error("간호사 제외에 실패했습니다.");
 		}
+	};
+
+	const removeAdminNurse = async () => {
+		if (removeTarget === "self") {
+			navigate("/my-page");
+		} else if (removeTarget === "admin") {
+			await removeNurse(nurse.memberId);
+			toast.success("간호사가 병동에서 제외되었습니다.");
+		}
+		setIsRemoveAdminConfirmModalOpen(false);
 	};
 
 	const handleChangeNurseRole = async () => {
@@ -334,38 +337,228 @@ const WardAdminRowCard = ({
 	};
 
 	return (
-		<div ref={containerRef} className="relative">
-			<div className="flex items-center p-1.5 lg:p-2 bg-white rounded-xl border border-gray-100">
-				<div className="flex items-center justify-between flex-1 gap-[2.5rem]">
-					<div className="flex items-center gap-[1.5rem] flex-shrink-0">
-						<div className="flex items-center gap-3 w-[9rem] pl-[0.5rem] group relative">
-							{!nurse.isSynced && (
-								<div className="flex-1 items-center">
-									{isEditingName ? (
-										<input
-											ref={nameInputRef}
-											type="text"
-											value={name}
-											onChange={(e) => setName(e.target.value)}
-											onBlur={handleNameComplete}
-											onKeyDown={(e) => {
-												if (e.key === "Enter") handleNameComplete();
-												if (e.key === "Escape") {
-													setName(nurse.name);
-													setIsEditingName(false);
-												}
-											}}
-											autoFocus
-											className="w-full rounded px-[0.5rem] py-[0.25rem] text-[0.875rem] border border-primary-dark"
+		<div>
+			<div ref={containerRef} className="relative">
+				<div className="flex items-center p-1.5 lg:p-2 bg-white rounded-xl border border-gray-100">
+					<div className="flex items-center justify-between flex-1 gap-[2.5rem]">
+						<div className="flex items-center gap-[1.5rem] flex-shrink-0">
+							<div className="flex items-center gap-3 w-[9rem] pl-[0.5rem] group relative">
+								{!nurse.isSynced && (
+									<div className="flex-1 items-center">
+										{isEditingName ? (
+											<input
+												ref={nameInputRef}
+												type="text"
+												value={name}
+												onChange={(e) => setName(e.target.value)}
+												onBlur={handleNameComplete}
+												onKeyDown={(e) => {
+													if (e.key === "Enter") handleNameComplete();
+													if (e.key === "Escape") {
+														setName(nurse.name);
+														setIsEditingName(false);
+													}
+												}}
+												autoFocus
+												className="w-full rounded px-[0.5rem] py-[0.25rem] text-[0.875rem] border border-primary-dark"
+											/>
+										) : (
+											<div className="flex items-center w-full overflow-hidden">
+												<span className="w-0 flex-1 truncate text-duty-off">
+													{name}
+												</span>
+												<button
+													onClick={() => setIsEditingName(true)}
+													className="opacity-0 group-hover:opacity-100 transition-opacity ml-[0.25rem]"
+												>
+													<Icon
+														name="edit"
+														size={16}
+														className="text-gray-400 hover:text-primary-dark"
+													/>
+												</button>
+											</div>
+										)}
+									</div>
+								)}
+								{nurse.isSynced && (
+									<span className="w-0 flex-1 truncate">{nurse.name}</span>
+								)}
+							</div>
+							<div className="w-[3.75rem] flex items-center">
+								<Badge type={nurse.role} className="whitespace-nowrap" />
+							</div>
+							<div className="relative" ref={genderDropdownRef}>
+								<button
+									onClick={() =>
+										!nurse.isSynced &&
+										setIsGenderDropdownOpen(!isGenderDropdownOpen)
+									}
+									className={`flex items-center gap-[0.25rem] w-[3.75rem] p-[0.25rem] rounded ${
+										!nurse.isSynced ? "hover:bg-gray-50" : "cursor-not-allowed"
+									}`}
+								>
+									<Icon
+										name={nurse.gender === "F" ? "female" : "male"}
+										size={16}
+										className="text-gray-500"
+									/>
+									<span>{nurse.gender === "F" ? "여자" : "남자"}</span>
+								</button>
+								{isGenderDropdownOpen && !nurse.isSynced && (
+									<div className="absolute top-full left-0 mt-[0.25rem] bg-white shadow-lg rounded-lg border border-gray-200 z-10 w-[5rem]">
+										<button
+											onClick={() => handleGenderChange("F")}
+											className="flex items-center gap-2 w-full px-3 py-2 hover:bg-gray-50 whitespace-nowrap"
+										>
+											<Icon
+												name="female"
+												size={16}
+												className="text-gray-500 flex-shrink-0"
+											/>
+											<span className="flex-shrink-0">여자</span>
+										</button>
+										<button
+											onClick={() => handleGenderChange("M")}
+											className="flex items-center gap-2 w-full px-3 py-2 hover:bg-gray-50 whitespace-nowrap"
+										>
+											<Icon
+												name="male"
+												size={16}
+												className="text-gray-500 flex-shrink-0"
+											/>
+											<span className="flex-shrink-0">남자</span>
+										</button>
+									</div>
+								)}
+							</div>
+							<div className="relative" ref={gradeDropdownRef}>
+								<button
+									onClick={() =>
+										!nurse.isSynced &&
+										setIsGradeDropdownOpen(!isGradeDropdownOpen)
+									}
+									className={`flex items-center gap-1 w-[90px] p-1 rounded justify-center ${
+										!nurse.isSynced ? "hover:bg-gray-50" : "cursor-not-allowed"
+									}`}
+								>
+									<div className="flex items-center justify-center w-full">
+										<Icon
+											name="idCard"
+											size={16}
+											className="text-gray-500 flex-shrink-0"
 										/>
-									) : (
-										<div className="flex items-center w-full overflow-hidden">
-											<span className="w-0 flex-1 truncate text-duty-off">
-												{name}
+										<span className="ml-1 truncate">{nurse.grade}년차</span>
+									</div>
+								</button>
+								{isGradeDropdownOpen && !nurse.isSynced && (
+									<div className="absolute top-full left-0 mt-1 bg-white shadow-lg rounded-lg border border-gray-200 z-10 w-[100px] max-h-[150px] overflow-y-auto overflow-x-hidden">
+										{[...Array(50).keys()].map((grade) => (
+											<button
+												key={grade + 1}
+												onClick={() => handleGradeChange(grade + 1)}
+												className="flex items-center gap-2 w-full px-3 py-2 hover:bg-gray-50 whitespace-nowrap"
+											>
+												<Icon
+													name="idCard"
+													size={16}
+													className="text-gray-500 flex-shrink-0"
+												/>
+												<span>{grade + 1}년차</span>
+											</button>
+										))}
+									</div>
+								)}
+							</div>
+							<div className="relative w-[5rem]">
+								<button
+									className="flex items-center gap-[0.25rem] px-[0.5rem] py-[0.25rem] border rounded hover:bg-gray-50"
+									onClick={() => setOpenSkillDropdown(!openSkillDropdown)}
+									ref={skillButtonRef}
+								>
+									<Icon
+										name={
+											(nurse.skillLevel?.toLowerCase() ?? "low") as IconName
+										}
+										size={16}
+									/>
+									<span className="text-[0.875rem]">
+										{
+											skillOptions.find((opt) => opt.value === nurse.skillLevel)
+												?.label
+										}
+									</span>
+								</button>
+
+								{openSkillDropdown && (
+									<div
+										ref={skillDropdownRef}
+										className={`absolute ${dropdownPosition === "top" ? "bottom-full mb-1" : "top-full mt-1"} left-0 bg-white border rounded-md shadow-lg z-10`}
+									>
+										{skillOptions.map((option) => (
+											<button
+												key={option.value}
+												className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 w-full"
+												onClick={() => handleSkillChange(option.value)}
+											>
+												<Icon name={option.icon} size={16} />
+												<span className="text-sm">{option.label}</span>
+											</button>
+										))}
+									</div>
+								)}
+							</div>
+							<div className="flex gap-[0.5rem] w-[9.6875rem]">
+								{(["M", "N", "ALL"] as const).map((duty) => {
+									const dutyDisplay = getDutyLabel(duty);
+									return (
+										<DutyTooltip key={duty} message={getDutyMessage(duty)}>
+											<DutyBadgeEng
+												type={duty}
+												size="md"
+												variant={nurse.shift === duty ? "filled" : "outline"}
+												onClick={() => handleShiftChange(duty)}
+												isSelected={nurse.shift === duty}
+												customLabel={dutyDisplay.label}
+												useSmallText={dutyDisplay.useSmallText}
+											/>
+										</DutyTooltip>
+									);
+								})}
+							</div>
+						</div>
+						<div className="flex items-center gap-[1.5rem] flex-1 min-w-0">
+							<div className="relative flex-1 min-w-0 group">
+								{isEditingMemo ? (
+									<div className="flex w-full">
+										<div className="flex-1 min-w-0 overflow-hidden">
+											<input
+												ref={memoInputRef}
+												type="text"
+												value={memo}
+												onChange={(e) => setMemo(e.target.value)}
+												onBlur={handleMemoComplete}
+												onKeyDown={handleMemoKeyDown}
+												autoFocus
+												maxLength={50}
+												className="w-full rounded px-[0.75rem] py-[0.25rem] text-[0.875rem] border outline-primary-40 truncate"
+												placeholder="메모를 입력하세요"
+											/>
+										</div>
+										<div className="w-[3.75rem] lg:hidden flex-shrink-0" />
+									</div>
+								) : (
+									<div className="flex w-full">
+										<div className="flex items-center w-full min-w-0 overflow-hidden">
+											<span className="w-0 flex-1 truncate text-gray-500">
+												{memo || "메모 없음"}
 											</span>
 											<button
-												onClick={() => setIsEditingName(true)}
-												className="opacity-0 group-hover:opacity-100 transition-opacity ml-[0.25rem]"
+												onClick={() => {
+													setIsEditingMemo(true);
+													setTimeout(() => memoInputRef.current?.focus(), 0);
+												}}
+												className="opacity-0 group-hover:opacity-100 transition-opacity ml-2 flex-shrink-0"
 											>
 												<Icon
 													name="edit"
@@ -374,220 +567,45 @@ const WardAdminRowCard = ({
 												/>
 											</button>
 										</div>
-									)}
-								</div>
-							)}
-							{nurse.isSynced && (
-								<span className="w-0 flex-1 truncate">{nurse.name}</span>
-							)}
-						</div>
-						<div className="w-[3.75rem] flex items-center">
-							<Badge type={nurse.role} className="whitespace-nowrap" />
-						</div>
-						<div className="relative" ref={genderDropdownRef}>
-							<button
-								onClick={() =>
-									!nurse.isSynced &&
-									setIsGenderDropdownOpen(!isGenderDropdownOpen)
-								}
-								className={`flex items-center gap-[0.25rem] w-[3.75rem] p-[0.25rem] rounded ${
-									!nurse.isSynced ? "hover:bg-gray-50" : "cursor-not-allowed"
-								}`}
-							>
-								<Icon
-									name={nurse.gender === "F" ? "female" : "male"}
-									size={16}
-									className="text-gray-500"
-								/>
-								<span>{nurse.gender === "F" ? "여자" : "남자"}</span>
-							</button>
-							{isGenderDropdownOpen && !nurse.isSynced && (
-								<div className="absolute top-full left-0 mt-[0.25rem] bg-white shadow-lg rounded-lg border border-gray-200 z-10 w-[5rem]">
-									<button
-										onClick={() => handleGenderChange("F")}
-										className="flex items-center gap-2 w-full px-3 py-2 hover:bg-gray-50 whitespace-nowrap"
-									>
-										<Icon
-											name="female"
-											size={16}
-											className="text-gray-500 flex-shrink-0"
-										/>
-										<span className="flex-shrink-0">여자</span>
-									</button>
-									<button
-										onClick={() => handleGenderChange("M")}
-										className="flex items-center gap-2 w-full px-3 py-2 hover:bg-gray-50 whitespace-nowrap"
-									>
-										<Icon
-											name="male"
-											size={16}
-											className="text-gray-500 flex-shrink-0"
-										/>
-										<span className="flex-shrink-0">남자</span>
-									</button>
-								</div>
-							)}
-						</div>
-						<div className="relative" ref={gradeDropdownRef}>
-							<button
-								onClick={() =>
-									!nurse.isSynced &&
-									setIsGradeDropdownOpen(!isGradeDropdownOpen)
-								}
-								className={`flex items-center gap-1 w-[90px] p-1 rounded justify-center ${
-									!nurse.isSynced ? "hover:bg-gray-50" : "cursor-not-allowed"
-								}`}
-							>
-								<div className="flex items-center justify-center w-full">
-									<Icon
-										name="idCard"
-										size={16}
-										className="text-gray-500 flex-shrink-0"
-									/>
-									<span className="ml-1 truncate">{nurse.grade}년차</span>
-								</div>
-							</button>
-							{isGradeDropdownOpen && !nurse.isSynced && (
-								<div className="absolute top-full left-0 mt-1 bg-white shadow-lg rounded-lg border border-gray-200 z-10 w-[100px] max-h-[150px] overflow-y-auto overflow-x-hidden">
-									{[...Array(50).keys()].map((grade) => (
-										<button
-											key={grade + 1}
-											onClick={() => handleGradeChange(grade + 1)}
-											className="flex items-center gap-2 w-full px-3 py-2 hover:bg-gray-50 whitespace-nowrap"
-										>
-											<Icon
-												name="idCard"
-												size={16}
-												className="text-gray-500 flex-shrink-0"
-											/>
-											<span>{grade + 1}년차</span>
-										</button>
-									))}
-								</div>
-							)}
-						</div>
-						<div className="relative w-[5rem]">
-							<button
-								className="flex items-center gap-[0.25rem] px-[0.5rem] py-[0.25rem] border rounded hover:bg-gray-50"
-								onClick={() => setOpenSkillDropdown(!openSkillDropdown)}
-								ref={skillButtonRef}
-							>
-								<Icon
-									name={(nurse.skillLevel?.toLowerCase() ?? "low") as IconName}
-									size={16}
-								/>
-								<span className="text-[0.875rem]">
-									{
-										skillOptions.find((opt) => opt.value === nurse.skillLevel)
-											?.label
-									}
-								</span>
-							</button>
-
-							{openSkillDropdown && (
-								<div
-									ref={skillDropdownRef}
-									className={`absolute ${dropdownPosition === "top" ? "bottom-full mb-1" : "top-full mt-1"} left-0 bg-white border rounded-md shadow-lg z-10`}
-								>
-									{skillOptions.map((option) => (
-										<button
-											key={option.value}
-											className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 w-full"
-											onClick={() => handleSkillChange(option.value)}
-										>
-											<Icon name={option.icon} size={16} />
-											<span className="text-sm">{option.label}</span>
-										</button>
-									))}
-								</div>
-							)}
-						</div>
-						<div className="flex gap-[0.5rem] w-[9.6875rem]">
-							{(["M", "N", "ALL"] as const).map((duty) => {
-								const dutyDisplay = getDutyLabel(duty);
-								return (
-									<DutyTooltip key={duty} message={getDutyMessage(duty)}>
-										<DutyBadgeEng
-											type={duty}
-											size="md"
-											variant={nurse.shift === duty ? "filled" : "outline"}
-											onClick={() => handleShiftChange(duty)}
-											isSelected={nurse.shift === duty}
-											customLabel={dutyDisplay.label}
-											useSmallText={dutyDisplay.useSmallText}
-										/>
-									</DutyTooltip>
-								);
-							})}
-						</div>
-					</div>
-					<div className="flex items-center gap-[1.5rem] flex-1 min-w-0">
-						<div className="relative flex-1 min-w-0 group">
-							{isEditingMemo ? (
-								<div className="flex w-full">
-									<div className="flex-1 min-w-0 overflow-hidden">
-										<input
-											ref={memoInputRef}
-											type="text"
-											value={memo}
-											onChange={(e) => setMemo(e.target.value)}
-											onBlur={handleMemoComplete}
-											onKeyDown={handleMemoKeyDown}
-											autoFocus
-											maxLength={50}
-											className="w-full rounded px-[0.75rem] py-[0.25rem] text-[0.875rem] border outline-primary-40 truncate"
-											placeholder="메모를 입력하세요"
-										/>
+										<div className="w-[3.75rem] lg:hidden flex-shrink-0" />
 									</div>
-									<div className="w-[3.75rem] lg:hidden flex-shrink-0" />
-								</div>
-							) : (
-								<div className="flex w-full">
-									<div className="flex items-center w-full min-w-0 overflow-hidden">
-										<span className="w-0 flex-1 truncate text-gray-500">
-											{memo || "메모 없음"}
-										</span>
-										<button
-											onClick={() => {
-												setIsEditingMemo(true);
-												setTimeout(() => memoInputRef.current?.focus(), 0);
-											}}
-											className="opacity-0 group-hover:opacity-100 transition-opacity ml-2 flex-shrink-0"
-										>
-											<Icon
-												name="edit"
-												size={16}
-												className="text-gray-400 hover:text-primary-dark"
-											/>
-										</button>
-									</div>
-									<div className="w-[3.75rem] lg:hidden flex-shrink-0" />
-								</div>
-							)}
-						</div>
-						<div
-							className="w-[3.75rem] flex-shrink-0 absolute right-0 lg:relative"
-							ref={authorityDropdownRef}
-						>
-							<Dropdown
-								variant="authority"
-								value={null}
-								onChange={(value) => {
-									if (value === "병동 내보내기") {
-										handleRemoveNurse();
-									} else if (value === "권한 넘기기") {
-										handleChangeNurseRole();
+								)}
+							</div>
+							<div
+								className="w-[3.75rem] flex-shrink-0 absolute right-0 lg:relative"
+								ref={authorityDropdownRef}
+							>
+								<Dropdown
+									variant="authority"
+									value={null}
+									onChange={(value) => {
+										if (value === "병동 내보내기") {
+											if (nurse.memberId === userAuthStore.userInfo?.memberId) {
+												setRemoveTarget("self");
+											} else if (nurse.role === "HN") {
+												setRemoveTarget("admin");
+											}
+											setIsRemoveAdminConfirmModalOpen(true);
+										} else if (value === "권한 넘기기") {
+											handleChangeNurseRole();
+										}
+									}}
+									label=""
+									position={
+										dropdownPosition === "top" ? "top-left" : "bottom-left"
 									}
-								}}
-								label=""
-								position={
-									dropdownPosition === "top" ? "top-left" : "bottom-left"
-								}
-							/>
+								/>
+							</div>
 						</div>
 					</div>
 				</div>
 			</div>
+			<RemoveAdminConfirmModal
+				isOpen={isRemoveAdminConfirmModalOpen}
+				onClose={() => setIsRemoveAdminConfirmModalOpen(false)}
+				onConfirm={handleRemoveNurse}
+				removeTarget={removeTarget}
+			/>
 		</div>
 	);
 };
