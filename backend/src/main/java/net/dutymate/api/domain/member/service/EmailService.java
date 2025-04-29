@@ -35,6 +35,10 @@ public class EmailService {
 	// 이메일로 인증 코드 보내기
 	public void sendCode(SendCodeRequestDto sendCodeRequestDto, String path) {
 		String email = sendCodeRequestDto.email();
+		// 이메일이 @dutymate.demo로 끝나는지 확인
+		if (email.toLowerCase().endsWith("@dutymate.demo")) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "해당 이메일은 사용할 수 없습니다.");
+		}
 
 		Optional<Member> optionalMember = memberRepository.findMemberByEmail(email);
 

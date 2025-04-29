@@ -120,6 +120,18 @@ public class MemberService {
 
 	@Transactional
 	public LoginResponseDto signUp(SignUpRequestDto signUpRequestDto) {
+		// 이메일이 @dutymate.demo로 끝나는지 확인
+		if (signUpRequestDto.getEmail().toLowerCase().endsWith("@dutymate.demo")) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "해당 이메일은 사용할 수 없습니다.");
+		}
+
+		String verifiedEmail = "email:verified:" + signUpRequestDto.getEmail();
+		String isVerified = redisTemplate.opsForValue().get(verifiedEmail);
+
+		if (!("true".equals(isVerified))) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "이메일 인증이 완료 되지 않았습니다.");
+		}
+
 		if (!signUpRequestDto.getPassword().equals(signUpRequestDto.getPasswordConfirm())) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "비밀번호가 일치하지 않습니다.");
 		}
@@ -144,6 +156,11 @@ public class MemberService {
 
 	@Transactional(readOnly = true)
 	public LoginResponseDto login(LoginRequestDto loginRequestDto) {
+		// 이메일이 @dutymate.demo로 끝나는지 확인
+		if (loginRequestDto.getEmail().toLowerCase().endsWith("@dutymate.demo")) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "아이디 또는 비밀번호 오류입니다.");
+		}
+
 		// 아이디 확인
 		Member member = memberRepository.findMemberByEmail(loginRequestDto.getEmail())
 			.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "아이디 또는 비밀번호 오류입니다."));
