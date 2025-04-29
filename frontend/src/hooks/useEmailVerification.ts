@@ -86,6 +86,15 @@ export const useEmailVerification = (mode: "login" | "signup") => {
 		}
 	};
 
+	const resetVerification = () => {
+		setAuthCode("");
+		setAuthCodeStatus("idle");
+		setAuthCodeSent(false);
+		setIsVerified(false);
+		setTimer(300);
+		setAuthCodeExpired(false);
+	};
+
 	return {
 		email,
 		setEmail,
@@ -100,5 +109,6 @@ export const useEmailVerification = (mode: "login" | "signup") => {
 		isSending,
 		sendCode,
 		verifyCode,
+		resetVerification,
 	};
 };
