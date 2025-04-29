@@ -504,21 +504,37 @@ public class MemberService {
 					.anyMatch(wm -> !wm.getMember().getMemberId().equals(member.getMemberId())
 						&& wm.getMember().getRole() == Role.HN);
 
-				if (!hasOtherHN) {
-					throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "병동 관리자 권한을 넘겨주세요.");
-				}
+				// 병동 내 다른 유저가 있는지 확인
+				boolean hasOtherUser = wardMemberList.stream()
+					.anyMatch(wm -> {
+						System.out.println(wm.getMember().getEmail());
+						return wm.getMember() != member
+							&& !TEMP_NURSE_EMAIL.equals(wm.getMember().getEmail());
+					});
 
-				ward.removeWardMember(wardMember);
-				deleteWardMemberInMongo(member, ward); // mongodb에서 삭제
+				if (hasOtherHN) {
+					ward.removeWardMember(member.getWardMember());
+					deleteWardMemberInMongo(member, ward); // mongodb에서 삭제
+				} else if (hasOtherUser) {
+					throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "병동 관리자 권한을 넘긴 후 나갈 수 있습니다.");
+				} else { // !hasOtherHN && !hasOtherUser => 병동에 임시간호사만 있는 경우
+					// 임시 간호사 탈퇴 로직
+					for (WardMember wm : wardMemberList) {
+						if (member != wm.getMember()) {
+							memberRepository.delete(wm.getMember());
+						}
+					}
+					wardScheduleRepository.deleteByWardId(ward.getWardId());
+					wardRepository.delete(ward);
+				}
 				member.updateRole(null);
 				return;
 			}
 
-			ward.removeWardMember(wardMember);
-			deleteWardMemberInMongo(member, ward);
+			// 병동에 한 명만 남아 있는 경우
+			wardScheduleRepository.deleteByWardId(ward.getWardId()); // mongodb에서 삭제
+			wardRepository.delete(ward); // 해당 병동도 같이 삭제
 			member.updateRole(null);
-
-			wardRepository.delete(ward);
 		}
 	}
 
@@ -530,9 +546,7 @@ public class MemberService {
 
 		// RN이면 바로 회원 탈퇴 가능
 		if (member.getRole() == Role.RN) {
-			if (member.getWardMember() != null) {
-				ward.removeWardMember(member.getWardMember());
-			}
+			ward.removeWardMember(member.getWardMember());
 			memberRepository.delete(member);
 			deleteWardMemberInMongo(member, ward); // mongodb에서 삭제
 			return;
@@ -562,7 +576,7 @@ public class MemberService {
 					memberRepository.delete(member);
 					deleteWardMemberInMongo(member, ward); // mongodb에서 삭제
 				} else if (hasOtherUser) {
-					throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "병동 멤버에게 관리자 권한 부여 후, 탈퇴가 가능합니다.");
+					throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "병동 관리자 권한을 넘긴 후 탈퇴할 수 있습니다.");
 				} else { // !hasOtherHN && !hasOtherUser => 병동에 임시간호사만 있는 경우
 					// 임시 간호사 탈퇴 로직
 					for (WardMember wardMember : wardMemberList) {
@@ -575,12 +589,9 @@ public class MemberService {
 			}
 
 			// 병동에 한 명만 남아 있는 경우
-			if (member.getWardMember() != null) {
-				ward.removeWardMember(member.getWardMember()); // 병동에서 마지막 관리자 삭제
-				wardRepository.delete(ward); // 해당 병동도 같이 삭제
-			}
+			wardScheduleRepository.deleteByWardId(ward.getWardId()); // mongodb에서 삭제
+			wardRepository.delete(ward); // 해당 병동도 같이 삭제
 			memberRepository.delete(member); // 멤버 자체를 삭제
-			deleteWardMemberInMongo(member, ward); // mongodb에서 삭제
 		}
 	}
 
