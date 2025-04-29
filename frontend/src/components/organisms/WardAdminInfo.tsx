@@ -124,7 +124,12 @@ const WardAdminInfo = ({ wardInfo, onAddTempNurse }: WardAdminInfoProps) => {
 							</h3>
 							<button
 								onClick={handleCopyCode}
-								className="flex items-center justify-center gap-1 py-1 px-3 bg-[#999786] hover:bg-[#88866f] rounded-lg transition-colors"
+								disabled={isDemo}
+								className={`flex items-center justify-center gap-1 py-1 px-3 rounded-lg transition-colors ${
+									isDemo
+										? "bg-gray-300 cursor-not-allowed opacity-60"
+										: "bg-[#999786] hover:bg-[#88866f]"
+								}`}
 							>
 								<Icon name="copy" size={14} className="text-white" />
 								<span className="text-[0.8rem] text-white">복사하기</span>
@@ -142,14 +147,19 @@ const WardAdminInfo = ({ wardInfo, onAddTempNurse }: WardAdminInfoProps) => {
 							</h3>
 							<button
 								onClick={handleOpenNurseWaitModal}
-								className="flex items-center justify-center gap-1 py-1 px-3 bg-[#999786] hover:bg-[#88866f] rounded-lg transition-colors"
+								disabled={isDemo}
+								className={`flex items-center justify-center gap-1 py-1 px-3 rounded-lg transition-colors ${
+									isDemo
+										? "bg-gray-300 cursor-not-allowed opacity-60"
+										: "bg-[#999786] hover:bg-[#88866f]"
+								}`}
 							>
 								<Icon name="history" size={14} className="text-white" />
 								<span className="text-[0.8rem] text-white">내역 조회</span>
 							</button>
 						</div>
 						<p className="font-semibold border border-gray-300 rounded-[0.375rem] px-3 py-1 text-center">
-							{waitingCount > 0 ? `${waitingCount}명 대기` : "0명 대기"}
+							{isDemo ? "로그인 후 이용 가능합니다." : `${waitingCount}명 대기`}
 						</p>
 					</div>
 				</div>
