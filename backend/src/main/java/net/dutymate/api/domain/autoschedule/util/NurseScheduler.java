@@ -122,7 +122,8 @@ public class NurseScheduler {
 		if (wardSchedule.getDuties() != null && !wardSchedule.getDuties().isEmpty()) {
 			WardSchedule.Duty currentDuty = wardSchedule.getDuties().get(wardSchedule.getNowIdx());
 			for (WardSchedule.NurseShift shift : currentDuty.getDuty()) {
-				existingSchedules.put(shift.getMemberId(), shift.getShifts());
+				String modifiedShifts = shift.getShifts().replace('M', 'O');
+				existingSchedules.put(shift.getMemberId(), modifiedShifts);
 			}
 		}
 		return existingSchedules;
