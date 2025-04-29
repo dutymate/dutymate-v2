@@ -29,8 +29,8 @@ const UpdateNoticeModal = ({
 						<br /> <br />
 						듀티메이트를 이용해주시는 모든 분들께 감사드리며,
 						<br />
-						<strong>2025년 4월 24일</strong>부로{" "}
-						<strong>듀티메이트 2.0.1 ver</strong>이 정식 업데이트 되었음을
+						<strong>2025년 4월 29일</strong>부로{" "}
+						<strong>듀티메이트 v2.1.0</strong>이 정식 업데이트 되었음을
 						안내드립니다.
 					</p>
 
