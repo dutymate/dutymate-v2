@@ -16,7 +16,10 @@ interface LoginFormProps {
 
 // 이메일 형식 검증
 const validateEmail = (email: string) => {
-	return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+	return (
+		/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) &&
+		!email.includes("@dutymate.demo")
+	);
 };
 
 const LoginForm = ({ onRequireVerification }: LoginFormProps) => {

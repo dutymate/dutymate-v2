@@ -19,7 +19,8 @@ interface SignupData {
 }
 
 const validateEmail = (email: string) =>
-	/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+	/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && !email.includes("@dutymate.demo");
+
 const validatePassword = (password: string) =>
 	/^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(password);
 
