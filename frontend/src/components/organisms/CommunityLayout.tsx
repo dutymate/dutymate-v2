@@ -46,6 +46,7 @@ const CommunityLayout = ({ title, subtitle, children }: any) => {
 	const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 	const { userInfo } = useUserAuthStore();
 	const [isNewsModalOpen, setIsNewsModalOpen] = useState(false);
+	const isDemo = false; // 데모 모드 아님을 명시
 
 	const handleNewsButton = () => {
 		setIsNewsModalOpen(true);
@@ -55,7 +56,7 @@ const CommunityLayout = ({ title, subtitle, children }: any) => {
 		<div className="w-full min-h-screen flex flex-row bg-[#F4F4F4]">
 			{/* 데스크톱 Sidebar */}
 			<div className="hidden lg:block w-[14.875rem] shrink-0">
-				<Sidebar userType={userInfo?.role as "HN" | "RN"} />
+				<Sidebar userType={userInfo?.role as "HN" | "RN"} isDemo={isDemo} />
 			</div>
 
 			{/* 모바일 Sidebar */}
@@ -63,6 +64,7 @@ const CommunityLayout = ({ title, subtitle, children }: any) => {
 				userType={userInfo?.role as "HN" | "RN"}
 				isOpen={isSidebarOpen}
 				onClose={() => setIsSidebarOpen(false)}
+				isDemo={isDemo}
 			/>
 
 			{/* 메인 컨텐츠 영역 */}

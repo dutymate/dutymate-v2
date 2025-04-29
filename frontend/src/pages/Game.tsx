@@ -12,6 +12,7 @@ const Game = () => {
 	const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 	const [isGameOpen, setIsGameOpen] = useState(false);
 	const { userInfo } = useUserAuthStore();
+	const isDemo = false;
 
 	return (
 		<>
@@ -22,7 +23,7 @@ const Game = () => {
 			<div className="w-full h-screen flex flex-row bg-[#F4F4F4]">
 				{/* 데스크톱 Sidebar */}
 				<div className="hidden lg:block w-[238px] shrink-0">
-					<Sidebar userType={userInfo?.role as "HN" | "RN"} />
+					<Sidebar userType={userInfo?.role as "HN" | "RN"} isDemo={isDemo} />
 				</div>
 
 				{/* 모바일 Sidebar */}
@@ -30,6 +31,7 @@ const Game = () => {
 					userType={userInfo?.role as "HN" | "RN"}
 					isOpen={isSidebarOpen}
 					onClose={() => setIsSidebarOpen(false)}
+					isDemo={isDemo}
 				/>
 
 				{/* 메인 컨텐츠 영역 */}
