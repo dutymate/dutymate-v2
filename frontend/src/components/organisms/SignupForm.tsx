@@ -4,7 +4,7 @@ import {
 	Input,
 	AuthCodeInput,
 } from "../atoms/Input";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import userService from "@/services/userService";
 import { Link, useNavigate } from "react-router-dom";
@@ -54,14 +54,15 @@ const SignupForm = () => {
 		isSending,
 		sendCode,
 		verifyCode,
+		resetVerification,
 	} = useEmailVerification("signup");
 
-	const handleKakaoSignup = () => {
-		window.location.href = import.meta.env.VITE_KAKAO_LOGIN_URL;
-	};
-	const handleGoogleSignup = () => {
-		window.location.href = import.meta.env.VITE_GOOGLE_LOGIN_URL;
-	};
+	// const handleKakaoSignup = () => {
+	// 	window.location.href = import.meta.env.VITE_KAKAO_LOGIN_URL;
+	// };
+	// const handleGoogleSignup = () => {
+	// 	window.location.href = import.meta.env.VITE_GOOGLE_LOGIN_URL;
+	// };
 
 	const handleSignupChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const { name, value } = e.target;
@@ -156,6 +157,14 @@ const SignupForm = () => {
 		}
 	};
 
+	useEffect(() => {
+		if (timer === 0 && authCodeSent && !isVerified) {
+			resetVerification();
+			setSignupData((prev) => ({ ...prev, email: "" }));
+			toast.error("인증 시간이 만료되었습니다. 다시 시도해주세요.");
+		}
+	}, [timer, authCodeSent]);
+
 	return (
 		<div className="bg-white rounded-[0.925rem] shadow-[0_0_0.9375rem_rgba(0,0,0,0.1)] px-[1.5em] py-[1.5rem] w-[20rem] sm:w-[25rem] sm:px-[2rem] sm:py-[2rem] lg:px-[3rem] lg:py-[3rem]">
 			<form onSubmit={handleSignupSubmit} className="lg:block">
@@ -171,20 +180,18 @@ const SignupForm = () => {
 						onChange={handleSignupChange}
 						error={emailError || error.email}
 						placeholder="이메일"
-						rightElement={
-							<button
-								type="button"
-								className="text-xs bg-primary-20 text-primary-dark px-3 py-2 rounded"
-								onClick={sendCode}
-								disabled={isSending}
-							>
-								{isSending ? "발송 중..." : "인증번호 발송"}
-							</button>
-						}
+						disabled={authCodeSent}
 					/>
-					<p className="text-xs text-gray-500 pb-1">
-						*인증번호를 받기 위해 정확한 이메일 주소를 입력하세요.
-					</p>
+					{!authCodeSent && (
+						<button
+							type="button"
+							className="w-full px-[0.75rem] py-[0.6rem] sm:py-[0.5rem] text-[0.75rem] sm:text-[0.875rem] bg-primary-20 text-primary-dark rounded"
+							onClick={sendCode}
+							disabled={isSending}
+						>
+							{isSending ? "발송 중..." : "인증번호 발송"}
+						</button>
+					)}
 					{authCodeSent && (
 						<div className="flex items-center space-x-2">
 							<AuthCodeInput
@@ -207,58 +214,75 @@ const SignupForm = () => {
 							/>
 						</div>
 					)}
-					<PasswordInput
-						id="signup-password"
-						label=""
-						name="password"
-						value={signupData.password}
-						onChange={handleSignupChange}
-						error={error.password}
-						placeholder="비밀번호"
-					/>
-					<PasswordInput
-						id="signup-password-confirm"
-						label=""
-						name="passwordConfirm"
-						value={signupData.passwordConfirm}
-						onChange={handleSignupChange}
-						error={error.passwordConfirm}
-						placeholder="비밀번호 확인"
-					/>
-					<Input
-						id="signup-name"
-						name="name"
-						label=""
-						value={signupData.name}
-						onChange={handleSignupChange}
-						error={error.name}
-						placeholder="이름"
-					/>
-				</div>
-				<div className="mt-[1rem] sm:mt-[1.5rem] flex justify-center">
-					<div className="flex items-center">
-						<input
-							type="checkbox"
-							id="signup-agreement"
-							checked={isAgreed}
-							onChange={(e) => setIsAgreed(e.target.checked)}
-							className="w-[0.875rem] h-[0.875rem] sm:w-[1rem] sm:h-[1rem] text-primary-dark"
-						/>
-						<label
-							htmlFor="signup-agreement"
-							className="ml-[0.375rem] text-[0.75rem] sm:text-[0.875rem] text-gray-600"
-						>
-							개인정보 수집 및 이용에 동의합니다.
-						</label>
-					</div>
+					{isVerified && (
+						<div>
+							<PasswordInput
+								id="signup-password"
+								label=""
+								name="password"
+								value={signupData.password}
+								onChange={handleSignupChange}
+								error={error.password}
+								placeholder="비밀번호"
+							/>
+							<PasswordInput
+								id="signup-password-confirm"
+								label=""
+								name="passwordConfirm"
+								value={signupData.passwordConfirm}
+								onChange={handleSignupChange}
+								error={error.passwordConfirm}
+								placeholder="비밀번호 확인"
+							/>
+							<Input
+								id="signup-name"
+								name="name"
+								label=""
+								value={signupData.name}
+								onChange={handleSignupChange}
+								error={error.name}
+								placeholder="이름"
+							/>
+
+							<div className="mt-[1rem] sm:mt-[1.5rem] flex justify-center">
+								<div className="flex items-center">
+									<input
+										type="checkbox"
+										id="signup-agreement"
+										checked={isAgreed}
+										onChange={(e) => setIsAgreed(e.target.checked)}
+										className="w-[0.875rem] h-[0.875rem] sm:w-[1rem] sm:h-[1rem] text-primary-dark"
+									/>
+									<label
+										htmlFor="signup-agreement"
+										className="ml-[0.375rem] text-[0.75rem] sm:text-[0.875rem] text-gray-600"
+									>
+										개인정보 수집 및 이용에 동의합니다.
+									</label>
+								</div>
+							</div>
+						</div>
+					)}
 				</div>
 				<div className="mt-[0.75rem] sm:mt-[1rem] space-y-[0.375rem] sm:space-y-[0.5rem]">
 					<button
 						type="submit"
-						className="w-full px-[0.75rem] py-[0.6rem] sm:py-[0.5rem] text-[0.75rem] sm:text-[0.875rem] font-medium text-white bg-base-black rounded-md hover:bg-neutral-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-base-black font-bold"
+						className="w-full px-[0.75rem] py-[0.6rem] sm:py-[0.5rem] text-[0.75rem] sm:text-[0.875rem] font-medium rounded-md
+						text-white bg-base-black hover:bg-neutral-900 focus:ring-base-black
+						disabled:bg-base-muted disabled:text-base-muted-30
+						focus:outline-none focus:ring-2 focus:ring-offset-2"
+						disabled={
+							!isVerified ||
+							!signupData.email.trim() ||
+							!signupData.password.trim() ||
+							!signupData.passwordConfirm.trim() ||
+							!signupData.name.trim() ||
+							!isAgreed
+						}
 					>
 						회원가입
 					</button>
+					{/*
 					<div className="flex items-center">
 						<div className="flex-grow h-[0.0625rem] bg-gray-200"></div>
 						<span className="px-[0.75rem] text-[0.75rem] sm:text-[0.875rem] text-gray-500">
@@ -290,6 +314,7 @@ const SignupForm = () => {
 						/>
 						<span className="w-full text-center">구글 계정으로 시작하기</span>
 					</button>
+				*/}
 				</div>
 			</form>
 			<div className="text-center mt-[1rem]">
