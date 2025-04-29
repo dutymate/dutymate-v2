@@ -60,7 +60,8 @@ export const Input = ({
 		focus:outline-[0.125rem] focus:outline-primary/50
 		disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500 disabled:outline-gray-200/50
 		sm:py-3 sm:text-lg
-		${getStatusClass()} pr-[6rem] 
+		${getStatusClass()}
+		${rightElement ? "pr-[6rem]" : ""}
 	`;
 
 	return (
@@ -184,6 +185,7 @@ export const AuthCodeInput = ({
 			successText={status === "success" ? successText : undefined}
 			status={status}
 			placeholder="인증번호를 입력하세요"
+			disabled={isVerified}
 			rightElement={
 				<div className="flex items-center space-x-1">
 					<span className="text-red-500 font-bold text-xs w-[3rem] text-right">
@@ -193,6 +195,7 @@ export const AuthCodeInput = ({
 						type="button"
 						className="bg-gray-300 text-gray-800 px-2 py-1 rounded text-xs hover:bg-gray-400"
 						onClick={onVerifyClick}
+						disabled={isVerified}
 					>
 						확인
 					</button>
