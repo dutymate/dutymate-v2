@@ -31,6 +31,7 @@ import AutoGenCountModal from "./AutoGenCountModal";
 import PaymentModal from "./PaymentModal";
 import SubscriptionSuccessModal from "./SubscriptionSuccessModal";
 import DemoSignupModal from "./DemoSignupModal";
+import ResetDutyConfirmModal from "./ResetDutyConfirmModal";
 import useUserAuthStore from "@/store/userAuthStore";
 
 // 근무표 관리자 테이블의 props 인터페이스
@@ -205,6 +206,10 @@ const ShiftAdminTable = ({
 
 	// duties 상태 초기화를 단순화
 	const [duties, setDuties] = useState<string[][]>([]);
+
+	// 듀티표 초기화 모달 상태
+	const [isResetDutyConfirmModalOpen, setIsResetDutyConfirmModalOpen] =
+		useState(false);
 
 	// useEffect를 추가하여 dutyData 변경 시 duties 업데이트
 	useEffect(() => {
@@ -600,26 +605,25 @@ const ShiftAdminTable = ({
 			return;
 		}
 
-		const confirm = window.confirm(
-			"듀티표와 수정 기록이 초기화 됩니다. 듀티표를 초기화하시겠습니까?",
-		);
-		if (!confirm) return;
+		setIsResetDutyConfirmModalOpen(true);
+	};
 
+	const resetDutyConfirmed = async () => {
 		try {
-			// API 호출
 			const data = await dutyService.resetDuty(year, month);
-
-			// 받아온 데이터로 직접 상태 업데이트
 			useShiftStore.getState().setDutyInfo(data);
 
-			// onUpdate 함수 호출하여 화면 갱신
 			await onUpdate(year, month);
+
+			toast.success("초기화되었습니다.", {
+				autoClose: 1000,
+			});
 		} catch (error) {
-			// 실패 알림
 			toast.error("초기화에 실패하였습니다.", {
-				position: "top-center",
 				autoClose: 2000,
 			});
+		} finally {
+			setIsResetDutyConfirmModalOpen(false);
 		}
 	};
 
@@ -1895,6 +1899,12 @@ const ShiftAdminTable = ({
 				}}
 				onContinue={() => setIsDemoSignupModalOpen(false)}
 				timeLeft={demoTimeLeft}
+			/>
+
+			<ResetDutyConfirmModal
+				isOpen={isResetDutyConfirmModalOpen}
+				onClose={() => setIsResetDutyConfirmModalOpen(false)}
+				onConfirm={resetDutyConfirmed}
 			/>
 		</div>
 	);
