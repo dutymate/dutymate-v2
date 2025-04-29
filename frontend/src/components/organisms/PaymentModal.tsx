@@ -87,9 +87,11 @@ const PaymentModal = ({ isOpen, onClose, onSubscribe }: PaymentModalProps) => {
 					<div className="flex justify-between items-center mb-6">
 						<button
 							onClick={onClose}
+							id="close-payment-modal-button"
 							className="absolute top-6 right-6 text-black hover:text-gray-600"
+							style={{ fontSize: "1.75rem" }}
 						>
-							<IoMdClose size={28} />
+							X
 						</button>
 					</div>
 
