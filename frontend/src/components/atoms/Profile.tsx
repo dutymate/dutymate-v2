@@ -33,7 +33,7 @@ const Profile = () => {
 		const startTimestamp = parseInt(startTime, 10);
 		const now = Date.now();
 		const elapsedSeconds = Math.floor((now - startTimestamp) / 1000);
-		const remaining = 1 * 10 - elapsedSeconds;
+		const remaining = 60 * 10 - elapsedSeconds;
 
 		if (remaining <= 0) {
 			setTimeout(true);
