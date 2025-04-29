@@ -69,7 +69,7 @@ const EnterWardForm = ({ onSubmit }: EnterWardFormProps) => {
 
 	if (useUserAuthStore.getState().userInfo?.sentWardCode) {
 		return (
-			<div className="bg-white rounded-[0.925rem] shadow-[0_0_0.9375rem_rgba(0,0,0,0.1)] px-[1.5em] py-[1.5rem] w-[20rem] sm:w-[25rem] sm:px-[2rem] sm:py-[2rem]  lg:py-[3rem] h-[25.5rem] flex flex-col items-center justify-center">
+			<div className="bg-white rounded-[0.925rem] shadow-[0_0_0.9375rem_rgba(0,0,0,0.1)] px-[1.5em] py-[1.5rem] w-[20rem] sm:w-[25rem] sm:px-[2rem] sm:py-[2rem] lg:px-[3rem] lg:py-[3rem] flex flex-col items-center justify-center">
 				<div className="flex flex-col items-center text-center w-full">
 					<h1 className="text-[1.25rem] font-bold text-gray-800 mb-[0.25rem]">
 						병동 입장 대기 중입니다.
@@ -109,23 +109,27 @@ const EnterWardForm = ({ onSubmit }: EnterWardFormProps) => {
 						</div>
 					</div>
 				</div>
-				<Button
-					type="submit"
-					color="primary"
-					size="lg"
-					fullWidth
-					disabled={isLoading || !!error || wardCode.length !== 6}
-					className={`h-[3.5rem] lg:h-[3rem] ${isLoading ? "opacity-70 cursor-not-allowed" : ""}`}
-				>
-					{isLoading ? (
-						<div className="flex items-center justify-center gap-[0.5rem]">
-							<span className="animate-spin">⌛</span>
-							<span className="text-[1.25rem] lg:text-[1rem]">확인 중...</span>
-						</div>
-					) : (
-						<span className="text-[1.125rem] lg:text-[1rem]">입장하기</span>
-					)}
-				</Button>
+				<div className="mt-[0.75rem] sm:mt-[1rem]">
+					<Button
+						type="submit"
+						color="primary"
+						size="lg"
+						fullWidth
+						disabled={isLoading || !!error || wardCode.length !== 6}
+						className={`h-[3rem] ${isLoading ? "opacity-70 cursor-not-allowed" : ""}`}
+					>
+						{isLoading ? (
+							<div className="flex items-center justify-center gap-[0.5rem]">
+								<span className="animate-spin">⌛</span>
+								<span className="text-[0.875rem] sm:text-[1rem]">
+									확인 중...
+								</span>
+							</div>
+						) : (
+							<span className="text-[0.875rem] sm:text-[1rem]">입장하기</span>
+						)}
+					</Button>
+				</div>
 			</form>
 		</div>
 	);

@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
+// import { useEffect, useRef } from "react";
 import { Button } from "../atoms/Button";
 import { Input } from "../atoms/Input";
 import { HospitalInfo } from "@/services/wardService";
@@ -20,8 +21,8 @@ interface FormErrors {
 
 const CreateWardForm = ({
 	onSubmit,
-	onSearchHospitals,
-	hospitals,
+	// onSearchHospitals,
+	// hospitals,
 	isSearching,
 	initialSuccess = false,
 }: CreateWardFormProps) => {
@@ -30,25 +31,25 @@ const CreateWardForm = ({
 	const [isLoading, setIsLoading] = useState(false);
 	const [isSuccess, setIsSuccess] = useState(initialSuccess);
 	const [errors, setErrors] = useState<FormErrors>({});
-	const [showDropdown, setShowDropdown] = useState(false);
-	const dropdownRef = useRef<HTMLDivElement>(null);
+	// const [showDropdown, setShowDropdown] = useState(false);
+	// const dropdownRef = useRef<HTMLDivElement>(null);
 	// const navigate = useNavigate();
 
-	useEffect(() => {
-		const handleClickOutside = (event: MouseEvent) => {
-			if (
-				dropdownRef.current &&
-				!dropdownRef.current.contains(event.target as Node)
-			) {
-				setShowDropdown(false);
-			}
-		};
+	// useEffect(() => {
+	// 	const handleClickOutside = (event: MouseEvent) => {
+	// 		if (
+	// 			dropdownRef.current &&
+	// 			!dropdownRef.current.contains(event.target as Node)
+	// 		) {
+	// 			setShowDropdown(false);
+	// 		}
+	// 	};
 
-		document.addEventListener("mousedown", handleClickOutside);
-		return () => {
-			document.removeEventListener("mousedown", handleClickOutside);
-		};
-	}, []);
+	// 	document.addEventListener("mousedown", handleClickOutside);
+	// 	return () => {
+	// 		document.removeEventListener("mousedown", handleClickOutside);
+	// 	};
+	// }, []);
 
 	const validateForm = () => {
 		const newErrors: FormErrors = {};
@@ -88,31 +89,32 @@ const CreateWardForm = ({
 		}
 	};
 
-	const handleHospitalNameChange = async (
-		e: React.ChangeEvent<HTMLInputElement>,
-	) => {
+	const handleHospitalNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const value = e.target.value;
 		setHospitalName(value);
 
-		if (value.trim() === "") {
-			setShowDropdown(false);
-			return;
-		}
+		// if (value.trim() === "") {
+		// 	setShowDropdown(false);
+		// 	return;
+		// }
 
-		setShowDropdown(true);
+		// setShowDropdown(value.trim().length >= 1);
 		if (errors.hospitalName) {
 			setErrors((prev) => ({ ...prev, hospitalName: undefined }));
 		}
-		await onSearchHospitals(value);
+
+		// if (value.trim().length >= 1) {
+		// 	await onSearchHospitals(value);
+		// }
 	};
 
-	const handleHospitalSelect = (hospital: string) => {
-		setHospitalName(hospital);
-		setShowDropdown(false);
-		if (errors.hospitalName) {
-			setErrors((prev) => ({ ...prev, hospitalName: undefined }));
-		}
-	};
+	// const handleHospitalSelect = (hospital: string) => {
+	// 	setHospitalName(hospital);
+	// 	setShowDropdown(false);
+	// 	if (errors.hospitalName) {
+	// 		setErrors((prev) => ({ ...prev, hospitalName: undefined }));
+	// 	}
+	// };
 
 	const handleWardNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		setWardName(e.target.value);
@@ -121,13 +123,13 @@ const CreateWardForm = ({
 		}
 	};
 
-	const handleInputFocus = () => {
-		setShowDropdown(true);
-	};
+	// const handleInputFocus = () => {
+	// 	setShowDropdown(true);
+	// };
 
 	if (isSuccess) {
 		return (
-			<div className="bg-white rounded-[0.92375rem] shadow-[0_0_15px_rgba(0,0,0,0.1)] px-12 py-16 lg:py-16 w-[25rem] h-[25.5rem] flex flex-col items-center justify-center">
+			<div className="bg-white rounded-[0.925rem] shadow-[0_0_0.9375rem_rgba(0,0,0,0.1)] px-[1.5em] py-[1.5rem] w-[20rem] sm:w-[25rem] sm:px-[2rem] sm:py-[2rem] lg:px-[3rem] lg:py-[3rem] flex flex-col items-center justify-center">
 				<div className="flex flex-col items-center text-center w-full">
 					<h1 className="text-xl font-bold text-gray-800 mb-1">
 						성공적으로 병동을 생성했습니다.
@@ -142,7 +144,7 @@ const CreateWardForm = ({
 	}
 
 	return (
-		<div className="bg-white rounded-[0.92375rem] shadow-[0_0_0.9375rem_rgba(0,0,0,0.1)] px-[3rem] py-[4rem] lg:py-[4rem] w-[23rem] flex flex-col items-center">
+		<div className="bg-white rounded-[0.925rem] shadow-[0_0_0.9375rem_rgba(0,0,0,0.1)] px-[1.5em] py-[1.5rem] w-[20rem] sm:w-[25rem] sm:px-[2rem] sm:py-[2rem] lg:px-[3rem] lg:py-[3rem] flex flex-col items-center">
 			{isSearching && <PageLoadingSpinner />}
 			<form
 				noValidate
@@ -150,7 +152,7 @@ const CreateWardForm = ({
 				className="flex flex-col gap-[1.5rem] w-full"
 			>
 				<div className="flex flex-col gap-[1rem]">
-					<div className="relative" ref={dropdownRef}>
+					<div className="relative">
 						<Input
 							id="hospital-name"
 							name="hospitalName"
@@ -158,11 +160,11 @@ const CreateWardForm = ({
 							placeholder="병원명을 입력해주세요."
 							value={hospitalName}
 							onChange={handleHospitalNameChange}
-							onFocus={handleInputFocus}
+							// onFocus={handleInputFocus}
 							error={errors.hospitalName}
 							required
 						/>
-						{showDropdown && (
+						{/* {showDropdown && hospitalName.trim() !== "" && (
 							<div className="absolute top-[calc(100%+0.25rem)] left-0 w-full bg-white border border-gray-200 rounded-[0.25rem] shadow-lg z-50 max-h-[15rem] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300">
 								{hospitals
 									.filter((hospital) =>
@@ -204,7 +206,7 @@ const CreateWardForm = ({
 										</div>
 									))}
 							</div>
-						)}
+						)} */}
 					</div>
 					<Input
 						id="ward-name"
@@ -217,16 +219,16 @@ const CreateWardForm = ({
 						required
 					/>
 				</div>
-				<div className="mt-[2rem] lg:mt-[0.5rem] -mb-[0.25rem]">
+				<div className="mt-[0.75rem] sm:mt-[1rem]">
 					<Button
 						type="submit"
 						color="primary"
 						size="lg"
 						fullWidth
 						disabled={isLoading}
-						className="h-[5vh] lg:h-[3rem]"
+						className="h-[3rem]"
 					>
-						<span className="text-[1.25rem] lg:text-[1rem]">
+						<span className="text-[0.875rem] sm:text-[1rem]">
 							{isLoading ? "생성 중..." : "생성하기"}
 						</span>
 					</Button>

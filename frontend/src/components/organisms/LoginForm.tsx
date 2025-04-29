@@ -25,6 +25,7 @@ const validateEmail = (email: string) => {
 const LoginForm = ({ onRequireVerification }: LoginFormProps) => {
 	const navigate = useNavigate();
 	const userAuthStore = useUserAuthStore();
+	const { setTimeout } = userAuthStore;
 
 	const [loginData, setLoginData] = useState<LoginData>({
 		email: "",
@@ -99,6 +100,8 @@ const LoginForm = ({ onRequireVerification }: LoginFormProps) => {
 			const { role, existAdditionalInfo, existMyWard } = data;
 
 			userAuthStore.setUserInfo(data);
+			setTimeout(false);
+			sessionStorage.removeItem("demo-start-time");
 			toast.success("정상적으로 로그인되었습니다.");
 
 			// 로그인 후 이동 로직

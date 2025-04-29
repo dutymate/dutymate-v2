@@ -18,7 +18,7 @@ const DemoTimer = () => {
 		return `${h}:${m}:${s}`;
 	};
 	useEffect(() => {
-		if (!isDemo) return;
+		if (!isDemo || isTimeout) return;
 
 		const startTime = sessionStorage.getItem("demo-start-time");
 		if (!startTime) return;
@@ -26,17 +26,18 @@ const DemoTimer = () => {
 		const startTimestamp = parseInt(startTime, 10);
 		const now = Date.now();
 		const elapsedSeconds = Math.floor((now - startTimestamp) / 1000);
-		const remaining = 60 * 10 - elapsedSeconds;
+		// const remaining = 60 * 10 - elapsedSeconds; // 10분 타이머 (주석처리)
+		const remaining = 5 - elapsedSeconds; // 5초 타이머 (테스트용)
 
 		if (remaining <= 0) {
 			setTimeout(true);
 			return;
 		}
 		setTimeLeft(remaining);
-	}, [isDemo]);
+	}, [isDemo, isTimeout]);
 
 	useEffect(() => {
-		if (!isDemo || timeLeft <= 0) return;
+		if (!isDemo || timeLeft <= 0 || isTimeout) return;
 
 		const interval = setInterval(() => {
 			setTimeLeft((prev) => {
@@ -50,7 +51,7 @@ const DemoTimer = () => {
 		}, 1000);
 
 		return () => clearInterval(interval);
-	}, [isDemo, timeLeft]);
+	}, [isDemo, timeLeft, isTimeout]);
 
 	if (!isDemo) return null;
 
@@ -62,11 +63,15 @@ const DemoTimer = () => {
 				</div>
 				<div className="ml-1 flex flex-col justify-center text-xs">
 					<div className="ml-2 font-semibold text-orange-500 text-left whitespace-nowrap mb-0.5">
-						이용 가능 시간
+						{isTimeout ? "이용 시간 종료" : "이용 가능 시간"}
 					</div>
-					{timeLeft > 0 && (
+					{timeLeft > 0 && !isTimeout ? (
 						<div className="text-[1.1rem] font-bold text-gray-800 tracking-wider min-w-[5.5rem] text-left">
 							{formatTime(timeLeft)}
+						</div>
+					) : (
+						<div className="text-[1.1rem] font-bold text-gray-800 tracking-wider min-w-[5.5rem] text-left">
+							00:00:00
 						</div>
 					)}
 				</div>

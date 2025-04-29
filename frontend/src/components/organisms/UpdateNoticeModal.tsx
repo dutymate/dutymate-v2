@@ -15,16 +15,25 @@ const UpdateNoticeModal = ({
 	};
 
 	return createPortal(
-		<div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 min-h-screen py-12">
+		<div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 min-h-screen py-6 px-4 overflow-y-auto">
 			<div
-				className="bg-white w-full max-w-lg p-6  m-6 my-6 rounded-2xl shadow-lg flex flex-col gap-6 max-h-screen overflow-y-auto"
+				className="bg-white w-full max-w-lg rounded-2xl shadow-lg flex flex-col gap-3 max-h-[80vh] overflow-y-auto relative mx-2"
 				onClick={handleOverlayClick}
 			>
-				<div className="text-left">
-					<h2 className="text-xl font-semibold mb-4 text-center">
+				{/* 상단 닫기 버튼 추가 - 모바일 접근성 향상 */}
+				<button
+					onClick={onClose}
+					className="absolute top-2 right-2 w-8 h-8 flex items-center justify-center text-gray-500 hover:text-gray-800 z-10"
+					aria-label="닫기"
+				>
+					✕
+				</button>
+
+				<div className="text-left p-3 sm:p-6">
+					<h2 className="text-base sm:text-xl font-semibold mb-2 sm:mb-4 text-center pr-6">
 						📢 듀티메이트 Ver.2 업데이트 안내
 					</h2>
-					<p className="mb-2">
+					<p className="text-xs sm:text-base mb-2">
 						안녕하세요, 듀티메이트 팀입니다.
 						<br /> <br />
 						듀티메이트를 이용해주시는 모든 분들께 감사드리며,
@@ -34,10 +43,10 @@ const UpdateNoticeModal = ({
 						안내드립니다.
 					</p>
 
-					<p className="my-6">
+					<p className="text-xs sm:text-base my-3 sm:my-6">
 						이번 업데이트에서는 다음과 같은 주요 개선 사항이 반영되었습니다.
 					</p>
-					<ul className="list-disc pl-5 mb-8">
+					<ul className="list-disc pl-4 sm:pl-5 mb-3 sm:mb-8 text-xs sm:text-base">
 						<li>
 							<strong>근무 유형 확장</strong>: M(미드) 근무 추가
 						</li>
@@ -58,7 +67,7 @@ const UpdateNoticeModal = ({
 						<li>하이브리드 앱 개발</li>
 					</ul> */}
 
-					<p className="my-4">
+					<p className="text-xs sm:text-base my-2 sm:my-4">
 						앞으로도 더욱 안정적이고 편리한 서비스를 제공해드리기 위해
 						지속적으로 개선해 나가겠습니다.
 						<br />
@@ -66,22 +75,22 @@ const UpdateNoticeModal = ({
 						<strong>화면 우측 하단의 채널톡</strong>을 통해 문의해 주시기
 						바랍니다.
 					</p>
-					<p className="my-2">
+					<p className="text-xs sm:text-base my-2">
 						항상 듀티메이트를 이용해주셔서 진심으로 감사드립니다.
 					</p>
-					<p className="text-center mt-4">
+					<p className="text-center mt-2 sm:mt-4 text-xs sm:text-base">
 						<strong>- 팀 듀티메이트 드림 -</strong>
 					</p>
 				</div>
-				<div className="flex gap-2">
+				<div className="flex gap-2 p-3 sm:p-6 pt-0 sm:pt-0">
 					<button
-						className="flex-1 py-2 rounded-lg bg-gray-200 text-gray-800 font-semibold"
+						className="flex-1 py-1.5 sm:py-2 rounded-lg bg-gray-200 text-gray-800 font-semibold text-xs sm:text-base"
 						onClick={onDoNotShowToday}
 					>
-						오늘 하루 보지 않기
+						오늘 보지 않기
 					</button>
 					<button
-						className="flex-1 py-2 rounded-lg bg-primary text-white font-semibold"
+						className="flex-1 py-1.5 sm:py-2 rounded-lg bg-primary text-white font-semibold text-xs sm:text-base"
 						onClick={onClose}
 					>
 						닫기

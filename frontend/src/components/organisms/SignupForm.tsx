@@ -10,6 +10,7 @@ import userService from "@/services/userService";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useEmailVerification } from "@/hooks/useEmailVerification";
+import useUserAuthStore from "@/store/userAuthStore";
 
 interface SignupData {
 	email: string;
@@ -26,6 +27,7 @@ const validatePassword = (password: string) =>
 
 const SignupForm = () => {
 	const navigate = useNavigate();
+	const { setTimeout } = useUserAuthStore();
 	const [signupData, setSignupData] = useState<SignupData>({
 		email: "",
 		password: "",
@@ -142,6 +144,8 @@ const SignupForm = () => {
 				passwordConfirm: signupData.passwordConfirm.trim(),
 				name: signupData.name.trim(),
 			});
+			setTimeout(false);
+			sessionStorage.removeItem("demo-start-time");
 			toast.success("정상적으로 회원가입 되었습니다.");
 			navigate("/login");
 		} catch (error: any) {

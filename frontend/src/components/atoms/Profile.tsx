@@ -25,7 +25,7 @@ const Profile = () => {
 	};
 
 	useEffect(() => {
-		if (!isDemo) return;
+		if (!isDemo || isTimeout) return;
 
 		const startTime = sessionStorage.getItem("demo-start-time");
 		if (!startTime) return;
@@ -33,17 +33,18 @@ const Profile = () => {
 		const startTimestamp = parseInt(startTime, 10);
 		const now = Date.now();
 		const elapsedSeconds = Math.floor((now - startTimestamp) / 1000);
-		const remaining = 60 * 10 - elapsedSeconds;
+		// const remaining = 60 * 10 - elapsedSeconds; // 10분 타이머 (주석처리)
+		const remaining = 5 - elapsedSeconds; // 5초 타이머 (테스트용)
 
 		if (remaining <= 0) {
 			setTimeout(true);
 			return;
 		}
 		setTimeLeft(remaining);
-	}, [isDemo, setTimeout]);
+	}, [isDemo, setTimeout, isTimeout]);
 
 	useEffect(() => {
-		if (!isDemo || timeLeft <= 0) return;
+		if (!isDemo || timeLeft <= 0 || isTimeout) return;
 
 		const interval = setInterval(() => {
 			setTimeLeft((prev) => {
@@ -57,14 +58,14 @@ const Profile = () => {
 		}, 1000);
 
 		return () => clearInterval(interval);
-	}, [isDemo, timeLeft, setTimeout]);
+	}, [isDemo, timeLeft, setTimeout, isTimeout]);
 
 	return (
 		<>
 			<div className="px-[1.3rem] pb-10">
 				<div className="flex flex-col">
 					{/* ✅ 데모 타이머 */}
-					{isDemo && timeLeft !== null && (
+					{isDemo && (
 						<div className="hidden lg:flex items-center justify-start bg-primary-10 text-primary rounded-lg px-4 py-2 mb-4">
 							{/* 아이콘 */}
 							<div className="w-[2.4rem] flex justify-start ml-2">
@@ -75,13 +76,19 @@ const Profile = () => {
 							<div className="ml-2 flex flex-col justify-center text-sm">
 								{/* ⬇️ 타이틀을 숫자와 분리 */}
 								<div className="ml-4 font-semibold text-orange-500 text-left whitespace-nowrap mb-1">
-									이용 가능 시간
+									{isTimeout ? "이용 시간 종료" : "이용 가능 시간"}
 								</div>
 
-								{/* 타이머 숫자 */}
-								<div className="text-[1.5rem] font-bold text-gray-800 tracking-wider min-w-[7.5rem] text-left">
-									{formatTime(timeLeft)}
-								</div>
+								{/* 타이머 숫자 또는 문구 */}
+								{timeLeft > 0 && !isTimeout ? (
+									<div className="text-[1.5rem] font-bold text-gray-800 tracking-wider min-w-[7.5rem] text-left">
+										{formatTime(timeLeft)}
+									</div>
+								) : (
+									<div className="text-[1.5rem] font-bold text-gray-800 tracking-wider min-w-[7.5rem] text-left">
+										00:00:00
+									</div>
+								)}
 							</div>
 						</div>
 					)}
