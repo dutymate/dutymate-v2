@@ -59,15 +59,6 @@ build_backend:
     - cp $ENV_FILE .env
   script:
     - gradle build --build-cache
-  after_script:
-    - cd backend
-    - chmod +x scripts/ci/generate-codequality-report-from-checkstyle.sh
-    - scripts/ci/generate-codequality-report-from-checkstyle.sh build/reports/checkstyle/main.xml > checkstyle-report.json
-  artifacts:
-    when: always
-    reports:
-      codequality:
-        - backend/checkstyle-report.json
 
 aws_ecr_login:
   stage: aws_ecr_login
