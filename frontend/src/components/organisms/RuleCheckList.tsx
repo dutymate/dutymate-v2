@@ -12,7 +12,7 @@ const RuleCheckList = () => {
 			</div>
 
 			{/* 스크롤 영역 */}
-			<div className="relative h-[18.75rem] flex-1 w-full min-w-0 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200 hover:scrollbar-thumb-gray-500">
+			<div className="relative h-[18.75rem] flex-1 w-full min-w-0 overflow-y-auto">
 				{issues.length === 0 ? (
 					<div className="flex items-center justify-center h-full text-gray-500">
 						규칙 위반이 없습니다.

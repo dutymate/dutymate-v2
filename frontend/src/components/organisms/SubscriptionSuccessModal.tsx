@@ -2,7 +2,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "../atoms/Button";
 import Confetti from "react-confetti";
-import { IoGiftSharp } from "react-icons/io5";
 import { FaRocket } from "react-icons/fa";
 
 interface SubscriptionSuccessModalProps {
@@ -15,7 +14,6 @@ interface SubscriptionSuccessModalProps {
 
 const SubscriptionSuccessModal = ({
 	isOpen,
-	onClose,
 	onConfirm,
 	autoGenCnt,
 }: SubscriptionSuccessModalProps) => {
@@ -69,7 +67,7 @@ const SubscriptionSuccessModal = ({
 					<div className="bg-primary-10 rounded-xl p-6 mb-6">
 						<p className="text-lg text-base-foreground mb-2">자동 생성 기능</p>
 						<p className="text-4xl font-bold text-primary-dark mb-2">
-							100회 무료
+							{autoGenCnt}회 무료
 						</p>
 						<p className="text-lg text-base-foreground">
 							충전이 완료되었습니다!
