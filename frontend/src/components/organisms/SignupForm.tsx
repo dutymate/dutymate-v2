@@ -180,7 +180,7 @@ const SignupForm = () => {
 						onChange={handleSignupChange}
 						error={emailError || error.email}
 						placeholder="이메일"
-						disabled={authCodeSent}
+						disabled={authCodeSent || isVerified}
 					/>
 					{!authCodeSent && (
 						<button
