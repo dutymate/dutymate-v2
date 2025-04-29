@@ -25,7 +25,6 @@ const EnterWard = () => {
 
 			// 3. 성공 메시지 표시
 			toast.success("병동 입장 요청이 완료되었습니다.", {
-				position: "top-center",
 				autoClose: 3000,
 			});
 		} catch (error: any) {

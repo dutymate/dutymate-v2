@@ -27,9 +27,7 @@ const WardAdmin = () => {
 				const data = await wardService.getWardInfo();
 				setWardInfo(data);
 			} catch (error) {
-				toast.error("병동 정보를 불러오는데 실패했습니다", {
-					position: "top-right",
-				});
+				toast.error("병동 정보를 불러오는데 실패했습니다");
 				useLoadingStore.getState().setLoading(false);
 			} finally {
 				setIsLoading(false);
@@ -46,20 +44,14 @@ const WardAdmin = () => {
 			// 임시 간호사 추가 후 병동 정보 다시 불러오기
 			const data = await wardService.getWardInfo();
 			setWardInfo(data);
-			toast.success("임시 간호사가 추가되었습니다.", {
-				position: "top-right",
-			});
+			toast.success("임시 간호사가 추가되었습니다.");
 		} catch (error) {
-			toast.error("임시 간호사 추가에 실패했습니다.", {
-				position: "top-right",
-			});
+			toast.error("임시 간호사 추가에 실패했습니다.");
 		}
 	};
 
 	const handleViewHistory = () => {
-		toast.info("준비 중입니다.", {
-			position: "top-right",
-		});
+		toast.info("준비 중입니다.");
 	};
 
 	const isDemo = userInfo?.isDemo;

@@ -53,7 +53,6 @@ const CreateWard = () => {
 
 			// 성공 토스트 메시지 표시
 			toast.success("병동이 생성되었습니다.", {
-				position: "top-center",
 				autoClose: 3000,
 			});
 

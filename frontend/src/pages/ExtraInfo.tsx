@@ -50,7 +50,6 @@ const ExtraInfo = () => {
 			// console.log("전역 상태 업데이트 완료");
 
 			toast.success("회원 가입이 완료되었습니다.", {
-				position: "top-center",
 				autoClose: 3000,
 			});
 
