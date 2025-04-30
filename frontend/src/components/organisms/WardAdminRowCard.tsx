@@ -10,7 +10,7 @@ import { toast } from "react-toastify";
 import useUserAuthStore from "@/store/userAuthStore";
 import { useNavigate } from "react-router-dom";
 import DutyTooltip from "../atoms/DutyTooltip";
-import RemoveAdminConfirmModal from "./RemoveAdminConfirmModal";
+import RemoveNurseConfirmModal from "./RemoveNurseConfirmModal.tsx";
 
 interface WardAdminRowCardProps {
 	nurse: Nurse;
@@ -37,7 +37,7 @@ const WardAdminRowCard = ({
 	const [dropdownPosition, setDropdownPosition] = useState<"top" | "bottom">(
 		"bottom",
 	);
-	const [removeTarget, setRemoveTarget] = useState<"self" | "admin" | null>(
+	const [removeTarget, setRemoveTarget] = useState<"SELF" | "HN" | "RN" | null>(
 		null,
 	);
 	const [isRemoveAdminConfirmModalOpen, setIsRemoveAdminConfirmModalOpen] =
@@ -211,35 +211,27 @@ const WardAdminRowCard = ({
 
 	const handleRemoveNurse = async () => {
 		try {
-			// 관리자 내보내기
-			if (
-				nurse.memberId === userAuthStore.userInfo?.memberId ||
-				nurse.role === "HN"
-			) {
-				await removeAdminNurse();
+			if (removeTarget === "SELF") {
+				navigate("/my-page");
 				return;
 			}
-
-			// 그 외 내보내기
 			await removeNurse(nurse.memberId);
-			toast.success("간호사가 병동에서 제외되었습니다");
+			toast.success(
+				removeTarget === "HN"
+					? "관리자가 병동에서 제외되었습니다."
+					: "간호사가 병동에서 제외되었습니다.",
+			);
+			return;
 		} catch (error) {
 			if (error instanceof Error && error.message === "LAST_HN") {
 				toast.error("새로운 관리자를 임명하세요.");
 				return;
 			}
 			toast.error("간호사 제외에 실패했습니다.");
+		} finally {
+			setRemoveTarget(null);
+			setIsRemoveAdminConfirmModalOpen(false);
 		}
-	};
-
-	const removeAdminNurse = async () => {
-		if (removeTarget === "self") {
-			navigate("/my-page");
-		} else if (removeTarget === "admin") {
-			await removeNurse(nurse.memberId);
-			toast.success("간호사가 병동에서 제외되었습니다.");
-		}
-		setIsRemoveAdminConfirmModalOpen(false);
 	};
 
 	const handleChangeNurseRole = async () => {
@@ -580,11 +572,22 @@ const WardAdminRowCard = ({
 									value={null}
 									onChange={(value) => {
 										if (value === "병동 내보내기") {
-											if (nurse.memberId === userAuthStore.userInfo?.memberId) {
-												setRemoveTarget("self");
-											} else if (nurse.role === "HN") {
-												setRemoveTarget("admin");
+											if (
+												userAuthStore.userInfo?.isDemo &&
+												nurse.role !== "RN"
+											) {
+												toast.error(
+													"데모 계정에서 병동을 나가거나 관리자를 내보낼 수 없습니다.",
+												);
+												return;
 											}
+											setRemoveTarget(
+												nurse.memberId === userAuthStore.userInfo?.memberId
+													? "SELF"
+													: nurse.role === "HN"
+														? "HN"
+														: "RN",
+											);
 											setIsRemoveAdminConfirmModalOpen(true);
 										} else if (value === "권한 넘기기") {
 											handleChangeNurseRole();
@@ -600,11 +603,12 @@ const WardAdminRowCard = ({
 					</div>
 				</div>
 			</div>
-			<RemoveAdminConfirmModal
+			<RemoveNurseConfirmModal
 				isOpen={isRemoveAdminConfirmModalOpen}
 				onClose={() => setIsRemoveAdminConfirmModalOpen(false)}
 				onConfirm={handleRemoveNurse}
 				removeTarget={removeTarget}
+				removeTargetName={nurse.name}
 			/>
 		</div>
 	);
