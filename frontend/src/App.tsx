@@ -6,6 +6,13 @@ import PageLoadingSpinner from "./components/atoms/Loadingspinner";
 import ChannelTalkLoader from "./components/organisms/ChannelTalkLoader";
 
 function App() {
+	if (import.meta.env.VITE_NODE_ENV === "production") {
+		console = window.console || {};
+		console.log = function no_console() {};
+		console.warn = function no_console() {};
+		console.error = function () {};
+	}
+
 	return (
 		<BrowserRouter>
 			<ChannelTalkLoader />
