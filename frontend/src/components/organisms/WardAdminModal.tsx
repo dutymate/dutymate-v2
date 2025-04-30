@@ -360,8 +360,8 @@ export const NurseAssignModal = ({
 				isConnect={isConnect}
 				message={
 					isConnect
-						? `간호사 ${nurse.name}과(와) 연동하시겠습니까?`
-						: "임시간호사와 연동하지 않고 추가하시겠습니까?"
+						? `간호사 ${nurse.name} 님과 연동하시겠습니까?`
+						: "임시 간호사와 연동하지 않고 추가하시겠습니까?"
 				}
 			/>
 		</div>
