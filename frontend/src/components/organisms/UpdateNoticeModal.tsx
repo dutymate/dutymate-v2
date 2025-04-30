@@ -15,9 +15,9 @@ const UpdateNoticeModal = ({
 	};
 
 	return createPortal(
-		<div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 min-h-screen py-6 px-4 overflow-y-auto">
+		<div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 min-h-screen py-6 px-4">
 			<div
-				className="bg-white w-full max-w-lg rounded-2xl shadow-lg flex flex-col gap-3 max-h-[80vh] overflow-y-auto relative mx-2"
+				className="bg-white w-full max-w-lg rounded-2xl shadow-lg flex flex-col gap-3 max-h-[80vh] relative mx-2"
 				onClick={handleOverlayClick}
 			>
 				{/* 상단 닫기 버튼 추가 - 모바일 접근성 향상 */}
@@ -29,24 +29,24 @@ const UpdateNoticeModal = ({
 					✕
 				</button>
 
-				<div className="text-left p-3 sm:p-6">
+				<div className="flex-1 min-h-0 overflow-y-auto text-left p-3 sm:p-6 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
 					<h2 className="text-base sm:text-xl font-semibold mb-2 sm:mb-4 text-center pr-6">
 						📢 듀티메이트 Ver.2 업데이트 안내
 					</h2>
-					<p className="text-xs sm:text-base mb-2">
+					<p className="text-xs sm:text-sm mb-2">
 						안녕하세요, 듀티메이트 팀입니다.
 						<br /> <br />
 						듀티메이트를 이용해주시는 모든 분들께 감사드리며,
 						<br />
 						<strong>2025년 4월 29일</strong>부로{" "}
-						<strong>듀티메이트 v2.1.0</strong>이 정식 업데이트 되었음을
+						<strong>듀티메이트 Ver.2</strong>이 정식 업데이트 되었음을
 						안내드립니다.
 					</p>
 
-					<p className="text-xs sm:text-base my-3 sm:my-6">
+					<p className="text-xs sm:text-sm my-3 sm:my-6">
 						이번 업데이트에서는 다음과 같은 주요 개선 사항이 반영되었습니다.
 					</p>
-					<ul className="list-disc pl-4 sm:pl-5 mb-3 sm:mb-8 text-xs sm:text-base">
+					<ul className="list-disc pl-4 sm:pl-5 mb-3 sm:mb-8 text-xs sm:text-sm">
 						<li>
 							<strong>근무 유형 확장</strong>: M(미드) 근무 추가
 						</li>
@@ -67,7 +67,7 @@ const UpdateNoticeModal = ({
 						<li>하이브리드 앱 개발</li>
 					</ul> */}
 
-					<p className="text-xs sm:text-base my-2 sm:my-4">
+					<p className="text-xs sm:text-sm my-2 sm:my-4">
 						앞으로도 더욱 안정적이고 편리한 서비스를 제공해드리기 위해
 						지속적으로 개선해 나가겠습니다.
 						<br />
@@ -75,10 +75,10 @@ const UpdateNoticeModal = ({
 						<strong>화면 우측 하단의 채널톡</strong>을 통해 문의해 주시기
 						바랍니다.
 					</p>
-					<p className="text-xs sm:text-base my-2">
+					<p className="text-xs sm:text-sm my-2">
 						항상 듀티메이트를 이용해주셔서 진심으로 감사드립니다.
 					</p>
-					<p className="text-center mt-2 sm:mt-4 text-xs sm:text-base">
+					<p className="text-center mt-2 sm:mt-4 text-xs sm:text-sm">
 						<strong>- 팀 듀티메이트 드림 -</strong>
 					</p>
 				</div>
