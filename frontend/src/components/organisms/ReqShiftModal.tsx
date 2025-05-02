@@ -230,10 +230,10 @@ const ReqShiftModal = ({ onClose }: ReqShiftModalProps) => {
 											{request.status === "HOLD" && (
 												<button
 													onClick={() => handleDelete(request.requestId)}
-													className="text-black hover:text-black-700 flex items-center justify-center my-auto"
+													className="text-gray-500 hover:text-gray-700 flex items-center justify-center my-auto"
 													title="삭제"
 												>
-													<FaTrashCan size={14} />
+													<FaTrashCan size={18} />
 												</button>
 											)}
 										</div>
