@@ -14,11 +14,13 @@ import org.springframework.web.server.ResponseStatusException;
 import net.dutymate.api.domain.member.EmailVerificationResult;
 import net.dutymate.api.domain.member.Member;
 import net.dutymate.api.domain.member.Provider;
+import net.dutymate.api.domain.member.dto.PasswordResetRequestDto;
 import net.dutymate.api.domain.member.dto.SendCodeRequestDto;
 import net.dutymate.api.domain.member.dto.VerifyCodeRequestDto;
 import net.dutymate.api.domain.member.repository.MemberRepository;
 
 import jakarta.mail.internet.MimeMessage;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -75,7 +77,7 @@ public class EmailService {
 
 		// 인증 코드 생성 및 전송
 		String code = generateCode();
-		sendEmail(email, code);
+		sendEmail(email, code, "signup");
 		saveCodeToRedis(email, code);
 	}
 
@@ -84,37 +86,84 @@ public class EmailService {
 		return String.format("%06d", random.nextInt(1000000)); // 6자리 랜덤 숫자 만들기
 	}
 
-	private void sendEmail(String email, String code) {
-		String subject = TITLE;
+	private void sendEmail(String email, String code, String emailPurpose) {
+		String subject;
+		String htmlContent;
 
-		String htmlContent = """
-			<!DOCTYPE html>
-			<html>
-			<head>
-				<meta charset="UTF-8">
-				<title>듀티메이트 이메일 인증</title>
-			</head>
-			<body style="margin: 0; padding: 20px; background-color: #f9f9f9;
-			font-family: 'Apple SD Gothic Neo', sans-serif;">
-				<table role="presentation" width="100%%" cellpadding="0" cellspacing="0" style="max-width: 500px;
-				margin: auto; background-color: #ffffff; border: 1px solid #ddd; border-radius: 10px;">
-					<tr>
-						<td style="padding: 30px; text-align: center;">
-							<h2 style="color: #333333; font-size: 20px;">이메일 인증 요청</h2>
-							<p style="color: #555555; font-size: 16px;">듀티메이트 회원가입을 위해 아래 인증코드를 입력해주세요.</p>
-							<div style="margin: 30px auto; padding: 20px; background-color: #f0f8ff; border-radius: 8px;
-							border: 2px #4a90e2; display: inline-block;">
-								<span style="font-size: 24px; font-weight: bold; color: #4a90e2;">%s</span>
-							</div>
-							<p style="color: #999999; font-size: 12px; margin-top: 20px;">인증 코드는 발송 시점부터 5분간 유효합니다.</p>
-							<p style="color: #999999; font-size: 12px;">만약 본인이 요청한 것이 아니라면 이 이메일을 무시하셔도 됩니다.</p>
-							<p style="color: #bbbbbb; font-size: 12px; margin-top: 20px;">&copy; Dutymate.</p>
-						</td>
-					</tr>
-				</table>
-			</body>
-			</html>
-			""".formatted(code);
+		if ("reset-password".equals(emailPurpose)) {
+			// 비밀번호 재설정용 이메일
+			subject = "듀티메이트 비밀번호 재설정";
+			htmlContent = """
+				<!DOCTYPE html>
+				<html>
+				<head>
+					<meta charset="UTF-8">
+					<title>듀티메이트 비밀번호 재설정</title>
+				</head>
+				<body style="margin: 0; padding: 20px; background-color: #f9f9f9;
+				font-family: 'Apple SD Gothic Neo', sans-serif;">
+					<table role="presentation" width="100%%" cellpadding="0" cellspacing="0" style="max-width: 500px;
+					margin: auto; background-color: #ffffff; border: 1px solid #ddd; border-radius: 10px;">
+						<tr>
+							<td style="padding: 30px; text-align: center;">
+								<h2 style="color: #333333; font-size: 20px;">비밀번호 재설정</h2>
+								<p style="color: #555555; font-size: 16px;">듀티메이트 비밀번호 재설정을 위해 아래 인증코드를
+								입력해주세요.</p>
+								<div style="margin: 30px auto; padding: 20px; background-color: #f0f8ff; border-radius:
+								8px;
+								border: 2px #4a90e2; display: inline-block;">
+									<span style="font-size: 24px; font-weight: bold; color: #4a90e2;">%s</span>
+								</div>
+								<p style="color: #999999; font-size: 12px; margin-top: 20px;">인증 코드는 발송 시점부터
+								5분간 유효합니다.</p>
+								<p style="color: #999999; font-size: 12px;">만약 본인이 요청한 것이 아니라면 이 이메일을 무시하셔도 됩니다.</p>
+								<p style="color: #bbbbbb; font-size: 12px; margin-top: 20px;">&copy; Dutymate.</p>
+							</td>
+						</tr>
+					</table>
+				</body>
+				</html>
+				""".formatted(code);
+		} else if ("signup".equals(emailPurpose)) {
+			// 회원가입용 이메일
+			subject = "듀티메이트 이메일 인증";
+			htmlContent = """
+				<!DOCTYPE html>
+				<html>
+				<head>
+					<meta charset="UTF-8">
+					<title>듀티메이트 이메일 인증</title>
+				</head>
+				<body style="margin: 0; padding: 20px; background-color: #f9f9f9;
+				font-family: 'Apple SD Gothic Neo', sans-serif;">
+					<table role="presentation" width="100%%" cellpadding="0" cellspacing="0" style="max-width: 500px;
+					margin: auto; background-color: #ffffff; border: 1px solid #ddd; border-radius: 10px;">
+						<tr>
+							<td style="padding: 30px; text-align: center;">
+								<h2 style="color: #333333; font-size: 20px;">이메일 인증 요청</h2>
+								<p style="color: #555555; font-size: 16px;">듀티메이트 회원가입을 위해 아래 인증코드를
+								입력해주세요.</p>
+								<div style="margin: 30px auto; padding: 20px; background-color: #f0f8ff;
+								border-radius:8px;
+								border: 2px #4a90e2; display: inline-block;">
+									<span style="font-size: 24px; font-weight: bold; color: #4a90e2;">%s</span>
+								</div>
+								<p style="color: #999999; font-size: 12px; margin-top: 20px;">인증 코드는 발송 시점부터 5분간
+								유효합니다.</p>
+								<p style="color: #999999; font-size: 12px;">만약 본인이 요청한 것이 아니라면 이 이메일을
+								무시하셔도
+								됩니다.</p>
+								<p style="color: #bbbbbb; font-size: 12px; margin-top: 20px;">&copy; Dutymate.</p>
+							</td>
+						</tr>
+					</table>
+				</body>
+				</html>
+				""".formatted(code);
+		} else {
+			// 알 수 없는 용도인 경우 기본 템플릿
+			throw new IllegalArgumentException("지원하지 않는 이메일 타입입니다: " + emailPurpose);
+		}
 
 		try {
 			// HTML 형태로 메세지 보내기
@@ -157,5 +206,36 @@ public class EmailService {
 		redisTemplate.opsForValue().set(verfiedEmail, "true", 30, TimeUnit.MINUTES);
 
 		return EmailVerificationResult.SUCCESS;
+	}
+
+	public void checkEmailExists(String email) {
+		if (!memberRepository.existsByEmail(email)) {
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "등록되지 않은 이메일입니다.");
+		}
+	}
+
+	public void sendCodeFindPassword(SendCodeRequestDto sendCodeRequestDto) {
+		String email = sendCodeRequestDto.email();
+		Optional<Member> optionalMember = memberRepository.findMemberByEmail(email);
+
+		if (optionalMember.isPresent()) {
+			String code = generateCode();
+			sendEmail(email, code, "reset-password");
+			saveCodeToRedis(email, code);
+		} else {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "해당 이메일로 등록된 계정이 없습니다");
+		}
+	}
+
+	public void resetPassword(@Valid PasswordResetRequestDto passwordResetRequestDto) {
+		String email = passwordResetRequestDto.email();
+
+		// 회원 조회
+		Member member = memberRepository.findMemberByEmail(email)
+			.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "해당 이메일로 등록된 계정이 없습니다."));
+
+		// 비밀번호 업데이트
+		member.updatePassword(passwordResetRequestDto.password());
+		memberRepository.save(member);
 	}
 }

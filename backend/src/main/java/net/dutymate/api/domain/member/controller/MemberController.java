@@ -26,6 +26,7 @@ import net.dutymate.api.domain.member.dto.LoginRequestDto;
 import net.dutymate.api.domain.member.dto.LoginResponseDto;
 import net.dutymate.api.domain.member.dto.MypageEditRequestDto;
 import net.dutymate.api.domain.member.dto.MypageResponseDto;
+import net.dutymate.api.domain.member.dto.PasswordResetRequestDto;
 import net.dutymate.api.domain.member.dto.SendCodeRequestDto;
 import net.dutymate.api.domain.member.dto.SignUpRequestDto;
 import net.dutymate.api.domain.member.dto.UpdateEmailVerificationRequestDto;
@@ -181,5 +182,22 @@ public class MemberController {
 		@RequestBody UpdateEmailVerificationRequestDto updateEmailVerificationRequestDto) {
 		memberService.verifyAndUpdateEmail(memberId, updateEmailVerificationRequestDto);
 		return ResponseEntity.ok().build();
+	}
+
+	@PostMapping("/password/reset-request")
+	public ResponseEntity<?> requestPasswordReset(@RequestBody SendCodeRequestDto sendCodeRequestDto) {
+		// 이메일 유효성 검사 및 계정 존재 여부 확인
+		emailService.checkEmailExists(sendCodeRequestDto.email());
+
+		// 인증 코드 발송 (기존 이메일 인증 서비스 활용)
+		emailService.sendCodeFindPassword(sendCodeRequestDto);
+
+		return ResponseEntity.ok().body("비밀번호 재설정 이메일이 발송되었습니다.");
+	}
+
+	@PostMapping("/password/reset")
+	public ResponseEntity<?> resetPassword(@RequestBody PasswordResetRequestDto passwordResetRequestDto) {
+		emailService.resetPassword(passwordResetRequestDto);
+		return ResponseEntity.ok().body("비밀번호가 성공적으로 변경되었습니다.");
 	}
 }
