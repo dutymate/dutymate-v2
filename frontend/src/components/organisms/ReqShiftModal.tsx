@@ -7,7 +7,7 @@ import DutyBadgeEng from "../atoms/DutyBadgeEng";
 import ToggleButton from "../atoms/ToggleButton";
 import { requestService } from "../../services/requestService";
 import { toast } from "react-toastify";
-import { Icon } from "../atoms/Icon";
+import { FaTrashCan } from "react-icons/fa6";
 
 interface ReqShiftModalProps {
 	onClose: () => void;
@@ -74,7 +74,7 @@ const ReqShiftModal = ({ onClose }: ReqShiftModalProps) => {
 	const handleDelete = async (requestId: number) => {
 		try {
 			await requestService.deleteRequest(requestId);
-			
+
 			// 삭제 후 요청 내역 다시 조회
 			const updatedRequests = await requestService.getMyRequests();
 			setRequests(updatedRequests);
@@ -215,26 +215,27 @@ const ReqShiftModal = ({ onClose }: ReqShiftModalProps) => {
 												<span className="text-sm font-medium">
 													{request.date}
 												</span>
-												<div className="flex items-center gap-2">
-													<span
-														className={`text-sm ${getStatusColor(request.status)}`}
-													>
-														{getStatusText(request.status)}
-													</span>
-													{request.status === "HOLD" && (
-														<button
-															onClick={() => handleDelete(request.requestId)}
-															className="text-red-500 hover:text-red-700 flex items-center justify-center"
-															title="삭제"
-														>
-															<Icon name="close" size={16} />
-														</button>
-													)}
-												</div>
 											</div>
+
 											<span className="text-sm text-gray-600">
 												{request.memo}
 											</span>
+										</div>
+										<div className="flex items-center gap-2">
+											<span
+												className={`text-sm ${getStatusColor(request.status)} my-auto`}
+											>
+												{getStatusText(request.status)}
+											</span>
+											{request.status === "HOLD" && (
+												<button
+													onClick={() => handleDelete(request.requestId)}
+													className="text-black hover:text-black-700 flex items-center justify-center my-auto"
+													title="삭제"
+												>
+													<FaTrashCan size={14} />
+												</button>
+											)}
 										</div>
 									</div>
 								</div>
