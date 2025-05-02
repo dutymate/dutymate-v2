@@ -12,6 +12,7 @@ export interface WardRequest {
 }
 
 export interface MyRequest {
+	requestId: number;
 	date: string;
 	shift: "D" | "E" | "N" | "O";
 	memo: string;
@@ -134,6 +135,37 @@ export const requestService = {
 	editRequestStatus: (requestId: number, data: EditRequestStatusDto) => {
 		return axiosInstance
 			.put(`/ward/request/${requestId}`, data)
+			.then((response) => {
+				return response.data;
+			})
+			.catch((error) => {
+				if (error.code === "ERR_NETWORK") {
+					console.error(
+						"서버에 연결할 수 없습니다. 서버가 실행 중인지 확인해주세요.",
+					);
+					throw new Error("서버 연결 실패");
+				}
+				if (error.response) {
+					switch (error.response.status) {
+						case 401:
+							window.location.href = "/login";
+							break;
+						default:
+							console.error("Error occurred:", error);
+							throw error;
+					}
+				}
+				throw error;
+			});
+	},
+
+	/**
+	 * 근무 요청 삭제
+	 * @param requestId - 삭제할 요청 ID
+	 */
+	deleteRequest: (requestId: number) => {
+		return axiosInstance
+			.delete(`/request/${requestId}`)
 			.then((response) => {
 				return response.data;
 			})

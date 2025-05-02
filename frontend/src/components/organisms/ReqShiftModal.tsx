@@ -7,12 +7,14 @@ import DutyBadgeEng from "../atoms/DutyBadgeEng";
 import ToggleButton from "../atoms/ToggleButton";
 import { requestService } from "../../services/requestService";
 import { toast } from "react-toastify";
+import { Icon } from "../atoms/Icon";
 
 interface ReqShiftModalProps {
 	onClose: () => void;
 }
 
 interface MyRequest {
+	requestId: number;
 	date: string;
 	shift: "D" | "E" | "N" | "O";
 	status: string;
@@ -65,6 +67,21 @@ const ReqShiftModal = ({ onClose }: ReqShiftModalProps) => {
 			setActiveTab(1);
 		} catch (error: any) {
 			toast.error(error.response.data.message);
+		}
+	};
+
+	// 근무 요청 삭제
+	const handleDelete = async (requestId: number) => {
+		try {
+			await requestService.deleteRequest(requestId);
+			
+			// 삭제 후 요청 내역 다시 조회
+			const updatedRequests = await requestService.getMyRequests();
+			setRequests(updatedRequests);
+			toast.success("요청이 삭제되었습니다.");
+		} catch (error: any) {
+			toast.error("요청 삭제에 실패했습니다.");
+			console.error("Failed to delete request:", error);
 		}
 	};
 
@@ -180,32 +197,49 @@ const ReqShiftModal = ({ onClose }: ReqShiftModalProps) => {
 			) : (
 				<div>
 					<div className="overflow-y-auto custom-scrollbar max-h-[20rem] pr-2">
-						{requests.map((request, index) => (
-							<div key={index} className="border-b border-gray-100 pb-4 mb-4">
-								<div className="flex items-center gap-4">
-									<DutyBadgeEng
-										type={request.shift}
-										variant="outline"
-										size="md"
-									/>
-									<div className="flex-1">
-										<div className="flex justify-between items-center mb-2">
-											<span className="text-sm font-medium">
-												{request.date}
-											</span>
-											<span
-												className={`text-sm ${getStatusColor(request.status)}`}
-											>
-												{getStatusText(request.status)}
+						{requests.length === 0 ? (
+							<div className="text-center py-8 text-gray-500">
+								요청 내역이 없습니다.
+							</div>
+						) : (
+							requests.map((request, index) => (
+								<div key={index} className="border-b border-gray-100 pb-4 mb-4">
+									<div className="flex items-center gap-4">
+										<DutyBadgeEng
+											type={request.shift}
+											variant="outline"
+											size="md"
+										/>
+										<div className="flex-1">
+											<div className="flex justify-between items-center mb-2">
+												<span className="text-sm font-medium">
+													{request.date}
+												</span>
+												<div className="flex items-center gap-2">
+													<span
+														className={`text-sm ${getStatusColor(request.status)}`}
+													>
+														{getStatusText(request.status)}
+													</span>
+													{request.status === "HOLD" && (
+														<button
+															onClick={() => handleDelete(request.requestId)}
+															className="text-red-500 hover:text-red-700 flex items-center justify-center"
+															title="삭제"
+														>
+															<Icon name="close" size={16} />
+														</button>
+													)}
+												</div>
+											</div>
+											<span className="text-sm text-gray-600">
+												{request.memo}
 											</span>
 										</div>
-										<span className="text-sm text-gray-600">
-											{request.memo}
-										</span>
 									</div>
 								</div>
-							</div>
-						))}
+							))
+						)}
 					</div>
 					<div className="flex justify-center pt-4 border-t border-gray-100">
 						<Button
