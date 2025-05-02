@@ -11,6 +11,7 @@ import lombok.Data;
 @Builder
 public class MyRequestResponseDto {
 
+	private Long requestId;
 	private Date date;
 	private String shift;
 	private String memo;
@@ -18,6 +19,7 @@ public class MyRequestResponseDto {
 
 	public static MyRequestResponseDto of(Request request) {
 		return MyRequestResponseDto.builder()
+			.requestId(request.getRequestId())
 			.date(request.getRequestDate())
 			.shift(String.valueOf(request.getRequestShift()))
 			.memo(request.getMemo())
