@@ -3,6 +3,7 @@ package net.dutymate.api.domain.request.controller;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -57,6 +58,14 @@ public class RequestController {
 		@RequestBody EditRequestStatusRequestDto editRequestStatusRequestDto) {
 		requestService.editRequestStatus(member, requestId, editRequestStatusRequestDto);
 		return ResponseEntity.ok().build();
+	}
+
+	@DeleteMapping("/request/{requestId}")
+	public ResponseEntity<?> deleteRequest(@Auth Member member,
+		@PathVariable Long requestId) {
+		requestService.deleteRequest(member, requestId);
+		return ResponseEntity.ok().build();
+
 	}
 
 }

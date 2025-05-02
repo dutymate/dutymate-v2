@@ -104,4 +104,18 @@ public class RequestService {
 			shiftUtil.changeShift(year, month, date, requestMember, prevShift, Shift.X);
 		}
 	}
+
+	@Transactional
+	public void deleteRequest(Member member, Long requestId) {
+		Request request =
+			requestRepository.findById(requestId)
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "요청을 찾을 수 없습니다."));
+
+		if (!request.getWardMember().getMember().equals(member)) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "본인의 요청이 아닙니다.");
+		}
+
+		requestRepository.delete(request);
+	}
+
 }
