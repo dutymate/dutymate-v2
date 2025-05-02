@@ -1,5 +1,3 @@
-// DutyBadgeEng.tsx
-
 interface DutyBadgeEngProps {
 	type: "D" | "E" | "N" | "O" | "ALL" | "X" | "M";
 	size?: "xs" | "sm" | "md" | "lg";

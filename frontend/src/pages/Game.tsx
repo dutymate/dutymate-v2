@@ -1,12 +1,13 @@
-import Sidebar from "../components/organisms/WSidebar";
-import MSidebar from "../components/organisms/MSidebar";
-import Title from "../components/atoms/Title";
 import { useState } from "react";
 import { IoMdMenu } from "react-icons/io";
-import useUserAuthStore from "../store/userAuthStore";
-import { WormGameModal } from "../components/organisms/WormGameModal";
-import { Button } from "../components/atoms/Button";
-import { SEO } from "../components/SEO";
+
+import { Button } from "@/components/atoms/Button";
+import Title from "@/components/atoms/Title";
+import MSidebar from "@/components/organisms/MSidebar";
+import Sidebar from "@/components/organisms/WSidebar";
+import { WormGameModal } from "@/components/organisms/WormGameModal";
+import { SEO } from "@/components/SEO";
+import useUserAuthStore from "@/stores/userAuthStore";
 
 const Game = () => {
 	const [isSidebarOpen, setIsSidebarOpen] = useState(false);

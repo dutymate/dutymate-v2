@@ -1,6 +1,7 @@
-import { useEmailVerification } from "@/hooks/useEmailVerification"; // 재사용 훅
-import { EmailInput, AuthCodeInput } from "../atoms/Input";
 import { toast } from "react-toastify";
+
+import { AuthCodeInput, EmailInput } from "@/components/atoms/Input";
+import { useEmailVerification } from "@/hooks/useEmailVerification";
 import userService from "@/services/userService";
 
 interface Props {

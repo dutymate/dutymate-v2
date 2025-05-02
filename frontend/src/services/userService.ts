@@ -1,6 +1,6 @@
-// import Signup from "@/pages/Signup";
-import axiosInstance from "../lib/axios";
 import axios from "axios";
+
+import axiosInstance from "@/lib/axios";
 
 // Response Types
 export interface LoginResponse {

@@ -1,12 +1,9 @@
-// import { useState } from "react";
-import WardAdminRowCard from "./WardAdminRowCard";
-// import { Nurse } from "../../services/wardService";
-// import { wardService } from "../../services/wardService";
-
 import { toast } from "react-toastify";
-import useWardStore from "../../store/wardStore";
-import { Icon } from "../atoms/Icon";
-import DutyTooltip from "../atoms/DutyTooltip";
+
+import DutyTooltip from "@/components/atoms/DutyTooltip";
+import { Icon } from "@/components/atoms/Icon";
+import WardAdminRowCard from "@/components/organisms/WardAdminRowCard";
+import useWardStore from "@/stores/wardStore";
 
 interface WardAdminTableProps {
 	// nurses: Nurse[];

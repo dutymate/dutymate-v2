@@ -1,9 +1,11 @@
 import { BrowserRouter } from "react-router-dom";
-import Router from "./routes/Router";
 import { ToastContainer } from "react-toastify";
+
+import PageLoadingSpinner from "@/components/atoms/Loadingspinner";
+import ChannelTalkLoader from "@/components/organisms/ChannelTalkLoader";
+import Router from "@/routes/Router";
+
 import "react-toastify/dist/ReactToastify.css";
-import PageLoadingSpinner from "./components/atoms/Loadingspinner";
-import ChannelTalkLoader from "./components/organisms/ChannelTalkLoader";
 
 function App() {
 	if (import.meta.env.PROD) {

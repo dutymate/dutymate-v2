@@ -1,5 +1,6 @@
-import React, { useState, useRef, useEffect } from "react";
-import { Icon, IconName } from "./Icon";
+import React, { useEffect, useRef, useState } from "react";
+
+import { Icon, IconName } from "@/components/atoms/Icon";
 
 interface DropdownProps {
 	variant: keyof typeof OPTIONS;

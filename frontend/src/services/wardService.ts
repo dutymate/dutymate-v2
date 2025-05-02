@@ -1,5 +1,4 @@
-import axiosInstance from "../lib/axios";
-// import mockWardData from "./response-json/ward/GetApiWard.json";
+import axiosInstance from "@/lib/axios";
 
 /**
  * 병동 정보를 나타내는 인터페이스

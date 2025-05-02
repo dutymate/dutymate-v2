@@ -1,10 +1,9 @@
-// MyShiftCalendar.tsx
-
-import { useState, useEffect } from "react";
-import { DutyBadgeKor } from "../atoms/DutyBadgeKor";
+import { useEffect, useState } from "react";
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
-import { Button } from "../atoms/Button";
-import ReqShiftModal from "./ReqShiftModal";
+
+import { Button } from "@/components/atoms/Button";
+import { DutyBadgeKor } from "@/components/atoms/DutyBadgeKor";
+import ReqShiftModal from "@/components/organisms/ReqShiftModal";
 
 const weekDays = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"] as const;
 

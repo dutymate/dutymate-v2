@@ -1,6 +1,7 @@
 import { useEffect } from "react";
+
 import channelService from "@/services/channelService";
-import useUserAuthStore from "@/store/userAuthStore";
+import useUserAuthStore from "@/stores/userAuthStore";
 
 const ChannelTalkLoader = () => {
 	const { isAuthenticated, userInfo } = useUserAuthStore();

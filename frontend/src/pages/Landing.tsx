@@ -1,15 +1,17 @@
-import LandingTemplate from "../components/templates/LandingTemplate";
-import { Button } from "../components/atoms/Button";
-import { useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
-import "../styles/animations.css";
-import { toast } from "react-toastify";
 import { AxiosError } from "axios";
-import { SEO } from "../components/SEO";
-import axiosInstance from "@/lib/axios";
-import useUserAuthStore from "@/store/userAuthStore";
-import UpdateNoticeModal from "@/components/organisms/UpdateNoticeModal";
 import Cookies from "js-cookie";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+
+import "@/styles/animations.css";
+
+import { Button } from "@/components/atoms/Button";
+import UpdateNoticeModal from "@/components/organisms/UpdateNoticeModal";
+import LandingTemplate from "@/components/templates/LandingTemplate";
+import { SEO } from "@/components/SEO";
+import axiosInstance from "@/lib/axios";
+import useUserAuthStore from "@/stores/userAuthStore";
 
 const Landing = () => {
 	const navigate = useNavigate();

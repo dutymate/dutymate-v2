@@ -1,10 +1,11 @@
-import { Icon } from "../atoms/Icon";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { IoMdClose } from "react-icons/io";
+
 import { ConnectButton } from "@/components/atoms/Button";
-import { WaitingNurseInfo, wardService } from "@/services/wardService.ts";
+import { Icon } from "@/components/atoms/Icon";
 import AddNurseConfirmModal from "@/components/organisms/AddNurseConfirmModal.tsx";
+import { WaitingNurseInfo, wardService } from "@/services/wardService.ts";
 
 interface Nurse {
 	name: string;

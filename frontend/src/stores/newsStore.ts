@@ -1,5 +1,6 @@
 import { create } from "zustand";
-import { boardService, NewsResponse } from "../services/boardService";
+
+import { boardService, NewsResponse } from "@/services/boardService";
 
 interface NewsState {
 	newsies: NewsResponse[];

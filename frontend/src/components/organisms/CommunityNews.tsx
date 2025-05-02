@@ -1,7 +1,8 @@
-import { useNewsStore } from "@/store/newsStore";
 import { useEffect } from "react";
 import { GoDotFill } from "react-icons/go";
 import { IoMdClose } from "react-icons/io";
+
+import { useNewsStore } from "@/stores/newsStore";
 
 const CommunityNews = ({ onClose }: any) => {
 	const { newsies, fetchNewsies } = useNewsStore();

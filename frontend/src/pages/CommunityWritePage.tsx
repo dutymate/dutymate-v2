@@ -1,6 +1,6 @@
 import CommunityLayout from "@/components/organisms/CommunityLayout";
-import CommunityWrite from "../components/organisms/CommunityWrite";
-import { SEO } from "../components/SEO";
+import CommunityWrite from "@/components/organisms/CommunityWrite";
+import { SEO } from "@/components/SEO";
 
 const CommunityWritePage = () => {
 	return (

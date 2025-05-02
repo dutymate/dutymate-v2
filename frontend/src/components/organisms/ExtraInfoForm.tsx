@@ -1,7 +1,8 @@
-import { Select } from "../atoms/Input";
-import ToggleButton from "../atoms/ToggleButton";
-import { Button } from "../atoms/Button";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+
+import { Button } from "@/components/atoms/Button";
+import { Select } from "@/components/atoms/Input";
+import ToggleButton from "@/components/atoms/ToggleButton";
 
 interface FormData {
 	grade: number;

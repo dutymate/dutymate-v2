@@ -1,5 +1,7 @@
 import { useNavigate } from "react-router-dom";
-import { SEO } from "../components/SEO";
+
+import { SEO } from "@/components/SEO";
+
 const Error = () => {
 	const navigate = useNavigate();
 

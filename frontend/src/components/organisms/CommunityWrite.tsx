@@ -1,9 +1,10 @@
+import { useMemo, useRef, useState } from "react";
 import { BsImage } from "react-icons/bs";
-import { CommunityRegisterButton } from "../atoms/Button";
-import { useRef, useState, useMemo } from "react";
-import { toast } from "react-toastify";
-import boardService, { BoardRequest } from "@/services/boardService";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+
+import { CommunityRegisterButton } from "@/components/atoms/Button";
+import boardService, { BoardRequest } from "@/services/boardService";
 
 const CommunityWrite = () => {
 	const categories = [

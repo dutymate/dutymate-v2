@@ -1,9 +1,7 @@
-// TodayShiftModal.tsx
-
 import { IoChevronBack, IoChevronForward } from "react-icons/io5";
 import { IoMdClose } from "react-icons/io";
-import { DutyBadgeKor } from "../atoms/DutyBadgeKor";
-import { convertDutyType } from "../../utils/dutyUtils";
+import { DutyBadgeKor } from "@/components/atoms/DutyBadgeKor";
+import { convertDutyType } from "@/utils/dutyUtils";
 
 // 상수를 컴포넌트 외부로 이동
 const weekDays = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"] as const;

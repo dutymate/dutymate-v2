@@ -1,21 +1,21 @@
-import { Icon } from "../atoms/Icon";
-// import { SmallSearchInput } from "../atoms/Input";
-// import { SortButton, FilterButton } from "../atoms/SubButton";
-import useUserAuthStore from "@/store/userAuthStore";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+
+import { TempNurseButton } from "@/components/atoms/Button";
+import { Icon } from "@/components/atoms/Icon";
+import {
+	HistoryModal,
+	NurseAssignModal,
+} from "@/components/organisms/WardAdminModal";
+import WardAdminTemp from "@/components/organisms/WardAdminTemp";
 
 import {
+	wardService,
 	WaitingNurseInfo,
 	WardInfo,
-	wardService,
-} from "../../services/wardService";
-import { toast } from "react-toastify";
-import { useEffect, useState } from "react";
-// import { ConnectButton } from "../atoms/Button";
-// import { TempNurseButton } from "../atoms/Button";
-import { HistoryModal, NurseAssignModal } from "./WardAdminModal";
-import { TempNurseButton } from "../atoms/Button";
-import WardAdminTemp from "./WardAdminTemp";
-import { useNavigate } from "react-router-dom";
+} from "@/services/wardService";
+import useUserAuthStore from "@/stores/userAuthStore";
 
 interface WardAdminInfoProps {
 	wardInfo: WardInfo;

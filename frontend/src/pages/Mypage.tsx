@@ -1,18 +1,19 @@
+import { AxiosError } from "axios";
 import { useState } from "react";
-import Sidebar from "../components/organisms/WSidebar";
-import MSidebar from "../components/organisms/MSidebar";
-import Title from "../components/atoms/Title";
-import MypageProfile from "../components/organisms/MypageProfile";
-import MypagePassword from "../components/organisms/MypagePassword";
-import MypageExit from "../components/organisms/MypageExit";
 import { IoMdMenu } from "react-icons/io";
-import useUserAuthStore from "../store/userAuthStore";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { ApiErrorResponse, profileService } from "@/services/profileService";
-import { AxiosError } from "axios";
-import { SEO } from "../components/SEO";
+
 import DemoTimer from "@/components/atoms/DemoTimer";
+import Title from "@/components/atoms/Title";
+import MypageExit from "@/components/organisms/MypageExit";
+import MypagePassword from "@/components/organisms/MypagePassword";
+import MypageProfile from "@/components/organisms/MypageProfile";
+import MSidebar from "@/components/organisms/MSidebar";
+import Sidebar from "@/components/organisms/WSidebar";
+import { SEO } from "@/components/SEO";
+import { ApiErrorResponse, profileService } from "@/services/profileService";
+import useUserAuthStore from "@/stores/userAuthStore";
 
 const Mypage = () => {
 	const [isSidebarOpen, setIsSidebarOpen] = useState(false);

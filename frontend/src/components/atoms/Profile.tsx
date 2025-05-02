@@ -1,10 +1,11 @@
-import useUserAuthStore from "@/store/userAuthStore";
-import React, { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { Icon } from "./Icon";
+import React, { useEffect, useState } from "react";
 import { MdOutlineAccessTime } from "react-icons/md";
-import { Tooltip } from "./Tooltip";
-import TimeOut from "../organisms/TimeOut";
+import { Link, useLocation } from "react-router-dom";
+
+import { Icon } from "@/components/atoms/Icon";
+import { Tooltip } from "@/components/atoms/Tooltip";
+import TimeOut from "@/components/organisms/TimeOut";
+import useUserAuthStore from "@/stores/userAuthStore";
 
 const Profile = () => {
 	const { userInfo, setTimeout, isTimeout } = useUserAuthStore();

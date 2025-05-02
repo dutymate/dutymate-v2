@@ -1,36 +1,36 @@
-// Icon.tsx
-
-import { HiExclamationCircle, HiMagnifyingGlass } from "react-icons/hi2";
-import { SlCalender } from "react-icons/sl";
-import { FaHospital, FaUserCircle, FaDoorOpen } from "react-icons/fa";
-import { FaChevronRight, FaChevronLeft, FaChevronDown } from "react-icons/fa6";
 import {
-	AiFillSchedule,
-	AiOutlineIdcard,
-	AiOutlineHeart,
-	AiOutlineMessage,
-	AiOutlineEye,
 	AiFillHeart,
+	AiFillSchedule,
+	AiOutlineEye,
+	AiOutlineHeart,
+	AiOutlineIdcard,
+	AiOutlineMessage,
 } from "react-icons/ai";
 import { BiSolidUserPin } from "react-icons/bi";
-import { HiOutlineUsers } from "react-icons/hi2";
-import { IoIosChatboxes, IoMdMenu } from "react-icons/io";
-import { IoFemale, IoMale, IoCloseOutline } from "react-icons/io5";
-import { MdHistory } from "react-icons/md";
+import { BsFunnel, BsThreeDots, BsThreeDotsVertical } from "react-icons/bs";
+import { FaDoorOpen, FaHospital, FaUserCircle } from "react-icons/fa";
+import { FaChevronDown, FaChevronLeft, FaChevronRight } from "react-icons/fa6";
+import { GrPowerReset, GrUndo } from "react-icons/gr";
+import { HiDownload } from "react-icons/hi";
 import {
+	HiExclamationCircle,
+	HiMagnifyingGlass,
+	HiOutlineUsers,
+} from "react-icons/hi2";
+import { IoIosChatboxes, IoMdMenu } from "react-icons/io";
+import { IoCloseOutline, IoFemale, IoMale } from "react-icons/io5";
+import {
+	MdAutoMode,
+	MdContentCopy,
+	MdHistory,
+	MdModeEdit,
+	MdOutlineSort,
 	MdSignalCellular1Bar,
 	MdSignalCellular3Bar,
 	MdSignalCellular4Bar,
-	MdModeEdit,
-	MdOutlineSort,
-	MdContentCopy,
 } from "react-icons/md";
-import { BsThreeDotsVertical, BsFunnel, BsThreeDots } from "react-icons/bs";
-import { GrUndo } from "react-icons/gr";
-import { GrPowerReset } from "react-icons/gr";
-import { HiDownload } from "react-icons/hi";
 import { RiRulerLine } from "react-icons/ri";
-import { MdAutoMode } from "react-icons/md";
+import { SlCalender } from "react-icons/sl";
 
 const iconComponents = {
 	alert: HiExclamationCircle,

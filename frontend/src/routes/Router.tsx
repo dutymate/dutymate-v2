@@ -1,26 +1,26 @@
+import { ReactElement } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
-// import Playgrounds from "../pages/_playgrounds";
+
+import Community from "@/pages/Community";
 import CommunityDetailPage from "@/pages/CommunityDetailPage";
 import CommunityWritePage from "@/pages/CommunityWritePage";
-import Community from "../pages/Community";
-import CreateWard from "../pages/CreateWard";
-import EnterWard from "../pages/EnterWard";
-import Error from "../pages/Error";
-import ExtraInfo from "../pages/ExtraInfo";
-import { GoogleRedirect } from "../pages/GoogleRedirect";
-import { KakaoRedirect } from "../pages/KakaoRedirect";
-import Landing from "../pages/Landing";
-import Login from "../pages/Login";
-import Mypage from "../pages/Mypage";
-import MyShift from "../pages/MyShift";
-import ReqAdmin from "../pages/ReqAdmin";
-import ShiftAdmin from "../pages/ShiftAdmin";
-import Signup from "../pages/Signup";
-import { ReactElement } from "react";
-import Game from "../pages/Game";
-import TeamShift from "../pages/TeamShift";
-import WardAdmin from "../pages/WardAdmin";
-import useUserAuthStore from "@/store/userAuthStore";
+import CreateWard from "@/pages/CreateWard";
+import EnterWard from "@/pages/EnterWard";
+import Error from "@/pages/Error";
+import ExtraInfo from "@/pages/ExtraInfo";
+import Game from "@/pages/Game";
+import { GoogleRedirect } from "@/pages/GoogleRedirect";
+import { KakaoRedirect } from "@/pages/KakaoRedirect";
+import Landing from "@/pages/Landing";
+import Login from "@/pages/Login";
+import Mypage from "@/pages/Mypage";
+import MyShift from "@/pages/MyShift";
+import ReqAdmin from "@/pages/ReqAdmin";
+import ShiftAdmin from "@/pages/ShiftAdmin";
+import Signup from "@/pages/Signup";
+import TeamShift from "@/pages/TeamShift";
+import WardAdmin from "@/pages/WardAdmin";
+import useUserAuthStore from "@/stores/userAuthStore";
 
 interface ProtectedRouteProps {
 	element: ReactElement;

@@ -1,4 +1,4 @@
-import axiosInstance from "../lib/axios";
+import axiosInstance from "@/lib/axios";
 
 // 타입 정의
 export interface DayDuty {

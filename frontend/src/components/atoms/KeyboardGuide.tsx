@@ -1,4 +1,4 @@
-import DutyBadgeEng from "./DutyBadgeEng";
+import DutyBadgeEng from "@/components/atoms/DutyBadgeEng";
 
 const KeyboardGuide = () => {
 	return (

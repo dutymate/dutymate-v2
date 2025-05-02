@@ -1,7 +1,6 @@
 import { useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
 import { BiTimer } from "react-icons/bi";
-// import useUserAuthStore from "@/store/userAuthStore";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const TimeOut = () => {
 	const navigate = useNavigate();

@@ -1,6 +1,7 @@
 import { create } from "zustand";
-import { profileService, ProfileResponse } from "../services/profileService";
-import useUserAuthStore from "./userAuthStore";
+
+import { ProfileResponse, profileService } from "@/services/profileService";
+import useUserAuthStore from "@/stores/userAuthStore";
 
 interface ProfileStore {
 	profile: ProfileResponse | null;

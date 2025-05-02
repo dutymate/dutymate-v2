@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState, useCallback } from "react";
-import RequestMessage from "./RequestMessage";
+import { useCallback, useEffect, useRef, useState } from "react";
+
+import RequestMessage from "@/components/atoms/RequestMessage";
 
 interface RequestStatusLayerProps {
 	date: number;

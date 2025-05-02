@@ -1,9 +1,11 @@
-import LoginEmailVerificationForm from "@/components/organisms/LoginEmailVerificationForm";
-import { useLoginStepStore } from "@/store/useLoginStepStore";
 import { useEffect, useState } from "react";
-import LoginForm from "../components/organisms/LoginForm";
-import { SEO } from "../components/SEO";
-import LandingTemplate from "../components/templates/LandingTemplate";
+
+import LoginEmailVerificationForm from "@/components/organisms/LoginEmailVerificationForm";
+import LoginForm from "@/components/organisms/LoginForm";
+import LandingTemplate from "@/components/templates/LandingTemplate";
+import { SEO } from "@/components/SEO";
+import { useLoginStepStore } from "@/stores/useLoginStepStore";
+
 const Login = () => {
 	const { step, setStep } = useLoginStepStore();
 	const [pendingMemberId, setPendingMemberId] = useState<number | null>(null);

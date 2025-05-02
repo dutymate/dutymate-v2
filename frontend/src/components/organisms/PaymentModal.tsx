@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
-import SubscriptionSuccessModal from "./SubscriptionSuccessModal";
-import { IoMdClose } from "react-icons/io";
+import { useEffect, useState } from "react";
 import { FaCheckCircle, FaRegStar } from "react-icons/fa";
+import { IoMdClose } from "react-icons/io";
+
+import SubscriptionSuccessModal from "@/components/organisms/SubscriptionSuccessModal";
 
 interface PaymentModalProps {
 	isOpen: boolean;

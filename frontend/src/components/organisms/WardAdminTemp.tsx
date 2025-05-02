@@ -1,9 +1,8 @@
-//임시간호사 추가 모달 ,rem으로 변경
-
-import { useState, useEffect } from "react";
-import { Icon } from "../atoms/Icon";
+import { useEffect, useState } from "react";
 import { FaMinus, FaPlus } from "react-icons/fa6";
 import { toast } from "react-toastify";
+
+import { Icon } from "@/components/atoms/Icon";
 
 interface WardAdminTempProps {
 	isOpen: boolean;

@@ -1,10 +1,9 @@
-// HistoryList.tsx
-
-import { Icon } from "../atoms/Icon";
-import DutyBadgeEng from "../atoms/DutyBadgeEng";
-import useShiftStore from "../../store/shiftStore";
-import type { DutyHistory } from "../../services/dutyService";
 import { useCallback, useMemo, useState } from "react";
+
+import DutyBadgeEng from "@/components/atoms/DutyBadgeEng";
+import { Icon } from "@/components/atoms/Icon";
+import type { DutyHistory } from "@/services/dutyService";
+import useShiftStore from "@/stores/shiftStore";
 
 const HistoryList = () => {
 	const histories = useShiftStore((state) => state.dutyInfo?.histories || []);

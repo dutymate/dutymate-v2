@@ -1,7 +1,8 @@
-import CommunityLayout from "@/components/organisms/CommunityLayout";
-import CommunityForm from "../components/organisms/CommunityForm";
 import { useNavigate } from "react-router-dom";
-import { SEO } from "../components/SEO";
+
+import CommunityForm from "@/components/organisms/CommunityForm";
+import CommunityLayout from "@/components/organisms/CommunityLayout";
+import { SEO } from "@/components/SEO";
 
 const Community = () => {
 	const navigate = useNavigate();

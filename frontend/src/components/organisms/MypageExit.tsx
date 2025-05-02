@@ -1,9 +1,10 @@
-import { ApiErrorResponse, profileService } from "@/services/profileService";
-import useUserAuthStore from "@/store/userAuthStore";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import MypageExitConfirmModal from "@/components/organisms/MypageExitConfirmModal.tsx";
-import { useState } from "react";
+
+import MypageExitConfirmModal from "@/components/organisms/MypageExitConfirmModal";
+import { ApiErrorResponse, profileService } from "@/services/profileService";
+import useUserAuthStore from "@/stores/userAuthStore";
 
 const MypageExit = () => {
 	const navigate = useNavigate();

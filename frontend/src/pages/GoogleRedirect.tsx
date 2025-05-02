@@ -1,17 +1,17 @@
-import { useNavigate } from "react-router-dom";
-import { useEffect } from "react";
-import {
-	userService,
-	LoginResponse,
-	ApiErrorResponse,
-	// ApiErrorResponse,
-} from "../services/userService";
-import useUserAuthStore from "../store/userAuthStore";
-import { toast } from "react-toastify";
-import { useLoadingStore } from "@/store/loadingStore";
-import PageLoadingSpinner from "@/components/atoms/Loadingspinner";
 import { AxiosError } from "axios";
-import { SEO } from "../components/SEO";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+
+import PageLoadingSpinner from "@/components/atoms/Loadingspinner";
+import { SEO } from "@/components/SEO";
+import {
+	ApiErrorResponse,
+	LoginResponse,
+	userService,
+} from "@/services/userService";
+import { useLoadingStore } from "@/stores/loadingStore";
+import useUserAuthStore from "@/stores/userAuthStore";
 
 export function GoogleRedirect() {
 	const navigate = useNavigate();

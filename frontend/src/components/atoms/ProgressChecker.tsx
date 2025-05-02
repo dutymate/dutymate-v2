@@ -1,5 +1,3 @@
-// ProgressChecker.tsx
-
 import React from "react";
 
 interface ProgressCheckerProps {

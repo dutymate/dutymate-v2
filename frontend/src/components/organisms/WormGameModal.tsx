@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import DutyBadgeEng from "../atoms/DutyBadgeEng";
-import Title from "../atoms/Title";
-import { Button } from "../atoms/Button";
-import { Icon } from "../atoms/Icon";
+
+import { Button } from "@/components/atoms/Button";
+import DutyBadgeEng from "@/components/atoms/DutyBadgeEng";
+import { Icon } from "@/components/atoms/Icon";
+import Title from "@/components/atoms/Title";
 
 interface Position {
 	x: number;

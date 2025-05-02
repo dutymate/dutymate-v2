@@ -1,13 +1,10 @@
-// ReqAdminTable.tsx
-
 import { useEffect, useState } from "react";
-// import { SmallSearchInput } from "../atoms/Input";
-// import { SortButton, FilterButton } from "../atoms/SubButton";
-import { useLoadingStore } from "@/store/loadingStore";
 import { toast } from "react-toastify";
-import { requestService, WardRequest } from "../../services/requestService";
-import { ApprovalBtn } from "../atoms/ApprovalBtn";
-import { DutyBadgeKor } from "../atoms/DutyBadgeKor";
+
+import { ApprovalBtn } from "@/components/atoms/ApprovalBtn";
+import { DutyBadgeKor } from "@/components/atoms/DutyBadgeKor";
+import { requestService, WardRequest } from "@/services/requestService.ts";
+import { useLoadingStore } from "@/stores/loadingStore";
 
 const ReqAdminTable = () => {
 	const [requests, setRequests] = useState<WardRequest[]>([]);

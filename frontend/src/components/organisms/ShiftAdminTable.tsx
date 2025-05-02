@@ -1,38 +1,39 @@
-// ShiftAdminTable.tsx
-import * as XLSX from "xlsx";
-import RuleEditModal from "./RuleEditModal";
-import DutyBadgeEng from "../atoms/DutyBadgeEng";
-import { Button } from "../atoms/Button";
-import { Icon } from "../atoms/Icon";
-import { ProgressChecker } from "../atoms/ProgressChecker";
-import { useState, useRef, useEffect, useCallback, useMemo } from "react";
-import { dutyService, SubscriptionPlan } from "../../services/dutyService";
-import { toast } from "react-toastify";
-import useShiftStore from "../../store/shiftStore";
-import FaultLayer from "../atoms/FaultLayer";
-import { toPng } from "html-to-image";
-import { requestService, WardRequest } from "../../services/requestService";
-import RequestStatusLayer from "../atoms/RequestStatusLayer";
-import { debounce } from "lodash";
+import { useCallback, useEffect, useMemo, useRef, useState, memo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Tooltip } from "../atoms/Tooltip";
-import KeyboardGuide from "../atoms/KeyboardGuide";
-import { memo } from "react";
+import { toast } from "react-toastify";
+import { debounce } from "lodash";
+import { toPng } from "html-to-image";
+import * as XLSX from "xlsx";
+
+import { Button } from "@/components/atoms/Button";
+import DutyBadgeEng from "@/components/atoms/DutyBadgeEng";
+import FaultLayer from "@/components/atoms/FaultLayer";
+import { Icon } from "@/components/atoms/Icon";
+import KeyboardGuide from "@/components/atoms/KeyboardGuide";
+import { ProgressChecker } from "@/components/atoms/ProgressChecker";
+import RequestStatusLayer from "@/components/atoms/RequestStatusLayer";
+import { Tooltip } from "@/components/atoms/Tooltip";
+import AutoGenCountModal from "@/components/organisms/AutoGenCountModal";
+import AutoGenerateConfirmModal from "@/components/organisms/AutoGenerateConfirmModal";
+import DemoSignupModal from "@/components/organisms/DemoSignupModal";
+import NurseCountModal from "@/components/organisms/NurseCountModal";
+import PaymentModal from "@/components/organisms/PaymentModal";
+import ResetDutyConfirmModal from "@/components/organisms/ResetDutyConfirmModal";
+import RuleEditModal from "@/components/organisms/RuleEditModal";
+import SubscriptionSuccessModal from "@/components/organisms/SubscriptionSuccessModal";
+
+import { dutyService, SubscriptionPlan } from "@/services/dutyService";
+import { requestService, WardRequest } from "@/services/requestService";
+import { ruleService, WardRule } from "@/services/ruleService.ts";
+
+import useShiftStore from "@/stores/shiftStore";
+import useUserAuthStore from "@/stores/userAuthStore";
+
 import {
 	getDefaultOffDays,
 	getMaxAllowedMonth,
 	isHoliday,
-} from "../../utils/dateUtils";
-import NurseCountModal from "./NurseCountModal";
-import { ruleService } from "../../services/ruleService";
-import { WardRule } from "../../services/ruleService";
-import AutoGenerateConfirmModal from "./AutoGenerateConfirmModal";
-import AutoGenCountModal from "./AutoGenCountModal";
-import PaymentModal from "./PaymentModal";
-import SubscriptionSuccessModal from "./SubscriptionSuccessModal";
-import DemoSignupModal from "./DemoSignupModal";
-import ResetDutyConfirmModal from "./ResetDutyConfirmModal";
-import useUserAuthStore from "@/store/userAuthStore";
+} from "@/utils/dateUtils";
 
 // 근무표 관리자 테이블의 props 인터페이스
 interface ShiftAdminTableProps {

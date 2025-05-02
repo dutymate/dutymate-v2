@@ -1,5 +1,3 @@
-// import React from 'react';
-
 interface CommunityCategoriesProps {
 	onCategorySelect: (category: string) => void;
 	selectedCategory: string | null;

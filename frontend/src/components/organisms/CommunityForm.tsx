@@ -1,17 +1,16 @@
-// import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-// import { Button } from "../atoms/Button";
-import { Icon } from "../atoms/Icon";
-import CommunityCategories from "./CommunityCategories";
-import { useState, useEffect } from "react";
-import { CommunityWriteButton } from "../atoms/Button";
+import { toast } from "react-toastify";
+
+import { CommunityWriteButton } from "@/components/atoms/Button";
+import { Icon } from "@/components/atoms/Icon";
+import CommunityCategories from "@/components/organisms/CommunityCategories";
 import boardService, {
 	AllPostResponse,
 	RecommendedPost,
 } from "@/services/boardService";
+import useUserAuthStore from "@/stores/userAuthStore";
 import { formatTimeAgo } from "@/utils/dateUtiles";
-import useUserAuthStore from "@/store/userAuthStore";
-import { toast } from "react-toastify";
 
 interface CommunityFormProps {
 	onWrite: () => void;

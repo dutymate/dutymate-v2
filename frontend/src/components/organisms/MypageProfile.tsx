@@ -1,12 +1,12 @@
-import { Icon } from "../atoms/Icon";
-import { Button } from "../atoms/Button";
-import { MypageInput, MypageSelect } from "../atoms/Input";
-import { MypageToggleButton } from "../atoms/ToggleButton";
-import { useState, useEffect, useCallback, useRef } from "react";
-import useProfileStore from "../../store/profileStore";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
 import debounce from "lodash/debounce";
-// import DarkModeToggle from "../atoms/DarkModeToggle";
+
+import { Button } from "@/components/atoms/Button";
+import { Icon } from "@/components/atoms/Icon";
+import { MypageInput, MypageSelect } from "@/components/atoms/Input";
+import { MypageToggleButton } from "@/components/atoms/ToggleButton";
+import useProfileStore from "@/stores/profileStore";
 
 const MypageProfile = () => {
 	const {

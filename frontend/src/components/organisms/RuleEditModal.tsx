@@ -1,7 +1,8 @@
-import { useEffect, useState, useRef } from "react";
-import { ruleService } from "../../services/ruleService";
-import { Button } from "../atoms/Button";
+import React, { useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
+
+import { Button } from "@/components/atoms/Button";
+import { ruleService } from "@/services/ruleService";
 
 interface RuleEditModalProps {
 	onClose: () => void;

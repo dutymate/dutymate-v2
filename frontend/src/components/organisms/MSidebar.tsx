@@ -1,15 +1,15 @@
 "use client";
 
 import React from "react";
-// import { useLocation } from "react-router-dom";
-import { FaHospital } from "react-icons/fa";
 import { BiSolidUserPin } from "react-icons/bi";
+import { FaHospital } from "react-icons/fa";
 import { HiOutlineUsers } from "react-icons/hi2";
 import { IoIosChatboxes } from "react-icons/io";
-import { PiLightbulbFilamentFill } from "react-icons/pi";
 import { IoCloseOutline } from "react-icons/io5";
-import Profile from "../atoms/Profile";
+import { PiLightbulbFilamentFill } from "react-icons/pi";
 import { Link, useNavigate } from "react-router-dom";
+
+import Profile from "@/components/atoms/Profile";
 
 interface NavigationItem {
 	name: string;

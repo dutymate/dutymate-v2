@@ -1,10 +1,9 @@
-// EnterWardForm.tsx
-
 import { useState } from "react";
-import { Button, EnterWardLogoutButton } from "../atoms/Button";
-import { WardCodeInput } from "../atoms/WardCodeInput";
-import useUserAuthStore from "@/store/userAuthStore";
 import { useNavigate } from "react-router-dom";
+
+import { Button, EnterWardLogoutButton } from "@/components/atoms/Button";
+import { WardCodeInput } from "@/components/atoms/WardCodeInput";
+import useUserAuthStore from "@/stores/userAuthStore";
 
 interface EnterWardFormProps {
 	onSubmit: (wardCode: string) => Promise<void>;

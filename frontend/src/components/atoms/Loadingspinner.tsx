@@ -1,5 +1,6 @@
-import { useLoadingStore } from "@/store/loadingStore";
 import { SyncLoader } from "react-spinners";
+
+import { useLoadingStore } from "@/stores/loadingStore";
 
 const PageLoadingSpinner = () => {
 	const isLoading = useLoadingStore((state) => state.isLoading);

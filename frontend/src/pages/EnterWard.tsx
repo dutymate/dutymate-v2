@@ -1,10 +1,11 @@
-import LandingTemplate from "../components/templates/LandingTemplate";
-import EnterWardForm from "../components/organisms/EnterWardForm";
-import useUserAuthStore from "../store/userAuthStore";
 import { useNavigate } from "react-router-dom";
-import { wardService } from "../services/wardService";
 import { toast } from "react-toastify";
-import { SEO } from "../components/SEO";
+
+import EnterWardForm from "@/components/organisms/EnterWardForm";
+import LandingTemplate from "@/components/templates/LandingTemplate";
+import { SEO } from "@/components/SEO";
+import { wardService } from "@/services/wardService";
+import useUserAuthStore from "@/stores/userAuthStore";
 
 const EnterWard = () => {
 	const { userInfo } = useUserAuthStore();

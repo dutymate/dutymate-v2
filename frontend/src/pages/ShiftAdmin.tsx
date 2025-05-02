@@ -1,15 +1,16 @@
-import Sidebar from "../components/organisms/WSidebar";
-import MSidebar from "../components/organisms/MSidebar";
-import ShiftAdminTable from "../components/organisms/ShiftAdminTable";
-import RuleCheckList from "../components/organisms/RuleCheckList";
-import HistoryList from "../components/organisms/HistoryList";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { IoMdMenu } from "react-icons/io";
-import useUserAuthStore from "../store/userAuthStore";
-import useShiftStore from "../store/shiftStore";
-import PageLoadingSpinner from "@/components/atoms/Loadingspinner";
-import { SEO } from "../components/SEO";
+
 import DemoTimer from "@/components/atoms/DemoTimer";
+import PageLoadingSpinner from "@/components/atoms/Loadingspinner";
+import HistoryList from "@/components/organisms/HistoryList";
+import MSidebar from "@/components/organisms/MSidebar";
+import RuleCheckList from "@/components/organisms/RuleCheckList";
+import ShiftAdminTable from "@/components/organisms/ShiftAdminTable";
+import Sidebar from "@/components/organisms/WSidebar";
+import { SEO } from "@/components/SEO";
+import useShiftStore from "@/stores/shiftStore";
+import useUserAuthStore from "@/stores/userAuthStore";
 
 const DutyManagement = () => {
 	const [isSidebarOpen, setIsSidebarOpen] = useState(false);

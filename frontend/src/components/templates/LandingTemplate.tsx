@@ -1,6 +1,5 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-// import notebookImage from "../../assets/notebook.svg";
 
 interface LandingTemplateProps {
 	children?: React.ReactNode;

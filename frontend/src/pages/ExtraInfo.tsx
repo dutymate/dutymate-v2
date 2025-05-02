@@ -1,14 +1,16 @@
-import { useState } from "react";
-import LandingTemplate from "../components/templates/LandingTemplate";
-import ExtraInfoForm from "../components/organisms/ExtraInfoForm";
-import { useNavigate } from "react-router-dom";
-import userService from "../services/userService";
-import useUserAuthStore from "../store/userAuthStore";
-import { toast } from "react-toastify";
 import { AxiosError } from "axios";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+
+import ExtraInfoForm from "@/components/organisms/ExtraInfoForm";
+import LandingTemplate from "@/components/templates/LandingTemplate";
+import { SEO } from "@/components/SEO";
+import userService from "@/services/userService";
+import useUserAuthStore from "@/stores/userAuthStore";
+
 // Mock 응답 데이터 import (임시로 주석 처리)
 // import mockResponse from "../services/response-json/user/PostApiMemberInfo.json";
-import { SEO } from "../components/SEO";
 interface FormData {
 	grade: number;
 	gender: "F" | "M";

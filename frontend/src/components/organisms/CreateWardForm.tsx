@@ -1,10 +1,9 @@
 import { useState } from "react";
-// import { useEffect, useRef } from "react";
-import { Button } from "../atoms/Button";
-import { Input } from "../atoms/Input";
+
+import { Button } from "@/components/atoms/Button";
+import { Input } from "@/components/atoms/Input";
+import PageLoadingSpinner from "@/components/atoms/Loadingspinner";
 import { HospitalInfo } from "@/services/wardService";
-import PageLoadingSpinner from "../atoms/Loadingspinner";
-// import { useNavigate } from "react-router-dom";
 
 interface CreateWardFormProps {
 	onSubmit: (hospitalName: string, wardName: string) => Promise<void>;

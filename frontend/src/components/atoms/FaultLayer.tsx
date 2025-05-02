@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState, useCallback } from "react";
-import ViolationMessage from "./ViolationMessage";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+
+import ViolationMessage from "@/components/atoms/ViolationMessage";
 
 interface FaultLayerProps {
 	startDate: number;

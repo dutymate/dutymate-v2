@@ -1,18 +1,18 @@
-import Sidebar from "../components/organisms/WSidebar";
-import MSidebar from "../components/organisms/MSidebar";
-import Title from "../components/atoms/Title";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { IoMdMenu } from "react-icons/io";
-import WardAdminInfo from "../components/organisms/WardAdminInfo";
-import WardAdminTable from "../components/organisms/WardAdminTable";
-import { wardService } from "../services/wardService";
-// import { WardInfo } from "../services/wardService";
 import { toast } from "react-toastify";
-import useUserAuthStore from "../store/userAuthStore";
-import useWardStore from "../store/wardStore";
-import { useLoadingStore } from "@/store/loadingStore";
-import { SEO } from "../components/SEO";
+
 import DemoTimer from "@/components/atoms/DemoTimer";
+import Title from "@/components/atoms/Title";
+import MSidebar from "@/components/organisms/MSidebar";
+import Sidebar from "@/components/organisms/WSidebar";
+import WardAdminInfo from "@/components/organisms/WardAdminInfo";
+import WardAdminTable from "@/components/organisms/WardAdminTable";
+import { SEO } from "@/components/SEO";
+import { wardService } from "@/services/wardService";
+import { useLoadingStore } from "@/stores/loadingStore";
+import useUserAuthStore from "@/stores/userAuthStore";
+import useWardStore from "@/stores/wardStore";
 
 const WardAdmin = () => {
 	const [isSidebarOpen, setIsSidebarOpen] = useState(false);

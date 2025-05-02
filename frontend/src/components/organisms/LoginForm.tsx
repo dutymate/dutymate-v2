@@ -1,10 +1,10 @@
-import { EmailInput, PasswordInput } from "../atoms/Input";
 import { useState } from "react";
-import userService from "@/services/userService";
+import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import useUserAuthStore from "@/store/userAuthStore";
-import { useNavigate, Link } from "react-router-dom";
-// import { AxiosError } from "axios";
+
+import { EmailInput, PasswordInput } from "@/components/atoms/Input";
+import userService from "@/services/userService";
+import useUserAuthStore from "@/stores/userAuthStore";
 
 interface LoginData {
 	email: string;

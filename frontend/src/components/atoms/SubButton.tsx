@@ -1,4 +1,4 @@
-import { Icon } from "./Icon";
+import { Icon } from "@/components/atoms/Icon";
 
 interface SubButtonProps {
 	type: "sort" | "filter";

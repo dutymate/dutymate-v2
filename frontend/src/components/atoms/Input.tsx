@@ -1,3 +1,4 @@
+import React from "react";
 import { HiExclamationCircle, HiMagnifyingGlass } from "react-icons/hi2";
 
 export interface InputProps {

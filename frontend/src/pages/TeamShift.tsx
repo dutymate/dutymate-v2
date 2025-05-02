@@ -1,12 +1,14 @@
-import Sidebar from "../components/organisms/WSidebar";
-import MSidebar from "../components/organisms/MSidebar";
-import Title from "../components/atoms/Title";
-import TeamShiftTable from "../components/organisms/TeamShiftTable";
 import { useState } from "react";
 import { IoMdMenu } from "react-icons/io";
-import useUserAuthStore from "../store/userAuthStore";
-import { SEO } from "../components/SEO";
+
 import DemoTimer from "@/components/atoms/DemoTimer";
+import Title from "@/components/atoms/Title";
+import MSidebar from "@/components/organisms/MSidebar";
+import Sidebar from "@/components/organisms/WSidebar";
+import TeamShiftTable from "@/components/organisms/TeamShiftTable";
+import { SEO } from "@/components/SEO";
+import useUserAuthStore from "@/stores/userAuthStore";
+
 const TeamShift = () => {
 	const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 	const { userInfo } = useUserAuthStore();

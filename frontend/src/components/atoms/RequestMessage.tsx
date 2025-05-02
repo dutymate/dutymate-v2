@@ -1,7 +1,6 @@
+import { RefObject, useCallback, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { useEffect, useState, useCallback } from "react";
 import { throttle } from "lodash";
-import { RefObject } from "react";
 
 interface RequestMessageProps {
 	message: string;

@@ -1,16 +1,16 @@
-// import { FaUserCircle } from "react-icons/fa";
-import { Icon, IconName } from "../atoms/Icon";
-import DutyBadgeEng from "../atoms/DutyBadgeEng";
-import { Nurse } from "@/services/wardService";
-import { useState, useEffect, useRef, useCallback } from "react";
-import { Badge } from "../atoms/Badge";
-import { Dropdown } from "../atoms/Dropdown";
-import useWardStore from "../../store/wardStore";
-import { toast } from "react-toastify";
-import useUserAuthStore from "@/store/userAuthStore";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import DutyTooltip from "../atoms/DutyTooltip";
-import RemoveNurseConfirmModal from "./RemoveNurseConfirmModal.tsx";
+import { toast } from "react-toastify";
+
+import { Badge } from "@/components/atoms/Badge";
+import DutyBadgeEng from "@/components/atoms/DutyBadgeEng";
+import DutyTooltip from "@/components/atoms/DutyTooltip";
+import { Dropdown } from "@/components/atoms/Dropdown";
+import { Icon, IconName } from "@/components/atoms/Icon";
+import RemoveNurseConfirmModal from "@/components/organisms/RemoveNurseConfirmModal";
+import { Nurse } from "@/services/wardService";
+import useUserAuthStore from "@/stores/userAuthStore";
+import useWardStore from "@/stores/wardStore";
 
 interface WardAdminRowCardProps {
 	nurse: Nurse;

@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import boardService from "@/services/boardService";
-import CommunityDetail from "../components/organisms/CommunityDetail";
 import { toast } from "react-toastify";
-import CommunityLayout from "@/components/organisms/CommunityLayout";
+
 import PageLoadingSpinner from "@/components/atoms/Loadingspinner";
-import { SEO } from "../components/SEO";
+import CommunityDetail from "@/components/organisms/CommunityDetail";
+import CommunityLayout from "@/components/organisms/CommunityLayout";
+import { SEO } from "@/components/SEO";
+import boardService from "@/services/boardService";
 
 const CommunityDetailPage = () => {
 	const { boardId } = useParams();

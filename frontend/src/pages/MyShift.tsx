@@ -1,17 +1,19 @@
-import Sidebar from "../components/organisms/WSidebar";
-import MSidebar from "../components/organisms/MSidebar";
-import Title from "../components/atoms/Title";
-import MyShiftCalendar from "../components/organisms/MyShiftCalendar";
-import TodayShiftModal from "../components/organisms/TodayShiftModal";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { IoMdMenu } from "react-icons/io";
-import { dutyService } from "../services/dutyService";
-import useUserAuthStore from "../store/userAuthStore";
-import { toast } from "react-toastify";
-import { useLoadingStore } from "@/store/loadingStore";
 import { useNavigate } from "react-router-dom";
-import { SEO } from "../components/SEO";
+import { toast } from "react-toastify";
+
 import DemoTimer from "@/components/atoms/DemoTimer";
+import Title from "@/components/atoms/Title";
+import MSidebar from "@/components/organisms/MSidebar";
+import MyShiftCalendar from "@/components/organisms/MyShiftCalendar";
+import Sidebar from "@/components/organisms/WSidebar";
+import TodayShiftModal from "@/components/organisms/TodayShiftModal";
+import { SEO } from "@/components/SEO";
+import { dutyService } from "@/services/dutyService";
+import { useLoadingStore } from "@/stores/loadingStore";
+import useUserAuthStore from "@/stores/userAuthStore";
+
 // Duty 타입 변환 유틸리티 함수
 const convertDutyType = (
 	duty: "D" | "E" | "N" | "O" | "M",

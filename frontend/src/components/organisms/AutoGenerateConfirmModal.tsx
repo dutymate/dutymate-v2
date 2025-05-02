@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { Button } from "../atoms/Button";
-import { WardRule } from "../../services/ruleService";
-import RuleEditModal from "./RuleEditModal";
+
+import { Button } from "@/components/atoms/Button";
+import RuleEditModal from "@/components/organisms/RuleEditModal";
+import { WardRule } from "@/services/ruleService";
 
 interface AutoGenerateConfirmModalProps {
 	isOpen: boolean;

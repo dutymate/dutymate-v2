@@ -1,6 +1,7 @@
-import LandingTemplate from "../components/templates/LandingTemplate";
-import SignupForm from "../components/organisms/SignupForm";
-import { SEO } from "../components/SEO";
+import SignupForm from "@/components/organisms/SignupForm";
+import { SEO } from "@/components/SEO";
+import LandingTemplate from "@/components/templates/LandingTemplate";
+
 const Signup = () => {
 	return (
 		<>

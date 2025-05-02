@@ -1,9 +1,8 @@
-//데모버전 타이머 (모바일버전)
-// components/atoms/DemoTimer.tsx
 import { useEffect, useState } from "react";
-import useUserAuthStore from "@/store/userAuthStore";
 import { MdOutlineAccessTime } from "react-icons/md";
-import TimeOut from "../organisms/TimeOut";
+
+import TimeOut from "@/components/organisms/TimeOut";
+import useUserAuthStore from "@/stores/userAuthStore";
 
 const DemoTimer = () => {
 	const { userInfo, setTimeout, isTimeout } = useUserAuthStore();

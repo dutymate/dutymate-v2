@@ -8,8 +8,9 @@ import { HiOutlineUsers } from "react-icons/hi2";
 import { IoIosChatboxes } from "react-icons/io";
 import { PiLightbulbFilamentFill } from "react-icons/pi";
 import { SlCalender } from "react-icons/sl";
-import { Link, useNavigate, useLocation } from "react-router-dom";
-import Profile from "../atoms/Profile";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+
+import Profile from "@/components/atoms/Profile";
 
 interface TooltipProps {
 	content: string;

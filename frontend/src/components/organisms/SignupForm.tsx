@@ -1,16 +1,17 @@
-import {
-	EmailInput,
-	PasswordInput,
-	Input,
-	AuthCodeInput,
-} from "../atoms/Input";
-import { useEffect, useState } from "react";
-import { toast } from "react-toastify";
-import userService from "@/services/userService";
-import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+
+import {
+	AuthCodeInput,
+	EmailInput,
+	Input,
+	PasswordInput,
+} from "@/components/atoms/Input";
 import { useEmailVerification } from "@/hooks/useEmailVerification";
-import useUserAuthStore from "@/store/userAuthStore";
+import userService from "@/services/userService";
+import useUserAuthStore from "@/stores/userAuthStore";
 
 interface SignupData {
 	email: string;

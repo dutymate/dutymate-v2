@@ -1,13 +1,14 @@
-import useUserAuthStore from "@/store/userAuthStore";
 import { useEffect, useState } from "react";
-import { IoMdMenu } from "react-icons/io";
-import Title from "../atoms/Title";
-import Sidebar from "./WSidebar";
-import MSidebar from "./MSidebar";
-import CommunityNews from "./CommunityNews";
 import { createPortal } from "react-dom";
+import { IoMdMenu } from "react-icons/io";
 import { IoNewspaperOutline } from "react-icons/io5";
-import DemoTimer from "../atoms/DemoTimer";
+
+import DemoTimer from "@/components/atoms/DemoTimer";
+import Title from "@/components/atoms/Title";
+import CommunityNews from "@/components/organisms/CommunityNews";
+import MSidebar from "@/components/organisms/MSidebar";
+import Sidebar from "@/components/organisms/WSidebar";
+import useUserAuthStore from "@/stores/userAuthStore";
 
 // 모달 컴포넌트
 const Modal = ({ isOpen, onClose, children }: any) => {

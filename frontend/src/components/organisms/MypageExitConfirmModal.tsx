@@ -1,4 +1,4 @@
-import { Button } from "@/components/atoms/Button.tsx";
+import { Button } from "@/components/atoms/Button";
 
 interface MypageExitConfirmModalProps {
 	isOpen: boolean;

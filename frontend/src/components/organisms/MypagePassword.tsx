@@ -1,11 +1,12 @@
-import useUserAuthStore from "@/store/userAuthStore";
-import { Button } from "../atoms/Button";
+import { useState } from "react";
+import { toast } from "react-toastify";
+
+import { Button } from "@/components/atoms/Button";
 import {
 	PasswordUpdateRequest,
 	profileService,
 } from "@/services/profileService";
-import { useState } from "react";
-import { toast } from "react-toastify";
+import useUserAuthStore from "@/stores/userAuthStore";
 
 const MypagePassword = () => {
 	const userAuthStore = useUserAuthStore();

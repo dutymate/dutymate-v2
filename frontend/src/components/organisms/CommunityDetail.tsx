@@ -1,12 +1,13 @@
-import boardService from "@/services/boardService";
-import { formatTimeAgo } from "@/utils/dateUtiles";
 import { useEffect, useRef, useState } from "react";
 import { BsThreeDotsVertical } from "react-icons/bs";
 import { FaArrowUpLong } from "react-icons/fa6";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { Icon } from "../atoms/Icon";
-import useUserAuthStore from "@/store/userAuthStore";
+
+import { Icon } from "@/components/atoms/Icon";
+import boardService from "@/services/boardService";
+import useUserAuthStore from "@/stores/userAuthStore";
+import { formatTimeAgo } from "@/utils/dateUtiles";
 
 interface Comment {
 	commentId: number;

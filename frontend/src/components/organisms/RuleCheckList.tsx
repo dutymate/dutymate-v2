@@ -1,5 +1,5 @@
-import useShiftStore from "../../store/shiftStore";
-import { Icon } from "../atoms/Icon";
+import { Icon } from "@/components/atoms/Icon";
+import useShiftStore from "@/stores/shiftStore";
 
 const RuleCheckList = () => {
 	const issues = useShiftStore((state) => state.dutyInfo?.issues || []);

@@ -1,6 +1,5 @@
-// SubscriptionSuccessModal.tsx
-import { useState, useEffect } from "react";
-import { Button } from "../atoms/Button";
+import { useEffect, useState } from "react";
+import { Button } from "@/components/atoms/Button";
 import Confetti from "react-confetti";
 import { FaRocket } from "react-icons/fa";
 

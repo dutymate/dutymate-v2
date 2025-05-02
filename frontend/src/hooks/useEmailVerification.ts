@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
+
 import userService from "@/services/userService";
 
 export const useEmailVerification = (mode: "login" | "signup") => {

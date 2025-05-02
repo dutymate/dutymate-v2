@@ -1,13 +1,12 @@
-// ReqShiftModal.tsx
-
-import { useState, useEffect } from "react";
-import { Button } from "../atoms/Button";
-import { DateInput, TextArea } from "../atoms/Input";
-import DutyBadgeEng from "../atoms/DutyBadgeEng";
-import ToggleButton from "../atoms/ToggleButton";
-import { requestService } from "../../services/requestService";
+import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { FaTrashCan } from "react-icons/fa6";
+
+import { Button } from "@/components/atoms/Button";
+import DutyBadgeEng from "@/components/atoms/DutyBadgeEng";
+import { DateInput, TextArea } from "@/components/atoms/Input";
+import ToggleButton from "@/components/atoms/ToggleButton";
+import { requestService } from "@/services/requestService";
 
 interface ReqShiftModalProps {
 	onClose: () => void;

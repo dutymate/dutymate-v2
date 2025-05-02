@@ -1,15 +1,15 @@
-import { useEffect, useState, useRef } from "react";
-import DutyBadgeEng from "../atoms/DutyBadgeEng";
-import { Button } from "../atoms/Button";
-// import { Icon } from "../atoms/Icon";
-import ReqShiftModal from "./ReqShiftModal";
-import { dutyService } from "../../services/dutyService"; //실제 API 호출에 필요한 axios import
-import { toast } from "react-toastify";
-import { useLoadingStore } from "@/store/loadingStore";
+import { useEffect, useRef, useState } from "react";
 import { toPng } from "html-to-image";
-import { useUserAuthStore } from "../../store/userAuthStore";
-import { Tooltip } from "../atoms/Tooltip";
-// import mockData from "../../services/response-json/duty/GetApiDutyWard.json"; // 임시 데이터 import
+import { toast } from "react-toastify";
+
+import { Button } from "@/components/atoms/Button";
+import DutyBadgeEng from "@/components/atoms/DutyBadgeEng";
+import { Tooltip } from "@/components/atoms/Tooltip";
+import ReqShiftModal from "@/components/organisms/ReqShiftModal";
+
+import { dutyService } from "@/services/dutyService"; // 실제 API 호출에 필요한 axios import
+import { useLoadingStore } from "@/stores/loadingStore";
+import { useUserAuthStore } from "@/stores/userAuthStore";
 
 // interface DutyMember {
 // 	memberId: number;

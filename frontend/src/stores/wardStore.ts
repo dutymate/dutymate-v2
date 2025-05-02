@@ -1,5 +1,6 @@
 import { create } from "zustand";
-import { WardInfo, wardService } from "../services/wardService";
+
+import { WardInfo, wardService } from "@/services/wardService";
 
 export interface WardStore {
 	wardInfo: WardInfo | null;

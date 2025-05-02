@@ -1,12 +1,14 @@
-import LandingTemplate from "../components/templates/LandingTemplate";
-import CreateWardForm from "../components/organisms/CreateWardForm";
-import { useNavigate } from "react-router-dom";
-import useUserAuthStore from "../store/userAuthStore";
-import { wardService, HospitalInfo } from "../services/wardService";
 import { AxiosError } from "axios";
-import { toast } from "react-toastify";
 import { useState } from "react";
-import { SEO } from "../components/SEO";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+
+import CreateWardForm from "@/components/organisms/CreateWardForm";
+import LandingTemplate from "@/components/templates/LandingTemplate";
+import { SEO } from "@/components/SEO";
+import { HospitalInfo, wardService } from "@/services/wardService";
+import useUserAuthStore from "@/stores/userAuthStore";
+
 const CreateWard = () => {
 	const navigate = useNavigate();
 	const userAuthStore = useUserAuthStore();
