@@ -9,8 +9,8 @@
  * @returns 완성형 한글 문자인 경우 true
  */
 export const isCompleteKoreanChar = (str: string): boolean => {
-	const koreanCompleteCharRegex = /[가-힣]/;
-	return koreanCompleteCharRegex.test(str);
+  const koreanCompleteCharRegex = /[가-힣]/;
+  return koreanCompleteCharRegex.test(str);
 };
 
 /**
@@ -19,12 +19,12 @@ export const isCompleteKoreanChar = (str: string): boolean => {
  * @returns 완성형 한글이 하나라도 포함된 경우 true
  */
 export const hasCompleteKoreanChars = (str: string): boolean => {
-	for (let i = 0; i < str.length; i++) {
-		if (isCompleteKoreanChar(str[i])) {
-			return true;
-		}
-	}
-	return false;
+  for (let i = 0; i < str.length; i++) {
+    if (isCompleteKoreanChar(str[i])) {
+      return true;
+    }
+  }
+  return false;
 };
 
 /**
@@ -34,21 +34,21 @@ export const hasCompleteKoreanChars = (str: string): boolean => {
  * @returns 디바운스 처리된 함수
  */
 export const debounce = <T extends (...args: any[]) => any>(
-	func: T,
-	delay: number,
+  func: T,
+  delay: number
 ) => {
-	let timeoutId: NodeJS.Timeout | null = null;
+  let timeoutId: NodeJS.Timeout | null = null;
 
-	return (...args: Parameters<T>) => {
-		if (timeoutId) {
-			clearTimeout(timeoutId);
-		}
+  return (...args: Parameters<T>) => {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
 
-		return new Promise<ReturnType<T>>((resolve) => {
-			timeoutId = setTimeout(() => {
-				const result = func(...args);
-				resolve(result);
-			}, delay);
-		});
-	};
+    return new Promise<ReturnType<T>>((resolve) => {
+      timeoutId = setTimeout(() => {
+        const result = func(...args);
+        resolve(result);
+      }, delay);
+    });
+  };
 };

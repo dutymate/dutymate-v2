@@ -1,114 +1,114 @@
 :root {
-	--primary-20: rgba(235, 109, 59, 0.2); /* primary 색상의 20% 투명도 */
+  --primary-20: rgba(235, 109, 59, 0.2); /* primary 색상의 20% 투명도 */
 }
 
 @keyframes drift {
-	0% {
-		transform: rotate(0deg);
-	}
-	100% {
-		transform: rotate(360deg);
-	}
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes drift-slow {
-	0% {
-		transform: rotate(0deg);
-	}
-	100% {
-		transform: rotate(-360deg);
-	}
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(-360deg);
+  }
 }
 
 @keyframes drift-fast {
-	0% {
-		transform: rotate(0deg);
-	}
-	100% {
-		transform: rotate(540deg);
-	}
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(540deg);
+  }
 }
 
 .animate-drift {
-	animation: drift 5s linear infinite;
+  animation: drift 5s linear infinite;
 }
 .animate-drift-slow {
-	animation: drift-slow 7s linear infinite;
+  animation: drift-slow 7s linear infinite;
 }
 .animate-drift-fast {
-	animation: drift-fast 3s linear infinite;
+  animation: drift-fast 3s linear infinite;
 }
 
 @keyframes wave {
-	0% {
-		background-position: 0% 50%;
-	}
-	50% {
-		background-position: 100% 50%;
-	}
-	100% {
-		background-position: 0% 50%;
-	}
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
 .animate-wave-bg {
-	background: linear-gradient(
-		-45deg,
-		var(--primary-20) 0%,
-		#ffffff 25%,
-		var(--primary-20) 50%,
-		#ffffff 75%,
-		var(--primary-20) 80%
-	);
-	background-size: 400% 400%;
-	animation: wave 8s ease infinite;
+  background: linear-gradient(
+    -45deg,
+    var(--primary-20) 0%,
+    #ffffff 25%,
+    var(--primary-20) 50%,
+    #ffffff 75%,
+    var(--primary-20) 80%
+  );
+  background-size: 400% 400%;
+  animation: wave 8s ease infinite;
 }
 
 @keyframes slideInOut {
-	0% {
-		transform: translateX(100%);
-		opacity: 0;
-	}
-	5% {
-		transform: translateX(0);
-		opacity: 1;
-	}
-	45% {
-		transform: translateX(0);
-		opacity: 1;
-	}
-	50% {
-		transform: translateX(-100%);
-		opacity: 0;
-	}
-	100% {
-		transform: translateX(-100%);
-		opacity: 0;
-	}
+  0% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  5% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  45% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  50% {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
 }
 
 .slide-container {
-	position: relative;
-	width: 120%;
-	height: 100%;
-	margin-right: -30%;
-	overflow: hidden;
+  position: relative;
+  width: 120%;
+  height: 100%;
+  margin-right: -30%;
+  overflow: hidden;
 }
 
 .slide-item {
-	position: absolute;
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: 100%;
-	opacity: 0;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
 }
 
 .slide-item:nth-child(1) {
-	animation: slideInOut 10s infinite;
+  animation: slideInOut 10s infinite;
 }
 
 .slide-item:nth-child(2) {
-	animation: slideInOut 10s infinite;
-	animation-delay: 5s;
+  animation: slideInOut 10s infinite;
+  animation-delay: 5s;
 }
