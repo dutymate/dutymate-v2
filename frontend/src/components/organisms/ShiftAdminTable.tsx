@@ -1291,7 +1291,11 @@ const ShiftAdminTable = ({
                       <td
                         key={j}
                         className={`p-0 text-center text-[11px] border-r border-gray-200 ${
-                          selectedCell?.col === j ? 'bg-duty-off-bg' : ''
+                          selectedCell?.col === j
+                            ? i === 4
+                              ? 'bg-duty-off-bg rounded-b-lg'
+                              : 'bg-duty-off-bg'
+                            : ''
                         }`}
                       >
                         <div className="flex items-center justify-center h-6">
@@ -1754,7 +1758,9 @@ const ShiftAdminTable = ({
                                   key={j}
                                   className={`p-0 text-center text-[11px] border-r border-gray-200 ${
                                     selectedCell?.col === j
-                                      ? 'bg-duty-off-bg'
+                                      ? i === 4
+                                        ? 'bg-duty-off-bg rounded-b-lg'
+                                        : 'bg-duty-off-bg'
                                       : ''
                                   }`}
                                 >
