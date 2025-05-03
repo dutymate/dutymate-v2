@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import { toPng } from "html-to-image";
 import { toast } from "react-toastify";
 
 import { Button } from "@/components/atoms/Button";
@@ -7,22 +6,10 @@ import DutyBadgeEng from "@/components/atoms/DutyBadgeEng";
 import { Tooltip } from "@/components/atoms/Tooltip";
 import ReqShiftModal from "@/components/organisms/ReqShiftModal";
 
-import { dutyService } from "@/services/dutyService"; // 실제 API 호출에 필요한 axios import
+import { dutyService } from "@/services/dutyService";
 import { useLoadingStore } from "@/stores/loadingStore";
 import { useUserAuthStore } from "@/stores/userAuthStore";
-
-// interface DutyMember {
-// 	memberId: number;
-// 	name: string;
-// 	shifts: string;
-// }
-
-// interface DutyInfo {
-// 	id: string;
-// 	year: number;
-// 	month: number;
-// 	duty: DutyMember[];
-// }
+import { TeamShiftTableDownload } from "@/utils/TeamShiftTableDownload";
 
 interface WardDuty {
 	id: string;
@@ -36,6 +23,8 @@ interface WardDuty {
 		grade: number;
 	}[];
 }
+
+const DAYS_OF_WEEK = ["일", "월", "화", "수", "목", "금", "토"];
 
 const TeamShiftTable = () => {
 	const [wardDuty, setWardDuty] = useState<WardDuty | null>(null);
@@ -82,7 +71,13 @@ const TeamShiftTable = () => {
 	const daysInMonth = new Date(wardDuty.year, wardDuty.month, 0).getDate();
 	const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
 
-	// 주말 체크 함수 추가
+	// 요일 계산 함수
+	const getDayOfWeek = (year: number, month: number, day: number) => {
+		const date = new Date(year, month - 1, day);
+		return DAYS_OF_WEEK[date.getDay()];
+	};
+
+	// 주말 체크 함수
 	const isWeekend = (year: number, month: number, day: number) => {
 		const date = new Date(year, month - 1, day);
 		return date.getDay() === 0 || date.getDay() === 6;
@@ -90,31 +85,16 @@ const TeamShiftTable = () => {
 
 	// 근무표 다운로드 기능
 	const handleDownloadWardSchedule = async () => {
-		const tableElement = tableRef.current?.querySelector(".duty-table-content");
+		if (!wardDuty || !tableRef.current) return;
+
+		const tableElement = tableRef.current.querySelector(".duty-table-content");
 		if (!tableElement) return;
 
-		try {
-			const dataUrl = await toPng(tableElement as HTMLElement, {
-				quality: 1.0,
-				pixelRatio: 2,
-				width: tableElement.scrollWidth + 5,
-				height: tableElement.scrollHeight + 5,
-				backgroundColor: "#FFFFFF",
-				style: {
-					borderCollapse: "collapse",
-				},
-			});
-
-			const link = document.createElement("a");
-			link.download = `듀티표_${currentDate.year}년_${currentDate.month}월.png`;
-			link.href = dataUrl;
-			link.click();
-
-			toast.success("듀티표가 다운로드되었습니다.");
-		} catch (error) {
-			console.error("Download error:", error);
-			toast.error("듀티표 다운로드에 실패했습니다.");
-		}
+		await TeamShiftTableDownload({
+			year: wardDuty.year,
+			month: wardDuty.month,
+			tableElement: tableElement as HTMLElement,
+		});
 	};
 
 	const sortedDuty = wardDuty.duty.sort((a, b) => {
@@ -136,33 +116,23 @@ const TeamShiftTable = () => {
 					{/* 왼쪽 여백 공간 */}
 				</div>
 				<div className="flex items-center gap-4 sm:gap-14 mb-4 sm:mb-0">
-					{/* <Icon
-						name="left"
-						size={24}
-						className="cursor-pointer text-gray-300 hover:text-gray-400"
-						onClick={handlePrevMonth}
-					/> */}
 					<div className="text-[0.9rem] lg:text-lg font-medium whitespace-nowrap">
 						{wardDuty.year}년 {wardDuty.month}월
 					</div>
-					{/* <Icon
-						name="right"
-						size={24}
-						className="cursor-pointer text-gray-300 hover:text-gray-400"
-						onClick={handleNextMonth}
-					/> */}
 				</div>
-				<div className="flex gap-2 w-full sm:w-[11.25rem] justify-end sm:justify-end shrink-0">
+				<div className="flex gap-2 w-full sm:w-[11.25rem] justify-center sm:justify-end shrink-0">
 					<Button
 						color="primary"
-						className="whitespace-nowrap px-7 w-[45%] sm:w-auto text-base"
+						size="sm"
+						className="whitespace-nowrap px-4 sm:px-4 w-[45%] sm:w-auto text-sm"
 						onClick={() => setIsReqModalOpen(true)}
 					>
 						근무 요청
 					</Button>
 					<Button
 						color="off"
-						className={`whitespace-nowrap px-4 w-[45%] sm:w-auto text-base ${userInfo?.isDemo ? "opacity-50 cursor-not-allowed" : ""}`}
+						size="sm"
+						className={`whitespace-nowrap px-2 sm:px-3 w-[45%] sm:w-auto text-sm ${userInfo?.isDemo ? "opacity-50 cursor-not-allowed" : ""}`}
 						onClick={() => !userInfo?.isDemo && handleDownloadWardSchedule()}
 					>
 						<div className="flex items-center gap-1">
@@ -180,63 +150,137 @@ const TeamShiftTable = () => {
 					</Button>
 				</div>
 			</div>
-			<div className="overflow-x-auto relative w-full">
-				<div className="duty-table-content min-w-[640px]">
-					<table className="w-full border-separate border-spacing-0 rounded-lg">
-						<thead>
-							<tr className="bg-gray-50">
-								<th className="w-[3.75rem] lg:w-[7.5rem] px-1 lg:px-2 py-2 sticky left-0 bg-gray-50 z-20 opacity-100">
-									<span className="text-gray-50">공백</span>
+			<div className="overflow-x-auto relative w-full max-h-[calc(100vh-12rem)] sm:max-h-[calc(100vh-16rem)]">
+				<div className="duty-table-content min-w-[640px] relative">
+					<table className="w-full border-collapse">
+						<colgroup>
+							<col className="w-[3rem] sm:w-[4rem] lg:w-[5.5rem]" />
+							{days.map((day) => (
+								<col
+									key={`col-${day}`}
+									className={`w-[calc((100%-3rem)/31)] sm:w-[calc((100%-4rem)/31)] lg:w-[calc((100%-5.5rem)/31)] ${
+										isWeekend(wardDuty.year, wardDuty.month, day)
+											? "bg-base-muted-30"
+											: ""
+									}`}
+								/>
+							))}
+						</colgroup>
+						<thead className="sticky top-0 z-20">
+							<tr className="bg-white">
+								<th className="px-1 sm:px-1.5 lg:px-2 py-1.5 sm:py-2 border-r border-base-muted text-xs sm:text-sm sticky left-0 z-30 bg-white">
+									이름
 								</th>
-								{days.map((day) => (
+								{days.map((day, index) => (
 									<th
 										key={day}
-										className={`w-[calc((100%-7.5rem)/31)] px-1 py-2 ${
-											isWeekend(wardDuty.year, wardDuty.month, day)
-												? "text-red-500"
-												: ""
-										} font-normal`}
+										className={`px-0.5 sm:px-1 py-1.5 sm:py-2 border-r border-base-muted font-normal bg-white
+											${index === days.length - 1 ? "" : "border-r"} 
+											${
+												getDayOfWeek(wardDuty.year, wardDuty.month, day) ===
+												"일"
+													? "text-red-500"
+													: getDayOfWeek(wardDuty.year, wardDuty.month, day) ===
+															"토"
+														? "text-blue-500"
+														: ""
+											}
+										`}
 									>
-										{day}
+										<div className="flex flex-col items-center gap-0.5">
+											<span
+												className={`text-xs sm:text-sm ${
+													getDayOfWeek(wardDuty.year, wardDuty.month, day) ===
+													"일"
+														? "text-red-500"
+														: getDayOfWeek(
+																	wardDuty.year,
+																	wardDuty.month,
+																	day,
+																) === "토"
+															? "text-blue-500"
+															: ""
+												}`}
+											>
+												{day}
+											</span>
+											<span
+												className={`text-[10px] sm:text-xs ${
+													getDayOfWeek(wardDuty.year, wardDuty.month, day) ===
+													"일"
+														? "text-red-500"
+														: getDayOfWeek(
+																	wardDuty.year,
+																	wardDuty.month,
+																	day,
+																) === "토"
+															? "text-blue-500"
+															: "text-gray-400"
+												}`}
+											>
+												{getDayOfWeek(wardDuty.year, wardDuty.month, day)}
+											</span>
+										</div>
 									</th>
 								))}
 							</tr>
 						</thead>
 						<tbody>
 							{sortedDuty.map((member) => (
-								<tr key={member.memberId} className="border-b border-gray-100">
-									<td className="w-[3.75rem] lg:w-[7.5rem] pl-1 lg:pl-2 pr-1 lg:pr-2 py-2 font-medium sticky left-0 bg-white z-20 before:absolute before:content-[''] before:top-0 before:left-[-9999px] before:bottom-0 before:w-[9999px] before:bg-white text-center group">
-										<div className="bg-gray-50 rounded-lg px-1 lg:px-2 py-0.5 relative">
-											<span className="block truncate max-w-[3.75rem] lg:max-w-[7.5rem] text-xs lg:text-base">
-												{member.name}
-											</span>
-											{member.name.length > 3 && (
-												<div className="absolute left-0 -top-8 hidden group-hover:block bg-gray-800 text-white px-2 py-1 rounded text-sm whitespace-nowrap z-30">
+								<tr key={member.memberId}>
+									<td className="pl-1 sm:pl-1.5 lg:pl-2 pr-1 sm:pr-1.5 lg:pr-2 py-1.5 sm:py-2 font-medium border-r border-b border-base-muted text-center sticky left-0 bg-white z-10">
+										<div className="bg-base-muted-30 px-1 sm:px-1.5 lg:px-2 py-1">
+											{member.name.length > 12 ? (
+												<span className="block text-[0.6rem] lg:text-[0.65rem] leading-tight">
+													{member.name.split(" ").map((part, i) => (
+														<span key={i} className="block truncate">
+															{part}
+														</span>
+													))}
+												</span>
+											) : (
+												<span
+													className={`block truncate ${
+														member.name.length > 8
+															? "text-[0.6rem] lg:text-[0.65rem]"
+															: member.name.length > 6
+																? "text-[0.65rem] lg:text-xs"
+																: "text-xs lg:text-sm"
+													}`}
+												>
 													{member.name}
-												</div>
+												</span>
 											)}
 										</div>
 									</td>
-									{member.shifts.split("").map((shift, index) => (
-										<td
-											key={index}
-											className="w-[calc((100%-7.5rem)/31)] px-1 py-1.5 text-center"
-										>
-											<DutyBadgeEng
-												type={
-													(shift === "X" ? "X" : shift) as
-														| "D"
-														| "E"
-														| "N"
-														| "O"
-														| "X"
-														| "M"
-												}
-												variant="letter"
-												size="sm"
-											/>
-										</td>
-									))}
+									{member.shifts.split("").map((shift, index) => {
+										const dayNumber = index + 1;
+										return (
+											<td
+												key={index}
+												className={`px-1 py-1.5 text-center border-r border-b border-base-muted align-middle
+													${index === member.shifts.length - 1 ? "" : "border-r"}
+													${isWeekend(wardDuty.year, wardDuty.month, dayNumber) ? "bg-base-muted-30" : ""}
+												`}
+											>
+												<div className="flex justify-center items-center">
+													<DutyBadgeEng
+														type={
+															(shift === "X" ? "X" : shift) as
+																| "D"
+																| "E"
+																| "N"
+																| "O"
+																| "X"
+																| "M"
+														}
+														variant="letter"
+														size="sm"
+													/>
+												</div>
+											</td>
+										);
+									})}
 								</tr>
 							))}
 						</tbody>

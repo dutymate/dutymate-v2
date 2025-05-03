@@ -132,20 +132,28 @@ const MyShift = () => {
 				/>
 
 				{/* 메인 컨텐츠 영역 */}
-				<div className="flex-1 min-w-0 px-4 lg:px-8 py-6 h-[calc(100vh-1rem)] lg:h-screen overflow-y-auto">
-					{/* 모바일 메뉴 버튼 */}
-					<button
-						onClick={() => setIsSidebarOpen(true)}
-						className="lg:hidden mb-[1rem] p-[0.5rem] hover:bg-gray-100 rounded-lg"
-					>
-						<IoMdMenu className="w-6 h-6 text-gray-600" />
-						<DemoTimer />
-					</button>
+				<div className="flex-1 min-w-0 px-4 lg:px-8 py-6 h-screen lg:h-screen overflow-y-auto">
+					{/* 모바일 헤더 */}
+					<div className="flex items-center gap-3 lg:hidden mb-4">
+						<button
+							onClick={() => setIsSidebarOpen(true)}
+							className="p-2 hover:bg-gray-100 rounded-lg"
+						>
+							<IoMdMenu className="w-6 h-6 text-gray-600" />
+						</button>
+						<div className="flex-1">
+							<h1 className="text-lg font-bold">나의 듀티표</h1>
+							<p className="text-sm text-gray-500">
+								나의 듀티표를 확인해보세요
+							</p>
+						</div>
+						{isDemo && <DemoTimer />}
+					</div>
 
-					{/* Title 컴포넌트의 위치 조정 */}
-					{/* <div className="mb-[0.75rem] pl-[0.5rem] lg:pl-[1rem]"> */}
-					<Title title="나의 듀티표" subtitle="나의 근무 일정을 확인해보세요" />
-					{/* </div> */}
+					{/* 데스크톱 타이틀 */}
+					<div className="hidden lg:block">
+						<Title title="나의 듀티표" subtitle="나의 듀티표를 확인해보세요" />
+					</div>
 					<div className="block lg:flex lg:gap-[2rem] mt-6">
 						{/* 캘린더와 모달을 감싸는 컨테이너 */}
 						<div className="calendar-modal-container flex flex-col lg:flex-row w-full gap-4">

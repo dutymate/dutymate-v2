@@ -2,6 +2,7 @@ import { useState } from "react";
 import { IoMdMenu } from "react-icons/io";
 
 import { Button } from "@/components/atoms/Button";
+import DemoTimer from "@/components/atoms/DemoTimer";
 import Title from "@/components/atoms/Title";
 import MSidebar from "@/components/organisms/MSidebar";
 import Sidebar from "@/components/organisms/WSidebar";
@@ -37,18 +38,30 @@ const Game = () => {
 
 				{/* 메인 컨텐츠 영역 */}
 				<div className="flex-1 min-w-0 px-4 lg:px-8 py-6 overflow-y-auto">
-					{/* 모바일 메뉴 버튼 */}
-					<button
-						onClick={() => setIsSidebarOpen(true)}
-						className="lg:hidden mb-4 p-2 hover:bg-gray-100 rounded-lg"
-					>
-						<IoMdMenu className="w-6 h-6 text-gray-600" />
-					</button>
+					{/* 모바일 헤더 */}
+					<div className="flex items-center gap-3 lg:hidden mb-4">
+						<button
+							onClick={() => setIsSidebarOpen(true)}
+							className="p-2 hover:bg-gray-100 rounded-lg"
+						>
+							<IoMdMenu className="w-6 h-6 text-gray-600" />
+						</button>
+						<div className="flex-1">
+							<h1 className="text-lg font-bold">DutyWorm Game</h1>
+							<p className="text-sm text-gray-500">
+								듀티메이트의 미니게임을 체험해보세요!
+							</p>
+						</div>
+						{isDemo && <DemoTimer />}
+					</div>
 
-					<Title
-						title="DutyWorm Game"
-						subtitle="듀티메이트의 미니게임을 체험해보세요!"
-					/>
+					{/* 데스크톱 타이틀 */}
+					<div className="hidden lg:block">
+						<Title
+							title="DutyWorm Game"
+							subtitle="듀티메이트의 미니게임을 체험해보세요!"
+						/>
+					</div>
 
 					<div className="mt-8 flex flex-col items-center justify-center">
 						<div className="max-w-md w-full bg-white rounded-xl p-6 shadow-md">

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { Button } from "@/components/atoms/Button";
 import { Select } from "@/components/atoms/Input";

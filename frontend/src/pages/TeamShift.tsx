@@ -35,20 +35,31 @@ const TeamShift = () => {
 					isDemo={isDemo ?? false}
 				/>
 				{/* 메인 컨텐츠 영역 */}
-				<div className="flex-1 min-w-0 px-4 lg:px-8 py-6 h-[calc(100vh-1rem)] lg:h-screen overflow-y-auto">
-					{/* 모바일 메뉴 버튼 */}
-					<button
-						onClick={() => setIsSidebarOpen(true)}
-						className="lg:hidden mb-4 p-2 hover:bg-gray-100 rounded-lg"
-					>
-						<IoMdMenu className="w-6 h-6 text-gray-600" />
-						<DemoTimer />
-					</button>
+				<div className="flex-1 min-w-0 px-4 lg:px-8 py-6 h-screen lg:h-screen overflow-y-auto">
+					{/* 모바일 헤더 */}
+					<div className="flex items-center gap-3 lg:hidden mb-4">
+						<button
+							onClick={() => setIsSidebarOpen(true)}
+							className="p-2 hover:bg-gray-100 rounded-lg"
+						>
+							<IoMdMenu className="w-6 h-6 text-gray-600" />
+						</button>
+						<div className="flex-1">
+							<h1 className="text-lg font-bold">병동 듀티표</h1>
+							<p className="text-sm text-gray-500">
+								우리 병동의 전체 듀티표를 확인해보세요
+							</p>
+						</div>
+						{isDemo && <DemoTimer />}
+					</div>
 
-					<Title
-						title="병동 듀티표"
-						subtitle="우리 병동의 전체 듀티표를 확인해보세요"
-					/>
+					{/* 데스크톱 타이틀 */}
+					<div className="hidden lg:block">
+						<Title
+							title="병동 듀티표"
+							subtitle="우리 병동의 전체 듀티표를 확인해보세요"
+						/>
+					</div>
 					<div className="mt-6">
 						<TeamShiftTable />
 					</div>

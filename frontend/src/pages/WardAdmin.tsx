@@ -81,18 +81,28 @@ const WardAdmin = () => {
 
 				{/* 메인 컨텐츠 영역 */}
 				<div className="flex-1 min-w-0 px-4 lg:px-8 py-6 overflow-y-auto">
-					{/* 모바일 메뉴 버튼 */}
-					<button
-						onClick={() => setIsSidebarOpen(true)}
-						className="lg:hidden mb-4 p-2 hover:bg-gray-100 rounded-lg"
-					>
-						<IoMdMenu className="w-[1.5rem] h-[1.5rem] text-gray-600" />
-						<DemoTimer />
-					</button>
+					{/* 모바일 헤더 */}
+					<div className="flex items-center gap-3 lg:hidden mb-4">
+						<button
+							onClick={() => setIsSidebarOpen(true)}
+							className="p-2 hover:bg-gray-100 rounded-lg"
+						>
+							<IoMdMenu className="w-6 h-6 text-gray-600" />
+						</button>
+						<div className="flex-1">
+							<h1 className="text-lg font-bold">병동 관리</h1>
+							<p className="text-sm text-gray-500">
+								병동의 간호사를 관리해보세요
+							</p>
+						</div>
+						{isDemo && <DemoTimer />}
+					</div>
 
-					<div className="mb-3">
+					{/* 데스크톱 타이틀 */}
+					<div className="hidden lg:block mb-3">
 						<Title title="병동 관리" subtitle="병동의 간호사를 관리해보세요" />
 					</div>
+
 					<div className="mt-6 flex flex-col gap-4">
 						{!isLoading && wardInfo && (
 							<>

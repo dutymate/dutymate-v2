@@ -79,27 +79,44 @@ const Mypage = () => {
 				/>
 				{/* 메인 컨텐츠 영역 */}
 				<div className="flex-1 min-w-0 px-4 lg:px-8 py-6 overflow-y-auto">
-					{/* 모바일 메뉴 버튼 */}
-					<button
-						onClick={() => setIsSidebarOpen(true)}
-						className="lg:hidden mb-2 p-2 hover:bg-gray-100 rounded-lg"
-					>
-						<IoMdMenu className="w-6 h-6 text-gray-600" />
-						<DemoTimer />
-					</button>
-					<div className="flex items-center gap-[0.75rem]">
+					{/* 모바일 헤더 */}
+					<div className="flex items-center gap-3 lg:hidden mb-4">
+						<button
+							onClick={() => setIsSidebarOpen(true)}
+							className="p-2 hover:bg-gray-100 rounded-lg"
+						>
+							<IoMdMenu className="w-6 h-6 text-gray-600" />
+						</button>
+						<div className="flex-1">
+							<h1 className="text-lg font-bold">마이페이지</h1>
+							<p className="text-sm text-gray-500">나의 정보를 확인해보세요</p>
+						</div>
+						{!isDemo && (
+							<button
+								onClick={handleLogoutButton}
+								className="flex-shrink-0 px-3 py-2 bg-white text-gray-900 border border-gray-200 rounded-md hover:bg-gray-50 text-xs"
+							>
+								로그아웃
+							</button>
+						)}
+						{isDemo && <DemoTimer />}
+					</div>
+
+					{/* 데스크톱 타이틀과 로그아웃 */}
+					<div className="hidden lg:flex items-center gap-[0.75rem]">
 						<div className="flex-1">
 							<Title title="마이페이지" subtitle="나의 정보를 확인해보세요" />
 						</div>
 						{!isDemo && (
 							<button
 								onClick={handleLogoutButton}
-								className="flex-shrink-0 w-[6.25rem] px-[0.75rem] py-[0.5rem] bg-white text-gray-900 border border-gray-200 rounded-md hover:bg-gray-50 text-xs lg:text-sm h-[2.25rem]"
+								className="flex-shrink-0 w-[6.25rem] px-[0.75rem] py-[0.5rem] bg-white text-gray-900 border border-gray-200 rounded-md hover:bg-gray-50 text-sm h-[2.25rem]"
 							>
 								로그아웃
 							</button>
 						)}
 					</div>
+
 					<div className="mt-4 flex justify-center">
 						<div className="w-full lg:w-[87.5rem] space-y-4">
 							<MypageProfile />

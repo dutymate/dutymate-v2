@@ -11,6 +11,7 @@ import Sidebar from "@/components/organisms/WSidebar";
 import { SEO } from "@/components/SEO";
 import useShiftStore from "@/stores/shiftStore";
 import useUserAuthStore from "@/stores/userAuthStore";
+import Title from "@/components/atoms/Title";
 
 const DutyManagement = () => {
 	const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -103,14 +104,25 @@ const DutyManagement = () => {
 
 				{/* 메인 컨텐츠 영역 */}
 				<div className="flex-1 min-w-0 px-[1rem] lg:px-[2rem] py-[1.5rem] h-[calc(100vh-1rem)] lg:h-screen overflow-y-auto">
-					{/* 모바일 메뉴 버튼 */}
-					<button
-						onClick={() => setIsSidebarOpen(true)}
-						className="lg:hidden mb-[1rem] p-[0.5rem] hover:bg-gray-100 rounded-lg"
-					>
-						<IoMdMenu className="w-6 h-6 text-gray-600" />
-						<DemoTimer />
-					</button>
+					{/* 모바일 헤더 */}
+					<div className="flex items-center gap-3 lg:hidden mb-4">
+						<button
+							onClick={() => setIsSidebarOpen(true)}
+							className="p-2 hover:bg-gray-100 rounded-lg"
+						>
+							<IoMdMenu className="w-6 h-6 text-gray-600" />
+						</button>
+						<div className="flex-1">
+							<h1 className="text-lg font-bold">근무표 관리</h1>
+							<p className="text-sm text-gray-500">근무표를 관리해보세요</p>
+						</div>
+						{isDemo && <DemoTimer />}
+					</div>
+
+					{/* 데스크톱 타이틀 */}
+					<div className="hidden lg:block mb-4">
+						<Title title="근무표 관리" subtitle="근무표를 관리해보세요" />
+					</div>
 
 					<div className="flex flex-col gap-[0.75rem] pb-[2rem]">
 						<ShiftAdminTable

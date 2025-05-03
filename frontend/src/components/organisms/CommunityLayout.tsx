@@ -47,7 +47,7 @@ const CommunityLayout = ({ title, subtitle, children }: any) => {
 	const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 	const { userInfo } = useUserAuthStore();
 	const [isNewsModalOpen, setIsNewsModalOpen] = useState(false);
-	const isDemo = false; // 데모 모드 아님을 명시
+	const isDemo = userInfo?.isDemo;
 
 	const handleNewsButton = () => {
 		setIsNewsModalOpen(true);
@@ -57,7 +57,10 @@ const CommunityLayout = ({ title, subtitle, children }: any) => {
 		<div className="w-full min-h-screen flex flex-row bg-[#F4F4F4]">
 			{/* 데스크톱 Sidebar */}
 			<div className="hidden lg:block w-[14.875rem] shrink-0">
-				<Sidebar userType={userInfo?.role as "HN" | "RN"} isDemo={isDemo} />
+				<Sidebar
+					userType={userInfo?.role as "HN" | "RN"}
+					isDemo={isDemo ?? false}
+				/>
 			</div>
 
 			{/* 모바일 Sidebar */}
@@ -65,31 +68,35 @@ const CommunityLayout = ({ title, subtitle, children }: any) => {
 				userType={userInfo?.role as "HN" | "RN"}
 				isOpen={isSidebarOpen}
 				onClose={() => setIsSidebarOpen(false)}
-				isDemo={isDemo}
+				isDemo={isDemo ?? false}
 			/>
 
 			{/* 메인 컨텐츠 영역 */}
 			<div className="flex-1 min-w-0 px-4 lg:px-8 py-6 h-[calc(100vh-1rem)] lg:h-screen overflow-y-auto lg:overflow-x-hidden">
-				{/* 모바일 메뉴 버튼 */}
-				<button
-					onClick={() => setIsSidebarOpen(true)}
-					className="lg:hidden mb-4 p-2 hover:bg-gray-100 rounded-lg"
-				>
-					<IoMdMenu className="w-6 h-6 text-gray-600" />
-					<DemoTimer />
-				</button>
-
-				<div className="flex items-center gap-[0.75rem]">
+				{/* 모바일 헤더 */}
+				<div className="flex items-center gap-3 lg:hidden mb-4">
+					<button
+						onClick={() => setIsSidebarOpen(true)}
+						className="p-2 hover:bg-gray-100 rounded-lg"
+					>
+						<IoMdMenu className="w-6 h-6 text-gray-600" />
+					</button>
 					<div className="flex-1">
-						<Title title={title} subtitle={subtitle} />
+						<h1 className="text-lg font-bold">{title}</h1>
+						<p className="text-sm text-gray-500">{subtitle}</p>
 					</div>
 					<button
 						onClick={handleNewsButton}
-						className="flex-shrink-0 w-[5.75rem] px-[0.75rem] py-[0.5rem] bg-white text-gray-900 border border-gray-200 rounded-md hover:bg-gray-50 text-xs lg:text-sm h-[2.25rem] lg:hidden flex items-center gap-2"
+						className="flex items-center gap-2 p-2 hover:bg-gray-100 rounded-lg"
 					>
 						<IoNewspaperOutline className="w-6 h-6 text-gray-600" />
-						<span>News</span>
 					</button>
+					{isDemo && <DemoTimer />}
+				</div>
+
+				{/* 데스크톱 타이틀 */}
+				<div className="hidden lg:block">
+					<Title title={title} subtitle={subtitle} />
 				</div>
 
 				<Modal
