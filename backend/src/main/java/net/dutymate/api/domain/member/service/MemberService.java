@@ -43,6 +43,7 @@ import net.dutymate.api.domain.member.dto.SignUpRequestDto;
 import net.dutymate.api.domain.member.dto.UpdateEmailVerificationRequestDto;
 import net.dutymate.api.domain.member.repository.MemberRepository;
 import net.dutymate.api.domain.member.util.StringGenerator;
+import net.dutymate.api.domain.ward.EnterWaiting;
 import net.dutymate.api.domain.ward.Ward;
 import net.dutymate.api.domain.ward.dto.WardRequestDto;
 import net.dutymate.api.domain.ward.repository.EnterWaitingRepository;
@@ -497,6 +498,13 @@ public class MemberService {
 		}
 
 		if (member.getRole() == Role.HN) {
+			// HN인 경우 먼저 승인 대기중인 간호사들이 있는지 확인하고 처리
+			List<EnterWaiting> enterWaitings = enterWaitingRepository.findByWard(ward);
+			if (!enterWaitings.isEmpty()) {
+				// 승인 대기중인 간호사들의 신청을 모두 삭제
+				enterWaitingRepository.deleteAll(enterWaitings);
+			}
+
 			List<WardMember> wardMemberList = wardMemberRepository.findAllByWard(ward);
 
 			if (wardMemberList.size() > 1) {
