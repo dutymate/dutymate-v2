@@ -207,6 +207,15 @@ const LoginForm = ({ onRequireVerification }: LoginFormProps) => {
 					회원가입
 				</Link>
 			</div>
+			<div className="text-center mt-[1rem]">
+				<span className="text-gray-600">비밀번호가 기억나지 않나요? </span>
+				<Link
+					to="/password-reset"
+					className="text-primary-dark hover:underline"
+				>
+					비밀번호 찾기
+				</Link>
+			</div>
 		</div>
 	);
 };

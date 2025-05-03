@@ -15,6 +15,7 @@ import Landing from "@/pages/Landing";
 import Login from "@/pages/Login";
 import Mypage from "@/pages/Mypage";
 import MyShift from "@/pages/MyShift";
+import PasswordReset from "@/pages/PasswordReset";
 import ReqAdmin from "@/pages/ReqAdmin";
 import ShiftAdmin from "@/pages/ShiftAdmin";
 import Signup from "@/pages/Signup";
@@ -54,6 +55,7 @@ const Router = () => {
 			<Route path="/sign-up" element={<Signup />} />
 			<Route path="/oauth/kakao" element={<KakaoRedirect />} />
 			<Route path="/oauth/google" element={<GoogleRedirect />} />
+			<Route path="/password-reset" element={<PasswordReset />} />
 
 			{/* 로그인이 필요한 페이지 */}
 			<Route
