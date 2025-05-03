@@ -136,7 +136,7 @@ const LoginForm = ({ onRequireVerification }: LoginFormProps) => {
 	};
 
 	return (
-		<div className="bg-white rounded-[0.925rem] shadow-[0_0_0.9375rem_rgba(0,0,0,0.1)] px-[1.5em] py-[1.5rem] w-[20rem] sm:w-[25rem] sm:px-[2rem] sm:py-[2rem] lg:px-[3rem] lg:py-[3rem]">
+		<div className="bg-white rounded-[0.925rem] shadow-[0_0_0.9375rem_rgba(0,0,0,0.1)] w-[20rem] px-[2rem] py-[2rem] sm:w-[23rem] sm:px-[2.5rem] sm:py-[2.5rem] lg:w-[26rem] lg:px-[3rem] lg:py-[3rem]">
 			<form className="lg:block">
 				<div className="space-y-[0.375rem] sm:space-y-[0.5rem] ">
 					<EmailInput
@@ -203,20 +203,22 @@ const LoginForm = ({ onRequireVerification }: LoginFormProps) => {
 					</button>
 				</div>
 			</form>
-			<div className="text-center mt-[1rem]">
-				<span className="text-gray-600">계정이 없으신가요? </span>
-				<Link to="/sign-up" className="text-primary-dark hover:underline">
-					회원가입
-				</Link>
-			</div>
-			<div className="text-center mt-[1rem]">
-				<span className="text-gray-600">비밀번호를 잊으셨나요? </span>
-				<Link
-					to="/password-reset"
-					className="text-primary-dark hover:underline"
-				>
-					비밀번호 찾기
-				</Link>
+			<div className="text-center mt-[1rem] space-y-[0.5rem] text-[0.75rem] sm:text-[0.875rem]">
+				<div>
+					<span className="text-gray-600">계정이 없으신가요? </span>
+					<Link to="/sign-up" className="text-primary-dark hover:underline">
+						회원가입
+					</Link>
+				</div>
+				<div>
+					<span className="text-gray-600">비밀번호를 잊으셨나요? </span>
+					<Link
+						to="/password-reset"
+						className="text-primary-dark hover:underline"
+					>
+						비밀번호 찾기
+					</Link>
+				</div>
 			</div>
 		</div>
 	);

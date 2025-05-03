@@ -171,7 +171,7 @@ const SignupForm = () => {
 	}, [timer, authCodeSent]);
 
 	return (
-		<div className="bg-white rounded-[0.925rem] shadow-[0_0_0.9375rem_rgba(0,0,0,0.1)] px-[1.5em] py-[1.5rem] w-[20rem] sm:w-[25rem] sm:px-[2rem] sm:py-[2rem] lg:px-[3rem] lg:py-[3rem]">
+		<div className="bg-white rounded-[0.925rem] shadow-[0_0_0.9375rem_rgba(0,0,0,0.1)] w-[20rem] px-[2rem] py-[2rem] sm:w-[23rem] sm:px-[2.5rem] sm:py-[2.5rem] lg:w-[26rem] lg:px-[3rem] lg:py-[3rem]">
 			<form onSubmit={handleSignupSubmit} className="lg:block">
 				<span className="font-medium text-gray-900 text-base sm:text-lg">
 					회원가입

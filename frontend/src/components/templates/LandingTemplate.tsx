@@ -35,7 +35,7 @@ const LandingTemplate: React.FC<LandingTemplateProps> = ({
 			<img
 				src="/images/logo.svg"
 				alt="DutyMate Logo"
-				className="w-[60%] max-w-[17.5rem] mb-[3rem] cursor-pointer"
+				className="w-[60%] max-w-[17.5rem] mb-[2rem] cursor-pointer"
 				onClick={handleLogoClick}
 			/>
 			{showIntroText && (

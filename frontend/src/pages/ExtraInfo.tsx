@@ -98,7 +98,7 @@ const ExtraInfo = () => {
 			/>
 			<LandingTemplate showIntroText={false}>
 				<div className="flex flex-col items-center">
-					<p className="text-primary-dark font-semibold text-[1rem] mt-[0.9rem] mb-[1rem]">
+					<p className="text-primary-dark font-semibold text-[0.875rem] sm:text-[1rem] mb-[0.75rem] sm:mb-[1rem]">
 						원활한 서비스 이용을 위한 부가 정보를 알려주세요.
 					</p>
 					<ExtraInfoForm initialData={formData} onSubmit={handleSubmit} />
