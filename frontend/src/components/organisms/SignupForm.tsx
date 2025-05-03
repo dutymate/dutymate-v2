@@ -186,6 +186,7 @@ const SignupForm = () => {
 						error={emailError || error.email}
 						placeholder="이메일"
 						disabled={authCodeSent || isVerified}
+						autoComplete="username"
 					/>
 					{!authCodeSent && (
 						<button
@@ -229,6 +230,7 @@ const SignupForm = () => {
 								onChange={handleSignupChange}
 								error={error.password}
 								placeholder="비밀번호"
+								autoComplete="new-password"
 							/>
 							<PasswordInput
 								id="signup-password-confirm"
@@ -238,6 +240,7 @@ const SignupForm = () => {
 								onChange={handleSignupChange}
 								error={error.passwordConfirm}
 								placeholder="비밀번호 확인"
+								autoComplete="new-password"
 							/>
 							<Input
 								id="signup-name"
@@ -247,6 +250,7 @@ const SignupForm = () => {
 								onChange={handleSignupChange}
 								error={error.name}
 								placeholder="이름"
+								autoComplete="name"
 							/>
 
 							<div className="mt-[1rem] sm:mt-[1.5rem] flex justify-center">

@@ -60,6 +60,7 @@ const LoginEmailVerificationForm = ({ memberId, onSuccess }: Props) => {
 					onChange={(e) => setEmail(e.target.value)}
 					error={emailError}
 					placeholder="이메일"
+					autoComplete="username"
 					rightElement={
 						<button
 							type="button"
@@ -90,6 +91,7 @@ const LoginEmailVerificationForm = ({ memberId, onSuccess }: Props) => {
 						successText={
 							authCodeStatus === "success" ? "인증되었습니다." : undefined
 						}
+						autoComplete="one-time-code"
 					/>
 				)}
 			</div>

@@ -1,7 +1,9 @@
 import React from "react";
 import { HiExclamationCircle, HiMagnifyingGlass } from "react-icons/hi2";
+import { InputHTMLAttributes, ReactNode } from "react";
 
-export interface InputProps {
+export interface InputProps
+	extends Omit<InputHTMLAttributes<HTMLInputElement>, "className"> {
 	id: string;
 	name: string;
 	type?: string;
@@ -18,9 +20,10 @@ export interface InputProps {
 	onInvalid?: (e: React.InvalidEvent<HTMLInputElement>) => void;
 	onInput?: (e: React.FormEvent<HTMLInputElement>) => void;
 	onFocus?: (e: React.FocusEvent<HTMLInputElement>) => void;
-	rightElement?: React.ReactNode;
+	rightElement?: ReactNode;
 	successText?: string; // 성공 메시지
 	status?: "idle" | "success" | "error"; // 인증 상태
+	autoComplete?: string;
 }
 
 export const Input = ({
@@ -43,6 +46,7 @@ export const Input = ({
 	rightElement,
 	successText,
 	status,
+	autoComplete,
 }: InputProps) => {
 	const getStatusClass = () => {
 		if (status === "success") {
@@ -113,6 +117,7 @@ export const Input = ({
 									: undefined
 					}
 					className={`${inputClasses}`}
+					autoComplete={autoComplete}
 				/>
 
 				{error && (

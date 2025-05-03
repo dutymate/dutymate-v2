@@ -147,6 +147,7 @@ const LoginForm = ({ onRequireVerification }: LoginFormProps) => {
 						value={loginData.email}
 						onChange={handleLoginChange}
 						error={error.email}
+						autoComplete="username"
 					/>
 					<PasswordInput
 						id="login-password"
@@ -156,6 +157,7 @@ const LoginForm = ({ onRequireVerification }: LoginFormProps) => {
 						value={loginData.password}
 						onChange={handleLoginChange}
 						error={error.password}
+						autoComplete="current-password"
 					/>
 				</div>
 				<div className="mt-[1.5rem]">
@@ -208,7 +210,7 @@ const LoginForm = ({ onRequireVerification }: LoginFormProps) => {
 				</Link>
 			</div>
 			<div className="text-center mt-[1rem]">
-				<span className="text-gray-600">비밀번호가 기억나지 않나요? </span>
+				<span className="text-gray-600">비밀번호를 잊으셨나요? </span>
 				<Link
 					to="/password-reset"
 					className="text-primary-dark hover:underline"
