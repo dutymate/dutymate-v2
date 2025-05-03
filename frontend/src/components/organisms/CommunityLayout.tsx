@@ -87,9 +87,10 @@ const CommunityLayout = ({ title, subtitle, children }: any) => {
           </div>
           <button
             onClick={handleNewsButton}
-            className="flex items-center gap-2 p-2 hover:bg-gray-100 rounded-lg"
+            className="flex items-center gap-1 px-3 py-2 bg-primary/10 hover:bg-primary/20 text-primary rounded-lg transition-all"
           >
-            <IoNewspaperOutline className="w-6 h-6 text-gray-600" />
+            <IoNewspaperOutline className="w-5 h-5" />
+            <span className="text-sm font-medium">뉴스</span>
           </button>
           {isDemo && <DemoTimer />}
         </div>
