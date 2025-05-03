@@ -7,7 +7,7 @@ import { toast } from "react-toastify";
 import { Icon } from "@/components/atoms/Icon";
 import boardService from "@/services/boardService";
 import useUserAuthStore from "@/stores/userAuthStore";
-import { formatTimeAgo } from "@/utils/dateUtiles";
+import { formatTimeAgo } from "@/utils/dateUtils";
 
 interface Comment {
 	commentId: number;

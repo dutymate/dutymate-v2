@@ -51,3 +51,54 @@ export const isHoliday = (
 	const weekendPairs = getWeekendAndHolidayPairs(year, month);
 	return weekendPairs.some((pair) => day >= pair[0] && day <= pair[1]);
 };
+
+export const formatTimeAgo = (dateString: string) => {
+	try {
+		const date = dateString ? new Date(dateString) : new Date();
+		const now = new Date();
+
+		// 날짜 변환에 실패한 경우
+		if (isNaN(date.getTime())) {
+			console.error("Invalid date format:", dateString);
+			return "방금";
+		}
+
+		const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+		const diffInMinutes = Math.floor(diffInSeconds / 60);
+		const diffInHours = Math.floor(diffInMinutes / 60);
+		const diffInDays = Math.floor(diffInHours / 24);
+		const diffInWeeks = Math.floor(diffInDays / 7);
+		const diffInMonths = Math.floor(diffInDays / 30.44); // 평균 월 길이 사용
+		const diffInYears = Math.floor(diffInDays / 365);
+
+		// 1분 미만
+		if (diffInSeconds < 60) {
+			return "방금";
+		}
+		// 1시간 미만
+		if (diffInMinutes < 60) {
+			return `${diffInMinutes}분 전`;
+		}
+		// 24시간 미만
+		if (diffInHours < 24) {
+			return `${diffInHours}시간 전`;
+		}
+		// 7일 미만
+		if (diffInDays < 7) {
+			return `${diffInDays}일 전`;
+		}
+		// 4주 미만
+		if (diffInWeeks < 4) {
+			return `${diffInWeeks}주 전`;
+		}
+		// 12개월 미만
+		if (diffInMonths < 12) {
+			return `${diffInMonths}개월 전`;
+		}
+		// 1년 이상
+		return `${diffInYears}년 전`;
+	} catch (error) {
+		console.error("Error formatting date:", error);
+		return "방금";
+	}
+};

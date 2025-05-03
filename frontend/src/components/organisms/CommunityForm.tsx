@@ -10,7 +10,7 @@ import boardService, {
 	RecommendedPost,
 } from "@/services/boardService";
 import useUserAuthStore from "@/stores/userAuthStore";
-import { formatTimeAgo } from "@/utils/dateUtiles";
+import { formatTimeAgo } from "@/utils/dateUtils";
 
 interface CommunityFormProps {
 	onWrite: () => void;
