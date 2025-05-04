@@ -106,3 +106,8 @@ openai:
 api:
   demo:
     secret: ${API_DEMO_SECRET}
+#공공데이터 포털 키
+  data:
+    go:
+      kr:
+        key: ${API_GO_DATA_KR_KEY}
