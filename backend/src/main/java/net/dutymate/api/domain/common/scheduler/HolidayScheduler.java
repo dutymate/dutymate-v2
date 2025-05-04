@@ -1,24 +1,27 @@
 package net.dutymate.api.domain.common.scheduler;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import net.dutymate.api.domain.common.Holiday;
-import net.dutymate.api.domain.common.repository.HolidayRepository;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLEncoder;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLEncoder;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
+import net.dutymate.api.domain.common.Holiday;
+import net.dutymate.api.domain.common.repository.HolidayRepository;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Component
@@ -75,7 +78,8 @@ public class HolidayScheduler implements InitializingBean {
 		String solMonth = String.format("%02d", month);
 
 		// API 호출 URL 생성
-		StringBuilder urlBuilder = new StringBuilder("http://apis.data.go.kr/B090041/openapi/service/SpcdeInfoService/getRestDeInfo");
+		StringBuilder urlBuilder = new StringBuilder(
+			"http://apis.data.go.kr/B090041/openapi/service/SpcdeInfoService/getRestDeInfo");
 		urlBuilder.append("?" + URLEncoder.encode("serviceKey", "UTF-8") + "=" + apiKey);
 		urlBuilder.append("&" + URLEncoder.encode("solYear", "UTF-8") + "=" + URLEncoder.encode(solYear, "UTF-8"));
 		urlBuilder.append("&" + URLEncoder.encode("solMonth", "UTF-8") + "=" + URLEncoder.encode(solMonth, "UTF-8"));
@@ -83,7 +87,7 @@ public class HolidayScheduler implements InitializingBean {
 
 		// API 호출
 		URL url = new URL(urlBuilder.toString());
-		HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+		HttpURLConnection conn = (HttpURLConnection)url.openConnection();
 		conn.setRequestMethod("GET");
 
 		// 응답 읽기
@@ -118,9 +122,7 @@ public class HolidayScheduler implements InitializingBean {
 				for (JsonNode node : itemNode) {
 					processHolidayItem(node, holidays);
 				}
-			}
-			// 단일 객체인 경우 (하나의 공휴일)
-			else if (!itemNode.isMissingNode() && !itemNode.isNull()) {
+			} else if (!itemNode.isMissingNode() && !itemNode.isNull()) {
 				processHolidayItem(itemNode, holidays);
 			}
 		}
