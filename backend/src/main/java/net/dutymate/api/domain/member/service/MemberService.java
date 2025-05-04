@@ -494,6 +494,7 @@ public class MemberService {
 		if (member.getRole() == Role.RN) {
 			ward.removeWardMember(wardMember);
 			deleteWardMemberInMongo(member, ward); // mongodb에서 삭제
+			member.updateRole(null);
 			return;
 		}
 
