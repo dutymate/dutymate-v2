@@ -68,6 +68,9 @@ public class WardMemberService {
 		WardMember wardMemeber = member.getWardMember();
 		Ward ward = wardMemeber.getWard();
 
+		// member의 role 초기화하기
+		member.updateRole(null);
+
 		// RDB에서 wardMember 삭제하기
 		ward.removeWardMember(wardMemeber); // 리스트에서 제거(연관관계 제거)
 
