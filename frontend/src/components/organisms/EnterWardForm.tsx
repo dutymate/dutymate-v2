@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button, EnterWardLogoutButton } from '@/components/atoms/Button';
 import { WardCodeInput } from '@/components/atoms/WardCodeInput';
 import useUserAuthStore from '@/stores/userAuthStore';
+import { IoIosArrowBack } from 'react-icons/io';
 
 interface EnterWardFormProps {
   onSubmit: (wardCode: string) => Promise<void>;
@@ -86,9 +87,20 @@ const EnterWardForm = ({ onSubmit }: EnterWardFormProps) => {
 
   return (
     <div className="bg-white rounded-[0.925rem] shadow-[0_0_0.9375rem_rgba(0,0,0,0.1)] px-[1.5em] py-[1.5rem] w-[20rem] sm:w-[25rem] sm:px-[2rem] sm:py-[2rem] lg:px-[3rem] lg:py-[3rem]">
-      <h2 className="text-[1.5rem] font-bold text-center mb-[2rem]">
-        병동 입장하기
-      </h2>
+      <div className="relative flex items-center mb-[2rem]">
+        <div
+          className="flex items-center gap-1 cursor-pointer absolute left-0"
+          onClick={() => navigate(-1)}
+        >
+          <IoIosArrowBack className="text-gray-400 text-[1.2rem]" />
+          {/* <span className="text-gray-400 text-[0.8rem]">뒤로가기</span> */}
+        </div>
+        <div className="flex-1 flex justify-center">
+          <h2 className="text-[1.5rem] font-bold text-center">병동 입장하기</h2>
+        </div>
+        {/* <div className='min-w-[4rem]'>
+        </div> */}
+      </div>
       <form onSubmit={handleSubmit} className="flex flex-col gap-[1.5rem]">
         <div className="flex flex-col gap-[0.5rem]">
           <div className="relative">
