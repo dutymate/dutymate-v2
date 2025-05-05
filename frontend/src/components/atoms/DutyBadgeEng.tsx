@@ -84,6 +84,7 @@ const DutyBadgeEng = ({
   return (
     <div
       onClick={onClick}
+      translate="no"
       className={`
         ${sizeClasses[size]}
         ${badgeStyles[variant][type]}

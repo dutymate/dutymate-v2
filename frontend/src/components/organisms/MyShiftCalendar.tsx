@@ -209,7 +209,7 @@ const MyShiftCalendar = ({
                       : 'text-gray-900'
                 }`}
               >
-                {day}
+                <span translate="no">{day}</span>
               </div>
             ))}
           </div>

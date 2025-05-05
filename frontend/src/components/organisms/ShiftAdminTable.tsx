@@ -1284,7 +1284,7 @@ const ShiftAdminTable = ({
                       }`}
                     >
                       <div className="flex items-center justify-center">
-                        {text}
+                        <span translate="no">{text}</span>
                       </div>
                     </td>
                     {Array.from({ length: daysInMonth }, (_, j) => (
@@ -1750,7 +1750,7 @@ const ShiftAdminTable = ({
                                 }`}
                               >
                                 <div className="flex items-center justify-center">
-                                  {text}
+                                  <span translate="no">{text}</span>
                                 </div>
                               </td>
                               {Array.from({ length: daysInMonth }, (_, j) => (

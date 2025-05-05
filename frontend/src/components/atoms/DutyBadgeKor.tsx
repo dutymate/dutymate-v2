@@ -43,6 +43,7 @@ export const DutyBadgeKor = ({ type, size = 'md' }: DutyBadgeProps) => {
 
   return (
     <span
+      translate="no"
       className={`
         inline-flex items-center justify-center
         ${roundedStyles[size]}
