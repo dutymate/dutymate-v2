@@ -9,11 +9,13 @@ import ReqShiftModal from '@/components/organisms/ReqShiftModal';
 import { dutyService } from '@/services/dutyService';
 import { useLoadingStore } from '@/stores/loadingStore';
 import { useUserAuthStore } from '@/stores/userAuthStore';
+import { useHolidayStore } from '@/stores/holidayStore';
 import { TeamShiftTableDownload } from '@/utils/TeamShiftTableDownload';
 import {
   getDayOfWeekKo,
   getDaysInMonth,
   isWeekend,
+  isHoliday,
 } from '@/utils/dateUtils';
 
 interface WardDuty {
@@ -42,6 +44,7 @@ const TeamShiftTable = () => {
   });
   const tableRef = useRef<HTMLDivElement>(null);
   const { userInfo } = useUserAuthStore();
+  const fetchHolidays = useHolidayStore((state) => state.fetchHolidays);
 
   useEffect(() => {
     const fetchWardDuty = async () => {
@@ -52,6 +55,8 @@ const TeamShiftTable = () => {
           currentDate.month
         );
         setWardDuty(data);
+        // 공휴일 데이터도 함께 불러오기
+        await fetchHolidays(currentDate.year, currentDate.month);
       } catch (error) {
         console.error('병동 근무표 조회 실패:', error);
         toast.error('병동 근무표를 불러오는데 실패했습니다');
@@ -62,7 +67,7 @@ const TeamShiftTable = () => {
     };
 
     fetchWardDuty();
-  }, [currentDate]);
+  }, [currentDate, fetchHolidays]);
 
   if (isLoading) {
     return <div>로딩 중...</div>;
@@ -168,26 +173,43 @@ const TeamShiftTable = () => {
                   이름
                 </th>
                 {days.map((day, index) => {
-                  const dayOfWeek = getDayOfWeekKo(wardDuty.year, wardDuty.month, day);
+                  const dayOfWeek = getDayOfWeekKo(
+                    wardDuty.year,
+                    wardDuty.month,
+                    day
+                  );
+                  const isHolidayDate = isHoliday(
+                    wardDuty.year,
+                    wardDuty.month,
+                    day
+                  );
                   return (
                     <th
                       key={day}
                       className={`px-0.5 sm:px-1 py-1.5 sm:py-2 border-r border-base-muted font-normal bg-white
                         ${index === days.length - 1 ? '' : 'border-r'} 
-                        ${dayOfWeek === '일' ? 'text-red-500' : dayOfWeek === '토' ? 'text-blue-500' : ''}
+                        ${isHolidayDate || dayOfWeek === '일' ? 'text-red-500' : dayOfWeek === '토' ? 'text-blue-500' : ''}
                       `}
                     >
                       <div className="flex flex-col items-center gap-0.5">
                         <span
                           className={`text-xs sm:text-sm ${
-                            dayOfWeek === '일' ? 'text-red-500' : dayOfWeek === '토' ? 'text-blue-500' : ''
+                            isHolidayDate || dayOfWeek === '일'
+                              ? 'text-red-500'
+                              : dayOfWeek === '토'
+                                ? 'text-blue-500'
+                                : ''
                           }`}
                         >
                           {day}
                         </span>
                         <span
                           className={`text-[10px] sm:text-xs ${
-                            dayOfWeek === '일' ? 'text-red-500' : dayOfWeek === '토' ? 'text-blue-500' : 'text-gray-400'
+                            isHolidayDate || dayOfWeek === '일'
+                              ? 'text-red-500'
+                              : dayOfWeek === '토'
+                                ? 'text-blue-500'
+                                : 'text-gray-400'
                           }`}
                         >
                           {dayOfWeek}

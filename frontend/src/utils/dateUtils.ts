@@ -1,28 +1,54 @@
+import { useHolidayStore } from '@/stores/holidayStore';
+
 // 요일 상수
-export const WEEKDAYS = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'] as const;
+export const WEEKDAYS = [
+  'SUN',
+  'MON',
+  'TUE',
+  'WED',
+  'THU',
+  'FRI',
+  'SAT',
+] as const;
 
 // 한글 요일 상수
 export const WEEKDAYS_KO = ['일', '월', '화', '수', '목', '금', '토'] as const;
 
 // 특정 날짜의 요일을 반환합니다 (0: 일요일, 6: 토요일)
-export const getDayOfWeek = (year: number, month: number, day: number): number => {
+export const getDayOfWeek = (
+  year: number,
+  month: number,
+  day: number
+): number => {
   return new Date(year, month - 1, day).getDay();
 };
 
 // 특정 날짜의 영문 요일을 반환합니다
-export const getDayOfWeekEng = (year: number, month: number, day: number): string => {
+export const getDayOfWeekEng = (
+  year: number,
+  month: number,
+  day: number
+): string => {
   const dayIndex = getDayOfWeek(year, month, day);
   return WEEKDAYS[dayIndex];
 };
 
 // 특정 날짜의 한글 요일을 반환합니다
-export const getDayOfWeekKo = (year: number, month: number, day: number): string => {
+export const getDayOfWeekKo = (
+  year: number,
+  month: number,
+  day: number
+): string => {
   const dayIndex = getDayOfWeek(year, month, day);
   return WEEKDAYS_KO[dayIndex];
 };
 
 // 특정 날짜가 토요일인지 확인합니다.
-export const isSaturday = (year: number, month: number, day: number): boolean => {
+export const isSaturday = (
+  year: number,
+  month: number,
+  day: number
+): boolean => {
   return getDayOfWeek(year, month, day) === 6;
 };
 
@@ -32,7 +58,11 @@ export const isSunday = (year: number, month: number, day: number): boolean => {
 };
 
 // 특정 날짜가 주말인지 확인합니다.
-export const isWeekend = (year: number, month: number, day: number): boolean => {
+export const isWeekend = (
+  year: number,
+  month: number,
+  day: number
+): boolean => {
   const dayOfWeek = getDayOfWeek(year, month, day);
   return dayOfWeek === 0 || dayOfWeek === 6;
 };
@@ -41,7 +71,7 @@ export const isWeekend = (year: number, month: number, day: number): boolean => 
 export const getWeekendDays = (year: number, month: number): number[] => {
   const weekendDays: number[] = [];
   const daysInMonth = new Date(year, month, 0).getDate();
-  
+
   for (let day = 1; day <= daysInMonth; day++) {
     if (isWeekend(year, month, day)) {
       weekendDays.push(day);
@@ -50,10 +80,42 @@ export const getWeekendDays = (year: number, month: number): number[] => {
   return weekendDays;
 };
 
-// 해당 월의 기본 OFF 일수를 계산합니다.
-// 주말(토,일)의 총 개수를 반환합니다.
+// 특정 날짜가 공휴일인지 확인합니다.
+export const isHoliday = (
+  year: number,
+  month: number,
+  day: number
+): boolean => {
+  const holidays = useHolidayStore.getState().getHolidays(year, month);
+  return holidays?.some((holiday) => holiday.day === day) ?? false;
+};
+
+// 특정 날짜의 공휴일 정보를 반환합니다.
+export const getHolidayInfo = (year: number, month: number, day: number) => {
+  const holidays = useHolidayStore.getState().getHolidays(year, month);
+  return holidays?.find((holiday) => holiday.day === day) ?? null;
+};
+
+// 특정 날짜가 주말 또는 공휴일인지 확인합니다.
+export const isHolidayOrWeekend = (
+  year: number,
+  month: number,
+  day: number
+): boolean => {
+  return isWeekend(year, month, day) || isHoliday(year, month, day);
+};
+
+// 특정 월의 모든 공휴일 날짜를 반환합니다.
+export const getHolidayDays = (year: number, month: number): number[] => {
+  const holidays = useHolidayStore.getState().getHolidays(year, month);
+  return holidays?.map((holiday) => holiday.day) ?? [];
+};
+
+// 해당 월의 기본 OFF 일수를 계산합니다 (주말 + 공휴일, 중복 제외)
 export const getDefaultOffDays = (year: number, month: number): number => {
-  return getWeekendDays(year, month).length;
+  const weekendDays = new Set(getWeekendDays(year, month));
+  const holidayDays = new Set(getHolidayDays(year, month));
+  return new Set([...weekendDays, ...holidayDays]).size;
 };
 
 // 특정 월의 첫 날짜를 반환합니다.
@@ -76,11 +138,11 @@ export const getPrevMonthDays = (year: number, month: number): number[] => {
   const firstDay = getFirstDayOfMonth(year, month);
   const prevMonthLastDay = getPrevMonthLastDay(year, month);
   const days = [];
-  
+
   for (let i = firstDay.getDay() - 1; i >= 0; i--) {
     days.push(prevMonthLastDay.getDate() - i);
   }
-  
+
   return days;
 };
 
@@ -88,11 +150,11 @@ export const getPrevMonthDays = (year: number, month: number): number[] => {
 export const getNextMonthDays = (year: number, month: number): number[] => {
   const lastDay = getLastDayOfMonth(year, month);
   const days = [];
-  
+
   for (let i = 1; i <= 6 - lastDay.getDay(); i++) {
     days.push(i);
   }
-  
+
   return days;
 };
 

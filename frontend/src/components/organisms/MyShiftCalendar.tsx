@@ -11,7 +11,10 @@ import {
   getPrevMonthDays,
   isToday,
   getDayOfWeek,
+  isHoliday,
+  getHolidayInfo,
 } from '@/utils/dateUtils';
+import { useHolidayStore } from '@/stores/holidayStore';
 
 interface MyShiftCalendarProps {
   onDateSelect: (date: Date) => void;
@@ -35,6 +38,7 @@ const MyShiftCalendar = ({
   const [currentDate, setCurrentDate] = useState(new Date());
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1024); // lg 브레이크포인트
   const [isReqModalOpen, setIsReqModalOpen] = useState(false);
+  const fetchHolidays = useHolidayStore((state) => state.fetchHolidays);
 
   // 화면 크기 변경 감지
   useEffect(() => {
@@ -45,6 +49,11 @@ const MyShiftCalendar = ({
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  // 공휴일 데이터 불러오기
+  useEffect(() => {
+    fetchHolidays(currentDate.getFullYear(), currentDate.getMonth() + 1);
+  }, [currentDate, fetchHolidays]);
 
   const handlePrevMonth = async () => {
     const newDate = new Date(
@@ -134,10 +143,32 @@ const MyShiftCalendar = ({
   // 달력 데이터 계산
   const currentYear = currentDate.getFullYear();
   const currentMonth = currentDate.getMonth() + 1;
-  
+
   const prevMonthDays = getPrevMonthDays(currentYear, currentMonth);
   const currentMonthDays = getCurrentMonthDays(currentYear, currentMonth);
   const nextMonthDays = getNextMonthDays(currentYear, currentMonth);
+
+  // 날짜 스타일 결정 함수
+  const getDateStyle = (day: number, isTodayDate: boolean) => {
+    // 오늘 날짜인 경우 항상 흰색 텍스트 (배경이 primary 색상)
+    if (isTodayDate) return 'text-white';
+
+    const isHolidayDate = isHoliday(currentYear, currentMonth, day);
+    const dayOfWeek = getDayOfWeek(currentYear, currentMonth, day);
+
+    // 공휴일이거나 일요일인 경우 빨간색
+    if (isHolidayDate || dayOfWeek === 0) return 'text-red-500';
+    // 토요일은 파란색
+    if (dayOfWeek === 6) return 'text-blue-500';
+    // 평일은 기본 텍스트 색상
+    return 'text-gray-900';
+  };
+
+  // 공휴일 정보 가져오기
+  const getHolidayText = (day: number) => {
+    const holidayInfo = getHolidayInfo(currentYear, currentMonth, day);
+    return holidayInfo?.name || null;
+  };
 
   return (
     <div className="bg-white rounded-[0.92375rem] shadow-[0_0_15px_rgba(0,0,0,0.1)] p-4 sm:p-6 h-full">
@@ -185,9 +216,11 @@ const MyShiftCalendar = ({
               <div
                 key={day}
                 className={`text-center text-[0.875rem] font-medium ${
-                  index === 0 ? 'text-red-500' :
-                  index === 6 ? 'text-blue-500' :
-                  'text-gray-900'
+                  index === 0
+                    ? 'text-red-500'
+                    : index === 6
+                      ? 'text-blue-500'
+                      : 'text-gray-900'
                 }`}
               >
                 <span translate="no">{WEEKDAYS[index]}</span>
@@ -199,7 +232,11 @@ const MyShiftCalendar = ({
           <div className="grid grid-cols-7 divide-x divide-y divide-gray-100 border border-gray-100">
             {/* 이전 달 날짜 */}
             {prevMonthDays.map((day) => {
-              const dayOfWeek = getDayOfWeek(currentYear, currentMonth - 1, day);
+              const dayOfWeek = getDayOfWeek(
+                currentYear,
+                currentMonth - 1,
+                day
+              );
               return (
                 <div
                   key={`prev-${day}`}
@@ -209,14 +246,19 @@ const MyShiftCalendar = ({
                     relative bg-gray-50 cursor-not-allowed
                   `}
                 >
-                  <span className={`
+                  <span
+                    className={`
                     text-base-muted text-xs lg:text-sm 
                     absolute top-1 lg:top-2 left-1 lg:left-2
-                    ${dayOfWeek === 0 ? 'text-red-500/50' : 
-                      dayOfWeek === 6 ? 'text-blue-500/50' : 
-                      'text-base-muted'
+                    ${
+                      dayOfWeek === 0
+                        ? 'text-red-500/50'
+                        : dayOfWeek === 6
+                          ? 'text-blue-500/50'
+                          : 'text-base-muted'
                     }
-                  `}>
+                  `}
+                  >
                     {day}
                   </span>
                   {getDutyFromShifts(
@@ -242,25 +284,18 @@ const MyShiftCalendar = ({
             {/* 현재 달 날짜 */}
             {currentMonthDays.map((day) => {
               const isTodayDate = isToday(currentYear, currentMonth, day);
-              const dayOfWeek = getDayOfWeek(currentYear, currentMonth, day);
-              const dayClassName = `
-                absolute top-1 lg:top-2 left-1 lg:left-2
-                w-6 h-6 lg:w-8 lg:h-8
-                flex items-center justify-center
-                ${isTodayDate ? 'bg-primary text-white' : 
-                  dayOfWeek === 0 ? 'text-red-500' :
-                  dayOfWeek === 6 ? 'text-blue-500' :
-                  'text-base-foreground'
-                }
-                rounded-full z-10
-                text-xs lg:text-sm
-              `;
+              const holidayName = getHolidayText(day);
+              const dateStyle = getDateStyle(day, isTodayDate);
 
               return (
                 <div
                   key={day}
                   onClick={() => {
-                    const newDate = new Date(currentYear, currentMonth - 1, day);
+                    const newDate = new Date(
+                      currentYear,
+                      currentMonth - 1,
+                      day
+                    );
                     onDateSelect(newDate);
                   }}
                   className={`
@@ -276,9 +311,25 @@ const MyShiftCalendar = ({
                     }
                   `}
                 >
-                  <span className={dayClassName}>
-                    {day}
-                  </span>
+                  <div className="relative flex flex-col items-start">
+                    <span
+                      className={`
+                        w-6 h-6 lg:w-8 lg:h-8
+                        flex items-center justify-center
+                        ${isTodayDate ? 'bg-primary' : ''} 
+                        ${dateStyle}
+                        rounded-full
+                        text-xs lg:text-sm
+                      `}
+                    >
+                      {day}
+                    </span>
+                    {holidayName && (
+                      <span className="text-[10px] lg:text-[11px] text-red-500 mt-1 lg:mt-2 line-clamp-1 max-w-full">
+                        {holidayName}
+                      </span>
+                    )}
+                  </div>
                   {getDutyFromShifts(
                     new Date(currentYear, currentMonth - 1, day),
                     day
@@ -301,7 +352,11 @@ const MyShiftCalendar = ({
 
             {/* 다음 달 날짜 */}
             {nextMonthDays.map((day) => {
-              const dayOfWeek = getDayOfWeek(currentYear, currentMonth + 1, day);
+              const dayOfWeek = getDayOfWeek(
+                currentYear,
+                currentMonth + 1,
+                day
+              );
               return (
                 <div
                   key={`next-${day}`}
@@ -311,14 +366,19 @@ const MyShiftCalendar = ({
                     relative bg-gray-50 cursor-not-allowed
                   `}
                 >
-                  <span className={`
+                  <span
+                    className={`
                     text-base-muted text-xs lg:text-sm 
                     absolute top-1 lg:top-2 left-1 lg:left-2
-                    ${dayOfWeek === 0 ? 'text-red-500/50' : 
-                      dayOfWeek === 6 ? 'text-blue-500/50' : 
-                      'text-base-muted'
+                    ${
+                      dayOfWeek === 0
+                        ? 'text-red-500/50'
+                        : dayOfWeek === 6
+                          ? 'text-blue-500/50'
+                          : 'text-base-muted'
                     }
-                  `}>
+                  `}
+                  >
                     {day}
                   </span>
                   {getDutyFromShifts(

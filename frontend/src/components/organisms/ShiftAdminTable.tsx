@@ -28,12 +28,14 @@ import { ruleService, WardRule } from '@/services/ruleService.ts';
 
 import useShiftStore from '@/stores/shiftStore';
 import useUserAuthStore from '@/stores/userAuthStore';
+import { useHolidayStore } from '@/stores/holidayStore';
 
 import {
   getDefaultOffDays,
   getMaxAllowedMonth,
   isSaturday,
   isSunday,
+  isHoliday,
 } from '@/utils/dateUtils';
 
 // 근무표 관리자 테이블의 props 인터페이스
@@ -536,8 +538,8 @@ const ShiftAdminTable = ({
 
   // 주말 스타일 결정 함수
   const getWeekendStyle = (day: number): string => {
+    if (isHoliday(year, month, day) || isSundayDay(day)) return 'text-red-500';
     if (isSaturdayDay(day)) return 'text-blue-500';
-    if (isSundayDay(day)) return 'text-red-500';
     return '';
   };
 
@@ -949,7 +951,11 @@ const ShiftAdminTable = ({
     fetchShiftRules();
   }, []);
 
-  const getCountColor = (count: number, day: number, shiftType: 'D' | 'E' | 'N') => {
+  const getCountColor = (
+    count: number,
+    day: number,
+    shiftType: 'D' | 'E' | 'N'
+  ) => {
     if (!wardRules) return '';
 
     const isWeekendDate = isSaturdayDay(day) || isSundayDay(day);
@@ -999,6 +1005,17 @@ const ShiftAdminTable = ({
     setIsRuleModalOpen(false);
     setIsAutoGenerateModalOpen(true);
   };
+
+  const fetchHolidays = useHolidayStore(
+    (state: {
+      fetchHolidays: (year: number, month: number) => Promise<void>;
+    }) => state.fetchHolidays
+  );
+
+  // 공휴일 데이터 불러오기
+  useEffect(() => {
+    fetchHolidays(year, month);
+  }, [year, month, fetchHolidays]);
 
   return (
     <div>
@@ -1130,9 +1147,9 @@ const ShiftAdminTable = ({
                     return (
                       <th
                         key={i}
-                        className={`p-0 text-center w-10 border-r border-gray-200 ${
-                          getWeekendStyle(day)
-                        }`}
+                        className={`p-0 text-center w-10 border-r border-gray-200 ${getWeekendStyle(
+                          day
+                        )}`}
                       >
                         {day}
                       </th>
@@ -1575,9 +1592,9 @@ const ShiftAdminTable = ({
                             return (
                               <th
                                 key={i}
-                                className={`p-0 text-center w-10 border-r border-gray-200 ${
-                                  getWeekendStyle(day)
-                                }`}
+                                className={`p-0 text-center w-10 border-r border-gray-200 ${getWeekendStyle(
+                                  day
+                                )}`}
                               >
                                 {day}
                               </th>
