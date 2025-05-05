@@ -1,32 +1,115 @@
-// 주말 계산 함수
-// 해당 월의 주말(토,일) 쌍을 반환합니다.
-// 예: [[6,7], [13,14], [20,21], [27,28]]
-// 첫 번째 숫자는 토요일, 두 번째 숫자는 일요일을 의미합니다.
-export const getWeekendAndHolidayPairs = (
-  year: number,
-  month: number
-): number[][] => {
-  const pairs: number[][] = [];
+// 요일 상수
+export const WEEKDAYS = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'] as const;
+
+// 한글 요일 상수
+export const WEEKDAYS_KO = ['일', '월', '화', '수', '목', '금', '토'] as const;
+
+// 특정 날짜의 요일을 반환합니다 (0: 일요일, 6: 토요일)
+export const getDayOfWeek = (year: number, month: number, day: number): number => {
+  return new Date(year, month - 1, day).getDay();
+};
+
+// 특정 날짜의 영문 요일을 반환합니다
+export const getDayOfWeekEng = (year: number, month: number, day: number): string => {
+  const dayIndex = getDayOfWeek(year, month, day);
+  return WEEKDAYS[dayIndex];
+};
+
+// 특정 날짜의 한글 요일을 반환합니다
+export const getDayOfWeekKo = (year: number, month: number, day: number): string => {
+  const dayIndex = getDayOfWeek(year, month, day);
+  return WEEKDAYS_KO[dayIndex];
+};
+
+// 특정 날짜가 토요일인지 확인합니다.
+export const isSaturday = (year: number, month: number, day: number): boolean => {
+  return getDayOfWeek(year, month, day) === 6;
+};
+
+// 특정 날짜가 일요일인지 확인합니다.
+export const isSunday = (year: number, month: number, day: number): boolean => {
+  return getDayOfWeek(year, month, day) === 0;
+};
+
+// 특정 날짜가 주말인지 확인합니다.
+export const isWeekend = (year: number, month: number, day: number): boolean => {
+  const dayOfWeek = getDayOfWeek(year, month, day);
+  return dayOfWeek === 0 || dayOfWeek === 6;
+};
+
+// 해당 월의 모든 주말 날짜를 반환합니다.
+export const getWeekendDays = (year: number, month: number): number[] => {
+  const weekendDays: number[] = [];
   const daysInMonth = new Date(year, month, 0).getDate();
+  
   for (let day = 1; day <= daysInMonth; day++) {
-    const date = new Date(year, month - 1, day);
-    const dayOfWeek = date.getDay();
-    if (dayOfWeek === 6) {
-      // 6은 토요일을 의미
-      pairs.push([day, Math.min(day + 1, daysInMonth)]);
+    if (isWeekend(year, month, day)) {
+      weekendDays.push(day);
     }
   }
-  return pairs;
+  return weekendDays;
 };
 
 // 해당 월의 기본 OFF 일수를 계산합니다.
-// 주말(토,일)을 모두 더한 값을 반환합니다.
-// 이 값은 근무표 상단에 "기본 OFF: X일" 형태로 표시됩니다.
+// 주말(토,일)의 총 개수를 반환합니다.
 export const getDefaultOffDays = (year: number, month: number): number => {
-  const pairs = getWeekendAndHolidayPairs(year, month);
-  return pairs.reduce((total, [start, end]) => {
-    return total + (end - start + 1);
-  }, 0);
+  return getWeekendDays(year, month).length;
+};
+
+// 특정 월의 첫 날짜를 반환합니다.
+export const getFirstDayOfMonth = (year: number, month: number): Date => {
+  return new Date(year, month - 1, 1);
+};
+
+// 특정 월의 마지막 날짜를 반환합니다.
+export const getLastDayOfMonth = (year: number, month: number): Date => {
+  return new Date(year, month, 0);
+};
+
+// 특정 월의 이전 달의 마지막 날짜를 반환합니다.
+export const getPrevMonthLastDay = (year: number, month: number): Date => {
+  return new Date(year, month - 1, 0);
+};
+
+// 캘린더에 표시할 이전 달의 날짜들을 계산합니다.
+export const getPrevMonthDays = (year: number, month: number): number[] => {
+  const firstDay = getFirstDayOfMonth(year, month);
+  const prevMonthLastDay = getPrevMonthLastDay(year, month);
+  const days = [];
+  
+  for (let i = firstDay.getDay() - 1; i >= 0; i--) {
+    days.push(prevMonthLastDay.getDate() - i);
+  }
+  
+  return days;
+};
+
+// 캘린더에 표시할 다음 달의 날짜들을 계산합니다.
+export const getNextMonthDays = (year: number, month: number): number[] => {
+  const lastDay = getLastDayOfMonth(year, month);
+  const days = [];
+  
+  for (let i = 1; i <= 6 - lastDay.getDay(); i++) {
+    days.push(i);
+  }
+  
+  return days;
+};
+
+// 특정 월의 모든 날짜를 배열로 반환합니다.
+export const getCurrentMonthDays = (year: number, month: number): number[] => {
+  const lastDay = getLastDayOfMonth(year, month);
+  return Array.from({ length: lastDay.getDate() }, (_, i) => i + 1);
+};
+
+// 오늘 날짜인지 확인합니다.
+export const isToday = (year: number, month: number, day: number): boolean => {
+  const today = new Date();
+  return (
+    day === today.getDate() &&
+    month === today.getMonth() + 1 &&
+    year === today.getFullYear()
+  );
 };
 
 // 근무표 생성이 가능한 최대 월을 계산합니다.
@@ -39,17 +122,6 @@ export const getMaxAllowedMonth = () => {
     year: nextMonth.getFullYear(),
     month: nextMonth.getMonth() + 1,
   };
-};
-
-// 특정 날짜가 주말인지 확인합니다.
-// 근무표에서 주말은 빨간색으로 표시됩니다.
-export const isHoliday = (
-  year: number,
-  month: number,
-  day: number
-): boolean => {
-  const weekendPairs = getWeekendAndHolidayPairs(year, month);
-  return weekendPairs.some((pair) => day >= pair[0] && day <= pair[1]);
 };
 
 export const formatTimeAgo = (dateString: string) => {
@@ -101,4 +173,9 @@ export const formatTimeAgo = (dateString: string) => {
     console.error('Error formatting date:', error);
     return '방금';
   }
+};
+
+// 특정 월의 총 일수를 반환합니다
+export const getDaysInMonth = (year: number, month: number): number => {
+  return new Date(year, month, 0).getDate();
 };

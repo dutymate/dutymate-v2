@@ -32,7 +32,8 @@ import useUserAuthStore from '@/stores/userAuthStore';
 import {
   getDefaultOffDays,
   getMaxAllowedMonth,
-  isHoliday,
+  isSaturday,
+  isSunday,
 } from '@/utils/dateUtils';
 
 // 근무표 관리자 테이블의 props 인터페이스
@@ -524,9 +525,20 @@ const ShiftAdminTable = ({
     });
   }, [duties]);
 
-  // 주말 및 공휴일 체크
-  const isHolidayDay = (day: number) => {
-    return isHoliday(year, month, day);
+  // 주말 체크 헬퍼 함수들
+  const isSaturdayDay = (day: number): boolean => {
+    return isSaturday(year, month, day);
+  };
+
+  const isSundayDay = (day: number): boolean => {
+    return isSunday(year, month, day);
+  };
+
+  // 주말 스타일 결정 함수
+  const getWeekendStyle = (day: number): string => {
+    if (isSaturdayDay(day)) return 'text-blue-500';
+    if (isSundayDay(day)) return 'text-red-500';
+    return '';
   };
 
   // 셀 하이라이트 로직
@@ -937,15 +949,11 @@ const ShiftAdminTable = ({
     fetchShiftRules();
   }, []);
 
-  const getCountColor = (
-    count: number,
-    day: number,
-    shiftType: 'D' | 'E' | 'N'
-  ) => {
+  const getCountColor = (count: number, day: number, shiftType: 'D' | 'E' | 'N') => {
     if (!wardRules) return '';
 
-    const isWeekendDay = isHoliday(year, month, day);
-    const targetCount = isWeekendDay
+    const isWeekendDate = isSaturdayDay(day) || isSundayDay(day);
+    const targetCount = isWeekendDate
       ? {
           D: wardRules.wendDCnt,
           E: wardRules.wendECnt,
@@ -1123,7 +1131,7 @@ const ShiftAdminTable = ({
                       <th
                         key={i}
                         className={`p-0 text-center w-10 border-r border-gray-200 ${
-                          isHolidayDay(day) ? 'text-red-500' : ''
+                          getWeekendStyle(day)
                         }`}
                       >
                         {day}
@@ -1568,9 +1576,7 @@ const ShiftAdminTable = ({
                               <th
                                 key={i}
                                 className={`p-0 text-center w-10 border-r border-gray-200 ${
-                                  isHoliday(year, month, day)
-                                    ? 'text-red-500'
-                                    : ''
+                                  getWeekendStyle(day)
                                 }`}
                               >
                                 {day}

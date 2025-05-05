@@ -4,8 +4,14 @@ import { IoIosArrowBack, IoIosArrowForward } from 'react-icons/io';
 import { Button } from '@/components/atoms/Button';
 import { DutyBadgeKor } from '@/components/atoms/DutyBadgeKor';
 import ReqShiftModal from '@/components/organisms/ReqShiftModal';
-
-const weekDays = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'] as const;
+import {
+  WEEKDAYS,
+  getCurrentMonthDays,
+  getNextMonthDays,
+  getPrevMonthDays,
+  isToday,
+  getDayOfWeek,
+} from '@/utils/dateUtils';
 
 interface MyShiftCalendarProps {
   onDateSelect: (date: Date) => void;
@@ -125,36 +131,13 @@ const MyShiftCalendar = ({
     }
   }, [dutyData?.year, dutyData?.month]);
 
-  const firstDay = new Date(
-    currentDate.getFullYear(),
-    currentDate.getMonth(),
-    1
-  );
-  const lastDay = new Date(
-    currentDate.getFullYear(),
-    currentDate.getMonth() + 1,
-    0
-  );
-
-  const prevMonthLastDay = new Date(
-    currentDate.getFullYear(),
-    currentDate.getMonth(),
-    0
-  );
-  const prevMonthDays = [];
-  for (let i = firstDay.getDay() - 1; i >= 0; i--) {
-    prevMonthDays.push(prevMonthLastDay.getDate() - i);
-  }
-
-  const nextMonthDays = [];
-  for (let i = 1; i <= 6 - lastDay.getDay(); i++) {
-    nextMonthDays.push(i);
-  }
-
-  const currentMonthDays = Array.from(
-    { length: lastDay.getDate() },
-    (_, i) => i + 1
-  );
+  // 달력 데이터 계산
+  const currentYear = currentDate.getFullYear();
+  const currentMonth = currentDate.getMonth() + 1;
+  
+  const prevMonthDays = getPrevMonthDays(currentYear, currentMonth);
+  const currentMonthDays = getCurrentMonthDays(currentYear, currentMonth);
+  const nextMonthDays = getNextMonthDays(currentYear, currentMonth);
 
   return (
     <div className="bg-white rounded-[0.92375rem] shadow-[0_0_15px_rgba(0,0,0,0.1)] p-4 sm:p-6 h-full">
@@ -198,18 +181,16 @@ const MyShiftCalendar = ({
         >
           {/* 달력 헤더 */}
           <div className="grid grid-cols-7 mb-[0.25rem]">
-            {weekDays.map((day, index) => (
+            {WEEKDAYS.map((day, index) => (
               <div
                 key={day}
                 className={`text-center text-[0.875rem] font-medium ${
-                  index === 0
-                    ? 'text-red-500'
-                    : index === 6
-                      ? 'text-blue-500'
-                      : 'text-gray-900'
+                  index === 0 ? 'text-red-500' :
+                  index === 6 ? 'text-blue-500' :
+                  'text-gray-900'
                 }`}
               >
-                <span translate="no">{day}</span>
+                <span translate="no">{WEEKDAYS[index]}</span>
               </div>
             ))}
           </div>
@@ -217,105 +198,96 @@ const MyShiftCalendar = ({
           {/* 달력 그리드 */}
           <div className="grid grid-cols-7 divide-x divide-y divide-gray-100 border border-gray-100">
             {/* 이전 달 날짜 */}
-            {prevMonthDays.map((day) => (
-              <div
-                key={`prev-${day}`}
-                className={`
-									min-h-[80px] lg:min-h-[120px] 
-									p-2 lg:p-3 
-									relative bg-gray-50 cursor-not-allowed
-								`}
-              >
-                <span className="text-base-muted text-xs lg:text-sm absolute top-1 lg:top-2 left-1 lg:left-2">
-                  {day}
-                </span>
-                {getDutyFromShifts(
-                  new Date(
-                    currentDate.getFullYear(),
-                    currentDate.getMonth() - 1,
+            {prevMonthDays.map((day) => {
+              const dayOfWeek = getDayOfWeek(currentYear, currentMonth - 1, day);
+              return (
+                <div
+                  key={`prev-${day}`}
+                  className={`
+                    min-h-[80px] lg:min-h-[120px] 
+                    p-2 lg:p-3 
+                    relative bg-gray-50 cursor-not-allowed
+                  `}
+                >
+                  <span className={`
+                    text-base-muted text-xs lg:text-sm 
+                    absolute top-1 lg:top-2 left-1 lg:left-2
+                    ${dayOfWeek === 0 ? 'text-red-500/50' : 
+                      dayOfWeek === 6 ? 'text-blue-500/50' : 
+                      'text-base-muted'
+                    }
+                  `}>
+                    {day}
+                  </span>
+                  {getDutyFromShifts(
+                    new Date(currentYear, currentMonth - 2, day),
                     day
-                  ),
-                  day
-                ) && (
-                  <div className="absolute bottom-0.5 right-0.5 lg:bottom-1 lg:right-1 transform scale-[0.45] lg:scale-75 origin-bottom-right">
-                    <DutyBadgeKor
-                      type={
-                        getDutyFromShifts(
-                          new Date(
-                            currentDate.getFullYear(),
-                            currentDate.getMonth() - 1,
+                  ) && (
+                    <div className="absolute bottom-0.5 right-0.5 lg:bottom-1 lg:right-1 transform scale-[0.45] lg:scale-75 origin-bottom-right">
+                      <DutyBadgeKor
+                        type={
+                          getDutyFromShifts(
+                            new Date(currentYear, currentMonth - 2, day),
                             day
-                          ),
-                          day
-                        )!
-                      }
-                      size="xs"
-                    />
-                  </div>
-                )}
-              </div>
-            ))}
+                          )!
+                        }
+                        size="xs"
+                      />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
 
             {/* 현재 달 날짜 */}
             {currentMonthDays.map((day) => {
-              const isToday =
-                day === new Date().getDate() &&
-                currentDate.getMonth() === new Date().getMonth() &&
-                currentDate.getFullYear() === new Date().getFullYear();
+              const isTodayDate = isToday(currentYear, currentMonth, day);
+              const dayOfWeek = getDayOfWeek(currentYear, currentMonth, day);
+              const dayClassName = `
+                absolute top-1 lg:top-2 left-1 lg:left-2
+                w-6 h-6 lg:w-8 lg:h-8
+                flex items-center justify-center
+                ${isTodayDate ? 'bg-primary text-white' : 
+                  dayOfWeek === 0 ? 'text-red-500' :
+                  dayOfWeek === 6 ? 'text-blue-500' :
+                  'text-base-foreground'
+                }
+                rounded-full z-10
+                text-xs lg:text-sm
+              `;
 
               return (
                 <div
                   key={day}
                   onClick={() => {
-                    const newDate = new Date(
-                      currentDate.getFullYear(),
-                      currentDate.getMonth(),
-                      day
-                    );
+                    const newDate = new Date(currentYear, currentMonth - 1, day);
                     onDateSelect(newDate);
                   }}
                   className={`
-									min-h-[80px] lg:min-h-[120px] 
-									p-2 lg:p-3 
-									relative cursor-pointer hover:bg-gray-50
-									${
-                    externalSelectedDate &&
-                    externalSelectedDate.getDate() === day &&
-                    externalSelectedDate.getMonth() === currentDate.getMonth()
-                      ? 'ring-2 ring-primary ring-inset'
-                      : ''
-                  }
-								`}
+                    min-h-[80px] lg:min-h-[120px] 
+                    p-2 lg:p-3 
+                    relative cursor-pointer hover:bg-gray-50
+                    ${
+                      externalSelectedDate &&
+                      externalSelectedDate.getDate() === day &&
+                      externalSelectedDate.getMonth() === currentMonth - 1
+                        ? 'ring-2 ring-primary ring-inset'
+                        : ''
+                    }
+                  `}
                 >
-                  <span
-                    className={`
-                      absolute top-1 lg:top-2 left-1 lg:left-2
-                      w-6 h-6 lg:w-8 lg:h-8
-                      flex items-center justify-center
-                      ${isToday ? 'bg-primary text-white' : 'text-base-foreground'}
-                      rounded-full z-10
-                      text-xs lg:text-sm
-                    `}
-                  >
+                  <span className={dayClassName}>
                     {day}
                   </span>
                   {getDutyFromShifts(
-                    new Date(
-                      currentDate.getFullYear(),
-                      currentDate.getMonth(),
-                      day
-                    ),
+                    new Date(currentYear, currentMonth - 1, day),
                     day
                   ) && (
                     <div className="absolute bottom-1 right-1 lg:bottom-0.5 lg:right-0.5 transform scale-[0.45] lg:scale-75 origin-bottom-right">
                       <DutyBadgeKor
                         type={
                           getDutyFromShifts(
-                            new Date(
-                              currentDate.getFullYear(),
-                              currentDate.getMonth(),
-                              day
-                            ),
+                            new Date(currentYear, currentMonth - 1, day),
                             day
                           )!
                         }
@@ -328,44 +300,46 @@ const MyShiftCalendar = ({
             })}
 
             {/* 다음 달 날짜 */}
-            {nextMonthDays.map((day) => (
-              <div
-                key={`next-${day}`}
-                className={`
-									min-h-[80px] lg:min-h-[120px] 
-									p-2 lg:p-3 
-									relative bg-gray-50 cursor-not-allowed
-								`}
-              >
-                <span className="text-base-muted text-xs lg:text-sm absolute top-1 lg:top-2 left-1 lg:left-2">
-                  {day}
-                </span>
-                {getDutyFromShifts(
-                  new Date(
-                    currentDate.getFullYear(),
-                    currentDate.getMonth() + 1,
+            {nextMonthDays.map((day) => {
+              const dayOfWeek = getDayOfWeek(currentYear, currentMonth + 1, day);
+              return (
+                <div
+                  key={`next-${day}`}
+                  className={`
+                    min-h-[80px] lg:min-h-[120px] 
+                    p-2 lg:p-3 
+                    relative bg-gray-50 cursor-not-allowed
+                  `}
+                >
+                  <span className={`
+                    text-base-muted text-xs lg:text-sm 
+                    absolute top-1 lg:top-2 left-1 lg:left-2
+                    ${dayOfWeek === 0 ? 'text-red-500/50' : 
+                      dayOfWeek === 6 ? 'text-blue-500/50' : 
+                      'text-base-muted'
+                    }
+                  `}>
+                    {day}
+                  </span>
+                  {getDutyFromShifts(
+                    new Date(currentYear, currentMonth, day),
                     day
-                  ),
-                  day
-                ) && (
-                  <div className="absolute bottom-1 right-1 lg:bottom-0.5 lg:right-0.5 transform scale-[0.45] lg:scale-75 origin-bottom-right">
-                    <DutyBadgeKor
-                      type={
-                        getDutyFromShifts(
-                          new Date(
-                            currentDate.getFullYear(),
-                            currentDate.getMonth() + 1,
+                  ) && (
+                    <div className="absolute bottom-1 right-1 lg:bottom-0.5 lg:right-0.5 transform scale-[0.45] lg:scale-75 origin-bottom-right">
+                      <DutyBadgeKor
+                        type={
+                          getDutyFromShifts(
+                            new Date(currentYear, currentMonth, day),
                             day
-                          ),
-                          day
-                        )!
-                      }
-                      size="xs"
-                    />
-                  </div>
-                )}
-              </div>
-            ))}
+                          )!
+                        }
+                        size="xs"
+                      />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>

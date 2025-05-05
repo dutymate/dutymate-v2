@@ -10,6 +10,11 @@ import { dutyService } from '@/services/dutyService';
 import { useLoadingStore } from '@/stores/loadingStore';
 import { useUserAuthStore } from '@/stores/userAuthStore';
 import { TeamShiftTableDownload } from '@/utils/TeamShiftTableDownload';
+import {
+  getDayOfWeekKo,
+  getDaysInMonth,
+  isWeekend,
+} from '@/utils/dateUtils';
 
 interface WardDuty {
   id: string;
@@ -23,8 +28,6 @@ interface WardDuty {
     grade: number;
   }[];
 }
-
-const DAYS_OF_WEEK = ['일', '월', '화', '수', '목', '금', '토'];
 
 const TeamShiftTable = () => {
   const [wardDuty, setWardDuty] = useState<WardDuty | null>(null);
@@ -68,19 +71,12 @@ const TeamShiftTable = () => {
   if (!wardDuty) return null;
 
   // 해당 월의 실제 일수 계산
-  const daysInMonth = new Date(wardDuty.year, wardDuty.month, 0).getDate();
+  const daysInMonth = getDaysInMonth(wardDuty.year, wardDuty.month);
   const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
 
-  // 요일 계산 함수
-  const getDayOfWeek = (year: number, month: number, day: number) => {
-    const date = new Date(year, month - 1, day);
-    return DAYS_OF_WEEK[date.getDay()];
-  };
-
   // 주말 체크 함수
-  const isWeekend = (year: number, month: number, day: number) => {
-    const date = new Date(year, month - 1, day);
-    return date.getDay() === 0 || date.getDay() === 6;
+  const isWeekendDay = (year: number, month: number, day: number) => {
+    return isWeekend(year, month, day);
   };
 
   // 근무표 다운로드 기능
@@ -159,7 +155,7 @@ const TeamShiftTable = () => {
                 <col
                   key={`col-${day}`}
                   className={`w-[calc((100%-3rem)/31)] sm:w-[calc((100%-4rem)/31)] lg:w-[calc((100%-5.5rem)/31)] ${
-                    isWeekend(wardDuty.year, wardDuty.month, day)
+                    isWeekendDay(wardDuty.year, wardDuty.month, day)
                       ? 'bg-base-muted-30'
                       : ''
                   }`}
@@ -171,58 +167,35 @@ const TeamShiftTable = () => {
                 <th className="px-1 sm:px-1.5 lg:px-2 py-1.5 sm:py-2 border-r border-base-muted text-xs sm:text-sm sticky left-0 z-30 bg-white">
                   이름
                 </th>
-                {days.map((day, index) => (
-                  <th
-                    key={day}
-                    className={`px-0.5 sm:px-1 py-1.5 sm:py-2 border-r border-base-muted font-normal bg-white
-											${index === days.length - 1 ? '' : 'border-r'} 
-											${
-                        getDayOfWeek(wardDuty.year, wardDuty.month, day) ===
-                        '일'
-                          ? 'text-red-500'
-                          : getDayOfWeek(wardDuty.year, wardDuty.month, day) ===
-                              '토'
-                            ? 'text-blue-500'
-                            : ''
-                      }
-										`}
-                  >
-                    <div className="flex flex-col items-center gap-0.5">
-                      <span
-                        className={`text-xs sm:text-sm ${
-                          getDayOfWeek(wardDuty.year, wardDuty.month, day) ===
-                          '일'
-                            ? 'text-red-500'
-                            : getDayOfWeek(
-                                  wardDuty.year,
-                                  wardDuty.month,
-                                  day
-                                ) === '토'
-                              ? 'text-blue-500'
-                              : ''
-                        }`}
-                      >
-                        {day}
-                      </span>
-                      <span
-                        className={`text-[10px] sm:text-xs ${
-                          getDayOfWeek(wardDuty.year, wardDuty.month, day) ===
-                          '일'
-                            ? 'text-red-500'
-                            : getDayOfWeek(
-                                  wardDuty.year,
-                                  wardDuty.month,
-                                  day
-                                ) === '토'
-                              ? 'text-blue-500'
-                              : 'text-gray-400'
-                        }`}
-                      >
-                        {getDayOfWeek(wardDuty.year, wardDuty.month, day)}
-                      </span>
-                    </div>
-                  </th>
-                ))}
+                {days.map((day, index) => {
+                  const dayOfWeek = getDayOfWeekKo(wardDuty.year, wardDuty.month, day);
+                  return (
+                    <th
+                      key={day}
+                      className={`px-0.5 sm:px-1 py-1.5 sm:py-2 border-r border-base-muted font-normal bg-white
+                        ${index === days.length - 1 ? '' : 'border-r'} 
+                        ${dayOfWeek === '일' ? 'text-red-500' : dayOfWeek === '토' ? 'text-blue-500' : ''}
+                      `}
+                    >
+                      <div className="flex flex-col items-center gap-0.5">
+                        <span
+                          className={`text-xs sm:text-sm ${
+                            dayOfWeek === '일' ? 'text-red-500' : dayOfWeek === '토' ? 'text-blue-500' : ''
+                          }`}
+                        >
+                          {day}
+                        </span>
+                        <span
+                          className={`text-[10px] sm:text-xs ${
+                            dayOfWeek === '일' ? 'text-red-500' : dayOfWeek === '토' ? 'text-blue-500' : 'text-gray-400'
+                          }`}
+                        >
+                          {dayOfWeek}
+                        </span>
+                      </div>
+                    </th>
+                  );
+                })}
               </tr>
             </thead>
             <tbody>
@@ -260,7 +233,7 @@ const TeamShiftTable = () => {
                         key={index}
                         className={`px-1 py-1.5 text-center border-r border-b border-base-muted align-middle
 													${index === member.shifts.length - 1 ? '' : 'border-r'}
-													${isWeekend(wardDuty.year, wardDuty.month, dayNumber) ? 'bg-base-muted-30' : ''}
+													${isWeekendDay(wardDuty.year, wardDuty.month, dayNumber) ? 'bg-base-muted-30' : ''}
 												`}
                       >
                         <div className="flex justify-center items-center">
