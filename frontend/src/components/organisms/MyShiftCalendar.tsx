@@ -257,18 +257,24 @@ const MyShiftCalendar = ({
             ))}
 
             {/* 현재 달 날짜 */}
-            {currentMonthDays.map((day) => (
-              <div
-                key={day}
-                onClick={() => {
-                  const newDate = new Date(
-                    currentDate.getFullYear(),
-                    currentDate.getMonth(),
-                    day
-                  );
-                  onDateSelect(newDate);
-                }}
-                className={`
+            {currentMonthDays.map((day) => {
+              const isToday =
+                day === new Date().getDate() &&
+                currentDate.getMonth() === new Date().getMonth() &&
+                currentDate.getFullYear() === new Date().getFullYear();
+
+              return (
+                <div
+                  key={day}
+                  onClick={() => {
+                    const newDate = new Date(
+                      currentDate.getFullYear(),
+                      currentDate.getMonth(),
+                      day
+                    );
+                    onDateSelect(newDate);
+                  }}
+                  className={`
 									min-h-[80px] lg:min-h-[120px] 
 									p-2 lg:p-3 
 									relative cursor-pointer hover:bg-gray-50
@@ -280,36 +286,46 @@ const MyShiftCalendar = ({
                       : ''
                   }
 								`}
-              >
-                <span className="text-base-foreground text-xs lg:text-sm absolute top-1 lg:top-2 left-1 lg:left-2">
-                  {day}
-                </span>
-                {getDutyFromShifts(
-                  new Date(
-                    currentDate.getFullYear(),
-                    currentDate.getMonth(),
+                >
+                  <span
+                    className={`
+                      absolute top-1 lg:top-2 left-1 lg:left-2
+                      w-6 h-6 lg:w-8 lg:h-8
+                      flex items-center justify-center
+                      ${isToday ? 'bg-primary text-white' : 'text-base-foreground'}
+                      rounded-full z-10
+                      text-xs lg:text-sm
+                    `}
+                  >
+                    {day}
+                  </span>
+                  {getDutyFromShifts(
+                    new Date(
+                      currentDate.getFullYear(),
+                      currentDate.getMonth(),
+                      day
+                    ),
                     day
-                  ),
-                  day
-                ) && (
-                  <div className="absolute bottom-1 right-1 lg:bottom-0.5 lg:right-0.5 transform scale-[0.45] lg:scale-75 origin-bottom-right">
-                    <DutyBadgeKor
-                      type={
-                        getDutyFromShifts(
-                          new Date(
-                            currentDate.getFullYear(),
-                            currentDate.getMonth(),
+                  ) && (
+                    <div className="absolute bottom-1 right-1 lg:bottom-0.5 lg:right-0.5 transform scale-[0.45] lg:scale-75 origin-bottom-right">
+                      <DutyBadgeKor
+                        type={
+                          getDutyFromShifts(
+                            new Date(
+                              currentDate.getFullYear(),
+                              currentDate.getMonth(),
+                              day
+                            ),
                             day
-                          ),
-                          day
-                        )!
-                      }
-                      size="xs"
-                    />
-                  </div>
-                )}
-              </div>
-            ))}
+                          )!
+                        }
+                        size="xs"
+                      />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
 
             {/* 다음 달 날짜 */}
             {nextMonthDays.map((day) => (
