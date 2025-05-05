@@ -9,8 +9,8 @@ import java.util.Map;
 
 import org.springframework.context.ApplicationContext;
 
-import net.dutymate.api.domain.common.Holiday;
-import net.dutymate.api.domain.common.repository.HolidayRepository;
+import net.dutymate.api.domain.holiday.Holiday;
+import net.dutymate.api.domain.holiday.repository.HolidayRepository;
 
 public record YearMonth(Integer year, Integer month) {
 	// ApplicationContext 설정 메서드

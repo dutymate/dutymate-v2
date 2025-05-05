@@ -1,4 +1,4 @@
-package net.dutymate.api.domain.common.repository;
+package net.dutymate.api.domain.holiday.repository;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -8,7 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import net.dutymate.api.domain.common.Holiday;
+import net.dutymate.api.domain.holiday.Holiday;
 
 @Repository
 public interface HolidayRepository extends JpaRepository<Holiday, Long> {

@@ -1,4 +1,4 @@
-package net.dutymate.api.domain.common;
+package net.dutymate.api.domain.holiday;
 
 import java.time.LocalDate;
 

@@ -14,8 +14,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import net.dutymate.api.domain.common.Holiday;
-import net.dutymate.api.domain.common.repository.HolidayRepository;
+import net.dutymate.api.domain.holiday.Holiday;
+import net.dutymate.api.domain.holiday.repository.HolidayRepository;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
