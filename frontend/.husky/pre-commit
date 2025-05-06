@@ -38,5 +38,10 @@ if [ $FORMAT_RESULT -ne 0 ]; then
   exit 1
 fi
 
+# 포맷팅으로 변경된 파일들을 다시 스테이징
+echo "🔄 포맷팅으로 변경된 파일들을 커밋에 추가합니다."
+# 현재 프론트엔드 디렉토리에 있으므로 상대 경로 사용
+git diff --name-only | xargs -I{} git add "$(git rev-parse --show-toplevel)/{}"
+
 echo "✅ 모든 검사 성공! 커밋을 진행합니다."
 cd "$CURRENT_DIR" || exit 1
