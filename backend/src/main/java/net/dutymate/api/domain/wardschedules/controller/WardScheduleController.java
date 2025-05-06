@@ -73,8 +73,10 @@ public class WardScheduleController {
 	}
 
 	@GetMapping("/ward")
-	public ResponseEntity<?> getAllWardDuty(@Auth Member member) {
-		AllWardDutyResponseDto allWardDutyResponseDto = wardScheduleService.getAllWardDuty(member);
+	public ResponseEntity<?> getAllWardDuty(@Auth Member member,
+		@RequestParam(required = false) Integer year,
+		@RequestParam(required = false) Integer month) {
+		AllWardDutyResponseDto allWardDutyResponseDto = wardScheduleService.getAllWardDuty(member, year, month);
 		return ResponseEntity.ok(allWardDutyResponseDto);
 	}
 

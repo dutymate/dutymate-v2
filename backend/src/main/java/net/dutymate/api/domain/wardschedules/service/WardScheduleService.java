@@ -5,8 +5,10 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -24,6 +26,7 @@ import net.dutymate.api.domain.ward.Ward;
 import net.dutymate.api.domain.wardmember.Role;
 import net.dutymate.api.domain.wardmember.ShiftType;
 import net.dutymate.api.domain.wardmember.WardMember;
+import net.dutymate.api.domain.wardmember.repository.WardMemberRepository;
 import net.dutymate.api.domain.wardschedules.collections.WardSchedule;
 import net.dutymate.api.domain.wardschedules.dto.AllWardDutyResponseDto;
 import net.dutymate.api.domain.wardschedules.dto.EditDutyRequestDto;
@@ -46,6 +49,7 @@ public class WardScheduleService {
 	private final InitialDutyGenerator initialDutyGenerator;
 	private final UpdateRequestStatuses updateRequestStatuses;
 	private final RequestRepository requestRepository;
+	private final WardMemberRepository wardMemberRepository;
 
 	// 병동 스케줄에서 현재 로그인한 멤버의 듀티 구하기
 	private static String getShifts(Member member, WardSchedule wardSchedule, int daysInMonth) {
@@ -366,34 +370,80 @@ public class WardScheduleService {
 	}
 
 	@Transactional(readOnly = true)
-	public AllWardDutyResponseDto getAllWardDuty(Member member) {
+	public AllWardDutyResponseDto getAllWardDuty(Member member, Integer year, Integer month) {
 		WardMember wardMember = member.getWardMember();
 
-		// 1. 현재 연도와 월 가져오기
-		YearMonth yearMonth = YearMonth.nowYearMonth();
+		// 1. 입력된 연월 가져오기, null이면 현재 연월
+		YearMonth yearMonth = new YearMonth(year, month);
 
 		// 2. 병동 정보 조회
 		WardSchedule wardSchedule = wardScheduleRepository.findByWardIdAndYearAndMonth(
 				wardMember.getWard().getWardId(), yearMonth.year(), yearMonth.month())
 			.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "병동에 해당하는 듀티가 없습니다."));
 
-		// 3. 가장 최신 duty 가져오기
-		WardSchedule.Duty latestSchedule = wardSchedule.getDuties().getLast();
+		// 3. 가장 최신 duty 가져오기 (비어있는 경우 예외 처리)
+		List<WardSchedule.Duty> duties = wardSchedule.getDuties();
+		if (duties.isEmpty()) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "병동에 등록된 듀티 정보가 없습니다.");
+		}
 
-		// 4. NurseShift를 AllNurseShift로 변환
+		WardSchedule.Duty latestSchedule = duties.getLast();
+
+		// 4. 성능 개선: 모든 WardMember를 한 번에 조회 (N+1 문제 해결)
+		List<Long> memberIds = latestSchedule.getDuty().stream()
+			.map(WardSchedule.NurseShift::getMemberId)
+			.toList();
+
+		// Member ID로 WardMember 맵 생성 (최적화)
+		Map<Long, WardMember> wardMemberMap = wardMemberRepository.findByMember_MemberIdIn(memberIds)
+			.stream()
+			.collect(Collectors.toMap(
+				wm -> wm.getMember().getMemberId(),
+				wm -> wm
+			));
+
+		// 5. NurseShift를 AllNurseShift로 변환하고 정렬
 		List<AllWardDutyResponseDto.AllNurseShift> nurseShiftList = latestSchedule.getDuty().stream()
 			.map(nurseShift -> {
-				Member nurse = memberRepository.findById(nurseShift.getMemberId())
-					.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "유효하지 않은 멤버 ID 입니다."));
+				Long memberId = nurseShift.getMemberId();
+				// Member ID로 WardMember 조회 (맵 사용)
+				WardMember nurse = wardMemberMap.get(memberId);
 
-				return AllWardDutyResponseDto.AllNurseShift.of(nurse.getMemberId(), nurse.getName(),
-					nurseShift.getShifts());
+				if (nurse == null) {
+					throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+						"멤버 ID " + memberId + "에 해당하는 병동 멤버 정보가 없습니다.");
+				}
 
-			}).toList();
+				Member nurseMember = nurse.getMember();
+				return AllWardDutyResponseDto.AllNurseShift.of(
+					nurseMember.getMemberId(),
+					nurseMember.getName(),
+					nurseShift.getShifts(),
+					nurseMember.getRole(),
+					nurse.getShiftType(),
+					nurseMember.getGrade()
+				);
+			})
+			.sorted((a, b) -> {
+				// 1. role로 정렬 (HN이 위로)
+				if (a.getRole() == Role.HN && b.getRole() != Role.HN) return -1;
+				if (a.getRole() != Role.HN && b.getRole() == Role.HN) return 1;
+
+				// 2. role이 같은 경우 shiftType으로 정렬 (M > All > N)
+				if (a.getRole() == b.getRole()) {
+					if (a.getShiftType() == ShiftType.M && b.getShiftType() != ShiftType.M) return -1;
+					if (a.getShiftType() != ShiftType.M && b.getShiftType() == ShiftType.M) return 1;
+					if (a.getShiftType() == ShiftType.ALL && b.getShiftType() == ShiftType.N) return -1;
+					if (a.getShiftType() == ShiftType.N && b.getShiftType() == ShiftType.ALL) return 1;
+				}
+
+				// 3. role과 shiftType이 같은 경우 grade로 정렬 (내림차순)
+				return b.getGrade() - a.getGrade();
+			})
+			.toList();
 
 		return AllWardDutyResponseDto.of(wardSchedule.getId(), yearMonth, nurseShiftList);
 	}
-
 	public void resetWardSchedule(Member member, final YearMonth yearMonth) {
 		// 병동멤버와 병동 불러오기
 		WardMember wardMember = Optional.ofNullable(member.getWardMember())

@@ -22,4 +22,6 @@ public interface WardMemberRepository extends JpaRepository<WardMember, Long> {
 
 	Boolean existsByWard(Ward ward);
 
+	List<WardMember> findByMember_MemberIdIn(List<Long> memberIds);
+
 }
