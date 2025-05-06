@@ -21,6 +21,7 @@ import PaymentModal from '@/components/organisms/PaymentModal';
 import ResetDutyConfirmModal from '@/components/organisms/ResetDutyConfirmModal';
 import RuleEditModal from '@/components/organisms/RuleEditModal';
 import SubscriptionSuccessModal from '@/components/organisms/SubscriptionSuccessModal';
+import NurseShortageModal from '@/components/organisms/NurseShortageModal';
 
 import { dutyService, SubscriptionPlan } from '@/services/dutyService';
 import { requestService, WardRequest } from '@/services/requestService';
@@ -697,6 +698,9 @@ const ShiftAdminTable = ({
     setIsAutoGenCountModalOpen(true);
   };
 
+  const [isNurseShortageModalOpen, setIsNurseShortageModalOpen] = useState(false);
+  const [neededNurseCount, setNeededNurseCount] = useState(0);
+
   const executeAutoGenerate = async () => {
     setIsAutoGenCountModalOpen(false);
     try {
@@ -743,10 +747,10 @@ const ShiftAdminTable = ({
             });
             break;
           case 406:
-            // 모든 토스트 메시지 제거
-            const neededNurseCount = error.response.data.neededNurseCount;
-            setNeededNurseCount(neededNurseCount);
-            setIsNurseCountModalOpen(true);
+            // 필요한 간호사 수 설정
+            setNeededNurseCount(error.response.data.neededNurseCount || 0);
+            // 간호사 수 부족 시 확인 모달 표시
+            setIsNurseShortageModalOpen(true);
             break;
           case 405:
             toast.info('모든 조건을 만족하는 최적의 근무표입니다.', {
@@ -768,6 +772,42 @@ const ShiftAdminTable = ({
       }
     } finally {
       setIsAutoCreating(false);
+    }
+  };
+
+  const handleForceAutoGenerate = async () => {
+    try {
+      setIsAutoCreating(true);
+      // 자동생성 중임을 알림
+      const loadingToast = toast.loading('근무표에 마침표를 찍고 있습니다...', {
+        position: 'top-center',
+      });
+
+      // 강제 자동생성 API 호출
+      await dutyService.autoCreateDuty(year, month, true);
+
+      // 화면 갱신
+      await onUpdate(year, month);
+
+      // 성공 알림
+      toast.update(loadingToast, {
+        render: '자동생성에 성공했습니다',
+        type: 'success',
+        isLoading: false,
+        autoClose: 2000,
+        position: 'top-center',
+      });
+
+      // 자동 생성 횟수 감소
+      setAutoGenCnt((prev) => prev - 1);
+    } catch (error) {
+      toast.error('자동생성에 실패했습니다', {
+        position: 'top-center',
+        autoClose: 2000,
+      });
+    } finally {
+      setIsAutoCreating(false);
+      setIsNurseShortageModalOpen(false);
     }
   };
 
@@ -888,8 +928,6 @@ const ShiftAdminTable = ({
   };
 
   const [isNurseCountModalOpen, setIsNurseCountModalOpen] = useState(false);
-  const [neededNurseCount, setNeededNurseCount] = useState(0);
-
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isWeb, setIsWeb] = useState(false);
 
@@ -1935,6 +1973,14 @@ const ShiftAdminTable = ({
         isOpen={isResetDutyConfirmModalOpen}
         onClose={() => setIsResetDutyConfirmModalOpen(false)}
         onConfirm={resetDutyConfirmed}
+      />
+
+      <NurseShortageModal
+        isOpen={isNurseShortageModalOpen}
+        onClose={() => setIsNurseShortageModalOpen(false)}
+        onForceGenerate={handleForceAutoGenerate}
+        neededNurseCount={neededNurseCount}
+        currentNurseCount={nurses.length}
       />
     </div>
   );

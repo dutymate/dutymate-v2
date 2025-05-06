@@ -189,11 +189,12 @@ export const dutyService = {
    * 근무표 자동 생성
    * @param year - 년도
    * @param month - 월
+   * @param force - 강제 자동생성 여부
    */
-  autoCreateDuty: (year: number, month: number) => {
+  autoCreateDuty: (year: number, month: number, force?: boolean) => {
     return axiosInstance
       .get('/duty/auto-create', {
-        params: { year, month },
+        params: { year, month, force },
       })
       .then((response) => {
         return response.data;
