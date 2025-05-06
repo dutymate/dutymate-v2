@@ -94,14 +94,9 @@ const PasswordResetForm = () => {
       setTimer(300); // 5분 타이머 리셋
       toast.success('인증 코드가 발송되었습니다.');
     } catch (error: any) {
-      if (axios.isAxiosError(error)) {
-        const errorMessage =
-          error.response?.data?.message || '인증 코드 발송에 실패했습니다.';
-        toast.error(errorMessage);
-        setError((prev) => ({ ...prev, email: errorMessage }));
-      } else {
-        toast.error('인증 코드 발송에 실패했습니다.');
-      }
+      const errorMessage = error.message || '인증 코드 발송에 실패했습니다.';
+      toast.error(errorMessage);
+      setError((prev) => ({ ...prev, email: errorMessage }));
     } finally {
       setIsSending(false);
     }
