@@ -43,6 +43,9 @@ import net.dutymate.api.domain.member.dto.SignUpRequestDto;
 import net.dutymate.api.domain.member.dto.UpdateEmailVerificationRequestDto;
 import net.dutymate.api.domain.member.repository.MemberRepository;
 import net.dutymate.api.domain.member.util.StringGenerator;
+import net.dutymate.api.domain.request.Request;
+import net.dutymate.api.domain.request.repository.RequestRepository;
+import net.dutymate.api.domain.request.util.DemoRequestGenerator;
 import net.dutymate.api.domain.ward.EnterWaiting;
 import net.dutymate.api.domain.ward.Ward;
 import net.dutymate.api.domain.ward.dto.WardRequestDto;
@@ -91,6 +94,7 @@ public class MemberService {
 	private final WardRepository wardRepository;
 	private final InitialDutyGenerator initialDutyGenerator;
 	private final RedisTemplate<String, String> redisTemplate;
+	private final RequestRepository requestRepository;
 
 	@Value("${kakao.client.id}")
 	private String kakaoClientId;
@@ -709,38 +713,37 @@ public class MemberService {
 		// 5. 새로운 임시간호사 리스트 생성
 		List<Member> newMemberList = new ArrayList<>();
 		List<WardMember> newWardMemberList = new ArrayList<>();
+		List<Request> newRequestList = new ArrayList<>();
+
+		// 현재 년월 기준으로 요청 생성
+		YearMonth currentYearMonth = YearMonth.nowYearMonth();
+
 		for (int tempNurseSeq = 1; tempNurseSeq <= DEMO_TEMP_NURSE_CNT; tempNurseSeq++) {
 			String tempNurseName = "간호사" + tempNurseSeq;
 
-			Member tempMember = Member.builder()
-				.email(TEMP_NURSE_EMAIL)
-				.name(tempNurseName)
-				.password("tempPassword123!!")
-				.grade(1)
-				.role(Role.RN)
-				.gender(Gender.F)
-				.provider(Provider.NONE)
-				.profileImg(addBasicProfileImgUrl())
-				.autoGenCnt(0)
-				.build();
-			WardMember tempWardMember = WardMember.builder()
-				.isSynced(false)
-				.ward(ward)
-				.member(tempMember)
-				.build();
+			Member tempMember = createTempMember(tempNurseName);
+			WardMember tempWardMember = createTempWardMember(ward, tempMember);
+
 			// 5-1. 9번과 10번 간호사는 근무 유형을 Night로 설정
 			if (tempNurseSeq == 9 || tempNurseSeq == 10) {
 				tempWardMember.setShiftType(ShiftType.N);
+				addMemberToLists(tempMember, tempWardMember, ward, newMemberList, newWardMemberList);
+				continue;
 			}
-			newMemberList.add(tempMember);
-			newWardMemberList.add(tempWardMember);
-			ward.addWardMember(tempWardMember);
+
+			// DemoRequestGenerator를 사용하여 요청 생성
+			List<Request> requests = DemoRequestGenerator.generateRequests(tempWardMember, tempNurseSeq,
+				currentYearMonth);
+			newRequestList.addAll(requests);
+
+			addMemberToLists(tempMember, tempWardMember, ward, newMemberList, newWardMemberList);
 		}
 
 		ward.changeTempNurseSeq(DEMO_TEMP_NURSE_CNT);
 		// 6. 임시 간호사 리스트를 RDB에 저장
 		memberRepository.saveAll(newMemberList);
 		wardMemberRepository.saveAll(newWardMemberList);
+		requestRepository.saveAll(newRequestList);
 
 		// 7. 현재 날짜 기준으로  year, month 생성
 		YearMonth yearMonth = YearMonth.nowYearMonth();
@@ -757,6 +760,35 @@ public class MemberService {
 		redisTemplate.opsForValue().set(key, "demo", demoExpiration, TimeUnit.MILLISECONDS);
 
 		return LoginResponseDto.of(newMember, accessToken, true, true, true, true);
+	}
+
+	private Member createTempMember(String tempNurseName) {
+		return Member.builder()
+			.email(TEMP_NURSE_EMAIL)
+			.name(tempNurseName)
+			.password("tempPassword123!!")
+			.grade(1)
+			.role(Role.RN)
+			.gender(Gender.F)
+			.provider(Provider.NONE)
+			.profileImg(addBasicProfileImgUrl())
+			.autoGenCnt(0)
+			.build();
+	}
+
+	private WardMember createTempWardMember(Ward ward, Member tempMember) {
+		return WardMember.builder()
+			.isSynced(false)
+			.ward(ward)
+			.member(tempMember)
+			.build();
+	}
+
+	private void addMemberToLists(Member member, WardMember wardMember, Ward ward,
+		List<Member> memberList, List<WardMember> wardMemberList) {
+		memberList.add(member);
+		wardMemberList.add(wardMember);
+		ward.addWardMember(wardMember);
 	}
 
 	@Transactional

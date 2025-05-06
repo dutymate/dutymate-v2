@@ -174,4 +174,8 @@ public record YearMonth(Integer year, Integer month) {
 		}
 		return weekDaysInMonth;
 	}
+
+	public LocalDate atEndOfMonth() {
+		return LocalDate.of(year, month, 1).withDayOfMonth(daysInMonth());
+	}
 }
