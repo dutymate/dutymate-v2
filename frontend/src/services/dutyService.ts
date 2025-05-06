@@ -45,6 +45,9 @@ export interface WardDuty {
     memberId: number;
     name: string;
     shifts: string;
+    role: 'HN' | 'RN';
+    shiftType: 'M' | 'N' | 'All';
+    grade: number;
   }[];
 }
 
@@ -59,6 +62,8 @@ export interface DutyInfo {
     role: 'HN' | 'RN';
     prevShifts: string;
     shifts: string;
+    shiftType: 'M' | 'N' | 'All';
+    grade: number;
   }[];
   issues: DutyIssue[];
   histories: DutyHistory[];

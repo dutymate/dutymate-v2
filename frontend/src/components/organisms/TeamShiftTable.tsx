@@ -35,7 +35,7 @@ const TeamShiftTable = () => {
   const [wardDuty, setWardDuty] = useState<WardDuty | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isReqModalOpen, setIsReqModalOpen] = useState(false);
-  const [currentDate] = useState(() => {
+  const [currentDate, setCurrentDate] = useState(() => {
     const now = new Date();
     return {
       year: now.getFullYear(),
@@ -45,6 +45,26 @@ const TeamShiftTable = () => {
   const tableRef = useRef<HTMLDivElement>(null);
   const { userInfo } = useUserAuthStore();
   const fetchHolidays = useHolidayStore((state) => state.fetchHolidays);
+
+  const handlePrevMonth = () => {
+    setCurrentDate((prev) => {
+      const newDate = new Date(prev.year, prev.month - 2);
+      return {
+        year: newDate.getFullYear(),
+        month: newDate.getMonth() + 1,
+      };
+    });
+  };
+
+  const handleNextMonth = () => {
+    setCurrentDate((prev) => {
+      const newDate = new Date(prev.year, prev.month);
+      return {
+        year: newDate.getFullYear(),
+        month: newDate.getMonth() + 1,
+      };
+    });
+  };
 
   useEffect(() => {
     const fetchWardDuty = async () => {
@@ -98,15 +118,6 @@ const TeamShiftTable = () => {
     });
   };
 
-  const sortedDuty = wardDuty.duty.sort((a, b) => {
-    // 먼저 role로 정렬 (HN이 위로)
-    if (a.role === 'HN' && b.role !== 'HN') return -1;
-    if (a.role !== 'HN' && b.role === 'HN') return 1;
-
-    // role이 같은 경우 grade로 정렬 (내림차순)
-    return b.grade - a.grade;
-  });
-
   return (
     <div
       ref={tableRef}
@@ -117,9 +128,47 @@ const TeamShiftTable = () => {
           {/* 왼쪽 여백 공간 */}
         </div>
         <div className="flex items-center gap-4 sm:gap-14 mb-4 sm:mb-0">
+          <button
+            onClick={handlePrevMonth}
+            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 19l-7-7 7-7"
+              />
+            </svg>
+          </button>
           <div className="text-[0.9rem] lg:text-lg font-medium whitespace-nowrap">
             {wardDuty.year}년 {wardDuty.month}월
           </div>
+          <button
+            onClick={handleNextMonth}
+            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 5l7 7-7 7"
+              />
+            </svg>
+          </button>
         </div>
         <div className="flex gap-2 w-full sm:w-[11.25rem] justify-center sm:justify-end shrink-0">
           <Button
@@ -221,7 +270,7 @@ const TeamShiftTable = () => {
               </tr>
             </thead>
             <tbody>
-              {sortedDuty.map((member) => (
+              {wardDuty.duty.map((member) => (
                 <tr key={member.memberId}>
                   <td className="pl-1 sm:pl-1.5 lg:pl-2 pr-1 sm:pr-1.5 lg:pr-2 py-1.5 sm:py-2 font-medium border-r border-b border-base-muted text-center sticky left-0 bg-white z-10">
                     <div className="bg-base-muted-30 px-1 sm:px-1.5 lg:px-2 py-1">
