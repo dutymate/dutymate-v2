@@ -24,9 +24,10 @@ public class AutoScheduleController {
 	public ResponseEntity<?> autoCreate(
 		@RequestParam(value = "year", required = false) Integer year,
 		@RequestParam(value = "month", required = false) Integer month,
+		@RequestParam(value = "force", required = false) boolean force,
 		@Auth Member member) {
 
-		return autoScheduleService.generateAutoSchedule(new YearMonth(year, month), member);
+		return autoScheduleService.generateAutoSchedule(new YearMonth(year, month), member, force);
 	}
 
 }

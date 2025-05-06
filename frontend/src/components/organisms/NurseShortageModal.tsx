@@ -32,7 +32,7 @@ const NurseShortageModal = ({
         {/* 헤더 */}
         <div className="flex rounded-t-xl justify-between bg-primary-bg items-center px-[1rem] py-[0.25rem] border-b">
           <h2 className="text-sm font-medium text-primary-dark">
-            간호사 인원이 부족해요.
+            간호사 인원이 부족해요
           </h2>
           <button
             onClick={onClose}
@@ -45,25 +45,22 @@ const NurseShortageModal = ({
         {/* 내용 */}
         <div className="p-4">
           <p className="text-sm text-gray-600 mb-4">
-            현재 모든 인원의 <span className="font-bold">법정 공휴일</span>을 보장할 수 없습니다.
+            현재 모든 인원의 <span className="font-bold">법정 공휴일</span>을
+            보장할 수 없습니다.
             <br />
-            근무를 위해 최소 <span className="font-bold text-primary">{additionalNursesNeeded}명</span>의 간호사가 더 필요합니다.
+            근무를 위해 최소{' '}
+            <span className="font-bold text-primary">
+              {additionalNursesNeeded}명
+            </span>
+            의 간호사가 더 필요합니다.
             <br />
             이대로 자동생성을 진행하시겠습니까?
           </p>
           <div className="flex justify-center gap-6">
-            <Button
-              size="register"
-              color="primary"
-              onClick={handleAddNurse}
-            >
+            <Button size="register" color="primary" onClick={handleAddNurse}>
               인원추가
             </Button>
-            <Button
-              size="register"
-              color="evening"
-              onClick={onForceGenerate}
-            >
+            <Button size="register" color="evening" onClick={onForceGenerate}>
               자동생성
             </Button>
           </div>
@@ -73,4 +70,4 @@ const NurseShortageModal = ({
   );
 };
 
-export default NurseShortageModal; 
+export default NurseShortageModal;

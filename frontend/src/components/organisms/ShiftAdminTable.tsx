@@ -698,7 +698,8 @@ const ShiftAdminTable = ({
     setIsAutoGenCountModalOpen(true);
   };
 
-  const [isNurseShortageModalOpen, setIsNurseShortageModalOpen] = useState(false);
+  const [isNurseShortageModalOpen, setIsNurseShortageModalOpen] =
+    useState(false);
   const [neededNurseCount, setNeededNurseCount] = useState(0);
 
   const executeAutoGenerate = async () => {

@@ -40,7 +40,7 @@ public class AutoScheduleService {
 	private final NurseScheduler nurseScheduler;
 
 	@Transactional
-	public ResponseEntity<?> generateAutoSchedule(YearMonth yearMonth, Member member) {
+	public ResponseEntity<?> generateAutoSchedule(YearMonth yearMonth, Member member, boolean force) {
 		// TODO 자동 생성 횟수 남아있는지 체크
 		Long wardId = member.getWardMember().getWard().getWardId();
 		//전월 달 근무 호출
@@ -83,7 +83,7 @@ public class AutoScheduleService {
 			+ midWardMembers.size();
 
 		if (wardMemberCount
-			< neededNurseCount) {
+			< neededNurseCount && !force) {
 			AutoScheduleNurseCountResponseDto responseDto = new AutoScheduleNurseCountResponseDto(
 				neededNurseCount
 			);
