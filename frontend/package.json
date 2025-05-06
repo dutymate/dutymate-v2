@@ -10,7 +10,8 @@
     "format": "biome format ./src",
     "format:fix": "biome format --write ./src && tsc -b && vite build --mode production",
     "preview": "vite preview",
-    "prepare": "husky"
+    "prepare": "husky",
+    "postinstall": "cd .. && npx husky frontend/.husky"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",

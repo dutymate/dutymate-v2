@@ -1,3 +1,42 @@
 #!/bin/sh
 
-cd frontend && npm run format:fix
+# 현재 디렉토리 저장
+CURRENT_DIR=$(pwd)
+
+# 커밋 대상 파일 중 frontend/ 디렉토리의 파일이 있는지 확인
+FRONTEND_FILES=$(git diff --cached --name-only | grep "^frontend/")
+
+# frontend/ 디렉토리의 파일이 없으면 검사 건너뛰기
+if [ -z "$FRONTEND_FILES" ]; then
+  echo "✅ 프론트엔드 파일이 변경되지 않았습니다. 프론트엔드 검사를 건너뜁니다."
+  exit 0
+fi
+
+echo "🔍 프론트엔드 파일이 변경되었습니다. 검사를 시작합니다."
+
+# frontend 디렉토리로 이동
+cd "$(git rev-parse --show-toplevel)/frontend" || exit 1
+
+echo "🔧 TypeScript 타입 체크 중..."
+npx tsc --noEmit
+TYPECHECK_RESULT=$?
+
+if [ $TYPECHECK_RESULT -ne 0 ]; then
+  echo "❌ TypeScript 오류가 있습니다. 커밋이 중단됩니다."
+  cd "$CURRENT_DIR" || exit 1
+  exit 1
+fi
+
+echo "✅ TypeScript 타입 체크 성공"
+echo "🔧 코드 포맷팅 및 빌드 중..."
+npm run format:fix
+
+FORMAT_RESULT=$?
+if [ $FORMAT_RESULT -ne 0 ]; then
+  echo "❌ 코드 포맷팅 또는 빌드에 실패했습니다. 커밋이 중단됩니다."
+  cd "$CURRENT_DIR" || exit 1
+  exit 1
+fi
+
+echo "✅ 모든 검사 성공! 커밋을 진행합니다."
+cd "$CURRENT_DIR" || exit 1
