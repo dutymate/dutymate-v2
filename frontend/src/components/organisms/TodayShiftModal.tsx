@@ -59,10 +59,16 @@ const TodayShiftModal = ({
   if (!date) return null;
 
   const [activeTab, setActiveTab] = useState<'status' | 'calendar'>('status');
-  const [selectedDutyType, setSelectedDutyType] = useState<'day' | 'off' | 'evening' | 'night' | 'mid'>('day');
+  const [selectedDutyType, setSelectedDutyType] = useState<
+    'day' | 'off' | 'evening' | 'night' | 'mid'
+  >('day');
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
-  const [scheduleModalMode, setScheduleModalMode] = useState<'create'|'view'|'edit'>('create');
-  const [selectedSchedule, setSelectedSchedule] = useState<ScheduleType|null>(null);
+  const [scheduleModalMode, setScheduleModalMode] = useState<
+    'create' | 'view' | 'edit'
+  >('create');
+  const [selectedSchedule, setSelectedSchedule] = useState<ScheduleType | null>(
+    null
+  );
   const [schedules, setSchedules] = useState<ScheduleType[]>([
     {
       id: '1',
@@ -84,7 +90,7 @@ const TodayShiftModal = ({
   const [isColorModalOpen, setIsColorModalOpen] = useState(false);
 
   const dutyTypes = ['day', 'off', 'evening', 'night', 'mid'] as const;
-  type DutyType = typeof dutyTypes[number];
+  type DutyType = (typeof dutyTypes)[number];
   const [dutyColors, setDutyColors] = useState<Record<DutyType, string>>({
     day: 'bg-green-100',
     off: 'bg-gray-100',
@@ -98,26 +104,32 @@ const TodayShiftModal = ({
     setSelectedSchedule(null);
     setIsScheduleModalOpen(true);
   };
-  
+
   const handleScheduleClick = (schedule: ScheduleType) => {
     setScheduleModalMode('view');
     setSelectedSchedule(schedule);
     setIsScheduleModalOpen(true);
   };
-  
+
   const handleSave = (data: Omit<ScheduleType, 'id'>) => {
     if (scheduleModalMode === 'create') {
       setSchedules([...schedules, { ...data, id: Date.now().toString() }]);
     } else if (scheduleModalMode === 'edit' && selectedSchedule) {
-      setSchedules(schedules.map(s => s.id === selectedSchedule.id ? { ...data, id: selectedSchedule.id } : s));
+      setSchedules(
+        schedules.map((s) =>
+          s.id === selectedSchedule.id
+            ? { ...data, id: selectedSchedule.id }
+            : s
+        )
+      );
     }
     setIsScheduleModalOpen(false);
   };
-  
+
   const handleEdit = () => setScheduleModalMode('edit');
   const handleDelete = () => {
     if (selectedSchedule) {
-      setSchedules(schedules.filter(s => s.id !== selectedSchedule.id));
+      setSchedules(schedules.filter((s) => s.id !== selectedSchedule.id));
     }
     setIsScheduleModalOpen(false);
   };
@@ -130,7 +142,9 @@ const TodayShiftModal = ({
     return hour * 60 + minute;
   }
 
-  const sortedSchedules = [...schedules].sort((a, b) => parseTimeString(a.startTime) - parseTimeString(b.startTime));
+  const sortedSchedules = [...schedules].sort(
+    (a, b) => parseTimeString(a.startTime) - parseTimeString(b.startTime)
+  );
 
   const formatMonth = (month: number) => {
     return month < 10 ? `0${month}` : month;
@@ -276,7 +290,12 @@ const TodayShiftModal = ({
                   onClick={() => setSelectedDutyType(type)}
                   className={`rounded-lg focus:outline-none transition-all border-2 px-0.5 py-0.5 ${
                     selectedDutyType === type
-                      ? 'border-duty-' + type + ' shadow-duty-' + type + ' ring-2 ring-duty-' + type
+                      ? 'border-duty-' +
+                        type +
+                        ' shadow-duty-' +
+                        type +
+                        ' ring-2 ring-duty-' +
+                        type
                       : 'border-transparent'
                   }`}
                   style={{ lineHeight: 0 }}
@@ -295,7 +314,12 @@ const TodayShiftModal = ({
                   onClick={() => setSelectedDutyType(type)}
                   className={`rounded-lg focus:outline-none transition-all border-2 px-0.5 py-0.5 ${
                     selectedDutyType === type
-                      ? 'border-duty-' + type + ' shadow-duty-' + type + ' ring-2 ring-duty-' + type
+                      ? 'border-duty-' +
+                        type +
+                        ' shadow-duty-' +
+                        type +
+                        ' ring-2 ring-duty-' +
+                        type
                       : 'border-transparent'
                   }`}
                   style={{ lineHeight: 0 }}
@@ -309,15 +333,19 @@ const TodayShiftModal = ({
           </div>
           {/* 일정 리스트 */}
           <div className="flex flex-col gap-2 flex-1 overflow-y-auto mb-2">
-            {sortedSchedules.map(schedule => (
+            {sortedSchedules.map((schedule) => (
               <div
                 key={schedule.id}
                 className="flex items-start gap-2 cursor-pointer"
                 onClick={() => handleScheduleClick(schedule)}
               >
                 <div className="flex flex-col items-end min-w-[3.5rem]">
-                  <span className="text-xs text-gray-500">{schedule.startTime}</span>
-                  <span className="text-xs text-gray-400">{schedule.endTime}</span>
+                  <span className="text-xs text-gray-500">
+                    {schedule.startTime}
+                  </span>
+                  <span className="text-xs text-gray-400">
+                    {schedule.endTime}
+                  </span>
                 </div>
                 <div className="flex-1 bg-gray-50 rounded-lg px-2 py-1 text-sm font-medium">
                   {schedule.title}
