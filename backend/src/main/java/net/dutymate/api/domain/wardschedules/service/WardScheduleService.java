@@ -426,15 +426,27 @@ public class WardScheduleService {
 			})
 			.sorted((a, b) -> {
 				// 1. role로 정렬 (HN이 위로)
-				if (a.getRole() == Role.HN && b.getRole() != Role.HN) return -1;
-				if (a.getRole() != Role.HN && b.getRole() == Role.HN) return 1;
+				if (a.getRole() == Role.HN && b.getRole() != Role.HN) {
+					return -1;
+				}
+				if (a.getRole() != Role.HN && b.getRole() == Role.HN) {
+					return 1;
+				}
 
 				// 2. role이 같은 경우 shiftType으로 정렬 (M > All > N)
 				if (a.getRole() == b.getRole()) {
-					if (a.getShiftType() == ShiftType.M && b.getShiftType() != ShiftType.M) return -1;
-					if (a.getShiftType() != ShiftType.M && b.getShiftType() == ShiftType.M) return 1;
-					if (a.getShiftType() == ShiftType.ALL && b.getShiftType() == ShiftType.N) return -1;
-					if (a.getShiftType() == ShiftType.N && b.getShiftType() == ShiftType.ALL) return 1;
+					if (a.getShiftType() == ShiftType.M && b.getShiftType() != ShiftType.M) {
+						return -1;
+					}
+					if (a.getShiftType() != ShiftType.M && b.getShiftType() == ShiftType.M) {
+						return 1;
+					}
+					if (a.getShiftType() == ShiftType.ALL && b.getShiftType() == ShiftType.N) {
+						return -1;
+					}
+					if (a.getShiftType() == ShiftType.N && b.getShiftType() == ShiftType.ALL) {
+						return 1;
+					}
 				}
 
 				// 3. role과 shiftType이 같은 경우 grade로 정렬 (내림차순)
@@ -444,6 +456,7 @@ public class WardScheduleService {
 
 		return AllWardDutyResponseDto.of(wardSchedule.getId(), yearMonth, nurseShiftList);
 	}
+
 	public void resetWardSchedule(Member member, final YearMonth yearMonth) {
 		// 병동멤버와 병동 불러오기
 		WardMember wardMember = Optional.ofNullable(member.getWardMember())
