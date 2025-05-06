@@ -88,7 +88,7 @@ function FaultLayer({
         position: 'absolute',
         opacity: total > 1 ? 0.7 : 1, // 여러 개일 경우 약간 투명하게
       }}
-      className={`absolute z-[2] h-8 rounded-lg border-2 border-red-500 bg-red-100/30 transition-opacity duration-200 ${className}`}
+      className={`absolute z-[2] h-[2.5rem] rounded-lg border-2 border-red-500 bg-red-100/30 transition-opacity duration-200 ${className}`}
     >
       {/* 메시지 표시를 위한 점 */}
       <div

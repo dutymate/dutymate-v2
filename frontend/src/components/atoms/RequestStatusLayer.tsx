@@ -74,7 +74,7 @@ function RequestStatusLayer({
         position: 'absolute',
         opacity: 1,
       }}
-      className={`absolute z-[1] h-8 rounded-lg border-2 ${getStatusColor()} transition-opacity duration-200 ${className}`}
+      className={`absolute z-[3] h-[2.5rem] rounded-lg border-2 ${getStatusColor()} transition-opacity duration-200 ${className}`}
     >
       <div
         className={`absolute -top-1 -right-1 w-3 h-3 rounded-full ${getCircleColor()} cursor-help transition-transform hover:scale-125`}

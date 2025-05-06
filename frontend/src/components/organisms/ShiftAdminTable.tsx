@@ -22,6 +22,7 @@ import ResetDutyConfirmModal from '@/components/organisms/ResetDutyConfirmModal'
 import RuleEditModal from '@/components/organisms/RuleEditModal';
 import SubscriptionSuccessModal from '@/components/organisms/SubscriptionSuccessModal';
 import NurseShortageModal from '@/components/organisms/NurseShortageModal';
+import MobileDutyControls from '@/components/molecules/MobileDutyControls';
 
 import { dutyService, SubscriptionPlan } from '@/services/dutyService';
 import { requestService, WardRequest } from '@/services/requestService';
@@ -117,12 +118,12 @@ const DutyCell = memo(
     return (
       <td
         onClick={onClick}
-        className={`p-0 text-center border-r border-gray-200 relative ${highlightClass}`}
+        className={`p-0 text-center border-r border-gray-200 relative min-w-[2.5rem] min-h-[2.5rem] w-[2.5rem] h-[2.5rem] box-content ${highlightClass}`}
         onMouseEnter={onMouseEnter}
         onMouseLeave={onMouseLeave}
       >
         <div
-          className="flex items-center justify-center cursor-pointer relative outline-none"
+          className="flex items-center justify-center cursor-pointer relative outline-none w-full h-full"
           tabIndex={0}
           role="button"
           onClick={onClick}
@@ -156,7 +157,7 @@ const DutyCell = memo(
             />
           )}
           <div className="relative z-[2]">
-            <div className="scale-[0.95]">
+            <div className="scale-[1.1]">
               <DutyBadgeEng
                 type={duty as 'D' | 'E' | 'N' | 'O' | 'X' | 'M'}
                 size="sm"
@@ -172,1819 +173,1908 @@ const DutyCell = memo(
 
 DutyCell.displayName = 'DutyCell';
 
-const ShiftAdminTable = ({
-  dutyData = [],
-  year,
-  month,
-  onUpdate,
-  issues = [],
-}: ShiftAdminTableProps) => {
-  const [isRuleModalOpen, setIsRuleModalOpen] = useState(false);
-  const [isAutoGenerateModalOpen, setIsAutoGenerateModalOpen] = useState(false);
-  const [isLoading] = useState(false);
-  const ruleButtonRef = useRef<HTMLButtonElement>(null);
-  const tableRef = useRef<HTMLDivElement>(null);
+const ShiftAdminTable = memo(
+  ({
+    dutyData = [],
+    year,
+    month,
+    onUpdate,
+    issues = [],
+  }: ShiftAdminTableProps) => {
+    const [isRuleModalOpen, setIsRuleModalOpen] = useState(false);
+    const [isAutoGenerateModalOpen, setIsAutoGenerateModalOpen] =
+      useState(false);
+    const [isLoading] = useState(false);
+    const ruleButtonRef = useRef<HTMLButtonElement>(null);
+    const tableRef = useRef<HTMLDivElement>(null);
 
-  const selectedCell = useShiftStore((state) => state.selectedCell);
-  const setSelectedCell = useShiftStore((state) => state.setSelectedCell);
+    const selectedCell = useShiftStore((state) => state.selectedCell);
+    const setSelectedCell = useShiftStore((state) => state.setSelectedCell);
 
-  const [isAutoGenCountModalOpen, setIsAutoGenCountModalOpen] = useState(false);
-  const [autoGenCnt, setAutoGenCnt] = useState(0);
+    const [isAutoGenCountModalOpen, setIsAutoGenCountModalOpen] =
+      useState(false);
+    const [autoGenCnt, setAutoGenCnt] = useState(0);
 
-  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+    const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
 
-  const [isSubscriptionSuccessModalOpen, setIsSubscriptionSuccessModalOpen] =
-    useState(false);
-  const [currentPlan, setCurrentPlan] = useState<SubscriptionPlan>('monthly');
+    const [isSubscriptionSuccessModalOpen, setIsSubscriptionSuccessModalOpen] =
+      useState(false);
+    const [currentPlan, setCurrentPlan] = useState<SubscriptionPlan>('monthly');
 
-  // Add hover state management at component level
-  const [hoveredCell, setHoveredCell] = useState<{
-    row: number;
-    day: number;
-  } | null>(null);
+    // Add hover state management at component level
+    const [hoveredCell, setHoveredCell] = useState<{
+      row: number;
+      day: number;
+    } | null>(null);
 
-  // 현재 달의 일수 계산을 상단으로 이동
-  const daysInMonth = new Date(year, month, 0).getDate();
+    // 현재 달의 일수 계산을 상단으로 이동
+    const daysInMonth = new Date(year, month, 0).getDate();
 
-  // Memoize heavy calculations
-  const nurses = useMemo(() => dutyData.map((nurse) => nurse.name), [dutyData]);
-
-  // duties 상태 초기화를 단순화
-  const [duties, setDuties] = useState<string[][]>([]);
-
-  // 듀티표 초기화 모달 상태
-  const [isResetDutyConfirmModalOpen, setIsResetDutyConfirmModalOpen] =
-    useState(false);
-
-  // useEffect를 추가하여 dutyData 변경 시 duties 업데이트
-  useEffect(() => {
-    if (!dutyData || !dutyData.length) {
-      setDuties([]);
-      return;
-    }
-
-    setDuties(
-      dutyData.map((nurse) => {
-        if (!nurse.shifts || nurse.shifts.length === 0) {
-          return Array(daysInMonth).fill('X');
-        }
-        return nurse.shifts.split('');
-      })
+    // Memoize heavy calculations
+    const nurses = useMemo(
+      () => dutyData.map((nurse) => nurse.name),
+      [dutyData]
     );
-  }, [dutyData, daysInMonth]);
 
-  const prevShifts = useMemo(
-    () => dutyData.map((nurse) => nurse.prevShifts.split('')),
-    [dutyData]
-  );
+    // duties 상태 초기화를 단순화
+    const [duties, setDuties] = useState<string[][]>([]);
 
-  const [pendingRequests, setPendingRequests] = useState<any[]>([]);
+    // 듀티표 초기화 모달 상태
+    const [isResetDutyConfirmModalOpen, setIsResetDutyConfirmModalOpen] =
+      useState(false);
 
-  const sendBatchRequest = useCallback(
-    debounce(async (requests) => {
-      try {
-        // Start timing the batch request
-        console.time('BatchRequestTime');
-
-        // Send the batched requests to the server
-        await dutyService.updateShiftBatch(requests);
-
-        // Fetch the updated duty data
-        const updatedData = await dutyService.getDuty({ year, month });
-
-        // Update the state with the new data
-        useShiftStore.getState().setDutyInfo(updatedData);
-
-        // Clear the pending requests
-        setPendingRequests([]);
-
-        // End timing after the get request is completed
-        console.timeEnd('BatchRequestTime');
-      } catch (error) {
-        console.error('Failed to update shifts:', error);
-        // Optionally, revert the optimistic update or notify the user
-        toast.error('근무표 수정에 실패했습니다. 다시 시도해주세요.', {
-          position: 'bottom-left',
-          autoClose: 1000,
-        });
-      }
-    }, 1000),
-    [year, month]
-  );
-
-  // 근무 변경을 처리하는 핸들러 함수
-  const handleShiftChange = useCallback(
-    (
-      nurseIndex: number,
-      dayIndex: number,
-      shift: 'D' | 'E' | 'N' | 'O' | 'X' | 'M'
-    ) => {
-      // nurseIndex나 dayIndex가 유효한지 확인
-      if (!duties[nurseIndex] || dayIndex < 0 || dayIndex >= daysInMonth) {
-        console.error('Invalid nurse index or day index');
+    // useEffect를 추가하여 dutyData 변경 시 duties 업데이트
+    useEffect(() => {
+      if (!dutyData || !dutyData.length) {
+        setDuties([]);
         return;
       }
 
-      const nurse = dutyData[nurseIndex];
-      if (!nurse) {
-        console.error('Nurse not found');
-        return;
-      }
+      setDuties(
+        dutyData.map((nurse) => {
+          if (!nurse.shifts || nurse.shifts.length === 0) {
+            return Array(daysInMonth).fill('X');
+          }
+          return nurse.shifts.split('');
+        })
+      );
+    }, [dutyData, daysInMonth]);
 
-      const currentShift = duties[nurseIndex][dayIndex];
+    const prevShifts = useMemo(
+      () => dutyData.map((nurse) => nurse.prevShifts.split('')),
+      [dutyData]
+    );
 
-      // 현재 근무와 동일한 경우 변경하지 않음
-      if (currentShift === shift) return;
+    const [pendingRequests, setPendingRequests] = useState<any[]>([]);
 
-      // UI 즉시 업데이트 (낙관적 업데이트)
-      const updatedDuties = duties.map((nurseShifts, idx) => {
-        if (idx === nurseIndex) {
-          const newShifts = [...nurseShifts];
-          newShifts[dayIndex] = shift;
-          return newShifts;
+    const sendBatchRequest = useCallback(
+      debounce(async (requests) => {
+        try {
+          await dutyService.updateShiftBatch(requests);
+
+          // Fetch the updated duty data
+          const updatedData = await dutyService.getDuty({ year, month });
+
+          // Update the state with the new data
+          useShiftStore.getState().setDutyInfo(updatedData);
+
+          // Clear the pending requests
+          setPendingRequests([]);
+        } catch (error) {
+          console.error('Failed to update shifts:', error);
+          // Optionally, revert the optimistic update or notify the user
+          toast.error('근무표 수정에 실패했습니다. 다시 시도해주세요.', {
+            position: 'bottom-left',
+            autoClose: 1000,
+          });
         }
-        return nurseShifts;
-      });
+      }, 1000),
+      [year, month]
+    );
 
-      setDuties(updatedDuties);
+    // 근무 변경을 처리하는 핸들러 함수
+    const handleShiftChange = useCallback(
+      (
+        nurseIndex: number,
+        dayIndex: number,
+        shift: 'D' | 'E' | 'N' | 'O' | 'X' | 'M'
+      ) => {
+        // nurseIndex나 dayIndex가 유효한지 확인
+        if (!duties[nurseIndex] || dayIndex < 0 || dayIndex >= daysInMonth) {
+          console.error('Invalid nurse index or day index');
+          return;
+        }
 
-      // 서버 요청 준비
-      const request = {
+        const nurse = dutyData[nurseIndex];
+        if (!nurse) {
+          console.error('Nurse not found');
+          return;
+        }
+
+        const currentShift = duties[nurseIndex][dayIndex];
+
+        // 현재 근무와 동일한 경우 변경하지 않음
+        if (currentShift === shift) return;
+
+        // UI 즉시 업데이트 (낙관적 업데이트)
+        const updatedDuties = duties.map((nurseShifts, idx) => {
+          if (idx === nurseIndex) {
+            const newShifts = [...nurseShifts];
+            newShifts[dayIndex] = shift;
+            return newShifts;
+          }
+          return nurseShifts;
+        });
+
+        setDuties(updatedDuties);
+
+        // 서버 요청 준비
+        const request = {
+          year,
+          month,
+          history: {
+            memberId: nurse.memberId,
+            name: nurse.name,
+            before: currentShift,
+            after: shift,
+            modifiedDay: dayIndex + 1,
+            isAutoCreated: false,
+          },
+        };
+
+        // 대기 중인 요청 목록에 새로운 요청 추가
+        setPendingRequests((prevRequests) => [...prevRequests, request]);
+
+        // 디바운스된 일괄 처리 함수 호출
+        sendBatchRequest([...pendingRequests, request]);
+      },
+      [
+        dutyData,
         year,
         month,
-        history: {
-          memberId: nurse.memberId,
-          name: nurse.name,
-          before: currentShift,
-          after: shift,
-          modifiedDay: dayIndex + 1,
-          isAutoCreated: false,
-        },
-      };
+        pendingRequests,
+        sendBatchRequest,
+        duties,
+        daysInMonth,
+      ]
+    );
 
-      // 대기 중인 요청 목록에 새로운 요청 추가
-      setPendingRequests((prevRequests) => [...prevRequests, request]);
+    // 키보드 이벤트 핸들러
+    useEffect(() => {
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (!selectedCell) return;
+        const { row, col } = selectedCell;
 
-      // 디바운스된 일괄 처리 함수 호출
-      sendBatchRequest([...pendingRequests, request]);
-    },
-    [
-      dutyData,
-      year,
-      month,
-      pendingRequests,
-      sendBatchRequest,
-      duties,
-      daysInMonth,
-    ]
-  );
+        // 방향키 및 삭제 키 처리
+        if (!e.repeat) {
+          // 키를 꾹 누르고 있을 때는 무시
+          switch (e.key) {
+            case 'ArrowRight':
+              e.preventDefault(); // 스크롤 방지
+              if (col < daysInMonth - 1) {
+                setSelectedCell({ row, col: col + 1 });
+              } else if (row < nurses.length - 1) {
+                setSelectedCell({ row: row + 1, col: 0 });
+              }
+              break;
+            case 'ArrowLeft':
+              e.preventDefault(); // 스크롤 방지
+              if (col > 0) {
+                setSelectedCell({ row, col: col - 1 });
+              } else if (row > 0) {
+                setSelectedCell({ row: row - 1, col: daysInMonth - 1 });
+              }
+              break;
+            case 'ArrowUp':
+              e.preventDefault(); // 스크롤 방지
+              if (row > 0) {
+                setSelectedCell({ row: row - 1, col });
+              }
+              break;
+            case 'ArrowDown':
+              e.preventDefault(); // 스크롤 방지
+              if (row < nurses.length - 1) {
+                setSelectedCell({ row: row + 1, col });
+              }
+              break;
+            case 'Delete':
+              handleShiftChange(row, col, 'X');
+              break;
+            case 'Backspace':
+              handleShiftChange(row, col, 'X');
+              if (col > 0) {
+                setSelectedCell({ row, col: col - 1 });
+              } else if (row > 0) {
+                setSelectedCell({ row: row - 1, col: daysInMonth - 1 });
+              }
+              break;
+          }
+        }
 
-  // 키보드 이벤트 핸들러
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (!selectedCell) return;
-      const { row, col } = selectedCell;
+        // 근무 입력 키 처리 (한/영 모두 지원)
+        if (!e.repeat && col >= 0 && col < daysInMonth) {
+          const key = e.key.toUpperCase();
+          const validKeys = [
+            'D',
+            'E',
+            'N',
+            'O',
+            'X',
+            'ㅇ',
+            'ㄷ',
+            'ㅜ',
+            'ㅐ',
+            'ㅌ',
+            'M',
+            'ㅡ',
+          ];
+          const keyMap: { [key: string]: 'D' | 'E' | 'N' | 'O' | 'X' | 'M' } = {
+            ㅇ: 'D',
+            ㄷ: 'E',
+            ㅜ: 'N',
+            ㅐ: 'O',
+            ㅌ: 'X',
+            ㅡ: 'M',
+          };
 
-      // 방향키 및 삭제 키 처리
-      if (!e.repeat) {
-        // 키를 꾹 누르고 있을 때는 무시
-        switch (e.key) {
-          case 'ArrowRight':
-            e.preventDefault(); // 스크롤 방지
+          if (validKeys.includes(key)) {
+            const shiftKey = keyMap[key] || key;
+            handleShiftChange(
+              row,
+              col,
+              shiftKey as 'D' | 'E' | 'N' | 'O' | 'X' | 'M'
+            );
+
             if (col < daysInMonth - 1) {
               setSelectedCell({ row, col: col + 1 });
             } else if (row < nurses.length - 1) {
               setSelectedCell({ row: row + 1, col: 0 });
             }
-            break;
-          case 'ArrowLeft':
-            e.preventDefault(); // 스크롤 방지
-            if (col > 0) {
-              setSelectedCell({ row, col: col - 1 });
-            } else if (row > 0) {
-              setSelectedCell({ row: row - 1, col: daysInMonth - 1 });
-            }
-            break;
-          case 'ArrowUp':
-            e.preventDefault(); // 스크롤 방지
-            if (row > 0) {
-              setSelectedCell({ row: row - 1, col });
-            }
-            break;
-          case 'ArrowDown':
-            e.preventDefault(); // 스크롤 방지
-            if (row < nurses.length - 1) {
-              setSelectedCell({ row: row + 1, col });
-            }
-            break;
-          case 'Delete':
-            handleShiftChange(row, col, 'X');
-            break;
-          case 'Backspace':
-            handleShiftChange(row, col, 'X');
-            if (col > 0) {
-              setSelectedCell({ row, col: col - 1 });
-            } else if (row > 0) {
-              setSelectedCell({ row: row - 1, col: daysInMonth - 1 });
-            }
-            break;
+          }
         }
+      };
+
+      window.addEventListener('keydown', handleKeyDown);
+
+      return () => {
+        window.removeEventListener('keydown', handleKeyDown);
+      };
+    }, [selectedCell, nurses.length, daysInMonth, handleShiftChange]);
+
+    // 셀 클릭 핸들러 (선택만 하고 변경은 하지 않음)
+    const handleCellClick = (row: number, col: number) => {
+      setSelectedCell({ row, col });
+    };
+
+    // 이전 달로 이동
+    const handlePrevMonth = () => {
+      const newYear = month === 1 ? year - 1 : year;
+      const newMonth = month === 1 ? 12 : month - 1;
+
+      // URL 업데이트 및 페이지 새로고침
+      window.location.href = `/shift-admin?year=${newYear}&month=${newMonth}`;
+    };
+
+    // 다음 달로 이동
+    const handleNextMonth = () => {
+      const maxAllowed = getMaxAllowedMonth();
+
+      // Calculate next month
+      const nextMonth = month === 12 ? 1 : month + 1;
+      const nextYear = month === 12 ? year + 1 : year;
+
+      // Check if next month exceeds the limit
+      if (
+        nextYear > maxAllowed.year ||
+        (nextYear === maxAllowed.year && nextMonth > maxAllowed.month)
+      ) {
+        toast.warning('다음 달까지만 조회할 수 있습니다.', {
+          position: 'top-center',
+          autoClose: 2000,
+        });
+        return;
       }
 
-      // 근무 입력 키 처리 (한/영 모두 지원)
-      if (!e.repeat && col >= 0 && col < daysInMonth) {
-        const key = e.key.toUpperCase();
-        const validKeys = [
-          'D',
-          'E',
-          'N',
-          'O',
-          'X',
-          'ㅇ',
-          'ㄷ',
-          'ㅜ',
-          'ㅐ',
-          'ㅌ',
-          'M',
-          'ㅡ',
-        ];
-        const keyMap: { [key: string]: 'D' | 'E' | 'N' | 'O' | 'X' | 'M' } = {
-          ㅇ: 'D',
-          ㄷ: 'E',
-          ㅜ: 'N',
-          ㅐ: 'O',
-          ㅌ: 'X',
-          ㅡ: 'M',
+      // URL 업데이트 및 페이지 새로고침
+      window.location.href = `/shift-admin?year=${nextYear}&month=${nextMonth}`;
+    };
+
+    // Memoize duty counts calculation
+    const dutyCounts = useMemo(() => {
+      return Array.from({ length: 31 }, (_, dayIndex) => {
+        const counts: DutyCounts = {
+          D: 0,
+          M: 0,
+          E: 0,
+          N: 0,
+          O: 0,
+          total: 0,
         };
 
-        if (validKeys.includes(key)) {
-          const shiftKey = keyMap[key] || key;
-          handleShiftChange(
-            row,
-            col,
-            shiftKey as 'D' | 'E' | 'N' | 'O' | 'X' | 'M'
-          );
-
-          if (col < daysInMonth - 1) {
-            setSelectedCell({ row, col: col + 1 });
-          } else if (row < nurses.length - 1) {
-            setSelectedCell({ row: row + 1, col: 0 });
-          }
-        }
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [selectedCell, nurses.length, daysInMonth, handleShiftChange]);
-
-  // 셀 클릭 핸들러 (선택만 하고 변경은 하지 않음)
-  const handleCellClick = (row: number, col: number) => {
-    setSelectedCell({ row, col });
-  };
-
-  // 이전 달로 이동
-  const handlePrevMonth = () => {
-    const newYear = month === 1 ? year - 1 : year;
-    const newMonth = month === 1 ? 12 : month - 1;
-
-    // URL 업데이트 및 페이지 새로고침
-    window.location.href = `/shift-admin?year=${newYear}&month=${newMonth}`;
-  };
-
-  // 다음 달로 이동
-  const handleNextMonth = () => {
-    const maxAllowed = getMaxAllowedMonth();
-
-    // Calculate next month
-    const nextMonth = month === 12 ? 1 : month + 1;
-    const nextYear = month === 12 ? year + 1 : year;
-
-    // Check if next month exceeds the limit
-    if (
-      nextYear > maxAllowed.year ||
-      (nextYear === maxAllowed.year && nextMonth > maxAllowed.month)
-    ) {
-      toast.warning('다음 달까지만 조회할 수 있습니다.', {
-        position: 'top-center',
-        autoClose: 2000,
-      });
-      return;
-    }
-
-    // URL 업데이트 및 페이지 새로고침
-    window.location.href = `/shift-admin?year=${nextYear}&month=${nextMonth}`;
-  };
-
-  // Memoize duty counts calculation
-  const dutyCounts = useMemo(() => {
-    return Array.from({ length: 31 }, (_, dayIndex) => {
-      const counts: DutyCounts = {
-        D: 0,
-        M: 0,
-        E: 0,
-        N: 0,
-        O: 0,
-        total: 0,
-      };
-
-      duties.forEach((nurseShifts: string[]) => {
-        const shift = nurseShifts[dayIndex];
-        if (shift && isValidDuty(shift)) {
-          counts[shift]++;
-          counts.total!++;
-        }
-      });
-
-      return counts;
-    });
-  }, [duties]);
-
-  // Update nurse duty counts calculation with proper types
-  const nurseDutyCounts = useMemo(() => {
-    if (!duties || !duties.length) return [];
-
-    return duties.map((nurseShifts: string[] = []) => {
-      const counts: Omit<DutyCounts, 'total'> = {
-        D: 0,
-        M: 0,
-        E: 0,
-        N: 0,
-        O: 0,
-      };
-
-      if (nurseShifts) {
-        nurseShifts.forEach((shift: string) => {
+        duties.forEach((nurseShifts: string[]) => {
+          const shift = nurseShifts[dayIndex];
           if (shift && isValidDuty(shift)) {
             counts[shift]++;
+            counts.total!++;
           }
         });
+
+        return counts;
+      });
+    }, [duties]);
+
+    // Update nurse duty counts calculation with proper types
+    const nurseDutyCounts = useMemo(() => {
+      if (!duties || !duties.length) return [];
+
+      return duties.map((nurseShifts: string[] = []) => {
+        const counts: Omit<DutyCounts, 'total'> = {
+          D: 0,
+          M: 0,
+          E: 0,
+          N: 0,
+          O: 0,
+        };
+
+        if (nurseShifts) {
+          nurseShifts.forEach((shift: string) => {
+            if (shift && isValidDuty(shift)) {
+              counts[shift]++;
+            }
+          });
+        }
+
+        return counts;
+      });
+    }, [duties]);
+
+    // 주말 체크 헬퍼 함수들
+    const isSaturdayDay = (day: number): boolean => {
+      return isSaturday(year, month, day);
+    };
+
+    const isSundayDay = (day: number): boolean => {
+      return isSunday(year, month, day);
+    };
+
+    // 주말 스타일 결정 함수
+    const getWeekendStyle = (day: number): string => {
+      if (isHoliday(year, month, day) || isSundayDay(day))
+        return 'text-red-500';
+      if (isSaturdayDay(day)) return 'text-blue-500';
+      return '';
+    };
+
+    // 셀 하이라이트 로직
+    const isHighlighted = (row: number, col: number) => {
+      if (!selectedCell) return '';
+
+      const baseHighlight = 'transition-all duration-100';
+
+      // 선택된 셀 자체의 하이라이트
+      if (row === selectedCell.row && col === selectedCell.col) {
+        return `${baseHighlight} bg-duty-off-bg ring-2 ring-primary ring-offset-1 z-[0]`;
       }
 
-      return counts;
-    });
-  }, [duties]);
+      // 같은 행 하이라이트 (이름과 이전 근무 포함)
+      if (row === selectedCell.row) {
+        // 이름 열
+        if (col === -2) return `${baseHighlight} bg-duty-off-bg rounded-l-lg`;
+        // 이전 근무 열
+        if (col === -1) return `${baseHighlight} bg-duty-off-bg`;
+        // 일반 근무 열
+        if (col >= 0 && col < 31) {
+          if (col === 0) return `${baseHighlight} bg-duty-off-bg`;
+          return `${baseHighlight} bg-duty-off-bg`;
+        }
+        // 통계 열
+        if (col >= 31) {
+          if (col === 34) return `${baseHighlight} bg-duty-off-bg rounded-r-lg`;
+          return `${baseHighlight} bg-duty-off-bg`;
+        }
+      }
 
-  // 주말 체크 헬퍼 함수들
-  const isSaturdayDay = (day: number): boolean => {
-    return isSaturday(year, month, day);
-  };
-
-  const isSundayDay = (day: number): boolean => {
-    return isSunday(year, month, day);
-  };
-
-  // 주말 스타일 결정 함수
-  const getWeekendStyle = (day: number): string => {
-    if (isHoliday(year, month, day) || isSundayDay(day)) return 'text-red-500';
-    if (isSaturdayDay(day)) return 'text-blue-500';
-    return '';
-  };
-
-  // 셀 하이라이트 로직
-  const isHighlighted = (row: number, col: number) => {
-    if (!selectedCell) return '';
-
-    const baseHighlight = 'transition-all duration-100';
-
-    // 선택된 셀 자체의 하이라이트
-    if (row === selectedCell.row && col === selectedCell.col) {
-      return `${baseHighlight} bg-duty-off-bg ring-2 ring-primary ring-offset-2 z-[0]`;
-    }
-
-    // 같은 행 하이라이트 (이름과 이전 근무 포함)
-    if (row === selectedCell.row) {
-      // 이름 열
-      if (col === -2) return `${baseHighlight} bg-duty-off-bg rounded-l-lg`;
-      // 이전 근무 열
-      if (col === -1) return `${baseHighlight} bg-duty-off-bg`;
-      // 일반 근무 열
-      if (col >= 0 && col < 31) {
-        if (col === 0) return `${baseHighlight} bg-duty-off-bg`;
+      // 같은 열 하이라이트
+      if (selectedCell.col === col) {
+        if (row === 0) return `${baseHighlight} bg-duty-off-bg rounded-t-lg`;
+        if (row === nurses.length - 1) return `${baseHighlight} bg-duty-off-bg`;
         return `${baseHighlight} bg-duty-off-bg`;
       }
-      // 통계 열
-      if (col >= 31) {
-        if (col === 34) return `${baseHighlight} bg-duty-off-bg rounded-r-lg`;
-        return `${baseHighlight} bg-duty-off-bg`;
+
+      return '';
+    };
+
+    // Memoize progress calculation
+    const progress = useMemo(() => {
+      const totalCells = nurses.length * daysInMonth;
+      const filledCells = duties.reduce(
+        (acc: number, nurseRow: string[]) =>
+          acc + nurseRow.filter((duty: string) => duty !== 'X').length,
+        0
+      );
+
+      const issueCnt = issues.reduce((acc: number, issue) => {
+        return acc + (issue.endDate - issue.startDate + 1);
+      }, 0);
+
+      const progress = ((filledCells - issueCnt) / totalCells) * 100;
+      return Math.max(0, Math.round(progress));
+    }, [nurses.length, daysInMonth, duties, issues]);
+
+    // Add a state to track if auto-create is in progress
+    const [isAutoCreating, setIsAutoCreating] = useState(false);
+
+    // 모든 셀이 X인지 확인하는 함수
+    const isAllCellsEmpty = useMemo(() => {
+      return duties.every((nurseShifts) =>
+        nurseShifts.every((shift) => shift === 'X' || !shift)
+      );
+    }, [duties]);
+
+    // Modify handleResetDuty to prevent full page reload
+    const handleResetDuty = async () => {
+      // 모든 셀이 이미 X인 경우
+      if (isAllCellsEmpty) {
+        toast.warning('이미 초기화되었습니다.', {
+          position: 'top-center',
+          autoClose: 1000,
+        });
+        return;
       }
-    }
 
-    // 같은 열 하이라이트
-    if (selectedCell.col === col) {
-      if (row === 0) return `${baseHighlight} bg-duty-off-bg rounded-t-lg`;
-      if (row === nurses.length - 1) return `${baseHighlight} bg-duty-off-bg`;
-      return `${baseHighlight} bg-duty-off-bg`;
-    }
+      setIsResetDutyConfirmModalOpen(true);
+    };
 
-    return '';
-  };
+    const resetDutyConfirmed = async () => {
+      try {
+        const data = await dutyService.resetDuty(year, month);
+        useShiftStore.getState().setDutyInfo(data);
 
-  // Memoize progress calculation
-  const progress = useMemo(() => {
-    const totalCells = nurses.length * daysInMonth;
-    const filledCells = duties.reduce(
-      (acc: number, nurseRow: string[]) =>
-        acc + nurseRow.filter((duty: string) => duty !== 'X').length,
-      0
-    );
+        await onUpdate(year, month);
 
-    const issueCnt = issues.reduce((acc: number, issue) => {
-      return acc + (issue.endDate - issue.startDate + 1);
-    }, 0);
+        toast.success('초기화되었습니다.', {
+          autoClose: 1000,
+        });
+      } catch (error) {
+        toast.error('초기화에 실패하였습니다.', {
+          autoClose: 2000,
+        });
+      } finally {
+        setIsResetDutyConfirmModalOpen(false);
+      }
+    };
 
-    const progress = ((filledCells - issueCnt) / totalCells) * 100;
-    return Math.max(0, Math.round(progress));
-  }, [nurses.length, daysInMonth, duties, issues]);
+    const navigate = useNavigate();
+    const [isDemoSignupModalOpen, setIsDemoSignupModalOpen] = useState(false);
+    const { userInfo } = useUserAuthStore();
+    const isDemo = userInfo?.isDemo;
+    const [demoTimeLeft, setDemoTimeLeft] = useState(0);
 
-  // Add a state to track if auto-create is in progress
-  const [isAutoCreating, setIsAutoCreating] = useState(false);
+    const handleAutoCreate = async () => {
+      if (isAutoCreating) {
+        toast.warning('이미 자동생성 중입니다.', {
+          position: 'top-center',
+          autoClose: 2000,
+        });
+        return;
+      }
 
-  // 모든 셀이 X인지 확인하는 함수
-  const isAllCellsEmpty = useMemo(() => {
-    return duties.every((nurseShifts) =>
-      nurseShifts.every((shift) => shift === 'X' || !shift)
-    );
-  }, [duties]);
+      try {
+        // 규칙 정보 먼저 가져오기
+        const rules = await ruleService.getWardRules();
+        setWardRules(rules);
+        setIsFromAutoGenerate(true);
 
-  // Modify handleResetDuty to prevent full page reload
-  const handleResetDuty = async () => {
-    // 모든 셀이 이미 X인 경우
-    if (isAllCellsEmpty) {
-      toast.warning('이미 초기화되었습니다.', {
-        position: 'top-center',
-        autoClose: 1000,
-      });
-      return;
-    }
+        // DEMO: autogenCnt 0 & demo 계정이면 회원가입 유도 모달
+        if (autoGenCnt <= 0 && isDemo) {
+          // 남은 데모 시간 계산 (DemoTimer와 동일 로직)
+          const startTime = sessionStorage.getItem('demo-start-time');
+          if (startTime) {
+            const startTimestamp = parseInt(startTime, 10);
+            const now = Date.now();
+            const elapsedSeconds = Math.floor((now - startTimestamp) / 1000);
+            const remaining = 60 * 10 - elapsedSeconds;
+            setDemoTimeLeft(Math.max(0, remaining));
+          } else {
+            setDemoTimeLeft(0);
+          }
+          setIsDemoSignupModalOpen(true);
+          return;
+        }
 
-    setIsResetDutyConfirmModalOpen(true);
-  };
+        // 자동 생성 횟수가 0 이하인 경우 결제 모달로 이동
+        if (autoGenCnt <= 0) {
+          setIsPaymentModalOpen(true);
+          return;
+        }
 
-  const resetDutyConfirmed = async () => {
-    try {
-      const data = await dutyService.resetDuty(year, month);
-      useShiftStore.getState().setDutyInfo(data);
+        setIsAutoGenerateModalOpen(true);
+      } catch (error) {
+        toast.error('규칙을 불러오는데 실패했습니다');
+      }
+    };
 
-      await onUpdate(year, month);
+    const handleAutoGenerateConfirm = () => {
+      setIsAutoGenerateModalOpen(false);
+      setIsAutoGenCountModalOpen(true);
+    };
 
-      toast.success('초기화되었습니다.', {
-        autoClose: 1000,
-      });
-    } catch (error) {
-      toast.error('초기화에 실패하였습니다.', {
-        autoClose: 2000,
-      });
-    } finally {
-      setIsResetDutyConfirmModalOpen(false);
-    }
-  };
+    const [isNurseShortageModalOpen, setIsNurseShortageModalOpen] =
+      useState(false);
+    const [neededNurseCount, setNeededNurseCount] = useState(0);
 
-  const navigate = useNavigate();
-  const [isDemoSignupModalOpen, setIsDemoSignupModalOpen] = useState(false);
-  const { userInfo } = useUserAuthStore();
-  const isDemo = userInfo?.isDemo;
-  const [demoTimeLeft, setDemoTimeLeft] = useState(0);
+    const executeAutoGenerate = async () => {
+      setIsAutoGenCountModalOpen(false);
+      try {
+        setIsAutoCreating(true);
+        // 자동생성 중임을 알림
+        const loadingToast = toast.loading(
+          '근무표에 마침표를 찍고 있습니다...',
+          {
+            position: 'top-center',
+          }
+        );
 
-  const handleAutoCreate = async () => {
-    if (isAutoCreating) {
-      toast.warning('이미 자동생성 중입니다.', {
-        position: 'top-center',
-        autoClose: 2000,
-      });
-      return;
-    }
+        // API 호출
+        await dutyService.autoCreateDuty(year, month);
 
-    try {
-      // 규칙 정보 먼저 가져오기
-      const rules = await ruleService.getWardRules();
-      setWardRules(rules);
-      setIsFromAutoGenerate(true);
+        // 화면 갱신
+        await onUpdate(year, month);
 
-      // DEMO: autogenCnt 0 & demo 계정이면 회원가입 유도 모달
-      if (autoGenCnt <= 0 && isDemo) {
-        // 남은 데모 시간 계산 (DemoTimer와 동일 로직)
-        const startTime = sessionStorage.getItem('demo-start-time');
-        if (startTime) {
-          const startTimestamp = parseInt(startTime, 10);
-          const now = Date.now();
-          const elapsedSeconds = Math.floor((now - startTimestamp) / 1000);
-          const remaining = 60 * 10 - elapsedSeconds;
-          setDemoTimeLeft(Math.max(0, remaining));
+        // 성공 알림
+        toast.update(loadingToast, {
+          render: '자동생성에 성공했습니다',
+          type: 'success',
+          isLoading: false,
+          autoClose: 2000,
+          position: 'top-center',
+        });
+
+        // 자동 생성 횟수 감소
+        setAutoGenCnt((prev) => prev - 1);
+      } catch (error: any) {
+        // 로딩 토스트 제거
+        toast.dismiss();
+
+        if (error.response) {
+          switch (error.response.status) {
+            case 401:
+              toast.error('로그인이 필요합니다.', {
+                position: 'top-center',
+                autoClose: 2000,
+              });
+              window.location.href = '/login';
+              break;
+            case 400:
+              toast.error('근무 일정을 찾을 수 없습니다.', {
+                position: 'top-center',
+                autoClose: 2000,
+              });
+              break;
+            case 406:
+              // 필요한 간호사 수 설정
+              setNeededNurseCount(error.response.data.neededNurseCount || 0);
+              // 간호사 수 부족 시 확인 모달 표시
+              setIsNurseShortageModalOpen(true);
+              break;
+            case 405:
+              toast.info('모든 조건을 만족하는 최적의 근무표입니다.', {
+                position: 'top-center',
+                autoClose: 2000,
+              });
+              break;
+            default:
+              toast.error('자동생성에 실패했습니다', {
+                position: 'top-center',
+                autoClose: 2000,
+              });
+          }
         } else {
-          setDemoTimeLeft(0);
+          toast.error('자동생성에 실패했습니다', {
+            position: 'top-center',
+            autoClose: 2000,
+          });
         }
-        setIsDemoSignupModalOpen(true);
-        return;
+      } finally {
+        setIsAutoCreating(false);
       }
+    };
 
-      // 자동 생성 횟수가 0 이하인 경우 결제 모달로 이동
-      if (autoGenCnt <= 0) {
-        setIsPaymentModalOpen(true);
-        return;
-      }
+    const handleForceAutoGenerate = async () => {
+      try {
+        setIsAutoCreating(true);
+        // 자동생성 중임을 알림
+        const loadingToast = toast.loading(
+          '근무표에 마침표를 찍고 있습니다...',
+          {
+            position: 'top-center',
+          }
+        );
 
-      setIsAutoGenerateModalOpen(true);
-    } catch (error) {
-      toast.error('규칙을 불러오는데 실패했습니다');
-    }
-  };
+        // 강제 자동생성 API 호출
+        await dutyService.autoCreateDuty(year, month, true);
 
-  const handleAutoGenerateConfirm = () => {
-    setIsAutoGenerateModalOpen(false);
-    setIsAutoGenCountModalOpen(true);
-  };
+        // 화면 갱신
+        await onUpdate(year, month);
 
-  const [isNurseShortageModalOpen, setIsNurseShortageModalOpen] =
-    useState(false);
-  const [neededNurseCount, setNeededNurseCount] = useState(0);
+        // 성공 알림
+        toast.update(loadingToast, {
+          render: '자동생성에 성공했습니다',
+          type: 'success',
+          isLoading: false,
+          autoClose: 2000,
+          position: 'top-center',
+        });
 
-  const executeAutoGenerate = async () => {
-    setIsAutoGenCountModalOpen(false);
-    try {
-      setIsAutoCreating(true);
-      // 자동생성 중임을 알림
-      const loadingToast = toast.loading('근무표에 마침표를 찍고 있습니다...', {
-        position: 'top-center',
-      });
-
-      // API 호출
-      await dutyService.autoCreateDuty(year, month);
-
-      // 화면 갱신
-      await onUpdate(year, month);
-
-      // 성공 알림
-      toast.update(loadingToast, {
-        render: '자동생성에 성공했습니다',
-        type: 'success',
-        isLoading: false,
-        autoClose: 2000,
-        position: 'top-center',
-      });
-
-      // 자동 생성 횟수 감소
-      setAutoGenCnt((prev) => prev - 1);
-    } catch (error: any) {
-      // 로딩 토스트 제거
-      toast.dismiss();
-
-      if (error.response) {
-        switch (error.response.status) {
-          case 401:
-            toast.error('로그인이 필요합니다.', {
-              position: 'top-center',
-              autoClose: 2000,
-            });
-            window.location.href = '/login';
-            break;
-          case 400:
-            toast.error('근무 일정을 찾을 수 없습니다.', {
-              position: 'top-center',
-              autoClose: 2000,
-            });
-            break;
-          case 406:
-            // 필요한 간호사 수 설정
-            setNeededNurseCount(error.response.data.neededNurseCount || 0);
-            // 간호사 수 부족 시 확인 모달 표시
-            setIsNurseShortageModalOpen(true);
-            break;
-          case 405:
-            toast.info('모든 조건을 만족하는 최적의 근무표입니다.', {
-              position: 'top-center',
-              autoClose: 2000,
-            });
-            break;
-          default:
-            toast.error('자동생성에 실패했습니다', {
-              position: 'top-center',
-              autoClose: 2000,
-            });
-        }
-      } else {
+        // 자동 생성 횟수 감소
+        setAutoGenCnt((prev) => prev - 1);
+      } catch (error) {
         toast.error('자동생성에 실패했습니다', {
           position: 'top-center',
           autoClose: 2000,
         });
-      }
-    } finally {
-      setIsAutoCreating(false);
-    }
-  };
-
-  const handleForceAutoGenerate = async () => {
-    try {
-      setIsAutoCreating(true);
-      // 자동생성 중임을 알림
-      const loadingToast = toast.loading('근무표에 마침표를 찍고 있습니다...', {
-        position: 'top-center',
-      });
-
-      // 강제 자동생성 API 호출
-      await dutyService.autoCreateDuty(year, month, true);
-
-      // 화면 갱신
-      await onUpdate(year, month);
-
-      // 성공 알림
-      toast.update(loadingToast, {
-        render: '자동생성에 성공했습니다',
-        type: 'success',
-        isLoading: false,
-        autoClose: 2000,
-        position: 'top-center',
-      });
-
-      // 자동 생성 횟수 감소
-      setAutoGenCnt((prev) => prev - 1);
-    } catch (error) {
-      toast.error('자동생성에 실패했습니다', {
-        position: 'top-center',
-        autoClose: 2000,
-      });
-    } finally {
-      setIsAutoCreating(false);
-      setIsNurseShortageModalOpen(false);
-    }
-  };
-
-  const handleSubscribe = async (plan: SubscriptionPlan) => {
-    try {
-      // 결제 API 호출
-      const response = await dutyService.subscribe();
-
-      // 모달 닫기 및 자동 생성 횟수 갱신
-      setIsPaymentModalOpen(false);
-
-      // 응답에서 자동 생성 횟수 사용
-      if (response && response.addNum !== undefined) {
-        setAutoGenCnt(response.addNum);
-      } else {
-        // 응답에 횟수가 없는 경우 플랜에 따라 기본값 설정
-        const defaultCounts = {
-          monthly: 100,
-          quarterly: 100,
-          yearly: 100,
-        };
-        setAutoGenCnt(defaultCounts[plan]);
-      }
-
-      // 현재 선택된 플랜 저장
-      setCurrentPlan(plan);
-
-      // 수정된 부분: 자동 생성 모달 대신 구독 성공 모달 표시
-      setIsSubscriptionSuccessModalOpen(true);
-    } catch (error) {
-      setIsPaymentModalOpen(false);
-    }
-  };
-
-  const handleStartAutoGenerate = () => {
-    setIsSubscriptionSuccessModalOpen(false);
-    executeAutoGenerate();
-  };
-
-  // 근무표 다운로드 기능
-  const handleDownloadWardSchedule = async () => {
-    const tableElement = document.querySelector('.duty-table-content');
-    if (!tableElement) return;
-
-    const tempSelectedCell = selectedCell;
-    setSelectedCell(null);
-
-    const tempRequests = requests;
-    setRequests([]);
-
-    try {
-      const dataUrl = await toPng(tableElement as HTMLElement, {
-        quality: 1.0,
-        pixelRatio: 2,
-        width: tableElement.scrollWidth + 14.5, // 여백 추가
-        height: tableElement.scrollHeight + 5, // 여백 추가
-        backgroundColor: '#FFFFFF',
-        style: {
-          borderCollapse: 'collapse',
-        },
-      });
-
-      const link = document.createElement('a');
-      link.download = `듀티표_${year}년_${month}월.png`;
-      link.href = dataUrl;
-      link.click();
-
-      toast.success('듀티표가 다운로드되었습니다.', {
-        position: 'top-center',
-        autoClose: 2000,
-      });
-    } catch (error) {
-      console.error('Download error:', error);
-      toast.error('듀티표 다운로드에 실패했습니다.', {
-        position: 'top-center',
-        autoClose: 2000,
-      });
-    }
-    setSelectedCell(tempSelectedCell);
-    setRequests(tempRequests);
-  };
-
-  // URL 쿼리 파라미터로부터 초기 데이터 로드
-  useEffect(() => {
-    const url = new URL(window.location.href);
-    const urlYear = url.searchParams.get('year');
-    const urlMonth = url.searchParams.get('month');
-
-    // URL에 year, month가 없을 때만 현재 값으로 설정
-    if (!urlYear || !urlMonth) {
-      url.searchParams.set('year', year.toString());
-      url.searchParams.set('month', month.toString());
-      window.history.replaceState({}, '', url.toString());
-    }
-  }, []); // 컴포넌트 마운트 시 한 번만 실행
-
-  const [requests, setRequests] = useState<WardRequest[]>([]);
-
-  useEffect(() => {
-    checkIsWeb();
-
-    const fetchRequests = async () => {
-      try {
-        const data = await requestService.getWardRequests();
-        setRequests(data);
-      } catch (error) {
-        console.error('Failed to fetch requests:', error);
+      } finally {
+        setIsAutoCreating(false);
+        setIsNurseShortageModalOpen(false);
       }
     };
 
-    fetchRequests();
-
-    window.addEventListener('resize', checkIsWeb);
-  }, []);
-
-  const checkIsWeb = () => {
-    setIsWeb(window.innerWidth >= 1280);
-  };
-
-  const [isNurseCountModalOpen, setIsNurseCountModalOpen] = useState(false);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [isWeb, setIsWeb] = useState(false);
-
-  // 엑셀 다운로드 함수
-  const handleExportToExcel = () => {
-    // 데이터 변환: 테이블 데이터를 배열 형태로 정리
-    const tableData = [];
-
-    // 첫 번째 행: 컬럼 제목 추가
-    const headerRow = [
-      '이름',
-      '이전 근무',
-      ...Array.from({ length: daysInMonth }, (_, i) => `${i + 1}일`),
-      'D',
-      'E',
-      'N',
-      'O',
-      'M',
-    ];
-    tableData.push(headerRow);
-
-    // 데이터 행 추가
-    dutyData.forEach((nurse, i) => {
-      const rowData = [
-        nurse.name, // 간호사 이름
-        nurse.prevShifts, // 이전 근무
-        ...duties[i], // 근무 정보
-        nurseDutyCounts[i]?.D || 0,
-        nurseDutyCounts[i]?.E || 0,
-        nurseDutyCounts[i]?.N || 0,
-        nurseDutyCounts[i]?.O || 0,
-      ];
-      tableData.push(rowData);
-    });
-
-    // 워크북 생성 및 시트 추가
-    const ws = XLSX.utils.aoa_to_sheet(tableData);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, '근무표');
-
-    // 엑셀 파일 저장 및 다운로드
-    XLSX.writeFile(wb, `근무표_${year}년_${month}월.xlsx`);
-  };
-  // const [showDownloadDropdown, setShowDownloadDropdown] = useState(false);
-  const [showWebDownloadDropdown, setShowWebDownloadDropdown] = useState(false);
-
-  const [wardRules, setWardRules] = useState<WardRule | null>(null);
-  const [isFromAutoGenerate, setIsFromAutoGenerate] = useState(false);
-
-  useEffect(() => {
-    const fetchShiftRules = async () => {
+    const handleSubscribe = async (plan: SubscriptionPlan) => {
       try {
+        // 결제 API 호출
+        const response = await dutyService.subscribe();
+
+        // 모달 닫기 및 자동 생성 횟수 갱신
+        setIsPaymentModalOpen(false);
+
+        // 응답에서 자동 생성 횟수 사용
+        if (response && response.addNum !== undefined) {
+          setAutoGenCnt(response.addNum);
+        } else {
+          // 응답에 횟수가 없는 경우 플랜에 따라 기본값 설정
+          const defaultCounts = {
+            monthly: 100,
+            quarterly: 100,
+            yearly: 100,
+          };
+          setAutoGenCnt(defaultCounts[plan]);
+        }
+
+        // 현재 선택된 플랜 저장
+        setCurrentPlan(plan);
+
+        // 수정된 부분: 자동 생성 모달 대신 구독 성공 모달 표시
+        setIsSubscriptionSuccessModalOpen(true);
+      } catch (error) {
+        setIsPaymentModalOpen(false);
+      }
+    };
+
+    const handleStartAutoGenerate = () => {
+      setIsSubscriptionSuccessModalOpen(false);
+      executeAutoGenerate();
+    };
+
+    // 근무표 다운로드 기능
+    const handleDownloadWardSchedule = async () => {
+      const tableElement = document.querySelector('.duty-table-content');
+      if (!tableElement) return;
+
+      const tempSelectedCell = selectedCell;
+      setSelectedCell(null);
+
+      const tempRequests = requests;
+      setRequests([]);
+
+      try {
+        const dataUrl = await toPng(tableElement as HTMLElement, {
+          quality: 1.0,
+          pixelRatio: 2,
+          width: tableElement.scrollWidth + 14.5, // 여백 추가
+          height: tableElement.scrollHeight + 5, // 여백 추가
+          backgroundColor: '#FFFFFF',
+          style: {
+            borderCollapse: 'collapse',
+          },
+        });
+
+        const link = document.createElement('a');
+        link.download = `듀티표_${year}년_${month}월.png`;
+        link.href = dataUrl;
+        link.click();
+
+        toast.success('듀티표가 다운로드되었습니다.', {
+          position: 'top-center',
+          autoClose: 2000,
+        });
+      } catch (error) {
+        console.error('Download error:', error);
+        toast.error('듀티표 다운로드에 실패했습니다.', {
+          position: 'top-center',
+          autoClose: 2000,
+        });
+      }
+      setSelectedCell(tempSelectedCell);
+      setRequests(tempRequests);
+    };
+
+    // URL 쿼리 파라미터로부터 초기 데이터 로드
+    useEffect(() => {
+      const url = new URL(window.location.href);
+      const urlYear = url.searchParams.get('year');
+      const urlMonth = url.searchParams.get('month');
+
+      // URL에 year, month가 없을 때만 현재 값으로 설정
+      if (!urlYear || !urlMonth) {
+        url.searchParams.set('year', year.toString());
+        url.searchParams.set('month', month.toString());
+        window.history.replaceState({}, '', url.toString());
+      }
+    }, []); // 컴포넌트 마운트 시 한 번만 실행
+
+    const [requests, setRequests] = useState<WardRequest[]>([]);
+
+    useEffect(() => {
+      checkIsWeb();
+
+      const fetchRequests = async () => {
+        try {
+          const data = await requestService.getWardRequests();
+          setRequests(data);
+        } catch (error) {
+          console.error('Failed to fetch requests:', error);
+        }
+      };
+
+      fetchRequests();
+
+      window.addEventListener('resize', checkIsWeb);
+    }, []);
+
+    const checkIsWeb = () => {
+      setIsWeb(window.innerWidth >= 1280);
+    };
+
+    const [isNurseCountModalOpen, setIsNurseCountModalOpen] = useState(false);
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const [isWeb, setIsWeb] = useState(false);
+
+    // 엑셀 다운로드 함수
+    const handleExportToExcel = () => {
+      // 데이터 변환: 테이블 데이터를 배열 형태로 정리
+      const tableData = [];
+
+      // 첫 번째 행: 컬럼 제목 추가
+      const headerRow = [
+        '이름',
+        '이전 근무',
+        ...Array.from({ length: daysInMonth }, (_, i) => `${i + 1}일`),
+        'D',
+        'E',
+        'N',
+        'O',
+        'M',
+      ];
+      tableData.push(headerRow);
+
+      // 데이터 행 추가
+      dutyData.forEach((nurse, i) => {
+        const rowData = [
+          nurse.name, // 간호사 이름
+          nurse.prevShifts, // 이전 근무
+          ...duties[i], // 근무 정보
+          nurseDutyCounts[i]?.D || 0,
+          nurseDutyCounts[i]?.E || 0,
+          nurseDutyCounts[i]?.N || 0,
+          nurseDutyCounts[i]?.O || 0,
+        ];
+        tableData.push(rowData);
+      });
+
+      // 워크북 생성 및 시트 추가
+      const ws = XLSX.utils.aoa_to_sheet(tableData);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, '근무표');
+
+      // 엑셀 파일 저장 및 다운로드
+      XLSX.writeFile(wb, `근무표_${year}년_${month}월.xlsx`);
+    };
+    // const [showDownloadDropdown, setShowDownloadDropdown] = useState(false);
+    const [showWebDownloadDropdown, setShowWebDownloadDropdown] =
+      useState(false);
+
+    const [wardRules, setWardRules] = useState<WardRule | null>(null);
+    const [isFromAutoGenerate, setIsFromAutoGenerate] = useState(false);
+
+    useEffect(() => {
+      const fetchShiftRules = async () => {
+        try {
+          const rules = await ruleService.getWardRules();
+          setWardRules(rules);
+        } catch (error) {
+          console.error('Failed to fetch ward rules:', error);
+        }
+      };
+      fetchShiftRules();
+    }, []);
+
+    const getCountColor = (
+      count: number,
+      day: number,
+      shiftType: 'D' | 'E' | 'N'
+    ) => {
+      if (!wardRules) return '';
+
+      const isWeekendDate = isSaturdayDay(day) || isSundayDay(day);
+      const targetCount = isWeekendDate
+        ? {
+            D: wardRules.wendDCnt,
+            E: wardRules.wendECnt,
+            N: wardRules.wendNCnt,
+          }[shiftType]
+        : {
+            D: wardRules.wdayDCnt,
+            E: wardRules.wdayECnt,
+            N: wardRules.wdayNCnt,
+          }[shiftType];
+
+      if (count === targetCount) return 'text-green-600 font-medium';
+      return 'text-red-600 font-medium';
+    };
+
+    useEffect(() => {
+      const fetchAutoGenCount = async () => {
+        try {
+          const data = await dutyService.getAutoGenCount();
+          setAutoGenCnt(data); // API 응답 구조에 따라 조정
+        } catch (error) {}
+      };
+
+      fetchAutoGenCount();
+    }, []);
+
+    // 규칙 설정 버튼 클릭 핸들러 추가
+    const handleRuleButtonClick = async () => {
+      try {
+        // 규칙 정보 가져오기
         const rules = await ruleService.getWardRules();
         setWardRules(rules);
+        setIsFromAutoGenerate(false);
+        setIsRuleModalOpen(true);
       } catch (error) {
-        console.error('Failed to fetch ward rules:', error);
+        toast.error('규칙을 불러오는데 실패했습니다');
       }
     };
-    fetchShiftRules();
-  }, []);
 
-  const getCountColor = (
-    count: number,
-    day: number,
-    shiftType: 'D' | 'E' | 'N'
-  ) => {
-    if (!wardRules) return '';
-
-    const isWeekendDate = isSaturdayDay(day) || isSundayDay(day);
-    const targetCount = isWeekendDate
-      ? {
-          D: wardRules.wendDCnt,
-          E: wardRules.wendECnt,
-          N: wardRules.wendNCnt,
-        }[shiftType]
-      : {
-          D: wardRules.wdayDCnt,
-          E: wardRules.wdayECnt,
-          N: wardRules.wdayNCnt,
-        }[shiftType];
-
-    if (count === targetCount) return 'text-green-600 font-medium';
-    return 'text-red-600 font-medium';
-  };
-
-  useEffect(() => {
-    const fetchAutoGenCount = async () => {
-      try {
-        const data = await dutyService.getAutoGenCount();
-        setAutoGenCnt(data); // API 응답 구조에 따라 조정
-      } catch (error) {}
+    // 자동생성 경로에서 규칙 수정 후 처리하는 핸들러 추가
+    const handleRuleUpdateFromAutoGenerate = (newRules: WardRule) => {
+      setWardRules(newRules);
+      setIsRuleModalOpen(false);
+      setIsAutoGenerateModalOpen(true);
     };
 
-    fetchAutoGenCount();
-  }, []);
+    const fetchHolidays = useHolidayStore(
+      (state: {
+        fetchHolidays: (year: number, month: number) => Promise<void>;
+      }) => state.fetchHolidays
+    );
 
-  // 규칙 설정 버튼 클릭 핸들러 추가
-  const handleRuleButtonClick = async () => {
-    try {
-      // 규칙 정보 가져오기
-      const rules = await ruleService.getWardRules();
-      setWardRules(rules);
-      setIsFromAutoGenerate(false);
-      setIsRuleModalOpen(true);
-    } catch (error) {
-      toast.error('규칙을 불러오는데 실패했습니다');
-    }
-  };
+    // 공휴일 데이터 불러오기
+    useEffect(() => {
+      fetchHolidays(year, month);
+    }, [year, month, fetchHolidays]);
 
-  // 자동생성 경로에서 규칙 수정 후 처리하는 핸들러 추가
-  const handleRuleUpdateFromAutoGenerate = (newRules: WardRule) => {
-    setWardRules(newRules);
-    setIsRuleModalOpen(false);
-    setIsAutoGenerateModalOpen(true);
-  };
+    // 모바일 플로팅 버튼 상태
+    const [showMobileButton, setShowMobileButton] = useState(false);
 
-  const fetchHolidays = useHolidayStore(
-    (state: {
-      fetchHolidays: (year: number, month: number) => Promise<void>;
-    }) => state.fetchHolidays
-  );
+    // 모바일 플로팅 버튼 클릭 핸들러
+    const handleMobileButtonClick = (
+      dutyType: 'D' | 'E' | 'N' | 'M' | 'O' | 'X'
+    ) => {
+      if (!selectedCell) return;
 
-  // 공휴일 데이터 불러오기
-  useEffect(() => {
-    fetchHolidays(year, month);
-  }, [year, month, fetchHolidays]);
+      // 선택된 셀에 근무 적용
+      handleShiftChange(selectedCell.row, selectedCell.col, dutyType);
 
-  return (
-    <div>
-      {/* 모바일 뷰 */}
-      <div className="xl:hidden">
-        {/* 상단 컨트롤 영역 */}
-        <div className="bg-white rounded-xl py-2 px-3 mb-2 flex items-center justify-between">
-          {/* 왼쪽: 월 선택 및 기본 OFF */}
-          <div className="flex items-center gap-2">
-            <Icon
-              name="left"
-              size={16}
-              className="cursor-pointer text-gray-600"
-              onClick={handlePrevMonth}
-            />
-            <span className="text-base font-medium">{month}월</span>
-            <Icon
-              name="right"
-              size={16}
-              className="cursor-pointer text-gray-600"
-              onClick={handleNextMonth}
-            />
-            <div className="flex items-center gap-1 ml-2 text-xs">
-              <span className="text-gray-400">기본 OFF</span>
-              <span className="font-bold text-black">
-                {getDefaultOffDays(year, month)}
-              </span>
-              <span>일</span>
+      // 다음 셀로 이동 (오른쪽 또는 다음 행 첫 번째 셀)
+      if (selectedCell.col < daysInMonth - 1) {
+        setSelectedCell({ row: selectedCell.row, col: selectedCell.col + 1 });
+      } else if (selectedCell.row < nurses.length - 1) {
+        setSelectedCell({ row: selectedCell.row + 1, col: 0 });
+      }
+    };
+
+    // 셀 선택 시 모바일 플로팅 버튼 표시
+    useEffect(() => {
+      setShowMobileButton(!!selectedCell);
+    }, [selectedCell]);
+
+    // 셀 외 영역 클릭 감지를 위한 useEffect 추가
+    useEffect(() => {
+      // 셀 외부 클릭 처리 함수
+      const handleClickOutside = (e: MouseEvent) => {
+        // 선택된 셀이 없으면 무시
+        if (!selectedCell) return;
+
+        const target = e.target as HTMLElement;
+
+        // 셀이나 버튼, 근무 배지 요소인지 확인
+        const isCell = target.closest('td');
+        const isButton = target.closest('button');
+        const isDutyBadge = target.closest('.duty-badge-eng'); // DutyBadgeEng에 클래스 추가 필요할 수 있음
+
+        // 셀, 버튼, 배지가 아닌 영역 클릭 시 선택 해제
+        if (!isCell && !isButton && !isDutyBadge) {
+          setSelectedCell(null);
+        }
+      };
+
+      // 전역 클릭 이벤트 등록
+      document.addEventListener('click', handleClickOutside);
+
+      // 클린업 함수
+      return () => {
+        document.removeEventListener('click', handleClickOutside);
+      };
+    }, [selectedCell, setSelectedCell]);
+
+    return (
+      <div>
+        {/* 모바일 뷰 */}
+        <div className="xl:hidden">
+          {/* 상단 컨트롤 영역 */}
+          <div className="bg-white rounded-xl py-2 px-3 mb-2 flex items-center justify-between">
+            {/* 왼쪽: 월 선택 및 기본 OFF */}
+            <div className="flex items-center gap-2">
+              <Icon
+                name="left"
+                size={16}
+                className="cursor-pointer text-gray-600"
+                onClick={handlePrevMonth}
+              />
+              <span className="text-base font-medium">{month}월</span>
+              <Icon
+                name="right"
+                size={16}
+                className="cursor-pointer text-gray-600"
+                onClick={handleNextMonth}
+              />
+              <div className="flex items-center gap-1 ml-2 text-xs">
+                <span className="text-gray-400">기본 OFF</span>
+                <span className="font-bold text-black">
+                  {getDefaultOffDays(year, month)}
+                </span>
+                <span>일</span>
+              </div>
             </div>
-          </div>
 
-          {/* 오른쪽: 드롭다운 메뉴 */}
-          <div className="relative">
-            <button
-              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className="p-2 hover:bg-gray-100 rounded-full"
-            >
-              <Icon name="more" size={20} className="text-gray-600" />
-            </button>
+            {/* 오른쪽: 드롭다운 메뉴 */}
+            <div className="relative">
+              <button
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                className="p-2 hover:bg-gray-100 rounded-full"
+              >
+                <Icon name="more" size={20} className="text-gray-600" />
+              </button>
 
-            {/* 드롭다운 메뉴와 오버레이 */}
-            {isDropdownOpen && (
-              <>
-                {/* 오버레이 - 외부 클릭 시 닫힘 */}
-                <div
-                  className="fixed inset-0 z-40"
-                  onClick={() => setIsDropdownOpen(false)}
-                />
-
-                {/* 드롭다운 메뉴 */}
-                <div className="absolute right-0 top-full mt-1 bg-white rounded-lg shadow-lg z-50 min-w-[8rem] py-1">
-                  <button
-                    onClick={() => {
-                      setIsDropdownOpen(false);
-                      handleResetDuty();
-                    }}
-                    className="w-full px-3 py-2 text-sm text-left text-gray-700 hover:bg-gray-100 flex items-center gap-2"
-                  >
-                    <Icon name="reset" size={16} />
-                    <span>초기화</span>
-                  </button>
-                  <button
-                    ref={ruleButtonRef}
-                    onClick={() => {
-                      setIsDropdownOpen(false);
-                      handleRuleButtonClick();
-                    }}
-                    className="w-full px-3 py-2 text-sm text-left text-gray-700 hover:bg-gray-100 flex items-center gap-2"
-                  >
-                    <Icon name="rule" size={16} />
-                    <span>규칙 설정</span>
-                  </button>
-                  <button
-                    onClick={() => {
-                      setIsDropdownOpen(false);
-                      handleAutoCreate();
-                    }}
-                    className="w-full px-3 py-2 text-sm text-left text-gray-700 hover:bg-gray-100 flex items-center gap-2"
-                  >
-                    <Icon name="auto" size={16} />
-                    <span>자동 생성</span>
-                  </button>
-                  <button
-                    onClick={() => {
-                      setIsDropdownOpen(false);
-                      handleDownloadWardSchedule();
-                    }}
-                    className={`w-full px-3 py-2 text-sm text-left ${userInfo?.isDemo ? 'text-gray-400 cursor-not-allowed' : 'text-gray-700 hover:bg-gray-100'}`}
-                    disabled={userInfo?.isDemo}
-                  >
-                    이미지 다운로드
-                  </button>
-                  <button
-                    onClick={() => {
-                      setIsDropdownOpen(false);
-                      handleExportToExcel();
-                    }}
-                    className={`w-full px-3 py-2 text-sm text-left ${userInfo?.isDemo ? 'text-gray-400 cursor-not-allowed' : 'text-gray-700 hover:bg-gray-100'}`}
-                    disabled={userInfo?.isDemo}
-                  >
-                    엑셀로 다운로드
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-
-        {/* 기존 테이블 영역 */}
-        <div className="overflow-x-auto bg-white rounded-xl p-[0.5rem] shadow-[0_0.25rem_0.75rem_rgba(0,0,0,0.1)]">
-          <div className={`min-w-[800px] ${isWeb ? '' : 'duty-table-content'}`}>
-            {/* 기존 테이블 내용을 여기에 복사 */}
-            <table className="w-full border-collapse">
-              {/* 기존 테이블 헤더와 내용 */}
-              <thead>
-                <tr className="text-xs text-gray-600 border-b border-gray-200">
-                  <th className="p-0 text-center w-[90px] sm:w-24 border-r border-gray-200">
-                    <span className="block text-xs sm:text-sm px-0.5">
-                      이름
-                    </span>
-                  </th>
-                  <th className="p-0 text-center w-[90px] sm:w-24 border-r border-gray-200">
-                    <span className="block text-xs sm:text-sm px-0.5">
-                      이전 근무
-                    </span>
-                  </th>
-                  {Array.from({ length: daysInMonth }, (_, i) => {
-                    const day = i + 1;
-                    return (
-                      <th
-                        key={i}
-                        className={`p-0 text-center w-10 border-r border-gray-200 ${getWeekendStyle(
-                          day
-                        )}`}
-                      >
-                        {day}
-                      </th>
-                    );
-                  })}
-                  <th className="p-0 text-center w-7 border-r border-gray-200">
-                    <div className="flex items-center justify-center">
-                      <div className="scale-[0.65]">
-                        <DutyBadgeEng type="D" size="sm" variant="filled" />
-                      </div>
-                    </div>
-                  </th>
-                  <th className="p-0 text-center w-7 border-r border-gray-200">
-                    <div className="flex items-center justify-center">
-                      <div className="scale-[0.65]">
-                        <DutyBadgeEng type="E" size="sm" variant="filled" />
-                      </div>
-                    </div>
-                  </th>
-                  <th className="p-0 text-center w-7 border-r border-gray-200">
-                    <div className="flex items-center justify-center">
-                      <div className="scale-[0.65]">
-                        <DutyBadgeEng type="N" size="sm" variant="filled" />
-                      </div>
-                    </div>
-                  </th>
-                  <th className="p-0 text-center w-7 border-r border-gray-200">
-                    <div className="flex items-center justify-center">
-                      <div className="scale-[0.65]">
-                        <DutyBadgeEng type="O" size="sm" variant="filled" />
-                      </div>
-                    </div>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {nurses.map((name, i) => (
-                  <tr key={i} className="h-8 border-b border-gray-200 group">
-                    <td
-                      className={`p-0 text-center border-r border-gray-200 ${isHighlighted(i, -2)}`}
-                    >
-                      <span className="block text-xs sm:text-sm whitespace-nowrap overflow-hidden text-ellipsis">
-                        {name}
-                      </span>
-                    </td>
-                    <td
-                      className={`p-0 border-r border-gray-200 ${isHighlighted(i, -1)}`}
-                    >
-                      <div className="flex justify-center -space-x-1.5">
-                        {prevShifts[i].map((shift, index) => (
-                          <div key={index} className="scale-[0.65]">
-                            <DutyBadgeEng
-                              type={
-                                shift as
-                                  | 'X'
-                                  | 'D'
-                                  | 'E'
-                                  | 'N'
-                                  | 'O'
-                                  | 'ALL'
-                                  | 'M'
-                              }
-                              size="sm"
-                              isSelected={false}
-                            />
-                          </div>
-                        ))}
-                      </div>
-                    </td>
-                    {Array.from({ length: daysInMonth }, (_, dayIndex) => {
-                      if (!duties[i] || !duties[i][dayIndex]) return null;
-
-                      const violations = issues.filter(
-                        (issue) =>
-                          issue.memberId === dutyData[i].memberId &&
-                          dayIndex + 1 >= issue.startDate &&
-                          dayIndex + 1 <= issue.endDate
-                      );
-
-                      const requestStatus = requests.find((request) => {
-                        const requestDate = new Date(request.date);
-                        return (
-                          requestDate.getFullYear() === year &&
-                          requestDate.getMonth() + 1 === month &&
-                          requestDate.getDate() === dayIndex + 1 &&
-                          request.name === nurses[i]
-                        );
-                      });
-
-                      return (
-                        <DutyCell
-                          key={dayIndex}
-                          nurse={name}
-                          dayIndex={dayIndex}
-                          duty={duties[i][dayIndex] || 'X'}
-                          isSelected={
-                            selectedCell?.row === i &&
-                            selectedCell?.col === dayIndex
-                          }
-                          violations={violations}
-                          requestStatus={requestStatus}
-                          isHovered={
-                            hoveredCell?.row === i &&
-                            hoveredCell?.day === dayIndex
-                          }
-                          onClick={() => handleCellClick(i, dayIndex)}
-                          onMouseEnter={() =>
-                            setHoveredCell({ row: i, day: dayIndex })
-                          }
-                          onMouseLeave={() => setHoveredCell(null)}
-                          highlightClass={isHighlighted(i, dayIndex)}
-                        />
-                      );
-                    })}
-                    <td
-                      className={`p-0 text-xs text-center border-r border-gray-200 ${isHighlighted(i, 31)}`}
-                    >
-                      {nurseDutyCounts[i]?.D || 0}
-                    </td>
-                    <td
-                      className={`p-0 text-xs text-center border-r border-gray-200 ${isHighlighted(i, 32)}`}
-                    >
-                      {nurseDutyCounts[i]?.E || 0}
-                    </td>
-                    <td
-                      className={`p-0 text-xs text-center border-r border-gray-200 ${isHighlighted(i, 33)}`}
-                    >
-                      {nurseDutyCounts[i]?.N || 0}
-                    </td>
-                    <td
-                      className={`p-0 text-xs text-center border-r border-gray-200 ${isHighlighted(i, 34)}`}
-                    >
-                      {nurseDutyCounts[i]?.O || 0}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-              {/* 통계 행들을 같은 테이블에 직접 추가 */}
-              <tbody>
-                {['DAY', 'EVENING', 'NIGHT', 'OFF', 'TOTAL'].map((text, i) => (
-                  <tr
-                    key={`empty-${i}`}
-                    className="text-[10px] h-6 border-b border-gray-200"
-                  >
-                    <td
-                      colSpan={2}
-                      className={`p-0 font-bold text-[11px] border-r border-gray-200 ${
-                        i === 0
-                          ? 'text-[#318F3D]'
-                          : i === 1
-                            ? 'text-[#E55656]'
-                            : i === 2
-                              ? 'text-[#532FC8]'
-                              : i === 3
-                                ? 'text-[#726F5A]'
-                                : 'text-black'
-                      }`}
-                    >
-                      <div className="flex items-center justify-center">
-                        <span translate="no">{text}</span>
-                      </div>
-                    </td>
-                    {Array.from({ length: daysInMonth }, (_, j) => (
-                      <td
-                        key={j}
-                        className={`p-0 text-center text-[11px] border-r border-gray-200 ${
-                          selectedCell?.col === j
-                            ? i === 4
-                              ? 'bg-duty-off-bg rounded-b-lg'
-                              : 'bg-duty-off-bg'
-                            : ''
-                        }`}
-                      >
-                        <div className="flex items-center justify-center h-6">
-                          {i === 0 && (
-                            <span
-                              className={getCountColor(
-                                dutyCounts[j].D,
-                                j + 1,
-                                'D'
-                              )}
-                            >
-                              {dutyCounts[j].D}
-                            </span>
-                          )}
-                          {i === 1 && (
-                            <span
-                              className={getCountColor(
-                                dutyCounts[j].E,
-                                j + 1,
-                                'E'
-                              )}
-                            >
-                              {dutyCounts[j].E}
-                            </span>
-                          )}
-                          {i === 2 && (
-                            <span
-                              className={getCountColor(
-                                dutyCounts[j].N,
-                                j + 1,
-                                'N'
-                              )}
-                            >
-                              {dutyCounts[j].N}
-                            </span>
-                          )}
-                          {i === 3 && dutyCounts[j].O}
-                          {i === 4 && dutyCounts[j].total}
-                        </div>
-                      </td>
-                    ))}
-                    {/* 각 행의 마지막 4개 열을 차지하는 셀 */}
-                    {i === 0 && (
-                      <td
-                        rowSpan={5}
-                        colSpan={4}
-                        className="p-0 border-r border-gray-200"
-                      >
-                        <div className="flex justify-center items-center h-full">
-                          <div className="scale-[0.85]">
-                            <ProgressChecker
-                              value={progress}
-                              size={80}
-                              strokeWidth={4}
-                              showLabel={true}
-                            />
-                          </div>
-                        </div>
-                      </td>
-                    )}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      {/* 웹 뷰 */}
-      <div className="hidden xl:block">
-        <div
-          className="bg-white rounded-[0.92375rem] shadow-[0_0_0.9375rem_rgba(0,0,0,0.1)] p-[1.5rem]"
-          ref={tableRef}
-        >
-          {/* 월 선택 및 버튼 영역 */}
-          <div className="bg-white rounded-xl py-[0.5rem] px-[0.5rem] mb-[0.1875rem]">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <div className="flex ml-[0.75rem] items-center gap-[0.75rem]">
-                  <Icon
-                    name="left"
-                    size={16}
-                    className="cursor-pointer text-gray-600 hover:text-gray-800"
-                    onClick={handlePrevMonth}
+              {/* 드롭다운 메뉴와 오버레이 */}
+              {isDropdownOpen && (
+                <>
+                  {/* 오버레이 - 외부 클릭 시 닫힘 */}
+                  <div
+                    className="fixed inset-0 z-40"
+                    onClick={() => setIsDropdownOpen(false)}
                   />
-                  <span className="text-lg font-medium">{month}월</span>
-                  <Icon
-                    name="right"
-                    size={16}
-                    className="cursor-pointer text-gray-600 hover:text-gray-800"
-                    onClick={handleNextMonth}
-                  />
-                  <div className="flex items-center gap-2 ml-1">
-                    <span className="text-[11px] sm:text-xs text-gray-400">
-                      기본 OFF
-                    </span>
-                    <span className="text-[12px] sm:text-sm font-bold text-black">
-                      {getDefaultOffDays(year, month)}
-                    </span>
-                    <span className="text-foreground">일</span>
-                  </div>
-                  <div>
+
+                  {/* 드롭다운 메뉴 */}
+                  <div className="absolute right-0 top-full mt-1 bg-white rounded-lg shadow-lg z-50 min-w-[8rem] py-1">
                     <button
-                      className={`flex items-center gap-1 text-gray-400 hover:text-gray-600 px-2 py-1 rounded-md ${
-                        isAllCellsEmpty
-                          ? 'opacity-50 cursor-not-allowed hover:bg-transparent hover:text-gray-400'
-                          : 'hover:bg-gray-100'
-                      }`}
-                      onClick={handleResetDuty}
+                      onClick={() => {
+                        setIsDropdownOpen(false);
+                        handleResetDuty();
+                      }}
+                      className="w-full px-3 py-2 text-sm text-left text-gray-700 hover:bg-gray-100 flex items-center gap-2"
                     >
                       <Icon name="reset" size={16} />
-                      <span className="text-sm whitespace-nowrap">초기화</span>
+                      <span>초기화</span>
+                    </button>
+                    <button
+                      ref={ruleButtonRef}
+                      onClick={() => {
+                        setIsDropdownOpen(false);
+                        handleRuleButtonClick();
+                      }}
+                      className="w-full px-3 py-2 text-sm text-left text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+                    >
+                      <Icon name="rule" size={16} />
+                      <span>규칙 설정</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        setIsDropdownOpen(false);
+                        handleAutoCreate();
+                      }}
+                      className="w-full px-3 py-2 text-sm text-left text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+                    >
+                      <Icon name="auto" size={16} />
+                      <span>자동 생성</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        setIsDropdownOpen(false);
+                        handleDownloadWardSchedule();
+                      }}
+                      className={`w-full px-3 py-2 text-sm text-left ${userInfo?.isDemo ? 'text-gray-400 cursor-not-allowed' : 'text-gray-700 hover:bg-gray-100'}`}
+                      disabled={userInfo?.isDemo}
+                    >
+                      이미지 다운로드
+                    </button>
+                    <button
+                      onClick={() => {
+                        setIsDropdownOpen(false);
+                        handleExportToExcel();
+                      }}
+                      className={`w-full px-3 py-2 text-sm text-left ${userInfo?.isDemo ? 'text-gray-400 cursor-not-allowed' : 'text-gray-700 hover:bg-gray-100'}`}
+                      disabled={userInfo?.isDemo}
+                    >
+                      엑셀로 다운로드
                     </button>
                   </div>
-                </div>
-              </div>
-              {/* 버튼 영역 */}
-              <div className="flex gap-1 sm:gap-2 items-center">
-                <div className="flex items-center gap-2 relative group">
-                  <Button
-                    text-size="md"
-                    size="register"
-                    color="off"
-                    className="py-0.5 px-1.5 sm:py-1 sm:px-2"
-                  >
-                    <div className="flex items-center gap-1 relative group">
-                      <span>키보드 가이드</span>
-                    </div>
-                  </Button>
-
-                  {/* 호버 시 나타나는 가이드 */}
-                  <div className="absolute z-50 invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-200 top-full left-0 mt-2">
-                    <KeyboardGuide />
-                  </div>
-                </div>
-                <div className="h-6 w-[1px] bg-gray-200 mx-1" />
-                <Button
-                  ref={ruleButtonRef}
-                  size="register"
-                  color="primary"
-                  className="py-0.5 px-1.5 sm:py-1 sm:px-2"
-                  onClick={() => handleRuleButtonClick()}
-                >
-                  규칙 설정
-                </Button>
-                <div className="flex items-center gap-1">
-                  <Button
-                    text-size="md"
-                    size="register"
-                    color="evening"
-                    className="py-0.5 px-1.5 sm:py-1 sm:px-2 flex items-center gap-2 group"
-                    onClick={handleAutoCreate}
-                  >
-                    자동 생성
-                    <Tooltip
-                      content={
-                        <div className="text-left space-y-1.5">
-                          <p>
-                            근무표는 다음 조건들을 고려하여 자동으로 생성됩니다:
-                          </p>
-                          <ul className="list-disc pl-4 space-y-1">
-                            <li>주중/주말별 필요 최소 인원</li>
-                            <li>근무표 규칙</li>
-                            <li>개인별 근무 요청</li>
-                            <li>평일 데이, 나이트 전담 근무</li>
-                            <li>간호사 간 균등한 근무 배분</li>
-                            <li>지난 달 말일 근무 고려</li>
-                          </ul>
-                          <p className="mt-2 text-gray-300">
-                            *숙련도 반영은은 개발 중입니다.
-                            <br />* 커스텀 규칙 생성 기능은 개발 중입니다.
-                            <br />
-                            *완성도 100%일 시 새로운 근무표가 생성되지 않을 수
-                            있습니다.
-                            <br />
-                            *변경이 필요한 칸을 X로 눌러 자동생성을 재실행하는
-                            것을 추천드립니다.
-                          </p>
-                        </div>
-                      }
-                      className="ml-1"
-                      width="w-96"
-                      icon={{
-                        name: 'alert',
-                        size: 16,
-                        className:
-                          'text-duty-evening group-hover:text-white transition-colors cursor-help',
-                      }}
-                    />
-                  </Button>
-                </div>
-                <div className="relative">
-                  <Button
-                    text-size="md"
-                    size="register"
-                    color="off"
-                    className={`py-0.5 px-1.5 sm:py-1 sm:px-2 ${userInfo?.isDemo ? 'opacity-50 cursor-not-allowed' : ''}`}
-                    onClick={() =>
-                      !userInfo?.isDemo &&
-                      setShowWebDownloadDropdown((prev) => !prev)
-                    }
-                  >
-                    <div className="flex items-center gap-1">
-                      다운로드
-                      {userInfo?.isDemo && (
-                        <Tooltip
-                          content="로그인 후 이용해주세요"
-                          className="ml-1"
-                          width="w-40"
-                        />
-                      )}
-                    </div>
-                  </Button>
-                  {showWebDownloadDropdown && !userInfo?.isDemo && (
-                    <div className="absolute right-0 top-full mt-1 bg-white rounded-lg shadow-lg z-50 min-w-[8rem] py-1">
-                      <button
-                        onClick={() => {
-                          setShowWebDownloadDropdown(false);
-                          handleDownloadWardSchedule();
-                        }}
-                        className="w-full px-3 py-2 text-sm text-left text-gray-700 hover:bg-gray-100"
-                      >
-                        이미지로 다운로드
-                      </button>
-                      <button
-                        onClick={() => {
-                          setShowWebDownloadDropdown(false);
-                          handleExportToExcel();
-                        }}
-                        className="w-full px-3 py-2 text-sm text-left text-gray-700 hover:bg-gray-100"
-                      >
-                        엑셀로 다운로드
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
+                </>
+              )}
             </div>
           </div>
 
-          {/* 근무표, 통계, 완성도를 하나의 상자로 통합 */}
-          <div className="bg-white rounded-xl p-[0.5rem] shadow-[0_0.25rem_0.75rem_rgba(0,0,0,0.1)]">
-            {isLoading ? (
-              <div className="flex justify-center items-center h-[25rem]">
-                <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-              </div>
-            ) : (
-              <div className="relative">
-                <div className="overflow-x-auto">
-                  <div
-                    className={`min-w-[50rem] ${isWeb ? 'duty-table-content' : ''}`}
-                  >
-                    <table className="relative w-full border-collapse z-10">
-                      <thead>
-                        <tr className="text-xs text-gray-600 border-b border-gray-200">
-                          <th className="p-0 text-center w-[90px] sm:w-24 border-r border-gray-200">
-                            <span className="block text-xs sm:text-sm px-0.5">
-                              이름
-                            </span>
-                          </th>
-                          <th className="p-0 text-center w-[90px] sm:w-24 border-r border-gray-200">
-                            <span className="block text-xs sm:text-sm px-0.5">
-                              이전 근무
-                            </span>
-                          </th>
+          {/* 기존 테이블 영역 - onClick 핸들러 제거 */}
+          <div className="overflow-x-auto bg-white rounded-xl p-[0.5rem] shadow-[0_0.25rem_0.75rem_rgba(0,0,0,0.1)]">
+            <div
+              className={`min-w-[800px] ${isWeb ? '' : 'duty-table-content'}`}
+            >
+              {/* 기존 테이블 내용을 여기에 복사 */}
+              <table className="w-full border-collapse">
+                {/* 기존 테이블 헤더와 내용 */}
+                <thead>
+                  <tr className="text-xs text-gray-600 border-b border-gray-200">
+                    <th className="p-0 text-center w-[90px] sm:w-24 border-r border-gray-200">
+                      <span className="block text-xs sm:text-sm px-0.5">
+                        이름
+                      </span>
+                    </th>
+                    <th className="p-0 text-center w-[90px] sm:w-24 border-r border-gray-200">
+                      <span className="block text-xs sm:text-sm px-0.5">
+                        이전 근무
+                      </span>
+                    </th>
+                    {Array.from({ length: daysInMonth }, (_, i) => {
+                      const day = i + 1;
+                      return (
+                        <th
+                          key={i}
+                          className={`p-0 text-center w-10 border-r border-gray-200 ${getWeekendStyle(
+                            day
+                          )}`}
+                        >
+                          {day}
+                        </th>
+                      );
+                    })}
+                    <th className="p-0 text-center w-7 border-r border-gray-200">
+                      <div className="flex items-center justify-center">
+                        <div className="scale-[0.65]">
+                          <DutyBadgeEng type="D" size="sm" variant="filled" />
+                        </div>
+                      </div>
+                    </th>
+                    <th className="p-0 text-center w-7 border-r border-gray-200">
+                      <div className="flex items-center justify-center">
+                        <div className="scale-[0.65]">
+                          <DutyBadgeEng type="E" size="sm" variant="filled" />
+                        </div>
+                      </div>
+                    </th>
+                    <th className="p-0 text-center w-7 border-r border-gray-200">
+                      <div className="flex items-center justify-center">
+                        <div className="scale-[0.65]">
+                          <DutyBadgeEng type="N" size="sm" variant="filled" />
+                        </div>
+                      </div>
+                    </th>
+                    <th className="p-0 text-center w-7 border-r border-gray-200">
+                      <div className="flex items-center justify-center">
+                        <div className="scale-[0.65]">
+                          <DutyBadgeEng type="O" size="sm" variant="filled" />
+                        </div>
+                      </div>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {nurses.map((name, i) => (
+                    <tr key={i} className="h-8 border-b border-gray-200 group">
+                      <td
+                        className={`p-0 text-center border-r border-gray-200 ${isHighlighted(i, -2)}`}
+                      >
+                        <span className="block text-xs sm:text-sm whitespace-nowrap overflow-hidden text-ellipsis">
+                          {name}
+                        </span>
+                      </td>
+                      <td
+                        className={`p-0 border-r border-gray-200 ${isHighlighted(i, -1)}`}
+                      >
+                        <div className="flex justify-center -space-x-1.5">
+                          {prevShifts[i].map((shift, index) => (
+                            <div key={index} className="scale-[0.65]">
+                              <DutyBadgeEng
+                                type={
+                                  shift as
+                                    | 'X'
+                                    | 'D'
+                                    | 'E'
+                                    | 'N'
+                                    | 'O'
+                                    | 'ALL'
+                                    | 'M'
+                                }
+                                size="sm"
+                                isSelected={false}
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      </td>
+                      {Array.from({ length: daysInMonth }, (_, dayIndex) => {
+                        if (!duties[i] || !duties[i][dayIndex]) return null;
 
-                          {Array.from({ length: daysInMonth }, (_, i) => {
-                            const day = i + 1;
-                            return (
-                              <th
-                                key={i}
-                                className={`p-0 text-center w-10 border-r border-gray-200 ${getWeekendStyle(
-                                  day
-                                )}`}
-                              >
-                                {day}
-                              </th>
-                            );
-                          })}
-                          <th className="p-0 text-center w-7 border-r border-gray-200">
-                            <div className="flex items-center justify-center">
-                              <div className="scale-[0.65]">
-                                <DutyBadgeEng
-                                  type="D"
-                                  size="sm"
-                                  variant="filled"
-                                />
-                              </div>
-                            </div>
-                          </th>
-                          <th className="p-0 text-center w-7 border-r border-gray-200">
-                            <div className="flex items-center justify-center">
-                              <div className="scale-[0.65]">
-                                <DutyBadgeEng
-                                  type="E"
-                                  size="sm"
-                                  variant="filled"
-                                />
-                              </div>
-                            </div>
-                          </th>
-                          <th className="p-0 text-center w-7 border-r border-gray-200">
-                            <div className="flex items-center justify-center">
-                              <div className="scale-[0.65]">
-                                <DutyBadgeEng
-                                  type="N"
-                                  size="sm"
-                                  variant="filled"
-                                />
-                              </div>
-                            </div>
-                          </th>
-                          <th className="p-0 text-center w-7 border-r border-gray-200">
-                            <div className="flex items-center justify-center">
-                              <div className="scale-[0.65]">
-                                <DutyBadgeEng
-                                  type="O"
-                                  size="sm"
-                                  variant="filled"
-                                />
-                              </div>
-                            </div>
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {nurses.map((name, i) => (
-                          <tr
-                            key={i}
-                            className="h-8 border-b border-gray-200 group"
+                        const violations = issues.filter(
+                          (issue) =>
+                            issue.memberId === dutyData[i].memberId &&
+                            dayIndex + 1 >= issue.startDate &&
+                            dayIndex + 1 <= issue.endDate
+                        );
+
+                        const requestStatus = requests.find((request) => {
+                          const requestDate = new Date(request.date);
+                          return (
+                            requestDate.getFullYear() === year &&
+                            requestDate.getMonth() + 1 === month &&
+                            requestDate.getDate() === dayIndex + 1 &&
+                            request.name === nurses[i]
+                          );
+                        });
+
+                        return (
+                          <DutyCell
+                            key={dayIndex}
+                            nurse={name}
+                            dayIndex={dayIndex}
+                            duty={duties[i][dayIndex] || 'X'}
+                            isSelected={
+                              selectedCell?.row === i &&
+                              selectedCell?.col === dayIndex
+                            }
+                            violations={violations}
+                            requestStatus={requestStatus}
+                            isHovered={
+                              hoveredCell?.row === i &&
+                              hoveredCell?.day === dayIndex
+                            }
+                            onClick={() => handleCellClick(i, dayIndex)}
+                            onMouseEnter={() =>
+                              setHoveredCell({ row: i, day: dayIndex })
+                            }
+                            onMouseLeave={() => setHoveredCell(null)}
+                            highlightClass={isHighlighted(i, dayIndex)}
+                          />
+                        );
+                      })}
+                      <td
+                        className={`p-0 text-xs text-center border-r border-gray-200 ${isHighlighted(i, 31)}`}
+                      >
+                        {nurseDutyCounts[i]?.D || 0}
+                      </td>
+                      <td
+                        className={`p-0 text-xs text-center border-r border-gray-200 ${isHighlighted(i, 32)}`}
+                      >
+                        {nurseDutyCounts[i]?.E || 0}
+                      </td>
+                      <td
+                        className={`p-0 text-xs text-center border-r border-gray-200 ${isHighlighted(i, 33)}`}
+                      >
+                        {nurseDutyCounts[i]?.N || 0}
+                      </td>
+                      <td
+                        className={`p-0 text-xs text-center border-r border-gray-200 ${isHighlighted(i, 34)}`}
+                      >
+                        {nurseDutyCounts[i]?.O || 0}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+                {/* 통계 행들을 같은 테이블에 직접 추가 */}
+                <tbody>
+                  {['DAY', 'EVENING', 'NIGHT', 'OFF', 'TOTAL'].map(
+                    (text, i) => (
+                      <tr
+                        key={`empty-${i}`}
+                        className="text-[10px] h-6 border-b border-gray-200"
+                      >
+                        <td
+                          colSpan={2}
+                          className={`p-0 font-bold text-[11px] border-r border-gray-200 ${
+                            i === 0
+                              ? 'text-[#318F3D]'
+                              : i === 1
+                                ? 'text-[#E55656]'
+                                : i === 2
+                                  ? 'text-[#532FC8]'
+                                  : i === 3
+                                    ? 'text-[#726F5A]'
+                                    : 'text-black'
+                          }`}
+                        >
+                          <div className="flex items-center justify-center">
+                            <span translate="no">{text}</span>
+                          </div>
+                        </td>
+                        {Array.from({ length: daysInMonth }, (_, j) => (
+                          <td
+                            key={j}
+                            className={`p-0 text-center text-[11px] border-r border-gray-200 ${
+                              selectedCell?.col === j
+                                ? i === 4
+                                  ? 'bg-duty-off-bg rounded-b-lg'
+                                  : 'bg-duty-off-bg'
+                                : ''
+                            }`}
                           >
-                            <td
-                              className={`p-0 text-center border-r border-gray-200 ${isHighlighted(i, -2)}`}
-                            >
-                              <span className="block text-xs sm:text-sm whitespace-nowrap overflow-hidden text-ellipsis">
-                                {name}
-                              </span>
-                            </td>
-                            <td
-                              className={`p-0 border-r border-gray-200 ${isHighlighted(i, -1)}`}
-                            >
-                              <div className="flex justify-center -space-x-1.5">
-                                {prevShifts[i].map((shift, index) => (
-                                  <div key={index} className="scale-[0.65]">
-                                    <DutyBadgeEng
-                                      type={
-                                        shift as 'X' | 'D' | 'E' | 'N' | 'O'
-                                      }
-                                      size="sm"
-                                      isSelected={false}
-                                    />
-                                  </div>
-                                ))}
-                              </div>
-                            </td>
-                            {Array.from(
-                              { length: daysInMonth },
-                              (_, dayIndex) => {
-                                if (!duties[i] || !duties[i][dayIndex])
-                                  return null;
-
-                                const violations = issues.filter(
-                                  (issue) =>
-                                    issue.memberId === dutyData[i].memberId &&
-                                    dayIndex + 1 >= issue.startDate &&
-                                    dayIndex + 1 <= issue.endDate
-                                );
-
-                                const requestStatus = requests.find(
-                                  (request) => {
-                                    const requestDate = new Date(request.date);
-                                    return (
-                                      requestDate.getFullYear() === year &&
-                                      requestDate.getMonth() + 1 === month &&
-                                      requestDate.getDate() === dayIndex + 1 &&
-                                      request.name === nurses[i]
-                                    );
-                                  }
-                                );
-
-                                return (
-                                  <DutyCell
-                                    key={dayIndex}
-                                    nurse={name}
-                                    dayIndex={dayIndex}
-                                    duty={duties[i][dayIndex] || 'X'}
-                                    isSelected={
-                                      selectedCell?.row === i &&
-                                      selectedCell?.col === dayIndex
-                                    }
-                                    violations={violations}
-                                    requestStatus={requestStatus}
-                                    isHovered={
-                                      hoveredCell?.row === i &&
-                                      hoveredCell?.day === dayIndex
-                                    }
-                                    onClick={() => handleCellClick(i, dayIndex)}
-                                    onMouseEnter={() =>
-                                      setHoveredCell({ row: i, day: dayIndex })
-                                    }
-                                    onMouseLeave={() => setHoveredCell(null)}
-                                    highlightClass={isHighlighted(i, dayIndex)}
-                                  />
-                                );
-                              }
-                            )}
-                            <td
-                              className={`p-0 text-xs text-center border-r border-gray-200 ${isHighlighted(i, 31)}`}
-                            >
-                              {nurseDutyCounts[i]?.D || 0}
-                            </td>
-                            <td
-                              className={`p-0 text-xs text-center border-r border-gray-200 ${isHighlighted(i, 32)}`}
-                            >
-                              {nurseDutyCounts[i]?.E || 0}
-                            </td>
-                            <td
-                              className={`p-0 text-xs text-center border-r border-gray-200 ${isHighlighted(i, 33)}`}
-                            >
-                              {nurseDutyCounts[i]?.N || 0}
-                            </td>
-                            <td
-                              className={`p-0 text-xs text-center border-r border-gray-200 ${isHighlighted(i, 34)}`}
-                            >
-                              {nurseDutyCounts[i]?.O || 0}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                      {/* 통계 행들을 같은 테이블에 직접 추가 */}
-                      <tbody>
-                        {['DAY', 'EVENING', 'NIGHT', 'OFF', 'TOTAL'].map(
-                          (text, i) => (
-                            <tr
-                              key={`empty-${i}`}
-                              className="text-[10px] h-6 border-b border-gray-200"
-                            >
-                              <td
-                                colSpan={2}
-                                className={`p-0 font-bold text-[11px] border-r border-gray-200 ${
-                                  i === 0
-                                    ? 'text-[#318F3D]'
-                                    : i === 1
-                                      ? 'text-[#E55656]'
-                                      : i === 2
-                                        ? 'text-[#532FC8]'
-                                        : i === 3
-                                          ? 'text-[#726F5A]'
-                                          : 'text-black'
-                                }`}
-                              >
-                                <div className="flex items-center justify-center">
-                                  <span translate="no">{text}</span>
-                                </div>
-                              </td>
-                              {Array.from({ length: daysInMonth }, (_, j) => (
-                                <td
-                                  key={j}
-                                  className={`p-0 text-center text-[11px] border-r border-gray-200 ${
-                                    selectedCell?.col === j
-                                      ? i === 4
-                                        ? 'bg-duty-off-bg rounded-b-lg'
-                                        : 'bg-duty-off-bg'
-                                      : ''
-                                  }`}
-                                >
-                                  <div className="flex items-center justify-center h-6">
-                                    {i === 0 && (
-                                      <span
-                                        className={getCountColor(
-                                          dutyCounts[j].D,
-                                          j + 1,
-                                          'D'
-                                        )}
-                                      >
-                                        {dutyCounts[j].D}
-                                      </span>
-                                    )}
-                                    {i === 1 && (
-                                      <span
-                                        className={getCountColor(
-                                          dutyCounts[j].E,
-                                          j + 1,
-                                          'E'
-                                        )}
-                                      >
-                                        {dutyCounts[j].E}
-                                      </span>
-                                    )}
-                                    {i === 2 && (
-                                      <span
-                                        className={getCountColor(
-                                          dutyCounts[j].N,
-                                          j + 1,
-                                          'N'
-                                        )}
-                                      >
-                                        {dutyCounts[j].N}
-                                      </span>
-                                    )}
-                                    {i === 3 && dutyCounts[j].O}
-                                    {i === 4 && dutyCounts[j].total}
-                                  </div>
-                                </td>
-                              ))}
-                              {/* 각 행의 마지막 4개 열을 차지하는 셀 */}
+                            <div className="flex items-center justify-center h-6">
                               {i === 0 && (
-                                <td
-                                  rowSpan={5}
-                                  colSpan={4}
-                                  className="p-0 border-r border-gray-200"
+                                <span
+                                  className={getCountColor(
+                                    dutyCounts[j].D,
+                                    j + 1,
+                                    'D'
+                                  )}
                                 >
-                                  <div className="flex justify-center items-center h-full">
-                                    <div className="scale-[0.85]">
-                                      <ProgressChecker
-                                        value={progress}
-                                        size={80}
-                                        strokeWidth={4}
-                                        showLabel={true}
-                                      />
-                                    </div>
-                                  </div>
-                                </td>
+                                  {dutyCounts[j].D}
+                                </span>
                               )}
-                            </tr>
-                          )
+                              {i === 1 && (
+                                <span
+                                  className={getCountColor(
+                                    dutyCounts[j].E,
+                                    j + 1,
+                                    'E'
+                                  )}
+                                >
+                                  {dutyCounts[j].E}
+                                </span>
+                              )}
+                              {i === 2 && (
+                                <span
+                                  className={getCountColor(
+                                    dutyCounts[j].N,
+                                    j + 1,
+                                    'N'
+                                  )}
+                                >
+                                  {dutyCounts[j].N}
+                                </span>
+                              )}
+                              {i === 3 && dutyCounts[j].O}
+                              {i === 4 && dutyCounts[j].total}
+                            </div>
+                          </td>
+                        ))}
+                        {/* 각 행의 마지막 4개 열을 차지하는 셀 */}
+                        {i === 0 && (
+                          <td
+                            rowSpan={5}
+                            colSpan={4}
+                            className="p-0 border-r border-gray-200"
+                          >
+                            <div className="flex justify-center items-center h-full">
+                              <div className="scale-[0.85]">
+                                <ProgressChecker
+                                  value={progress}
+                                  size={80}
+                                  strokeWidth={4}
+                                  showLabel={true}
+                                />
+                              </div>
+                            </div>
+                          </td>
                         )}
-                      </tbody>
-                    </table>
+                      </tr>
+                    )
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* 모바일용 플로팅 버튼 그룹 - 외부 컴포넌트 사용 */}
+          <MobileDutyControls
+            isVisible={showMobileButton}
+            onDutySelect={handleMobileButtonClick}
+            onClose={() => setShowMobileButton(false)}
+          />
+        </div>
+
+        {/* 웹 뷰 */}
+        <div className="hidden xl:block">
+          <div
+            className="bg-white rounded-[0.92375rem] shadow-[0_0_0.9375rem_rgba(0,0,0,0.1)] p-[1.5rem]"
+            ref={tableRef}
+          >
+            {/* 월 선택 및 버튼 영역 */}
+            <div className="bg-white rounded-xl py-[0.5rem] px-[0.5rem] mb-[0.1875rem]">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <div className="flex ml-[0.75rem] items-center gap-[0.75rem]">
+                    <Icon
+                      name="left"
+                      size={16}
+                      className="cursor-pointer text-gray-600 hover:text-gray-800"
+                      onClick={handlePrevMonth}
+                    />
+                    <span className="text-lg font-medium">{month}월</span>
+                    <Icon
+                      name="right"
+                      size={16}
+                      className="cursor-pointer text-gray-600 hover:text-gray-800"
+                      onClick={handleNextMonth}
+                    />
+                    <div className="flex items-center gap-2 ml-1">
+                      <span className="text-[11px] sm:text-xs text-gray-400">
+                        기본 OFF
+                      </span>
+                      <span className="text-[12px] sm:text-sm font-bold text-black">
+                        {getDefaultOffDays(year, month)}
+                      </span>
+                      <span className="text-foreground">일</span>
+                    </div>
+                    <div>
+                      <button
+                        className={`flex items-center gap-1 text-gray-400 hover:text-gray-600 px-2 py-1 rounded-md ${
+                          isAllCellsEmpty
+                            ? 'opacity-50 cursor-not-allowed hover:bg-transparent hover:text-gray-400'
+                            : 'hover:bg-gray-100'
+                        }`}
+                        onClick={handleResetDuty}
+                      >
+                        <Icon name="reset" size={16} />
+                        <span className="text-sm whitespace-nowrap">
+                          초기화
+                        </span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                {/* 버튼 영역 */}
+                <div className="flex gap-1 sm:gap-2 items-center">
+                  <div className="flex items-center gap-2 relative group">
+                    <Button
+                      text-size="md"
+                      size="register"
+                      color="off"
+                      className="py-0.5 px-1.5 sm:py-1 sm:px-2"
+                    >
+                      <div className="flex items-center gap-1 relative group">
+                        <span>키보드 가이드</span>
+                      </div>
+                    </Button>
+
+                    {/* 호버 시 나타나는 가이드 */}
+                    <div className="absolute z-50 invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-200 top-full left-0 mt-2">
+                      <KeyboardGuide />
+                    </div>
+                  </div>
+                  <div className="h-6 w-[1px] bg-gray-200 mx-1" />
+                  <Button
+                    ref={ruleButtonRef}
+                    size="register"
+                    color="primary"
+                    className="py-0.5 px-1.5 sm:py-1 sm:px-2"
+                    onClick={() => handleRuleButtonClick()}
+                  >
+                    규칙 설정
+                  </Button>
+                  <div className="flex items-center gap-1">
+                    <Button
+                      text-size="md"
+                      size="register"
+                      color="evening"
+                      className="py-0.5 px-1.5 sm:py-1 sm:px-2 flex items-center gap-2 group"
+                      onClick={handleAutoCreate}
+                    >
+                      자동 생성
+                      <Tooltip
+                        content={
+                          <div className="text-left space-y-1.5">
+                            <p>
+                              근무표는 다음 조건들을 고려하여 자동으로
+                              생성됩니다:
+                            </p>
+                            <ul className="list-disc pl-4 space-y-1">
+                              <li>주중/주말별 필요 최소 인원</li>
+                              <li>근무표 규칙</li>
+                              <li>개인별 근무 요청</li>
+                              <li>평일 데이, 나이트 전담 근무</li>
+                              <li>간호사 간 균등한 근무 배분</li>
+                              <li>지난 달 말일 근무 고려</li>
+                            </ul>
+                            <p className="mt-2 text-gray-300">
+                              *숙련도 반영은은 개발 중입니다.
+                              <br />* 커스텀 규칙 생성 기능은 개발 중입니다.
+                              <br />
+                              *완성도 100%일 시 새로운 근무표가 생성되지 않을 수
+                              있습니다.
+                              <br />
+                              *변경이 필요한 칸을 X로 눌러 자동생성을 재실행하는
+                              것을 추천드립니다.
+                            </p>
+                          </div>
+                        }
+                        className="ml-1"
+                        width="w-96"
+                        icon={{
+                          name: 'alert',
+                          size: 16,
+                          className:
+                            'text-duty-evening group-hover:text-white transition-colors cursor-help',
+                        }}
+                      />
+                    </Button>
+                  </div>
+                  <div className="relative">
+                    <Button
+                      text-size="md"
+                      size="register"
+                      color="off"
+                      className={`py-0.5 px-1.5 sm:py-1 sm:px-2 ${userInfo?.isDemo ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      onClick={() =>
+                        !userInfo?.isDemo &&
+                        setShowWebDownloadDropdown((prev) => !prev)
+                      }
+                    >
+                      <div className="flex items-center gap-1">
+                        다운로드
+                        {userInfo?.isDemo && (
+                          <Tooltip
+                            content="로그인 후 이용해주세요"
+                            className="ml-1"
+                            width="w-40"
+                          />
+                        )}
+                      </div>
+                    </Button>
+                    {showWebDownloadDropdown && !userInfo?.isDemo && (
+                      <div className="absolute right-0 top-full mt-1 bg-white rounded-lg shadow-lg z-50 min-w-[8rem] py-1">
+                        <button
+                          onClick={() => {
+                            setShowWebDownloadDropdown(false);
+                            handleDownloadWardSchedule();
+                          }}
+                          className="w-full px-3 py-2 text-sm text-left text-gray-700 hover:bg-gray-100"
+                        >
+                          이미지로 다운로드
+                        </button>
+                        <button
+                          onClick={() => {
+                            setShowWebDownloadDropdown(false);
+                            handleExportToExcel();
+                          }}
+                          className="w-full px-3 py-2 text-sm text-left text-gray-700 hover:bg-gray-100"
+                        >
+                          엑셀로 다운로드
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
-            )}
+            </div>
+
+            {/* 근무표, 통계, 완성도를 하나의 상자로 통합 */}
+            <div className="bg-white rounded-xl p-[0.5rem] shadow-[0_0.25rem_0.75rem_rgba(0,0,0,0.1)]">
+              {isLoading ? (
+                <div className="flex justify-center items-center h-[25rem]">
+                  <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+                </div>
+              ) : (
+                <div className="relative">
+                  <div className="overflow-x-auto">
+                    <div
+                      className={`min-w-[50rem] ${isWeb ? 'duty-table-content' : ''}`}
+                    >
+                      <table className="relative w-full border-collapse z-10">
+                        <thead>
+                          <tr className="text-xs text-gray-600 border-b border-gray-200">
+                            <th className="p-0 text-center w-[90px] sm:w-24 border-r border-gray-200">
+                              <span className="block text-xs sm:text-sm px-0.5">
+                                이름
+                              </span>
+                            </th>
+                            <th className="p-0 text-center w-[90px] sm:w-24 border-r border-gray-200">
+                              <span className="block text-xs sm:text-sm px-0.5">
+                                이전 근무
+                              </span>
+                            </th>
+
+                            {Array.from({ length: daysInMonth }, (_, i) => {
+                              const day = i + 1;
+                              return (
+                                <th
+                                  key={i}
+                                  className={`p-0 text-center w-10 border-r border-gray-200 ${getWeekendStyle(
+                                    day
+                                  )}`}
+                                >
+                                  {day}
+                                </th>
+                              );
+                            })}
+                            <th className="p-0 text-center w-7 border-r border-gray-200">
+                              <div className="flex items-center justify-center">
+                                <div className="scale-[0.65]">
+                                  <DutyBadgeEng
+                                    type="D"
+                                    size="sm"
+                                    variant="filled"
+                                  />
+                                </div>
+                              </div>
+                            </th>
+                            <th className="p-0 text-center w-7 border-r border-gray-200">
+                              <div className="flex items-center justify-center">
+                                <div className="scale-[0.65]">
+                                  <DutyBadgeEng
+                                    type="E"
+                                    size="sm"
+                                    variant="filled"
+                                  />
+                                </div>
+                              </div>
+                            </th>
+                            <th className="p-0 text-center w-7 border-r border-gray-200">
+                              <div className="flex items-center justify-center">
+                                <div className="scale-[0.65]">
+                                  <DutyBadgeEng
+                                    type="N"
+                                    size="sm"
+                                    variant="filled"
+                                  />
+                                </div>
+                              </div>
+                            </th>
+                            <th className="p-0 text-center w-7 border-r border-gray-200">
+                              <div className="flex items-center justify-center">
+                                <div className="scale-[0.65]">
+                                  <DutyBadgeEng
+                                    type="O"
+                                    size="sm"
+                                    variant="filled"
+                                  />
+                                </div>
+                              </div>
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {nurses.map((name, i) => (
+                            <tr
+                              key={i}
+                              className="h-8 border-b border-gray-200 group"
+                            >
+                              <td
+                                className={`p-0 text-center border-r border-gray-200 ${isHighlighted(i, -2)}`}
+                              >
+                                <span className="block text-xs sm:text-sm whitespace-nowrap overflow-hidden text-ellipsis">
+                                  {name}
+                                </span>
+                              </td>
+                              <td
+                                className={`p-0 border-r border-gray-200 ${isHighlighted(i, -1)}`}
+                              >
+                                <div className="flex justify-center -space-x-1.5">
+                                  {prevShifts[i].map((shift, index) => (
+                                    <div key={index} className="scale-[0.65]">
+                                      <DutyBadgeEng
+                                        type={
+                                          shift as 'X' | 'D' | 'E' | 'N' | 'O'
+                                        }
+                                        size="sm"
+                                        isSelected={false}
+                                      />
+                                    </div>
+                                  ))}
+                                </div>
+                              </td>
+                              {Array.from(
+                                { length: daysInMonth },
+                                (_, dayIndex) => {
+                                  if (!duties[i] || !duties[i][dayIndex])
+                                    return null;
+
+                                  const violations = issues.filter(
+                                    (issue) =>
+                                      issue.memberId === dutyData[i].memberId &&
+                                      dayIndex + 1 >= issue.startDate &&
+                                      dayIndex + 1 <= issue.endDate
+                                  );
+
+                                  const requestStatus = requests.find(
+                                    (request) => {
+                                      const requestDate = new Date(
+                                        request.date
+                                      );
+                                      return (
+                                        requestDate.getFullYear() === year &&
+                                        requestDate.getMonth() + 1 === month &&
+                                        requestDate.getDate() ===
+                                          dayIndex + 1 &&
+                                        request.name === nurses[i]
+                                      );
+                                    }
+                                  );
+
+                                  return (
+                                    <DutyCell
+                                      key={dayIndex}
+                                      nurse={name}
+                                      dayIndex={dayIndex}
+                                      duty={duties[i][dayIndex] || 'X'}
+                                      isSelected={
+                                        selectedCell?.row === i &&
+                                        selectedCell?.col === dayIndex
+                                      }
+                                      violations={violations}
+                                      requestStatus={requestStatus}
+                                      isHovered={
+                                        hoveredCell?.row === i &&
+                                        hoveredCell?.day === dayIndex
+                                      }
+                                      onClick={() =>
+                                        handleCellClick(i, dayIndex)
+                                      }
+                                      onMouseEnter={() =>
+                                        setHoveredCell({
+                                          row: i,
+                                          day: dayIndex,
+                                        })
+                                      }
+                                      onMouseLeave={() => setHoveredCell(null)}
+                                      highlightClass={isHighlighted(
+                                        i,
+                                        dayIndex
+                                      )}
+                                    />
+                                  );
+                                }
+                              )}
+                              <td
+                                className={`p-0 text-xs text-center border-r border-gray-200 ${isHighlighted(i, 31)}`}
+                              >
+                                {nurseDutyCounts[i]?.D || 0}
+                              </td>
+                              <td
+                                className={`p-0 text-xs text-center border-r border-gray-200 ${isHighlighted(i, 32)}`}
+                              >
+                                {nurseDutyCounts[i]?.E || 0}
+                              </td>
+                              <td
+                                className={`p-0 text-xs text-center border-r border-gray-200 ${isHighlighted(i, 33)}`}
+                              >
+                                {nurseDutyCounts[i]?.N || 0}
+                              </td>
+                              <td
+                                className={`p-0 text-xs text-center border-r border-gray-200 ${isHighlighted(i, 34)}`}
+                              >
+                                {nurseDutyCounts[i]?.O || 0}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                        {/* 통계 행들을 같은 테이블에 직접 추가 */}
+                        <tbody>
+                          {['DAY', 'EVENING', 'NIGHT', 'OFF', 'TOTAL'].map(
+                            (text, i) => (
+                              <tr
+                                key={`empty-${i}`}
+                                className="text-[10px] h-6 border-b border-gray-200"
+                              >
+                                <td
+                                  colSpan={2}
+                                  className={`p-0 font-bold text-[11px] border-r border-gray-200 ${
+                                    i === 0
+                                      ? 'text-[#318F3D]'
+                                      : i === 1
+                                        ? 'text-[#E55656]'
+                                        : i === 2
+                                          ? 'text-[#532FC8]'
+                                          : i === 3
+                                            ? 'text-[#726F5A]'
+                                            : 'text-black'
+                                  }`}
+                                >
+                                  <div className="flex items-center justify-center">
+                                    <span translate="no">{text}</span>
+                                  </div>
+                                </td>
+                                {Array.from({ length: daysInMonth }, (_, j) => (
+                                  <td
+                                    key={j}
+                                    className={`p-0 text-center text-[11px] border-r border-gray-200 ${
+                                      selectedCell?.col === j
+                                        ? i === 4
+                                          ? 'bg-duty-off-bg rounded-b-lg'
+                                          : 'bg-duty-off-bg'
+                                        : ''
+                                    }`}
+                                  >
+                                    <div className="flex items-center justify-center h-6">
+                                      {i === 0 && (
+                                        <span
+                                          className={getCountColor(
+                                            dutyCounts[j].D,
+                                            j + 1,
+                                            'D'
+                                          )}
+                                        >
+                                          {dutyCounts[j].D}
+                                        </span>
+                                      )}
+                                      {i === 1 && (
+                                        <span
+                                          className={getCountColor(
+                                            dutyCounts[j].E,
+                                            j + 1,
+                                            'E'
+                                          )}
+                                        >
+                                          {dutyCounts[j].E}
+                                        </span>
+                                      )}
+                                      {i === 2 && (
+                                        <span
+                                          className={getCountColor(
+                                            dutyCounts[j].N,
+                                            j + 1,
+                                            'N'
+                                          )}
+                                        >
+                                          {dutyCounts[j].N}
+                                        </span>
+                                      )}
+                                      {i === 3 && dutyCounts[j].O}
+                                      {i === 4 && dutyCounts[j].total}
+                                    </div>
+                                  </td>
+                                ))}
+                                {/* 각 행의 마지막 4개 열을 차지하는 셀 */}
+                                {i === 0 && (
+                                  <td
+                                    rowSpan={5}
+                                    colSpan={4}
+                                    className="p-0 border-r border-gray-200"
+                                  >
+                                    <div className="flex justify-center items-center h-full">
+                                      <div className="scale-[0.85]">
+                                        <ProgressChecker
+                                          value={progress}
+                                          size={80}
+                                          strokeWidth={4}
+                                          showLabel={true}
+                                        />
+                                      </div>
+                                    </div>
+                                  </td>
+                                )}
+                              </tr>
+                            )
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* 공통 모달 영역 - 뷰포트 외부에 배치 */}
-      {isRuleModalOpen && (
-        <RuleEditModal
+        {/* 공통 모달 영역 - 뷰포트 외부에 배치 */}
+        {isRuleModalOpen && (
+          <RuleEditModal
+            onClose={() => {
+              setIsRuleModalOpen(false);
+              setIsFromAutoGenerate(false);
+            }}
+            buttonRef={ruleButtonRef}
+            onRuleUpdate={(newRules) => setWardRules(newRules)}
+            isFromAutoGenerate={isFromAutoGenerate}
+            onRuleUpdateFromAutoGenerate={handleRuleUpdateFromAutoGenerate}
+          />
+        )}
+        <NurseCountModal
+          isOpen={isNurseCountModalOpen}
+          onClose={() => setIsNurseCountModalOpen(false)}
+          onConfirm={() => {
+            setIsNurseCountModalOpen(false);
+            navigate('/ward-admin');
+          }}
+          neededNurseCount={neededNurseCount}
+        />
+
+        <AutoGenerateConfirmModal
+          isOpen={isAutoGenerateModalOpen}
           onClose={() => {
-            setIsRuleModalOpen(false);
+            setIsAutoGenerateModalOpen(false);
             setIsFromAutoGenerate(false);
           }}
-          buttonRef={ruleButtonRef}
-          onRuleUpdate={(newRules) => setWardRules(newRules)}
-          isFromAutoGenerate={isFromAutoGenerate}
-          onRuleUpdateFromAutoGenerate={handleRuleUpdateFromAutoGenerate}
+          onConfirm={handleAutoGenerateConfirm}
+          onModify={(newRules) => {
+            setWardRules(newRules);
+            setIsAutoGenerateModalOpen(false);
+          }}
+          wardRules={wardRules}
+          autoGenCnt={autoGenCnt}
         />
-      )}
-      <NurseCountModal
-        isOpen={isNurseCountModalOpen}
-        onClose={() => setIsNurseCountModalOpen(false)}
-        onConfirm={() => {
-          setIsNurseCountModalOpen(false);
-          navigate('/ward-admin');
-        }}
-        neededNurseCount={neededNurseCount}
-      />
 
-      <AutoGenerateConfirmModal
-        isOpen={isAutoGenerateModalOpen}
-        onClose={() => {
-          setIsAutoGenerateModalOpen(false);
-          setIsFromAutoGenerate(false);
-        }}
-        onConfirm={handleAutoGenerateConfirm}
-        onModify={(newRules) => {
-          setWardRules(newRules);
-          setIsAutoGenerateModalOpen(false);
-        }}
-        wardRules={wardRules}
-        autoGenCnt={autoGenCnt}
-      />
+        <AutoGenCountModal
+          isOpen={isAutoGenCountModalOpen}
+          onClose={() => setIsAutoGenCountModalOpen(false)}
+          onConfirm={executeAutoGenerate}
+          autoGenCnt={autoGenCnt}
+          onOpenPayment={() => {
+            setIsPaymentModalOpen(true);
+          }}
+        />
 
-      <AutoGenCountModal
-        isOpen={isAutoGenCountModalOpen}
-        onClose={() => setIsAutoGenCountModalOpen(false)}
-        onConfirm={executeAutoGenerate}
-        autoGenCnt={autoGenCnt}
-        onOpenPayment={() => {
-          setIsPaymentModalOpen(true);
-        }}
-      />
+        <PaymentModal
+          isOpen={isPaymentModalOpen}
+          onClose={() => setIsPaymentModalOpen(false)}
+          onSubscribe={handleSubscribe}
+        />
 
-      <PaymentModal
-        isOpen={isPaymentModalOpen}
-        onClose={() => setIsPaymentModalOpen(false)}
-        onSubscribe={handleSubscribe}
-      />
+        <SubscriptionSuccessModal
+          isOpen={isSubscriptionSuccessModalOpen}
+          onClose={() => setIsSubscriptionSuccessModalOpen(false)}
+          onConfirm={handleStartAutoGenerate}
+          plan={currentPlan}
+          autoGenCnt={autoGenCnt}
+        />
 
-      <SubscriptionSuccessModal
-        isOpen={isSubscriptionSuccessModalOpen}
-        onClose={() => setIsSubscriptionSuccessModalOpen(false)}
-        onConfirm={handleStartAutoGenerate}
-        plan={currentPlan}
-        autoGenCnt={autoGenCnt}
-      />
+        <DemoSignupModal
+          isOpen={isDemoSignupModalOpen}
+          onClose={() => setIsDemoSignupModalOpen(false)}
+          onSignup={() => {
+            setIsDemoSignupModalOpen(false);
+            navigate('/sign-up');
+          }}
+          onContinue={() => setIsDemoSignupModalOpen(false)}
+          timeLeft={demoTimeLeft}
+        />
 
-      <DemoSignupModal
-        isOpen={isDemoSignupModalOpen}
-        onClose={() => setIsDemoSignupModalOpen(false)}
-        onSignup={() => {
-          setIsDemoSignupModalOpen(false);
-          navigate('/sign-up');
-        }}
-        onContinue={() => setIsDemoSignupModalOpen(false)}
-        timeLeft={demoTimeLeft}
-      />
+        <ResetDutyConfirmModal
+          isOpen={isResetDutyConfirmModalOpen}
+          onClose={() => setIsResetDutyConfirmModalOpen(false)}
+          onConfirm={resetDutyConfirmed}
+        />
 
-      <ResetDutyConfirmModal
-        isOpen={isResetDutyConfirmModalOpen}
-        onClose={() => setIsResetDutyConfirmModalOpen(false)}
-        onConfirm={resetDutyConfirmed}
-      />
+        <NurseShortageModal
+          isOpen={isNurseShortageModalOpen}
+          onClose={() => setIsNurseShortageModalOpen(false)}
+          onForceGenerate={handleForceAutoGenerate}
+          neededNurseCount={neededNurseCount}
+          currentNurseCount={nurses.length}
+        />
+      </div>
+    );
+  }
+);
 
-      <NurseShortageModal
-        isOpen={isNurseShortageModalOpen}
-        onClose={() => setIsNurseShortageModalOpen(false)}
-        onForceGenerate={handleForceAutoGenerate}
-        neededNurseCount={neededNurseCount}
-        currentNurseCount={nurses.length}
-      />
-    </div>
-  );
-};
+ShiftAdminTable.displayName = 'ShiftAdminTable';
 
-export default memo(ShiftAdminTable);
+export default ShiftAdminTable;
