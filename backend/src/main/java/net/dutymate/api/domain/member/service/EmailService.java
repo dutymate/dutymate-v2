@@ -6,6 +6,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -212,6 +213,11 @@ public class EmailService {
 		if (!memberRepository.existsByEmail(email)) {
 			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "등록되지 않은 이메일입니다.");
 		}
+
+		// 소셜 로그인 사용자인지 확인
+		memberRepository.findMemberByEmail(email)
+			.filter(member -> member.getProvider().equals(Provider.NONE))
+			.orElseThrow(() -> new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "소셜 로그인 사용자입니다."));
 	}
 
 	public void sendCodeFindPassword(SendCodeRequestDto sendCodeRequestDto) {
@@ -223,7 +229,7 @@ public class EmailService {
 			sendEmail(email, code, "reset-password");
 			saveCodeToRedis(email, code);
 		} else {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "해당 이메일로 등록된 계정이 없습니다");
+			throw new ResponseStatusException(HttpStatus.FORBIDDEN, "해당 이메일로 등록된 계정이 없습니다");
 		}
 	}
 
