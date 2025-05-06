@@ -4,7 +4,7 @@
 CURRENT_DIR=$(pwd)
 
 # 커밋 대상 파일 중 frontend/ 디렉토리의 파일이 있는지 확인
-FRONTEND_FILES=$(git diff --cached --name-only | grep "^frontend/")
+FRONTEND_FILES=$(git diff --cached --name-only | grep "^frontend/" || true)
 
 # frontend/ 디렉토리의 파일이 없으면 검사 건너뛰기
 if [ -z "$FRONTEND_FILES" ]; then
@@ -14,8 +14,14 @@ fi
 
 echo "🔍 프론트엔드 파일이 변경되었습니다. 검사를 시작합니다."
 
+# 프로젝트 루트 디렉토리 가져오기
+PROJECT_ROOT=$(git rev-parse --show-toplevel)
+
 # frontend 디렉토리로 이동
-cd "$(git rev-parse --show-toplevel)/frontend" || exit 1
+cd "$PROJECT_ROOT/frontend" || {
+  echo "❌ 프론트엔드 디렉토리를 찾을 수 없습니다."
+  exit 1
+}
 
 echo "🔧 TypeScript 타입 체크 중..."
 npx tsc --noEmit
@@ -40,8 +46,7 @@ fi
 
 # 포맷팅으로 변경된 파일들을 다시 스테이징
 echo "🔄 포맷팅으로 변경된 파일들을 커밋에 추가합니다."
-# 현재 프론트엔드 디렉토리에 있으므로 상대 경로 사용
-git diff --name-only | xargs -I{} git add "$(git rev-parse --show-toplevel)/{}"
+git diff --name-only | xargs -I{} git add "$PROJECT_ROOT/{}"
 
 echo "✅ 모든 검사 성공! 커밋을 진행합니다."
 cd "$CURRENT_DIR" || exit 1
