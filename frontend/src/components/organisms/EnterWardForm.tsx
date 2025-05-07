@@ -151,7 +151,7 @@ const EnterWardForm = ({ onSubmit }: EnterWardFormProps) => {
           size="lg"
           fullWidth
           onClick={() => navigate('/extra-info')}
-          className="h-[3rem] bg-primary-40 hover:bg-primary-dark text-white w-full shadow-md"
+          className="h-[3rem] w-full"
         >
           <span className="text-[0.875rem] sm:text-[1rem]">뒤로가기</span>
         </Button>
