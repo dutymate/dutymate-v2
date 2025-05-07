@@ -522,7 +522,6 @@ public class MemberService {
 				// 병동 내 다른 유저가 있는지 확인
 				boolean hasOtherUser = wardMemberList.stream()
 					.anyMatch(wm -> {
-						System.out.println(wm.getMember().getEmail());
 						return wm.getMember() != member
 							&& !TEMP_NURSE_EMAIL.equals(wm.getMember().getEmail());
 					});
@@ -580,7 +579,6 @@ public class MemberService {
 				// 병동 내 다른 유저가 있는지 확인
 				boolean hasOtherUser = wardMemberList.stream()
 					.anyMatch(wardMember -> {
-						System.out.println(wardMember.getMember().getEmail());
 						return wardMember.getMember() != member
 							&& !TEMP_NURSE_EMAIL.equals(wardMember.getMember().getEmail());
 					});
