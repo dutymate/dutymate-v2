@@ -852,10 +852,12 @@ public class MemberService {
 		return enterWaitingRepository.existsByMember(member);
 	}
 
+	// 현재 입장한 병동이 있는지 여부 조회하기
 	public boolean getExistMyWard(Member member) {
 		return wardMemberRepository.existsByMember(member);
 	}
 
+	// 입장 대기 신청 취소하기
 	public void deleteEnteringWardWaiting(Member member) {
 		EnterWaiting enterWaitingMember = enterWaitingRepository.findByMember(member);
 		enterWaitingRepository.delete(enterWaitingMember);
