@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -39,27 +38,9 @@ public class NewsService {
 	@Value("${openai.secret-key}")
 	private String openaiSecretKey;
 
-	// 매일 06:00에 실행
-	@Scheduled(cron = "0 0 6 * * *")
-	public void executeAt6AM() throws JsonProcessingException {
-		newsBatch();
-	}
-
-	// 매일 14:00에 실행
-	@Scheduled(cron = "0 0 14 * * *")
-	public void executeAt2PM() throws JsonProcessingException {
-		newsBatch();
-	}
-
-	// 매일 21:00에 실행
-	@Scheduled(cron = "0 0 21 * * *")
-	public void executeAt9PM() throws JsonProcessingException {
-		newsBatch();
-	}
-
 	public List<GptApiResponseDto> getNews() throws JsonProcessingException {
 		if (newsRepository.count() == 0) {
-			newsBatch();
+			refreshRecentNews();
 		}
 		List<GptApiResponseDto> newsList = newsRepository.findFirstByOrderByCreatedAtDesc().getNewsList();
 		newsList.forEach(o -> {
@@ -71,7 +52,7 @@ public class NewsService {
 		return newsList;
 	}
 
-	public void newsBatch() throws JsonProcessingException {
+	public void refreshRecentNews() throws JsonProcessingException {
 		ObjectMapper mapper = new ObjectMapper();
 		List<GptApiResponseDto> newsList = mapper.readValue(getChatGptResponse(generatePrompt()),
 			new TypeReference<>() {

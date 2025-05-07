@@ -102,10 +102,12 @@ openai:
   model: ${OPENAI_MODEL}
   secret-key: ${OPENAI_SECRET_KEY}
 
-# 데모 계정 일괄 삭제 비밀키
+# API 요청 비밀키
 api:
   demo:
     secret: ${API_DEMO_SECRET}
+  news:
+    secret: ${API_NEWS_SECRET}
 #공공데이터 포털 키
   data:
     go:
