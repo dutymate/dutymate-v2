@@ -14,8 +14,7 @@ import net.dutymate.api.domain.wardmember.WardMember;
 
 public class DemoRequestGenerator {
 	// 데모 요청 관련 상수
-	private static final int MIN_REQUESTS_PER_NURSE = 4;
-	private static final int MAX_REQUESTS_PER_NURSE = 4;
+	private static final int MIN_REQUESTS_PER_NURSE = 2;
 	private static final int BASE_DAY_MULTIPLIER = 7;
 	private static final int OFFSET_MULTIPLIER = 5;
 
