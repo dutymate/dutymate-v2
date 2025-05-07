@@ -18,7 +18,7 @@ public class GoogleUserResponseDto {
 	private String name;
 	private String picture;
 
-	private static final Integer DEFAULT_AUTO_GEN_CNT = 5;
+	private static final Integer DEFAULT_AUTO_GEN_CNT = 1;
 
 	// GoogleUser(DTO) -> Member Entity
 	public Member toMember(String defaultProfileImage) {

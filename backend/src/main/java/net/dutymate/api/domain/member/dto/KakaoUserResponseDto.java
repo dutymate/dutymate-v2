@@ -19,7 +19,7 @@ public class KakaoUserResponseDto {
 	private Properties properties;
 	private KakaoAccount kakaoAccount;
 
-	private static final Integer DEFAULT_AUTO_GEN_CNT = 5;
+	private static final Integer DEFAULT_AUTO_GEN_CNT = 1;
 
 	@Data
 	@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)

@@ -81,8 +81,8 @@ public class MemberService {
 	private static final String DEMO_HOSPITAL_NAME = "듀티메이트병원";
 	private static final String DEMO_WARD_NAME = "듀티병동";
 	private static final Integer DEMO_TEMP_NURSE_CNT = 10;
-	private static final Integer DEMO_AUTO_GEN_CNT = 3;
-	private static final Integer DEFAULT_AUTO_GEN_CNT = 5;
+	private static final Integer DEMO_AUTO_GEN_CNT = 1;
+	private static final Integer DEFAULT_AUTO_GEN_CNT = 1;
 	public static final String TEMP_NURSE_EMAIL = "tempEmail@temp.com";
 
 	private final MemberRepository memberRepository;
