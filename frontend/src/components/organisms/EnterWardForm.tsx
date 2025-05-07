@@ -90,7 +90,7 @@ const EnterWardForm = ({ onSubmit }: EnterWardFormProps) => {
       <div className="relative flex items-center mb-[2rem]">
         <div
           className="flex items-center gap-1 cursor-pointer absolute left-0"
-          onClick={() => navigate(-1)}
+          onClick={() => navigate('/extra-info')}
         >
           <IoIosArrowBack className="text-gray-400 text-[1.2rem]" />
           {/* <span className="text-gray-400 text-[0.8rem]">뒤로가기</span> */}
@@ -127,7 +127,9 @@ const EnterWardForm = ({ onSubmit }: EnterWardFormProps) => {
             size="lg"
             fullWidth
             disabled={isLoading || !!error || wardCode.length !== 6}
-            className={`h-[3rem] ${isLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
+            className={`h-[3rem] ${
+              isLoading ? 'opacity-70 cursor-not-allowed' : ''
+            }`}
           >
             {isLoading ? (
               <div className="flex items-center justify-center gap-[0.5rem]">
@@ -142,6 +144,18 @@ const EnterWardForm = ({ onSubmit }: EnterWardFormProps) => {
           </Button>
         </div>
       </form>
+      <div className="mt-[0.25rem] sm:mt-[0.5rem]">
+        <Button
+          type="button"
+          color="primary"
+          size="lg"
+          fullWidth
+          onClick={() => navigate('/extra-info')}
+          className="h-[3rem] bg-primary-40 hover:bg-primary-dark text-white w-full shadow-md"
+        >
+          <span className="text-[0.875rem] sm:text-[1rem]">뒤로가기</span>
+        </Button>
+      </div>
     </div>
   );
 };
