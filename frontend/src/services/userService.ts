@@ -256,6 +256,50 @@ export const userService = {
       throw error;
     }
   },
+
+  /**
+   * 입장 대기 상태 업데이트 API
+   */
+  enterWaitingStatus: async (): Promise<boolean> => {
+    try {
+      const response = await axiosInstance.get('/member/enter-waiting-status');
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        throw error.response?.data;
+      }
+      throw error;
+    }
+  },
+
+  /**
+   * 입장한 병동 상태 조회 API
+   */
+  existWardStatus: async (): Promise<boolean> => {
+    try {
+      const response = await axiosInstance.get('/member/exist-ward-status');
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        throw error.response?.data;
+      }
+      throw error;
+    }
+  },
+
+  /**
+   * 입장 대기 취소 API
+   */
+  cancelEnterWardWaiting: async (): Promise<void> => {
+    try {
+      await axiosInstance.delete('/member/cancel-enter');
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        throw error.response?.data;
+      }
+      throw error;
+    }
+  },
 };
 
 export default userService;

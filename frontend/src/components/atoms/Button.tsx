@@ -213,7 +213,7 @@ export const ConnectButton = ({
   );
 };
 
-//
+// 병동 입장 대기 시, 로그인 하러가기 버튼
 export const EnterWardLogoutButton = ({
   onClick,
   className,
@@ -222,12 +222,36 @@ export const EnterWardLogoutButton = ({
   className?: string;
 }) => {
   return (
-    <button
+    <Button
       onClick={onClick}
-      className={`w-full lg:w-[9rem] px-[0.75rem] py-[0.5rem] bg-primary-20 text-primary hover:text-white transition-colors rounded-[0.25rem] hover:bg-primary text-[0.75rem] lg:text-[0.875rem] h-[2.1875rem] ml-[0.75rem] ${className}`}
+      color="primary"
+      fullWidth={true}
+      size="md"
+      className={`text-[0.75rem] lg:text-[0.875rem] h-[2.5rem] ${className}`}
     >
-      로그인으로 돌아가기
-    </button>
+      <span className="text-[0.75rem] lg:text-[0.875rem]">로그인 하러가기</span>
+    </Button>
+  );
+};
+
+// 병동 입장 취소 버튼
+export const CancelEnterWardButton = ({
+  onClick,
+  className,
+}: {
+  onClick: () => void;
+  className?: string;
+}) => {
+  return (
+    <Button
+      onClick={onClick}
+      color="muted"
+      fullWidth={true}
+      size="md"
+      className={`text-[0.75rem] lg:text-[0.875rem] h-[2.5rem] ${className}`}
+    >
+      <span className="text-[0.75rem] lg:text-[0.875rem]"> 입장 취소하기</span>
+    </Button>
   );
 };
 
@@ -236,7 +260,11 @@ export const CommunityWriteButton = ({
   onClick,
   className,
   isDemo = false,
-}: { onClick?: () => void; className?: string; isDemo?: boolean }) => {
+}: {
+  onClick?: () => void;
+  className?: string;
+  isDemo?: boolean;
+}) => {
   const handleClick = () => {
     if (isDemo) {
       toast.info('로그인 후 이용 가능합니다.');

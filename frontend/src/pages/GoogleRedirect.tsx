@@ -37,7 +37,6 @@ export function GoogleRedirect() {
         userAuthStore.setUserInfo({
           ...data,
           provider: 'google',
-          sentWardCode: false,
         });
         toast.success('정상적으로 로그인되었습니다.');
 
