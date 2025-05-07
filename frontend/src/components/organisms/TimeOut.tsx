@@ -66,7 +66,7 @@ const TimeOut = () => {
         </div>
         <button
           className="mt-4 sm:mt-4 w-full bg-[#F9A98E] text-white text-base sm:text-base font-bold rounded-lg py-2 sm:py-2 transition hover:bg-[#f88c62] focus:outline-none"
-          onClick={() => navigate('/sign-up')}
+          onClick={() => navigate('/login')}
         >
           회원가입 하러가기
         </button>

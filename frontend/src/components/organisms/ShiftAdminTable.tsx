@@ -667,17 +667,8 @@ const ShiftAdminTable = memo(
 
         // DEMO: autogenCnt 0 & demo 계정이면 회원가입 유도 모달
         if (autoGenCnt <= 0 && isDemo) {
-          // 남은 데모 시간 계산 (DemoTimer와 동일 로직)
-          const startTime = sessionStorage.getItem('demo-start-time');
-          if (startTime) {
-            const startTimestamp = parseInt(startTime, 10);
-            const now = Date.now();
-            const elapsedSeconds = Math.floor((now - startTimestamp) / 1000);
-            const remaining = 60 * 10 - elapsedSeconds;
-            setDemoTimeLeft(Math.max(0, remaining));
-          } else {
-            setDemoTimeLeft(0);
-          }
+          const { timeLeft } = useUserAuthStore.getState();
+          setDemoTimeLeft(timeLeft);
           setIsDemoSignupModalOpen(true);
           return;
         }
@@ -2051,7 +2042,7 @@ const ShiftAdminTable = memo(
           onClose={() => setIsDemoSignupModalOpen(false)}
           onSignup={() => {
             setIsDemoSignupModalOpen(false);
-            navigate('/sign-up');
+            navigate('/login');
           }}
           onContinue={() => setIsDemoSignupModalOpen(false)}
           timeLeft={demoTimeLeft}

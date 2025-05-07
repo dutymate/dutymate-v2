@@ -29,6 +29,7 @@ interface UserAuthState {
   userInfo: UserInfo | null;
   additionalInfo: AdditionalInfo | null;
   isTimeout: boolean;
+  timeLeft: number;
 
   // 액션
   setUserInfo: (userInfo: UserInfo) => void;
@@ -36,6 +37,7 @@ interface UserAuthState {
   logout: () => void;
   setProfileImg: (profileImgUrl: string | null) => void;
   setTimeout: (isTimeout: boolean) => void;
+  setTimeLeft: (timeLeft: number) => void;
 }
 
 // Zustand 스토어 생성
@@ -47,6 +49,7 @@ export const useUserAuthStore = create<UserAuthState>()(
       userInfo: null,
       additionalInfo: null,
       isTimeout: false,
+      timeLeft: 0,
 
       // 액션
       setUserInfo: (userInfo: UserInfo) => {
@@ -79,6 +82,7 @@ export const useUserAuthStore = create<UserAuthState>()(
           isAuthenticated: false,
           userInfo: null,
           additionalInfo: null,
+          timeLeft: 0,
         }),
           sessionStorage.removeItem('user-auth-storage');
       },
@@ -100,6 +104,7 @@ export const useUserAuthStore = create<UserAuthState>()(
       },
 
       setTimeout: (isTimeout: boolean) => set({ isTimeout }),
+      setTimeLeft: (timeLeft: number) => set({ timeLeft }),
     }),
     {
       name: 'user-auth-storage',

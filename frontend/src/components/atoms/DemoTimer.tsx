@@ -1,13 +1,13 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { MdOutlineAccessTime } from 'react-icons/md';
 
 import TimeOut from '@/components/organisms/TimeOut';
 import useUserAuthStore from '@/stores/userAuthStore';
 
 const DemoTimer = () => {
-  const { userInfo, setTimeout, isTimeout } = useUserAuthStore();
+  const { userInfo, setTimeout, isTimeout, timeLeft, setTimeLeft } =
+    useUserAuthStore();
   const isDemo = userInfo?.isDemo;
-  const [timeLeft, setTimeLeft] = useState<number>(0);
   // const [showTimeOut, setShowTimeOut] = useState<boolean>(false);
 
   const formatTime = (sec: number) => {
@@ -25,8 +25,7 @@ const DemoTimer = () => {
     const startTimestamp = parseInt(startTime, 10);
     const now = Date.now();
     const elapsedSeconds = Math.floor((now - startTimestamp) / 1000);
-    const remaining = 60 * 10 - elapsedSeconds; // 10분 타이머 (주석처리)
-    // const remaining = 5 - elapsedSeconds; // 5초 타이머 (테스트용)
+    const remaining = 60 * 10 - elapsedSeconds; // 10분 타이머
 
     if (remaining <= 0) {
       setTimeout(true);
@@ -38,15 +37,22 @@ const DemoTimer = () => {
   useEffect(() => {
     if (!isDemo || timeLeft <= 0 || isTimeout) return;
 
+    const startTime = sessionStorage.getItem('demo-start-time');
+    if (!startTime) return;
+
     const interval = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          clearInterval(interval);
-          useUserAuthStore.getState().setTimeout(true);
-          return 0;
-        }
-        return prev - 1;
-      });
+      const startTimestamp = parseInt(startTime, 10);
+      const now = Date.now();
+      const elapsedSeconds = Math.floor((now - startTimestamp) / 1000);
+      const remaining = 60 * 10 - elapsedSeconds;
+
+      if (remaining <= 0) {
+        clearInterval(interval);
+        useUserAuthStore.getState().setTimeout(true);
+        setTimeLeft(0);
+        return;
+      }
+      setTimeLeft(remaining);
     }, 1000);
 
     return () => clearInterval(interval);
