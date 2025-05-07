@@ -13,6 +13,7 @@ import { SEO } from '@/components/SEO';
 import { dutyService } from '@/services/dutyService';
 import { useLoadingStore } from '@/stores/loadingStore';
 import useUserAuthStore from '@/stores/userAuthStore';
+import KakaoPlaceModal from '@/components/organisms/KakaoPlaceModal';
 
 // Duty 타입 변환 유틸리티 함수
 const convertDutyType = (
@@ -79,6 +80,9 @@ const MyShift = () => {
   const [schedulesByDate, setSchedulesByDate] = useState<
     Record<string, ScheduleType[]>
   >({});
+
+  // 카카오맵 모달 상태
+  const [isPlaceModalOpen, setIsPlaceModalOpen] = useState(false);
 
   // 초기 데이터 로딩
   useEffect(() => {
@@ -235,6 +239,13 @@ const MyShift = () => {
           </div>
         </div>
       </div>
+
+      {/* KakaoPlaceModal */}
+      <KakaoPlaceModal
+        open={isPlaceModalOpen}
+        onClose={() => setIsPlaceModalOpen(false)}
+        onSelect={() => {}}
+      />
     </>
   );
 };

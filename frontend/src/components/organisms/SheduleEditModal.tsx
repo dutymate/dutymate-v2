@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import KakaoPlaceModal from '@/components/organisms/KakaoPlaceModal';
 
 interface ScheduleEditModalProps {
   mode: 'create' | 'view' | 'edit';
@@ -41,6 +42,7 @@ const ScheduleEditModal = ({
   const [activeTimePicker, setActiveTimePicker] = useState<
     null | 'start' | 'end'
   >(null);
+  const [isPlaceModalOpen, setIsPlaceModalOpen] = useState(false);
 
   // 색상 옵션 정의 - 더 다양하고 현대적인 색상으로 업데이트
   const colorOptions = [
@@ -358,6 +360,10 @@ const ScheduleEditModal = ({
               </label>
               <div
                 className={`flex items-center w-full px-4 py-3 rounded-lg border ${isEditable ? 'border-gray-300' : 'bg-gray-50 border-gray-200'}`}
+                onClick={
+                  isEditable ? () => setIsPlaceModalOpen(true) : undefined
+                }
+                style={{ cursor: isEditable ? 'pointer' : 'default' }}
               >
                 <span className="mr-2">📍</span>
                 <input
@@ -365,10 +371,14 @@ const ScheduleEditModal = ({
                   className={`w-full ${isEditable ? 'focus:outline-none' : 'bg-gray-50'}`}
                   placeholder="장소를 입력하세요"
                   value={place}
-                  onChange={(e) => setPlace(e.target.value)}
-                  readOnly={!isEditable}
+                  readOnly
                 />
               </div>
+              <KakaoPlaceModal
+                open={isPlaceModalOpen}
+                onClose={() => setIsPlaceModalOpen(false)}
+                onSelect={(placeName: string) => setPlace(placeName)}
+              />
             </div>
           </div>
 
