@@ -3,6 +3,9 @@ package net.dutymate.api.domain.request;
 import java.sql.Date;
 import java.sql.Timestamp;
 
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+
 import net.dutymate.api.domain.autoschedule.Shift;
 import net.dutymate.api.domain.wardmember.WardMember;
 
@@ -35,6 +38,7 @@ public class Request {
 
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
 	@JoinColumn(name = "ward_member_id", nullable = false)
+	@OnDelete(action = OnDeleteAction.CASCADE)
 	private WardMember wardMember;
 
 	private Date requestDate;
