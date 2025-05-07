@@ -22,5 +22,11 @@ public interface RequestRepository extends JpaRepository<Request, Long> {
 		+ "WHERE wm.ward = :ward")
 	List<Request> findAllWardRequests(@Param("ward") Ward ward);
 
+	@Query("SELECT r FROM Request r WHERE r.wardMember.ward = :ward "
+		+ "AND YEAR(r.requestDate) = :year AND MONTH(r.requestDate) = :month")
+	List<Request> findAllWardRequestsByYearMonth(
+		@Param("ward") Ward ward,
+		@Param("year") Integer year,
+		@Param("month") Integer month
+	);
 }
-

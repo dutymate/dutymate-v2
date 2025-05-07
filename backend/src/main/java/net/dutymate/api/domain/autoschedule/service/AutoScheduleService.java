@@ -93,8 +93,11 @@ public class AutoScheduleService {
 		// scheduleGenerator.generateSchedule(wardSchedule, rule, wardMembers, prevNurseShifts, yearMonth);
 		Long memberId = member.getMemberId();
 
-		List<Request> requests = requestRepository.findAllWardRequests(member.getWardMember().getWard());
-
+		List<Request> requests = requestRepository.findAllWardRequestsByYearMonth(
+			member.getWardMember().getWard(),
+			yearMonth.year(),
+			yearMonth.month()
+		);
 		//HN 자동 로직에서 제거
 		wardMembers.removeIf(wm -> wm.getShiftType() == ShiftType.D
 			|| wm.getShiftType() == ShiftType.M
