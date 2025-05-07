@@ -15,6 +15,8 @@ public interface EnterWaitingRepository extends JpaRepository<EnterWaiting, Long
 
 	List<EnterWaiting> findByWard(Ward ward);
 
+	EnterWaiting findByMember(Member member);
+
 	boolean existsByMember(Member member);
 
 	boolean existsByMemberAndWard(Member member, Ward ward);

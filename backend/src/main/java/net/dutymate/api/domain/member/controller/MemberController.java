@@ -200,4 +200,22 @@ public class MemberController {
 		emailService.resetPassword(passwordResetRequestDto);
 		return ResponseEntity.ok().body("비밀번호가 성공적으로 변경되었습니다.");
 	}
+
+	@GetMapping("/enter-waiting-status")
+	public ResponseEntity<Boolean> enterWaitingStatus(@Auth Member member) {
+		boolean isWaiting = memberService.getEnterWatingStatus(member);
+		return ResponseEntity.ok(isWaiting);
+	}
+
+	@GetMapping("/exist-ward-status")
+	public ResponseEntity<Boolean> existMyWardStatus(@Auth Member member) {
+		boolean isExistWard = memberService.getExistMyWard(member);
+		return ResponseEntity.ok(isExistWard);
+	}
+
+	@DeleteMapping("/cancel-enter")
+	public ResponseEntity<?> cancelEnterWaiting(@Auth Member member) {
+		memberService.deleteEnteringWardWaiting(member);
+		return ResponseEntity.ok().build();
+	}
 }

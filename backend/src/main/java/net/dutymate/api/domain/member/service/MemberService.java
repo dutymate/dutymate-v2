@@ -847,10 +847,17 @@ public class MemberService {
 		memberRepository.deleteAllInBatch(membersToDelete);
 	}
 
-	// @Transactional
-	// public void deleteWardIfEmpty(Ward ward) {
-	// 	if (wardMemberRepository.findAllByWard(ward).isEmpty()) {
-	// 		wardRepository.delete(ward);
-	// 	}
-	// }
+	// 입장 대기 중인 상태 조회하기
+	public boolean getEnterWatingStatus(Member member) {
+		return enterWaitingRepository.existsByMember(member);
+	}
+
+	public boolean getExistMyWard(Member member) {
+		return wardMemberRepository.existsByMember(member);
+	}
+
+	public void deleteEnteringWardWaiting(Member member) {
+		EnterWaiting enterWaitingMember = enterWaitingRepository.findByMember(member);
+		enterWaitingRepository.delete(enterWaitingMember);
+	}
 }
