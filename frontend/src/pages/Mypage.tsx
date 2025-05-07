@@ -96,7 +96,7 @@ const Mypage = () => {
             {!isDemo ? (
               <Button
                 onClick={handleLogoutButton}
-                color="evening"
+                color="off"
                 size="sm"
                 width="fit"
                 className="flex-shrink-0 !w-[5rem] !h-[2rem] text-sm"
@@ -116,7 +116,7 @@ const Mypage = () => {
                 <div className="h-8 w-px bg-gray-300 mx-4"></div>
                 <Button
                   onClick={handleLogoutButton}
-                  color="evening"
+                  color="off"
                   size="sm"
                   width="fit"
                   className="flex-shrink-0 !w-[6rem] !h-[2rem] text-base"
