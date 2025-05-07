@@ -110,7 +110,10 @@ const WardAdminInfo = ({ wardInfo, onAddTempNurse }: WardAdminInfoProps) => {
               <h3 className="text-[0.95rem] text-gray-600 font-medium">
                 병동 인원
               </h3>
-              <TempNurseButton onClick={() => setIsTempModalOpen(true)} />
+              <TempNurseButton
+                onClick={() => setIsTempModalOpen(true)}
+                isDemo={isDemo}
+              />
             </div>
             <p className="font-semibold border border-gray-300 rounded-[0.375rem] px-3 py-1 text-center">
               {wardInfo.nursesTotalCnt}명

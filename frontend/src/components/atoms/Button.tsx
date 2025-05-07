@@ -175,16 +175,19 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 interface TempNurseButtonProps {
   onClick?: () => void;
   className?: string;
+  isDemo?: boolean;
 }
 
 export const TempNurseButton = ({
   onClick,
   className,
+  isDemo,
 }: TempNurseButtonProps) => {
   return (
     <button
       onClick={onClick}
-      className={`flex items-center justify-center gap-1.5 py-1 w-[100px] rounded-lg border transition-colors bg-[#999786] hover:bg-[#88866f] ${className}`}
+      className={`flex items-center justify-center gap-1.5 py-1 w-[100px] rounded-lg border transition-colors ${isDemo ? 'bg-gray-300 cursor-not-allowed opacity-60' : 'bg-[#999786] hover:bg-[#88866f]'} ${className}`}
+      disabled={isDemo}
     >
       <IoIosAddCircleOutline className="text-white text-[0.95rem]" />
       <span className="text-[0.8rem] text-white">임시 간호사</span>

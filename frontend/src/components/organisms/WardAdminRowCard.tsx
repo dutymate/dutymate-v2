@@ -571,16 +571,9 @@ const WardAdminRowCard = ({
                   variant="authority"
                   value={null}
                   onChange={(value) => {
-                    if (value === '병동 내보내기') {
-                      if (
-                        userAuthStore.userInfo?.isDemo &&
-                        nurse.role !== 'RN'
-                      ) {
-                        toast.error(
-                          '데모 계정에서 병동을 나가거나 관리자를 내보낼 수 없습니다.'
-                        );
-                        return;
-                      }
+                    if (userAuthStore.userInfo?.isDemo) {
+                      toast.error('로그인 후 이용 가능합니다.');
+                    } else if (value === '병동 내보내기') {
                       setRemoveTarget(
                         nurse.memberId === userAuthStore.userInfo?.memberId
                           ? 'SELF'
