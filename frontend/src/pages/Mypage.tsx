@@ -4,9 +4,9 @@ import { IoMdMenu } from 'react-icons/io';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
+import { Button } from '@/components/atoms/Button';
 import DemoTimer from '@/components/atoms/DemoTimer';
 import Title from '@/components/atoms/Title';
-import MypageExit from '@/components/organisms/MypageExit';
 import MypagePassword from '@/components/organisms/MypagePassword';
 import MypageProfile from '@/components/organisms/MypageProfile';
 import MSidebar from '@/components/organisms/MSidebar';
@@ -83,45 +83,54 @@ const Mypage = () => {
           <div className="flex items-center gap-3 lg:hidden mb-4">
             <button
               onClick={() => setIsSidebarOpen(true)}
-              className="p-2 hover:bg-gray-100 rounded-lg"
+              className="p-2 hover:bg-gray-100 rounded-lg flex-shrink-0"
             >
               <IoMdMenu className="w-6 h-6 text-gray-600" />
             </button>
-            <div className="flex-1">
-              <h1 className="text-lg font-bold">마이페이지</h1>
-              <p className="text-sm text-gray-500">나의 정보를 확인해보세요</p>
+            <div className="flex-1 min-w-0">
+              <h1 className="text-lg font-bold truncate">마이페이지</h1>
+              <p className="text-sm text-gray-500 truncate">
+                나의 정보를 확인해보세요
+              </p>
             </div>
-            {!isDemo && (
-              <button
+            {!isDemo ? (
+              <Button
                 onClick={handleLogoutButton}
-                className="flex-shrink-0 px-3 py-2 bg-white text-gray-900 border border-gray-200 rounded-md hover:bg-gray-50 text-xs"
+                color="evening"
+                size="sm"
+                width="fit"
+                className="flex-shrink-0 !w-[5rem] !h-[2rem] text-sm"
               >
                 로그아웃
-              </button>
-            )}
-            {isDemo && <DemoTimer />}
-          </div>
-
-          {/* 데스크톱 타이틀과 로그아웃 */}
-          <div className="hidden lg:flex items-center gap-[0.75rem]">
-            <div className="flex-1">
-              <Title title="마이페이지" subtitle="나의 정보를 확인해보세요" />
-            </div>
-            {!isDemo && (
-              <button
-                onClick={handleLogoutButton}
-                className="flex-shrink-0 w-[6.25rem] px-[0.75rem] py-[0.5rem] bg-white text-gray-900 border border-gray-200 rounded-md hover:bg-gray-50 text-sm h-[2.25rem]"
-              >
-                로그아웃
-              </button>
+              </Button>
+            ) : (
+              <DemoTimer />
             )}
           </div>
 
-          <div className="mt-4 flex justify-center">
+          {/* 데스크톱 타이틀 */}
+          <div className="hidden lg:flex items-center justify-between mb-6">
+            <Title title="마이페이지" subtitle="나의 정보를 확인해보세요" />
+            {!isDemo && (
+              <div className="flex items-center">
+                <div className="h-8 w-px bg-gray-300 mx-4"></div>
+                <Button
+                  onClick={handleLogoutButton}
+                  color="evening"
+                  size="sm"
+                  width="fit"
+                  className="flex-shrink-0 !w-[6rem] !h-[2rem] text-base"
+                >
+                  로그아웃
+                </Button>
+              </div>
+            )}
+          </div>
+
+          <div className="mt-6 flex justify-center">
             <div className="w-full lg:w-[87.5rem] space-y-4">
               <MypageProfile />
               {!isDemo && <MypagePassword />}
-              <MypageExit />
             </div>
           </div>
         </div>

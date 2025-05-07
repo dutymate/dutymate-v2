@@ -1,4 +1,4 @@
-import { Button } from '@/components/atoms/Button';
+import { Button, ButtonColor } from '@/components/atoms/Button';
 import useUserAuthStore from '@/stores/userAuthStore';
 
 interface MypageExitConfirmModalProps {
@@ -32,7 +32,7 @@ const MypageExitConfirmModal = ({
               <>
                 승인을 기다리는 간호사가 있습니다. 병동을 나가면
                 <br />
-                <span className="text-primary font-bold">
+                <span className="text-duty-night font-bold">
                   대기중인 모든 신청이 거절
                 </span>
                 됩니다.
@@ -42,7 +42,8 @@ const MypageExitConfirmModal = ({
             ),
             cancelText: '취소',
             confirmText: '병동 나가기',
-            confirmStyle: 'bg-primary',
+            confirmColor: 'duty-night',
+            confirmStyle: 'bg-duty-night',
           };
         }
         return {
@@ -50,7 +51,7 @@ const MypageExitConfirmModal = ({
           message: (
             <>
               병동을 나가면{' '}
-              <span className="text-primary font-bold">
+              <span className="text-duty-night font-bold">
                 근무표의 모든 데이터가 삭제
               </span>
               됩니다.
@@ -60,7 +61,8 @@ const MypageExitConfirmModal = ({
           ),
           cancelText: '취소',
           confirmText: '병동 나가기',
-          confirmStyle: 'bg-primary',
+          confirmColor: 'night',
+          confirmStyle: 'bg-night',
         };
       case 'WITHDRAWAL':
         return {
@@ -93,8 +95,14 @@ const MypageExitConfirmModal = ({
     }
   };
 
-  const { title, message, cancelText, confirmText, confirmStyle } =
-    getModalContent(exitRequestType);
+  const {
+    title,
+    message,
+    cancelText,
+    confirmText,
+    confirmColor,
+    confirmStyle,
+  } = getModalContent(exitRequestType);
 
   return (
     <div
@@ -122,7 +130,7 @@ const MypageExitConfirmModal = ({
           <div className="flex gap-2">
             <Button
               size="md"
-              color="primary"
+              color={confirmColor as ButtonColor}
               onClick={onConfirm}
               className={`flex-1 text-white font-normal rounded-xl py-3 transition-colors ${confirmStyle}`}
             >
