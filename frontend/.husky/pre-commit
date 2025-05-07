@@ -35,7 +35,7 @@ fi
 
 echo "✅ TypeScript 타입 체크 성공"
 echo "🔧 코드 포맷팅 및 빌드 중..."
-npm run format:fix
+npm run check:all
 
 FORMAT_RESULT=$?
 if [ $FORMAT_RESULT -ne 0 ]; then
