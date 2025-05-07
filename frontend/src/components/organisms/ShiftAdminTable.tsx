@@ -118,12 +118,12 @@ const DutyCell = memo(
     return (
       <td
         onClick={onClick}
-        className={`p-0 text-center border-r border-gray-200 relative min-w-[2.5rem] min-h-[2.5rem] w-[2.5rem] h-[2.5rem] box-content ${highlightClass}`}
+        className={`p-0 text-center border-r border-gray-200 relative ${highlightClass}`}
         onMouseEnter={onMouseEnter}
         onMouseLeave={onMouseLeave}
       >
         <div
-          className="flex items-center justify-center cursor-pointer relative outline-none w-full h-full"
+          className="flex items-center justify-center cursor-pointer relative outline-none"
           tabIndex={0}
           role="button"
           onClick={onClick}
@@ -157,7 +157,7 @@ const DutyCell = memo(
             />
           )}
           <div className="relative z-[2]">
-            <div className="scale-[1.1]">
+            <div className="scale-[0.9]">
               <DutyBadgeEng
                 type={duty as 'D' | 'E' | 'N' | 'O' | 'X' | 'M'}
                 size="sm"

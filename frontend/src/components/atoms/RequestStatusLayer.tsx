@@ -17,9 +17,10 @@ function RequestStatusLayer({
 }: RequestStatusLayerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [cellWidth, setCellWidth] = useState(0);
+  const [cellHeight, setCellHeight] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
 
-  const updateWidth = useCallback(() => {
+  const updateDimensions = useCallback(() => {
     if (!containerRef.current) return;
 
     const parentCell = containerRef.current.closest('td');
@@ -27,6 +28,7 @@ function RequestStatusLayer({
 
     const rect = parentCell.getBoundingClientRect();
     setCellWidth(rect.width);
+    setCellHeight(rect.height);
   }, []);
 
   useEffect(() => {
@@ -35,20 +37,20 @@ function RequestStatusLayer({
     const parentCell = containerRef.current.closest('td');
     if (!parentCell) return;
 
-    const observer = new ResizeObserver(updateWidth);
+    const observer = new ResizeObserver(updateDimensions);
     observer.observe(parentCell);
 
-    updateWidth();
+    updateDimensions();
 
     return () => observer.disconnect();
-  }, [updateWidth]);
+  }, [updateDimensions]);
 
   const getStatusColor = () => {
     switch (status) {
       case 'ACCEPTED':
-        return 'bg-green-100/30 border-green-500';
+        return 'border-green-500';
       case 'HOLD':
-        return 'bg-yellow-100/30 border-yellow-500';
+        return 'border-yellow-500';
       default:
         return '';
     }
@@ -70,11 +72,12 @@ function RequestStatusLayer({
       ref={containerRef}
       style={{
         width: `${cellWidth}px`,
+        height: `${cellHeight}px`,
         left: '0',
         position: 'absolute',
         opacity: 1,
       }}
-      className={`absolute z-[3] h-[2.5rem] rounded-lg border-2 ${getStatusColor()} transition-opacity duration-200 ${className}`}
+      className={`absolute z-[2] rounded-lg border-2 ${getStatusColor()} transition-opacity duration-200 ${className}`}
     >
       <div
         className={`absolute -top-1 -right-1 w-3 h-3 rounded-full ${getCircleColor()} cursor-help transition-transform hover:scale-125`}

@@ -19,7 +19,7 @@ const TeamShift = () => {
         title="병동 듀티표 | Dutymate"
         description="우리 병동의 전체 듀티표를 확인해보세요."
       />
-      <div className="w-full h-screen flex flex-row bg-[#F4F4F4]">
+      <div className="w-full min-h-screen flex flex-row bg-[#F4F4F4]">
         {/* 데스크톱 Sidebar */}
         <div className="hidden lg:block w-[14.875rem] shrink-0">
           <Sidebar
@@ -35,7 +35,7 @@ const TeamShift = () => {
           isDemo={isDemo ?? false}
         />
         {/* 메인 컨텐츠 영역 */}
-        <div className="flex-1 min-w-0 px-4 lg:px-8 py-6 h-screen lg:h-screen overflow-y-auto">
+        <div className="flex-1 min-w-0 px-4 lg:px-8 py-6">
           {/* 모바일 헤더 */}
           <div className="flex items-center gap-3 lg:hidden mb-4">
             <button

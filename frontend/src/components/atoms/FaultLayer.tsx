@@ -24,9 +24,10 @@ function FaultLayer({
   const containerRef = useRef<HTMLDivElement>(null);
   const dotRef = useRef<HTMLDivElement>(null);
   const [cellWidth, setCellWidth] = useState(0);
+  const [cellHeight, setCellHeight] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
 
-  const updateWidth = useCallback(() => {
+  const updateDimensions = useCallback(() => {
     if (!containerRef.current) return;
 
     const parentCell = containerRef.current.closest('td');
@@ -34,6 +35,7 @@ function FaultLayer({
 
     const rect = parentCell.getBoundingClientRect();
     setCellWidth(rect.width);
+    setCellHeight(rect.height);
   }, []);
 
   useEffect(() => {
@@ -42,53 +44,28 @@ function FaultLayer({
     const parentCell = containerRef.current.closest('td');
     if (!parentCell) return;
 
-    const observer = new ResizeObserver(updateWidth);
+    const observer = new ResizeObserver(updateDimensions);
     observer.observe(parentCell);
 
-    updateWidth();
+    updateDimensions();
 
     return () => observer.disconnect();
-  }, [updateWidth]);
+  }, [updateDimensions]);
 
   // 실제 표시될 너비 계산
   const width = Math.max(cellWidth, (endDate - startDate + 1) * cellWidth);
-
-  // // 메시지 위치 계산
-  // const getMessagePosition = () => {
-  // 	// 메시지 간 간격 (픽셀)
-  // 	const MESSAGE_GAP = 30;
-
-  // 	if (total === 1) return { top: "top-8" };
-
-  // 	// 여러 메시지가 있을 경우 위아래로 배치
-  // 	const isEven = index % 2 === 0;
-  // 	const offset = Math.floor(index / 2) * MESSAGE_GAP;
-
-  // 	if (isEven) {
-  // 		return {
-  // 			top: `top-[${32 + offset}px]`,
-  // 			transform: "-translate-x-1/2",
-  // 		};
-  // 	} else {
-  // 		return {
-  // 			bottom: `bottom-[${32 + offset}px]`,
-  // 			transform: "-translate-x-1/2",
-  // 		};
-  // 	}
-  // };
-
-  // const messagePosition = getMessagePosition();
 
   return (
     <div
       ref={containerRef}
       style={{
         width: `${width}px`,
+        height: `${cellHeight}px`,
         left: '0',
         position: 'absolute',
-        opacity: total > 1 ? 0.7 : 1, // 여러 개일 경우 약간 투명하게
+        opacity: 1, // 여러 개일 경우 약간 투명하게
       }}
-      className={`absolute z-[2] h-[2.5rem] rounded-lg border-2 border-red-500 bg-red-100/30 transition-opacity duration-200 ${className}`}
+      className={`absolute z-[2] rounded-lg border-2 border-red-500 transition-opacity duration-200 ${className}`}
     >
       {/* 메시지 표시를 위한 점 */}
       <div

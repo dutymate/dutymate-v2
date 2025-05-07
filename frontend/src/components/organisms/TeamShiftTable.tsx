@@ -200,7 +200,7 @@ const TeamShiftTable = () => {
           </Button>
         </div>
       </div>
-      <div className="overflow-x-auto relative w-full max-h-[calc(100vh-12rem)] sm:max-h-[calc(100vh-16rem)]">
+      <div className="overflow-x-auto relative w-full">
         <div className="duty-table-content min-w-[640px] relative">
           <table className="w-full border-collapse">
             <colgroup>
