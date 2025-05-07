@@ -35,6 +35,10 @@ interface TodayShiftModalProps {
   onClose?: () => void;
   onDateChange: (newDate: Date) => void;
   loading?: boolean;
+  schedulesByDate: Record<string, ScheduleType[]>;
+  setSchedulesByDate: React.Dispatch<
+    React.SetStateAction<Record<string, ScheduleType[]>>
+  >;
 }
 
 // 일정 타입 정의
@@ -47,6 +51,17 @@ type ScheduleType = {
   place: string;
 };
 
+const colorClassMap: Record<string, string> = {
+  blue: 'bg-blue-500',
+  purple: 'bg-purple-500',
+  green: 'bg-green-500',
+  pink: 'bg-pink-500',
+  red: 'bg-red-500',
+  yellow: 'bg-yellow-400',
+  tomato: 'bg-orange-500',
+  indigo: 'bg-indigo-500',
+};
+
 const TodayShiftModal = ({
   date,
   duty,
@@ -54,7 +69,8 @@ const TodayShiftModal = ({
   isMobile,
   onClose,
   onDateChange,
-  // loading = false,
+  schedulesByDate,
+  setSchedulesByDate,
 }: TodayShiftModalProps) => {
   if (!date) return null;
 
@@ -69,24 +85,8 @@ const TodayShiftModal = ({
   const [selectedSchedule, setSelectedSchedule] = useState<ScheduleType | null>(
     null
   );
-  const [schedules, setSchedules] = useState<ScheduleType[]>([
-    {
-      id: '1',
-      title: '환자 바이탈 사인 체크 (혈압, 맥박, 체온 )',
-      startTime: '오전 1:30',
-      endTime: '오전 2:30',
-      color: 'blue',
-      place: '',
-    },
-    {
-      id: '2',
-      title: '아들 등원 준비',
-      startTime: '오전 6:30',
-      endTime: '오전 7:30',
-      color: 'green',
-      place: '학강초',
-    },
-  ]);
+  const dateKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+  const schedules = schedulesByDate[dateKey] || [];
   const [isColorModalOpen, setIsColorModalOpen] = useState(false);
 
   const dutyTypes = ['day', 'off', 'evening', 'night', 'mid'] as const;
@@ -99,7 +99,13 @@ const TodayShiftModal = ({
     mid: 'bg-blue-100',
   });
 
+  const MAX_SCHEDULES_PER_DAY = 10;
+
   const handleAddClick = () => {
+    if (schedules.length >= MAX_SCHEDULES_PER_DAY) {
+      alert('하루에 최대 10개의 메모만 추가할 수 있습니다.');
+      return;
+    }
     setScheduleModalMode('create');
     setSelectedSchedule(null);
     setIsScheduleModalOpen(true);
@@ -112,16 +118,24 @@ const TodayShiftModal = ({
   };
 
   const handleSave = (data: Omit<ScheduleType, 'id'>) => {
-    if (scheduleModalMode === 'create') {
-      setSchedules([...schedules, { ...data, id: Date.now().toString() }]);
-    } else if (scheduleModalMode === 'edit' && selectedSchedule) {
-      setSchedules(
-        schedules.map((s) =>
+    if (!date) return;
+    if (scheduleModalMode === 'edit' && selectedSchedule) {
+      setSchedulesByDate((prev) => ({
+        ...prev,
+        [dateKey]: (prev[dateKey] || []).map((s) =>
           s.id === selectedSchedule.id
-            ? { ...data, id: selectedSchedule.id }
+            ? { ...s, ...data, id: selectedSchedule.id }
             : s
-        )
-      );
+        ),
+      }));
+    } else {
+      setSchedulesByDate((prev) => ({
+        ...prev,
+        [dateKey]: [
+          ...(prev[dateKey] || []),
+          { ...data, id: Date.now().toString() },
+        ],
+      }));
     }
     setIsScheduleModalOpen(false);
   };
@@ -129,7 +143,10 @@ const TodayShiftModal = ({
   const handleEdit = () => setScheduleModalMode('edit');
   const handleDelete = () => {
     if (selectedSchedule) {
-      setSchedules(schedules.filter((s) => s.id !== selectedSchedule.id));
+      setSchedulesByDate((prev) => ({
+        ...prev,
+        [dateKey]: prev[dateKey].filter((s) => s.id !== selectedSchedule.id),
+      }));
     }
     setIsScheduleModalOpen(false);
   };
@@ -339,6 +356,10 @@ const TodayShiftModal = ({
                 className="flex items-start gap-2 cursor-pointer"
                 onClick={() => handleScheduleClick(schedule)}
               >
+                {/* 색상 동그라미 */}
+                <span
+                  className={`w-3 h-3 rounded-full mt-2 ${colorClassMap[schedule.color] || 'bg-gray-300'}`}
+                />
                 <div className="flex flex-col items-end min-w-[3.5rem]">
                   <span className="text-xs text-gray-500">
                     {schedule.startTime}
@@ -358,6 +379,12 @@ const TodayShiftModal = ({
             <button
               className="flex-1 bg-gray-200 rounded-xl py-2 flex items-center justify-center text-2xl font-bold text-gray-700"
               onClick={handleAddClick}
+              disabled={schedules.length >= MAX_SCHEDULES_PER_DAY}
+              style={
+                schedules.length >= MAX_SCHEDULES_PER_DAY
+                  ? { opacity: 0.5, cursor: 'not-allowed' }
+                  : {}
+              }
             >
               +
             </button>
@@ -368,6 +395,11 @@ const TodayShiftModal = ({
               근무 색상 변경
             </button>
           </div>
+          {schedules.length >= MAX_SCHEDULES_PER_DAY && (
+            <div className="text-sm text-red-500 mt-0 text-center">
+              하루에 최대 10개의 메모만 추가할 수 있습니다.
+            </div>
+          )}
           {/* 모달 */}
           {isScheduleModalOpen && (
             <ScheduleEditModal
@@ -377,6 +409,7 @@ const TodayShiftModal = ({
               onSave={handleSave}
               onEdit={handleEdit}
               onDelete={handleDelete}
+              currentScheduleCount={schedules.length}
             />
           )}
         </div>

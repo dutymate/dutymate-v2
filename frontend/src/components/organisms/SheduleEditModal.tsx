@@ -13,6 +13,7 @@ interface ScheduleEditModalProps {
   onSave?: (data: Omit<any, 'id'>) => void;
   onDelete?: () => void;
   onEdit?: () => void;
+  currentScheduleCount?: number;
 }
 
 const ScheduleEditModal = ({
@@ -28,6 +29,7 @@ const ScheduleEditModal = ({
   onSave = () => {},
   onDelete = () => {},
   onEdit = () => {},
+  currentScheduleCount = 0,
 }: ScheduleEditModalProps) => {
   const [title, setTitle] = useState(initialData?.title || '');
   const [startTime, setStartTime] = useState(
@@ -216,7 +218,12 @@ const ScheduleEditModal = ({
   }, [activeTimePicker]);
 
   // 저장 처리
+  const MAX_SCHEDULES_PER_DAY = 10;
   const handleSave = () => {
+    if (mode === 'create' && currentScheduleCount >= MAX_SCHEDULES_PER_DAY) {
+      alert('하루에 최대 10개의 메모만 추가할 수 있습니다.');
+      return;
+    }
     onSave?.({ title, startTime, endTime, color, place });
   };
 
@@ -371,10 +378,23 @@ const ScheduleEditModal = ({
               <button
                 className="w-full py-2 rounded-lg font-bold text-lg bg-primary-30 text-white"
                 onClick={handleSave}
+                disabled={currentScheduleCount >= MAX_SCHEDULES_PER_DAY}
+                style={
+                  currentScheduleCount >= MAX_SCHEDULES_PER_DAY
+                    ? { opacity: 0.5, cursor: 'not-allowed' }
+                    : {}
+                }
               >
                 저장
               </button>
             )}
+
+            {currentScheduleCount >= MAX_SCHEDULES_PER_DAY &&
+              mode === 'create' && (
+                <div className="text-xs text-red-500 mt-1 text-center">
+                  하루에 최대 10개의 메모만 추가할 수 있습니다.
+                </div>
+              )}
 
             {isView && (
               <>

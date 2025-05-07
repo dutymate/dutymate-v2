@@ -16,6 +16,16 @@ import {
 } from '@/utils/dateUtils';
 import { useHolidayStore } from '@/stores/holidayStore';
 
+// 일정 타입 정의 (MyShift.tsx와 동일하게)
+type ScheduleType = {
+  id: string;
+  title: string;
+  startTime: string;
+  endTime: string;
+  color: string;
+  place: string;
+};
+
 interface MyShiftCalendarProps {
   onDateSelect: (date: Date) => void;
   selectedDate: Date | null;
@@ -27,6 +37,8 @@ interface MyShiftCalendarProps {
     shifts: string;
   } | null;
   onMonthChange?: (year: number, month: number) => void;
+  schedulesByDate: Record<string, ScheduleType[]>;
+  colorClassMap: Record<string, string>;
 }
 
 const MyShiftCalendar = ({
@@ -34,6 +46,8 @@ const MyShiftCalendar = ({
   selectedDate: externalSelectedDate,
   dutyData,
   onMonthChange,
+  schedulesByDate,
+  colorClassMap,
 }: MyShiftCalendarProps) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1024); // lg 브레이크포인트
@@ -324,6 +338,9 @@ const MyShiftCalendar = ({
                   `}
                 >
                   <div className="relative flex flex-row items-center">
+                    {/* 이재현*/}
+                  {/* <div className="relative flex flex-col items-start"> */}
+                    {/* 날짜 숫자 */}
                     <span
                       className={`
                         w-6 h-6 lg:w-8 lg:h-8
@@ -336,6 +353,36 @@ const MyShiftCalendar = ({
                     >
                       {day}
                     </span>
+                    {/* 동그라미들: 숫자 아래, 왼쪽 정렬 */}
+                    {(() => {
+                      const circles = (
+                        schedulesByDate?.[
+                          `${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+                        ] || []
+                      ).slice(0, 10);
+                      return (
+                        <>
+                          <span className="flex items-center gap-1 mt-1 ml-0">
+                            {circles.slice(0, 5).map((schedule) => (
+                              <span
+                                key={schedule.id}
+                                className={`w-3 h-3 rounded-full inline-block ${colorClassMap[schedule.color] || 'bg-gray-300'}`}
+                              />
+                            ))}
+                          </span>
+                          {circles.length > 5 && (
+                            <span className="flex items-center gap-1 mt-1 ml-0">
+                              {circles.slice(5, 10).map((schedule) => (
+                                <span
+                                  key={schedule.id}
+                                  className={`w-3 h-3 rounded-full inline-block ${colorClassMap[schedule.color] || 'bg-gray-300'}`}
+                                />
+                              ))}
+                            </span>
+                          )}
+                        </>
+                      );
+                    })()}
                     {holidayName && (
                       <span className="text-[10px] lg:text-[11px] text-red-500 ml-1 lg:ml-2 line-clamp-1 max-w-[80%]">
                         {holidayName}

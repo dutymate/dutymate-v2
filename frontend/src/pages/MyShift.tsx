@@ -28,6 +28,28 @@ const convertDutyType = (
   return dutyMap[duty];
 };
 
+// 일정 색상 클래스 매핑
+const colorClassMap: Record<string, string> = {
+  blue: 'bg-blue-500',
+  purple: 'bg-purple-500',
+  green: 'bg-green-500',
+  pink: 'bg-pink-500',
+  red: 'bg-red-500',
+  yellow: 'bg-yellow-400',
+  tomato: 'bg-orange-500',
+  indigo: 'bg-indigo-500',
+};
+
+// 일정 타입 정의 (두 컴포넌트와 동일하게 맞춰주세요)
+type ScheduleType = {
+  id: string;
+  title: string;
+  startTime: string;
+  endTime: string;
+  color: string;
+  place: string;
+};
+
 const MyShift = () => {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedDuty, setSelectedDuty] = useState<
@@ -52,6 +74,11 @@ const MyShift = () => {
   const [loading, setLoading] = useState(false);
   const { userInfo } = useUserAuthStore(); // 전역 상태에서 role 가져오기
   const navigate = useNavigate();
+
+  // 날짜별 일정(메모) 상태
+  const [schedulesByDate, setSchedulesByDate] = useState<
+    Record<string, ScheduleType[]>
+  >({});
 
   // 초기 데이터 로딩
   useEffect(() => {
@@ -166,6 +193,8 @@ const MyShift = () => {
                   selectedDate={selectedDate}
                   dutyData={myDutyData}
                   onMonthChange={handleMonthChange}
+                  schedulesByDate={schedulesByDate}
+                  colorClassMap={colorClassMap}
                 />
               </div>
 
@@ -181,6 +210,8 @@ const MyShift = () => {
                       isMobile={false}
                       onClose={() => setSelectedDate(null)}
                       onDateChange={(newDate) => handleDateSelect(newDate)}
+                      schedulesByDate={schedulesByDate}
+                      setSchedulesByDate={setSchedulesByDate}
                       loading={loading}
                     />
                   </div>
@@ -193,6 +224,8 @@ const MyShift = () => {
                       isMobile={true}
                       onClose={() => setSelectedDate(null)}
                       onDateChange={(newDate) => handleDateSelect(newDate)}
+                      schedulesByDate={schedulesByDate}
+                      setSchedulesByDate={setSchedulesByDate}
                       loading={loading}
                     />
                   </div>
