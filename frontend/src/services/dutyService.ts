@@ -145,9 +145,10 @@ export const dutyService = {
             case 401:
               window.location.href = '/login';
               break;
+            case 400:
+              throw new Error(error.response.data.message);
             default:
-              console.error('Error occurred:', error);
-              throw error;
+              throw new Error(error.response.data.message);
           }
         }
         throw error;
@@ -178,10 +179,8 @@ export const dutyService = {
               window.location.href = '/login';
               break;
             case 400:
-              console.error('잘못된 요청입니다.:', error);
-              throw new Error('잘못된 요청입니다.');
+              throw new Error(error.response.data.message);
             default:
-              console.error('Error occurred:', error);
               window.location.href = '/error';
               break;
           }

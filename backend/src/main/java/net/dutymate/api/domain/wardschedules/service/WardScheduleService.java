@@ -379,12 +379,12 @@ public class WardScheduleService {
 		// 2. 병동 정보 조회
 		WardSchedule wardSchedule = wardScheduleRepository.findByWardIdAndYearAndMonth(
 				wardMember.getWard().getWardId(), yearMonth.year(), yearMonth.month())
-			.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "병동에 해당하는 듀티가 없습니다."));
+			.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "해당 월 듀티표가 존재하지 않습니다."));
 
 		// 3. 가장 최신 duty 가져오기 (비어있는 경우 예외 처리)
 		List<WardSchedule.Duty> duties = wardSchedule.getDuties();
 		if (duties.isEmpty()) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "병동에 등록된 듀티 정보가 없습니다.");
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "해당 월 듀티표가 존재하지 않습니다.");
 		}
 
 		WardSchedule.Duty latestSchedule = duties.getLast();

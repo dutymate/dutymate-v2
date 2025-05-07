@@ -78,8 +78,11 @@ const TeamShiftTable = () => {
         // 공휴일 데이터도 함께 불러오기
         await fetchHolidays(currentDate.year, currentDate.month);
       } catch (error) {
-        console.error('병동 근무표 조회 실패:', error);
-        toast.error('병동 근무표를 불러오는데 실패했습니다');
+        if (error instanceof Error) {
+          toast.error(error.message);
+        } else {
+          toast.error('병동 근무표를 불러오는데 실패했습니다');
+        }
       } finally {
         setIsLoading(false);
         useLoadingStore.getState().setLoading(false);
