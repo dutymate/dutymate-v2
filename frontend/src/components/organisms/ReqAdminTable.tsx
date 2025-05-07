@@ -7,7 +7,11 @@ import { requestService, WardRequest } from '@/services/requestService.ts';
 import { useLoadingStore } from '@/stores/loadingStore';
 import { useRequestCountStore } from '@/stores/requestCountStore';
 
-const ReqAdminTable = () => {
+interface ReqAdminTableProps {
+  requests?: WardRequest[];
+}
+
+const ReqAdminTable = ({ requests: propRequests }: ReqAdminTableProps) => {
   const [requests, setRequests] = useState<WardRequest[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm] = useState('');
@@ -86,8 +90,13 @@ const ReqAdminTable = () => {
   };
 
   useEffect(() => {
-    fetchRequests();
-  }, []);
+    if (propRequests) {
+      setRequests(propRequests);
+      setIsLoading(false);
+    } else {
+      fetchRequests();
+    }
+  }, [propRequests]);
 
   // 검색 필터링
   const filteredRequests = requests.filter((request) =>

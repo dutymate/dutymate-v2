@@ -23,6 +23,7 @@ import RuleEditModal from '@/components/organisms/RuleEditModal';
 import SubscriptionSuccessModal from '@/components/organisms/SubscriptionSuccessModal';
 import NurseShortageModal from '@/components/organisms/NurseShortageModal';
 import MobileDutyControls from '@/components/molecules/MobileDutyControls';
+import RequestCheckModal from '@/components/organisms/RequestCheckModal';
 
 import { dutyService, SubscriptionPlan } from '@/services/dutyService';
 import { requestService, WardRequest } from '@/services/requestService';
@@ -31,6 +32,7 @@ import { ruleService, WardRule } from '@/services/ruleService.ts';
 import useShiftStore from '@/stores/shiftStore';
 import useUserAuthStore from '@/stores/userAuthStore';
 import { useHolidayStore } from '@/stores/holidayStore';
+import { useRequestCountStore } from '@/stores/requestCountStore';
 
 import {
   getDefaultOffDays,
@@ -659,6 +661,12 @@ const ShiftAdminTable = memo(
       }
 
       try {
+        // request count가 1 이상이면 RequestCheckModal을 먼저 보여줌
+        if (requestCount > 0) {
+          setIsRequestCheckModalOpen(true);
+          return;
+        }
+
         // 규칙 정보 먼저 가져오기
         const rules = await ruleService.getWardRules();
         setWardRules(rules);
@@ -1105,6 +1113,44 @@ const ShiftAdminTable = memo(
         document.removeEventListener('click', handleClickOutside);
       };
     }, [selectedCell, setSelectedCell]);
+
+    // RequestCheckModal 관련 상태 추가
+    const [isRequestCheckModalOpen, setIsRequestCheckModalOpen] =
+      useState(false);
+
+    const requestCount = useRequestCountStore((state) => state.count);
+
+    const handleRequestCheckModalClose = () => {
+      setIsRequestCheckModalOpen(false);
+    };
+
+    const handleRequestCheckModalConfirm = async () => {
+      setIsRequestCheckModalOpen(false);
+      try {
+        // 규칙 정보 먼저 가져오기
+        const rules = await ruleService.getWardRules();
+        setWardRules(rules);
+        setIsFromAutoGenerate(true);
+
+        // DEMO: autogenCnt 0 & demo 계정이면 회원가입 유도 모달
+        if (autoGenCnt <= 0 && isDemo) {
+          const { timeLeft } = useUserAuthStore.getState();
+          setDemoTimeLeft(timeLeft);
+          setIsDemoSignupModalOpen(true);
+          return;
+        }
+
+        // 자동 생성 횟수가 0 이하인 경우 결제 모달로 이동
+        if (autoGenCnt <= 0) {
+          setIsPaymentModalOpen(true);
+          return;
+        }
+
+        setIsAutoGenerateModalOpen(true);
+      } catch (error) {
+        toast.error('규칙을 불러오는데 실패했습니다');
+      }
+    };
 
     return (
       <div>
@@ -2056,6 +2102,13 @@ const ShiftAdminTable = memo(
           onForceGenerate={handleForceAutoGenerate}
           neededNurseCount={neededNurseCount}
           currentNurseCount={nurses.length}
+        />
+
+        {/* RequestCheckModal 추가 */}
+        <RequestCheckModal
+          isOpen={isRequestCheckModalOpen}
+          onClose={handleRequestCheckModalClose}
+          onAutoGenerate={handleRequestCheckModalConfirm}
         />
       </div>
     );

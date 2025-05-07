@@ -24,7 +24,6 @@ const DutyManagement = () => {
   const setRequestCount = useRequestCountStore((state) => state.setCount);
 
   const isDemo = userInfo?.isDemo;
-  // if(!userInfo) return <PageLoadingSpinner />;
 
   useEffect(() => {
     // URL에서 year와 month 파라미터 가져오기
