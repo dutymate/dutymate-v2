@@ -12,6 +12,8 @@ import { SEO } from '@/components/SEO';
 import useShiftStore from '@/stores/shiftStore';
 import useUserAuthStore from '@/stores/userAuthStore';
 import Title from '@/components/atoms/Title';
+import { requestService } from '@/services/requestService';
+import { useRequestCountStore } from '@/stores/requestCountStore';
 
 const DutyManagement = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -19,6 +21,7 @@ const DutyManagement = () => {
   const { userInfo } = useUserAuthStore();
 
   const { dutyInfo, loading, error, fetchDutyInfo } = useShiftStore();
+  const setRequestCount = useRequestCountStore((state) => state.setCount);
 
   const isDemo = userInfo?.isDemo;
   // if(!userInfo) return <PageLoadingSpinner />;
@@ -65,13 +68,27 @@ const DutyManagement = () => {
       urlMonth ? parseInt(urlMonth) : undefined
     );
 
+    // 대기 중인 요청 개수 가져오기
+    const fetchRequestCount = async () => {
+      if (userInfo?.role === 'HN') {
+        try {
+          const count = await requestService.getPendingRequestCount();
+          setRequestCount(count);
+        } catch (error) {
+          console.error('Failed to fetch request count:', error);
+        }
+      }
+    };
+
+    fetchRequestCount();
+
     // cleanup 함수 추가
     return () => {
       if (logoutTimer) {
         clearTimeout(logoutTimer);
       }
     };
-  }, [userInfo]);
+  }, [userInfo, fetchDutyInfo, setRequestCount]);
 
   if (loading && !dutyInfo) {
     return <PageLoadingSpinner />;

@@ -11,6 +11,7 @@ import { SlCalender } from 'react-icons/sl';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 import Profile from '@/components/atoms/Profile';
+import { useRequestCountStore } from '@/stores/requestCountStore';
 
 interface TooltipProps {
   content: string;
@@ -63,6 +64,7 @@ const staffNurseNavigation: NavigationItem[] = [
 
 const NavigationItem = React.memo(
   ({ item, isDemo }: { item: NavigationItem; isDemo: boolean }) => {
+    const requestCount = useRequestCountStore((state) => state.count);
     const handleClick = (
       e: React.MouseEvent<HTMLAnchorElement, MouseEvent>
     ) => {
@@ -118,7 +120,14 @@ const NavigationItem = React.memo(
               </div>
             </Tooltip>
           ) : (
-            <span className="font-semibold">{item.name}</span>
+            <div className="flex items-center justify-between w-full">
+              <span className="font-semibold">{item.name}</span>
+              {item.name === '요청 근무 관리' && requestCount > 0 && (
+                <span className="bg-primary text-white text-xs px-2 py-0.5 rounded-full">
+                  {requestCount}
+                </span>
+              )}
+            </div>
           )}
         </Link>
       </li>

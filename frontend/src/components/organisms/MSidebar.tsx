@@ -10,6 +10,7 @@ import { PiLightbulbFilamentFill } from 'react-icons/pi';
 import { Link, useNavigate } from 'react-router-dom';
 
 import Profile from '@/components/atoms/Profile';
+import { useRequestCountStore } from '@/stores/requestCountStore';
 
 interface NavigationItem {
   name: string;
@@ -42,6 +43,7 @@ const NavigationItem = React.memo(
     isDemo,
     userType,
   }: { item: NavigationItem; isDemo: boolean; userType: 'HN' | 'RN' }) => {
+    const requestCount = useRequestCountStore((state) => state.count);
     const demoBlockedRoutes = ['/community', '/my-page'];
     const handleClick = (
       e: React.MouseEvent<HTMLAnchorElement, MouseEvent>
@@ -96,7 +98,14 @@ const NavigationItem = React.memo(
                   : 'text-gray-500 group-hover:text-primary'
             }`,
           })}
-          <span className="font-semibold">{item.name}</span>
+          <div className="flex items-center justify-between w-full">
+            <span className="font-semibold">{item.name}</span>
+            {item.name === '요청 근무 관리' && requestCount > 0 && (
+              <span className="bg-primary text-white text-xs px-2 py-0.5 rounded-full">
+                {requestCount}
+              </span>
+            )}
+          </div>
         </Link>
       </li>
     );

@@ -66,6 +66,22 @@ export const requestService = {
   },
 
   /**
+   * 대기 중인 근무 요청 개수 조회 (수간호사용)
+   * @returns 대기 중인 근무 요청 개수
+   */
+  getPendingRequestCount: async () => {
+    try {
+      const requests = await requestService.getWardRequests();
+      return requests.filter(
+        (request: WardRequest) => request.status === 'HOLD'
+      ).length;
+    } catch (error) {
+      console.error('Failed to get pending request count:', error);
+      return 0;
+    }
+  },
+
+  /**
    * 나의 근무 요청 내역 조회
    * @returns 내가 신청한 근무 요청 내역
    */

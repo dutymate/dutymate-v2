@@ -5,12 +5,13 @@ import { ApprovalBtn } from '@/components/atoms/ApprovalBtn';
 import { DutyBadgeKor } from '@/components/atoms/DutyBadgeKor';
 import { requestService, WardRequest } from '@/services/requestService.ts';
 import { useLoadingStore } from '@/stores/loadingStore';
+import { useRequestCountStore } from '@/stores/requestCountStore';
 
 const ReqAdminTable = () => {
   const [requests, setRequests] = useState<WardRequest[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm] = useState('');
-  // const [ setSearchTerm] = useState("");
+  const setRequestCount = useRequestCountStore((state) => state.setCount);
 
   // 요청 목록 조회
   const fetchRequests = async () => {
@@ -18,6 +19,11 @@ const ReqAdminTable = () => {
     try {
       const data = await requestService.getWardRequests();
       setRequests(data);
+      // HOLD 상태의 요청만 카운트
+      const pendingCount = data.filter(
+        (request: WardRequest) => request.status === 'HOLD'
+      ).length;
+      setRequestCount(pendingCount);
     } catch (error) {
       toast.error('요청 목록을 불러오는데 실패했습니다');
     } finally {
@@ -45,6 +51,15 @@ const ReqAdminTable = () => {
       )
     );
 
+    // HOLD 상태의 요청 개수 즉시 업데이트
+    const updatedRequests = requests.map((request) =>
+      request.requestId === requestId ? { ...request, status } : request
+    );
+    const pendingCount = updatedRequests.filter(
+      (request) => request.status === 'HOLD'
+    ).length;
+    setRequestCount(pendingCount);
+
     try {
       // 백그라운드에서 API 호출
       await requestService.editRequestStatus(requestId, {
@@ -61,6 +76,11 @@ const ReqAdminTable = () => {
             : request
         )
       );
+      // 이전 상태로 카운트 복구
+      const previousPendingCount = requests.filter(
+        (request) => request.status === 'HOLD'
+      ).length;
+      setRequestCount(previousPendingCount);
       toast.error('요청 상태 변경에 실패했습니다');
     }
   };
