@@ -338,56 +338,51 @@ const MyShiftCalendar = ({
                   `}
                 >
                   <div className="relative flex flex-row items-center">
-                    {/* 이재현*/}
-                  {/* <div className="relative flex flex-col items-start"> */}
-                    {/* 날짜 숫자 */}
-                    <span
-                      className={`
-                        w-6 h-6 lg:w-8 lg:h-8
-                        flex items-center justify-center
-                        ${isTodayDate ? 'bg-primary' : ''} 
-                        ${dateStyle}
-                        rounded-full
-                        text-xs lg:text-sm
-                      `}
-                    >
-                      {day}
-                    </span>
-                    {/* 동그라미들: 숫자 아래, 왼쪽 정렬 */}
+                    {/* 날짜 숫자 + 공휴일 텍스트 */}
+                    <div className="flex items-center w-full">
+                      <span
+                        className={`
+                          w-6 h-6 lg:w-8 lg:h-8
+                          flex items-center justify-center
+                          ${isTodayDate ? 'bg-primary' : ''} 
+                          ${dateStyle}
+                          rounded-full
+                          text-xs lg:text-sm
+                        `}
+                      >
+                        {day}
+                      </span>
+                      {holidayName && (
+                        <span className="ml-1 text-[10px] lg:text-[11px] text-red-500 max-w-[3.5em] truncate align-middle">
+                          {holidayName}
+                        </span>
+                      )}
+                    </div>
+                    {/* 동그라미들: 모바일은 검정색 하나만, 데스크탑은 모두 표시 */}
                     {(() => {
                       const circles = (
                         schedulesByDate?.[
                           `${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`
                         ] || []
                       ).slice(0, 10);
+                      if (isMobile && circles.length > 0) {
+                        return (
+                          <div className="flex items-center justify-center gap-1 mt-1 mb-1 w-full">
+                            <span className="w-3 h-3 rounded-full inline-block bg-black" />
+                          </div>
+                        );
+                      }
                       return (
-                        <>
-                          <span className="flex items-center gap-1 mt-1 ml-0">
-                            {circles.slice(0, 5).map((schedule) => (
-                              <span
-                                key={schedule.id}
-                                className={`w-3 h-3 rounded-full inline-block ${colorClassMap[schedule.color] || 'bg-gray-300'}`}
-                              />
-                            ))}
-                          </span>
-                          {circles.length > 5 && (
-                            <span className="flex items-center gap-1 mt-1 ml-0">
-                              {circles.slice(5, 10).map((schedule) => (
-                                <span
-                                  key={schedule.id}
-                                  className={`w-3 h-3 rounded-full inline-block ${colorClassMap[schedule.color] || 'bg-gray-300'}`}
-                                />
-                              ))}
-                            </span>
-                          )}
-                        </>
+                        <div className="flex flex-wrap items-center gap-1 mt-1 mb-1 max-w-full">
+                          {circles.map((schedule) => (
+                            <span
+                              key={schedule.id}
+                              className={`w-3 h-3 rounded-full inline-block ${colorClassMap[schedule.color] || 'bg-gray-300'}`}
+                            />
+                          ))}
+                        </div>
                       );
                     })()}
-                    {holidayName && (
-                      <span className="text-[10px] lg:text-[11px] text-red-500 ml-1 lg:ml-2 line-clamp-1 max-w-[80%]">
-                        {holidayName}
-                      </span>
-                    )}
                   </div>
                   {getDutyFromShifts(
                     new Date(currentYear, currentMonth - 1, day),

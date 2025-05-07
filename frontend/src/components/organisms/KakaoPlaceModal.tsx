@@ -126,7 +126,7 @@ const KakaoPlaceModal = ({ open, onClose, onSelect }: KakaoPlaceModalProps) => {
       onClick={onClose}
     >
       <div
-        className="bg-white p-4 rounded-lg w-[90%] max-w-2xl"
+        className="bg-white p-4 rounded-lg w-[95%] sm:w-[80%] max-w-xl"
         onClick={(e) => e.stopPropagation()}
       >
         {/* 검색 입력창 */}
@@ -136,13 +136,13 @@ const KakaoPlaceModal = ({ open, onClose, onSelect }: KakaoPlaceModalProps) => {
             value={searchKeyword}
             onChange={(e) => setSearchKeyword(e.target.value)}
             placeholder="장소를 검색하세요"
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+            className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm sm:text-base"
             onKeyDown={handleKeyDown}
           />
         </div>
 
         {/* 지도 */}
-        <div style={{ width: '100%', height: '450px' }}>
+        <div style={{ width: '100%', height: '300px' }}>
           <Map
             center={{
               lat: 37.566826,
@@ -185,9 +185,11 @@ const KakaoPlaceModal = ({ open, onClose, onSelect }: KakaoPlaceModalProps) => {
 
         {/* 선택된 장소 정보 */}
         {selectedPlace && (
-          <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-            <h3 className="font-medium text-lg">{selectedPlace.content}</h3>
-            <p className="text-sm text-gray-600">
+          <div className="mt-4 p-3 sm:p-4 bg-gray-50 rounded-lg">
+            <h3 className="font-medium text-base sm:text-lg">
+              {selectedPlace.content}
+            </h3>
+            <p className="text-xs sm:text-sm text-gray-600">
               위도: {selectedPlace.position.lat.toFixed(6)}, 경도:{' '}
               {selectedPlace.position.lng.toFixed(6)}
             </p>

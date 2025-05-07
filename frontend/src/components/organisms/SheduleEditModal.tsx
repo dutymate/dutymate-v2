@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import KakaoPlaceModal from '@/components/organisms/KakaoPlaceModal';
+import { Map, MapMarker } from 'react-kakao-maps-sdk';
 
 interface ScheduleEditModalProps {
   mode: 'create' | 'view' | 'edit';
@@ -15,6 +15,14 @@ interface ScheduleEditModalProps {
   onDelete?: () => void;
   onEdit?: () => void;
   currentScheduleCount?: number;
+}
+
+interface Marker {
+  position: {
+    lat: number;
+    lng: number;
+  };
+  content: string;
 }
 
 const ScheduleEditModal = ({
@@ -42,7 +50,57 @@ const ScheduleEditModal = ({
   const [activeTimePicker, setActiveTimePicker] = useState<
     null | 'start' | 'end'
   >(null);
-  const [isPlaceModalOpen, setIsPlaceModalOpen] = useState(false);
+  const [isPlaceSearchOpen, setIsPlaceSearchOpen] = useState(false);
+  const [searchKeyword, setSearchKeyword] = useState('');
+  const [pendingKeyword, setPendingKeyword] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
+  const [markers, setMarkers] = useState<Marker[]>([]);
+  const [selectedPlace, setSelectedPlace] = useState<Marker | null>(null);
+  const [map, setMap] = useState<kakao.maps.Map | null>(null);
+
+  // 장소 검색 함수
+  const searchPlaces = (keyword: string) => {
+    if (!map || !window.kakao?.maps?.services?.Places) return;
+    setIsSearching(true);
+    const ps = new window.kakao.maps.services.Places();
+    ps.keywordSearch(keyword, (data: any, status: any) => {
+      if (status === window.kakao.maps.services.Status.OK) {
+        const bounds = new window.kakao.maps.LatLngBounds();
+        const newMarkers: Marker[] = [];
+        for (let i = 0; i < data.length; i++) {
+          newMarkers.push({
+            position: {
+              lat: Number(data[i].y),
+              lng: Number(data[i].x),
+            },
+            content: data[i].place_name,
+          });
+          bounds.extend(
+            new window.kakao.maps.LatLng(Number(data[i].y), Number(data[i].x))
+          );
+        }
+        setMarkers(newMarkers);
+        map.setBounds(bounds);
+      } else {
+        setMarkers([]);
+      }
+      setIsSearching(false);
+    });
+  };
+
+  // Enter 키로 검색 실행
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && searchKeyword.trim()) {
+      setPendingKeyword(searchKeyword.trim());
+    }
+  };
+
+  // pendingKeyword가 바뀔 때만 검색 실행
+  useEffect(() => {
+    if (pendingKeyword && map) {
+      searchPlaces(pendingKeyword);
+    }
+  }, [pendingKeyword, map]);
 
   // 색상 옵션 정의 - 더 다양하고 현대적인 색상으로 업데이트
   const colorOptions = [
@@ -242,32 +300,37 @@ const ScheduleEditModal = ({
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-xl shadow-2xl w-96 overflow-hidden"
+        className="bg-white rounded-xl shadow-2xl w-[90%] sm:w-80 overflow-hidden border border-gray-200"
         onClick={(e) => e.stopPropagation()}
       >
         {/* 헤더 */}
         <div
           className={
-            'bg-primary-30 px-6 py-2 text-white flex justify-between items-center'
+            'bg-white border-b border-gray-200 px-3 sm:px-4 py-2 flex justify-between items-center'
           }
         >
-          <h2 className="text-xl font-bold">{modalTitle}</h2>
-          <button onClick={onClose} className="text-white text-2xl">
+          <h2 className="text-base sm:text-lg font-bold text-primary">
+            {modalTitle}
+          </h2>
+          <button
+            onClick={onClose}
+            className="text-gray-400 text-lg sm:text-xl rounded-full w-8 h-8 flex items-center justify-center hover:bg-gray-100 transition-colors"
+          >
             &times;
           </button>
         </div>
 
         {/* 본문 */}
-        <div className="p-6">
-          <div className="space-y-5">
+        <div className="p-3 sm:p-4 max-h-[70vh] overflow-y-auto">
+          <div className="space-y-3 sm:space-y-4">
             {/* 제목 */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
                 제목
               </label>
               <input
                 type="text"
-                className={`w-full px-4 py-3 rounded-lg border ${isEditable ? 'border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200' : 'bg-gray-50 border-gray-200'} transition-all`}
+                className={`w-full px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg border ${isEditable ? 'border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200' : 'bg-gray-50 border-gray-200'} transition-all text-sm`}
                 placeholder="일정 제목을 입력하세요"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
@@ -276,33 +339,33 @@ const ScheduleEditModal = ({
             </div>
 
             {/* 시간 */}
-            <div className="grid grid-cols-2 gap-3 relative">
+            <div className="grid grid-cols-2 gap-2 relative">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
                   시작 시간
                 </label>
                 <div
-                  className={`w-full px-4 py-3 rounded-lg border flex items-center ${isEditable ? 'border-gray-300 cursor-pointer' : 'bg-gray-50 border-gray-200'}`}
+                  className={`w-full px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg border flex items-center ${isEditable ? 'border-gray-300 cursor-pointer' : 'bg-gray-50 border-gray-200'}`}
                   onClick={
                     isEditable ? () => setActiveTimePicker('start') : undefined
                   }
                 >
-                  <span className="mr-2">⏰</span>
-                  <span>{startTime}</span>
+                  <span className="mr-1 text-sm">⏰</span>
+                  <span className="text-sm">{startTime}</span>
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
                   종료 시간
                 </label>
                 <div
-                  className={`w-full px-4 py-3 rounded-lg border flex items-center ${isEditable ? 'border-gray-300 cursor-pointer' : 'bg-gray-50 border-gray-200'}`}
+                  className={`w-full px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg border flex items-center ${isEditable ? 'border-gray-300 cursor-pointer' : 'bg-gray-50 border-gray-200'}`}
                   onClick={
                     isEditable ? () => setActiveTimePicker('end') : undefined
                   }
                 >
-                  <span className="mr-2">⏰</span>
-                  <span>{endTime}</span>
+                  <span className="mr-1 text-sm">⏰</span>
+                  <span className="text-sm">{endTime}</span>
                 </div>
               </div>
               {isEditable && activeTimePicker && (
@@ -321,21 +384,23 @@ const ScheduleEditModal = ({
 
             {/* 색상 */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
                 색상
               </label>
               {isEditable ? (
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-1">
                   {colorOptions.map((opt) => (
                     <button
                       key={opt.value}
                       type="button"
-                      className={`w-8 h-8 rounded-full ${opt.bg} flex items-center justify-center ${color === opt.value ? 'ring-2 ring-offset-2 ring-gray-400' : ''}`}
+                      className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full ${opt.bg} flex items-center justify-center ${color === opt.value ? 'ring-2 ring-offset-1 ring-gray-400' : ''}`}
                       onClick={() => setColor(opt.value)}
                       title={opt.name}
                     >
                       {color === opt.value && (
-                        <span className="text-white text-xs">✓</span>
+                        <span className="text-white text-[10px] sm:text-xs">
+                          ✓
+                        </span>
                       )}
                     </button>
                   ))}
@@ -343,9 +408,9 @@ const ScheduleEditModal = ({
               ) : (
                 <div className="flex items-center">
                   <span
-                    className={`w-5 h-5 rounded-full ${colorOptions.find((c) => c.value === color)?.dot || 'bg-blue-500'} mr-2`}
+                    className={`w-4 h-4 sm:w-5 sm:h-5 rounded-full ${colorOptions.find((c) => c.value === color)?.dot || 'bg-blue-500'} mr-2`}
                   ></span>
-                  <span>
+                  <span className="text-sm">
                     {colorOptions.find((c) => c.value === color)?.name ||
                       '기본'}
                   </span>
@@ -355,38 +420,92 @@ const ScheduleEditModal = ({
 
             {/* 장소 */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
                 장소
               </label>
-              <div
-                className={`flex items-center w-full px-4 py-3 rounded-lg border ${isEditable ? 'border-gray-300' : 'bg-gray-50 border-gray-200'}`}
-                onClick={
-                  isEditable ? () => setIsPlaceModalOpen(true) : undefined
-                }
-                style={{ cursor: isEditable ? 'pointer' : 'default' }}
-              >
-                <span className="mr-2">📍</span>
-                <input
-                  type="text"
-                  className={`w-full ${isEditable ? 'focus:outline-none' : 'bg-gray-50'}`}
-                  placeholder="장소를 입력하세요"
-                  value={place}
-                  readOnly
-                />
+              <div className="space-y-2">
+                <div
+                  className={`flex items-center w-full px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg border ${isEditable ? 'border-gray-300' : 'bg-gray-50 border-gray-200'}`}
+                  onClick={
+                    isEditable
+                      ? () => setIsPlaceSearchOpen(!isPlaceSearchOpen)
+                      : undefined
+                  }
+                  style={{ cursor: isEditable ? 'pointer' : 'default' }}
+                >
+                  <span className="mr-1 text-sm">📍</span>
+                  <input
+                    type="text"
+                    className={`w-full text-sm ${isEditable ? 'focus:outline-none' : 'bg-gray-50'}`}
+                    placeholder="장소를 입력하세요"
+                    value={place}
+                    readOnly
+                  />
+                </div>
+
+                {isEditable && isPlaceSearchOpen && (
+                  <div className="border border-gray-200 rounded-lg overflow-hidden">
+                    <div className="p-2">
+                      <input
+                        type="text"
+                        value={searchKeyword}
+                        onChange={(e) => setSearchKeyword(e.target.value)}
+                        placeholder="장소를 검색하세요"
+                        className="w-full px-2 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm"
+                        onKeyDown={handleKeyDown}
+                      />
+                    </div>
+                    <div style={{ width: '100%', height: '250px' }}>
+                      <Map
+                        center={{
+                          lat: 37.566826,
+                          lng: 126.9786567,
+                        }}
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                        }}
+                        level={3}
+                        onCreate={setMap}
+                      >
+                        {markers.map((marker) => (
+                          <MapMarker
+                            key={`marker-${marker.content}-${marker.position.lat},${marker.position.lng}`}
+                            position={marker.position}
+                            onClick={() => {
+                              setSelectedPlace(marker);
+                              setPlace(marker.content);
+                              setIsPlaceSearchOpen(false);
+                            }}
+                          >
+                            {selectedPlace &&
+                              selectedPlace.content === marker.content && (
+                                <div className="p-2 bg-white rounded-lg shadow-lg">
+                                  {marker.content}
+                                </div>
+                              )}
+                          </MapMarker>
+                        ))}
+                      </Map>
+                      {isSearching && (
+                        <div className="absolute inset-0 bg-white bg-opacity-50 flex items-center justify-center">
+                          <div className="text-center">
+                            <div className="mb-2">장소를 검색하는 중...</div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
-              <KakaoPlaceModal
-                open={isPlaceModalOpen}
-                onClose={() => setIsPlaceModalOpen(false)}
-                onSelect={(placeName: string) => setPlace(placeName)}
-              />
             </div>
           </div>
 
           {/* 버튼 영역 */}
-          <div className="mt-8 space-y-3">
+          <div className="mt-4 sm:mt-5 space-y-2">
             {isCreate && (
               <button
-                className="w-full py-2 rounded-lg font-bold text-lg bg-primary-30 text-white"
+                className="w-full py-1.5 sm:py-2 rounded-lg font-bold text-sm sm:text-base bg-white border border-primary text-primary shadow-sm hover:bg-primary hover:text-white transition-colors"
                 onClick={handleSave}
                 disabled={currentScheduleCount >= MAX_SCHEDULES_PER_DAY}
                 style={
@@ -409,13 +528,13 @@ const ScheduleEditModal = ({
             {isView && (
               <>
                 <button
-                  className="w-full py-2 rounded-lg font-bold text-lg bg-primary-30 text-white"
+                  className="w-full py-1.5 sm:py-2 rounded-lg font-bold text-sm sm:text-base bg-white border border-primary text-primary shadow-sm hover:bg-primary hover:text-white transition-colors"
                   onClick={onEdit}
                 >
                   수정
                 </button>
                 <button
-                  className="w-full py-2 rounded-lg bg-gray-100 text-gray-700 font-bold text-lg border border-gray-300"
+                  className="w-full py-1.5 sm:py-2 rounded-lg bg-white border border-gray-300 text-gray-700 font-bold text-sm sm:text-base shadow-sm hover:bg-gray-100 transition-colors"
                   onClick={onDelete}
                 >
                   삭제
@@ -426,13 +545,13 @@ const ScheduleEditModal = ({
             {isEdit && (
               <>
                 <button
-                  className="w-full py-2 rounded-lg font-bold text-lg bg-primary-30 text-white"
+                  className="w-full py-1.5 sm:py-2 rounded-lg font-bold text-sm sm:text-base bg-white border border-primary text-primary shadow-sm hover:bg-primary hover:text-white transition-colors"
                   onClick={handleSave}
                 >
                   저장
                 </button>
                 <button
-                  className="w-full py-2 rounded-lg bg-gray-100 text-gray-700 font-bold text-lg border border-gray-300"
+                  className="w-full py-1.5 sm:py-2 rounded-lg bg-white border border-gray-300 text-gray-700 font-bold text-sm sm:text-base shadow-sm hover:bg-gray-100 transition-colors"
                   onClick={onDelete}
                 >
                   삭제

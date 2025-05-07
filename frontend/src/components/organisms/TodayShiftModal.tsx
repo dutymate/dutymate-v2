@@ -197,12 +197,12 @@ const TodayShiftModal = ({
       )}
 
       {/* 탭 UI */}
-      <div className="flex w-full mb-4 rounded-full overflow-hidden bg-gray-100">
+      <div className="flex w-full mb-4 rounded-full overflow-hidden bg-white border border-gray-200 shrink-0">
         <button
           className={`flex-1 py-2 text-center font-semibold transition-colors ${
             activeTab === 'status'
-              ? 'bg-gray-300 text-gray-900'
-              : 'bg-gray-100 text-gray-400'
+              ? 'bg-white text-primary border-b-2 border-primary'
+              : 'bg-white text-gray-400'
           }`}
           onClick={() => setActiveTab('status')}
         >
@@ -211,8 +211,8 @@ const TodayShiftModal = ({
         <button
           className={`flex-1 py-2 text-center font-semibold transition-colors ${
             activeTab === 'calendar'
-              ? 'bg-gray-300 text-gray-900'
-              : 'bg-gray-100 text-gray-400'
+              ? 'bg-white text-primary border-b-2 border-primary'
+              : 'bg-white text-gray-400'
           }`}
           onClick={() => setActiveTab('calendar')}
         >
@@ -221,7 +221,7 @@ const TodayShiftModal = ({
       </div>
 
       {/* 날짜/타이틀 영역은 공통 */}
-      <div className="text-center mb-[0.5rem] lg:mb-[1rem]">
+      <div className="text-center mb-[0.5rem] lg:mb-[1rem] shrink-0">
         <div className="flex items-center justify-center gap-[2rem] lg:gap-[4rem] mb-[0.25rem] lg:mb-[0.5rem]">
           <button onClick={handlePrevDay}>
             <IoChevronBack className="w-6 h-6 text-base-muted hover:text-gray-600" />
@@ -247,172 +247,206 @@ const TodayShiftModal = ({
           </div>
         )}
       </div>
-      <div className="border-t border-gray-900 mb-[0.25rem] lg:mb-[0.5rem]" />
+      <div className="border-t border-gray-900 mb-[0.25rem] lg:mb-[0.5rem] shrink-0" />
 
       {/* 탭별 내용 분기 */}
-      {activeTab === 'status' ? (
-        <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar">
-          <div className="space-y-[0.0625rem] lg:space-y-[0.125rem]">
-            {dutyData?.otherShifts
-              ?.sort((a, b) => {
-                const dutyOrder = {
-                  D: 0, // day
-                  E: 1, // evening
-                  N: 2, // night
-                  O: 3, // off
-                  X: 4, // 근무 없음
-                  M: 5, // mid
-                };
-                return dutyOrder[a.shift] - dutyOrder[b.shift];
-              })
-              .map((nurse, index) => (
-                <div
-                  key={index}
-                  className="flex items-center justify-between py-[0.0625rem] lg:py-[0.125rem]"
-                >
-                  <div className="flex items-center gap-[0.25rem] lg:gap-[0.5rem] flex-1 min-w-0">
-                    <span
-                      className="text-base-foreground w-[6rem] truncate text-[0.875rem]"
-                      title={nurse.name}
-                    >
-                      {nurse.name}
-                    </span>
-                    <span className="text-base-foreground text-center flex-1 text-[0.875rem] whitespace-nowrap">
-                      {nurse.grade}년차
-                    </span>
-                  </div>
-                  {nurse.shift !== 'X' ? (
-                    <div>
-                      <DutyBadgeKor
-                        type={convertDutyType(nurse.shift)}
-                        size="xxs"
-                      />
+      <div className="flex-1 flex flex-col min-h-0">
+        {activeTab === 'status' ? (
+          <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar">
+            <div className="space-y-[0.0625rem] lg:space-y-[0.125rem]">
+              {dutyData?.otherShifts
+                ?.sort((a, b) => {
+                  const dutyOrder = {
+                    D: 0, // day
+                    E: 1, // evening
+                    N: 2, // night
+                    O: 3, // off
+                    X: 4, // 근무 없음
+                    M: 5, // mid
+                  };
+                  return dutyOrder[a.shift] - dutyOrder[b.shift];
+                })
+                .map((nurse, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center justify-between py-[0.0625rem] lg:py-[0.125rem]"
+                  >
+                    <div className="flex items-center gap-[0.25rem] lg:gap-[0.5rem] flex-1 min-w-0">
+                      <span
+                        className="text-base-foreground w-[6rem] truncate text-[0.875rem]"
+                        title={nurse.name}
+                      >
+                        {nurse.name}
+                      </span>
+                      <span className="text-base-foreground text-center flex-1 text-[0.875rem] whitespace-nowrap">
+                        {nurse.grade}년차
+                      </span>
                     </div>
-                  ) : (
-                    <div className="w-[4.0625rem] h-[1.875rem]" />
+                    {nurse.shift !== 'X' ? (
+                      <div>
+                        <DutyBadgeKor
+                          type={convertDutyType(nurse.shift)}
+                          size="xxs"
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-[4.0625rem] h-[1.875rem]" />
+                    )}
+                  </div>
+                ))}
+            </div>
+          </div>
+        ) : (
+          <>
+            {/* 근무 종류 뱃지: 모바일은 한 줄, 네모 작게 / 웹은 기존대로 */}
+            <div
+              className={`w-full ${isMobile ? 'mb-2 p-1 rounded-lg' : 'mb-3 p-3 rounded-xl'} bg-gray-100 flex ${isMobile ? 'flex-row justify-center gap-1' : 'flex-col items-center justify-center'} shrink-0`}
+            >
+              {isMobile ? (
+                <div className="flex flex-row flex-wrap justify-center gap-1 w-full">
+                  {(['day', 'off', 'evening', 'night', 'mid'] as const).map(
+                    (type) => (
+                      <button
+                        key={type}
+                        type="button"
+                        onClick={() => setSelectedDutyType(type)}
+                        className={`rounded-lg focus:outline-none transition-all border-2 px-0.5 py-0.5 ${
+                          selectedDutyType === type
+                            ? 'border-duty-' +
+                              type +
+                              ' shadow-duty-' +
+                              type +
+                              ' ring-2 ring-duty-' +
+                              type
+                            : 'border-transparent'
+                        }`}
+                        style={{ lineHeight: 0 }}
+                      >
+                        <span className={dutyColors[type]}>
+                          <DutyBadgeKor type={type} size="xxs" />
+                        </span>
+                      </button>
+                    )
                   )}
                 </div>
-              ))}
-          </div>
-        </div>
-      ) : (
-        <div className="flex-1 flex flex-col">
-          {/* 근무 종류 뱃지 두 줄 배치 (2개/3개) */}
-          <div className="w-full mb-3 p-3 rounded-xl bg-gray-100 flex flex-col items-center justify-center">
-            <div className="flex justify-center gap-2 mb-2">
-              {(['day', 'off'] as const).map((type) => (
-                <button
-                  key={type}
-                  type="button"
-                  onClick={() => setSelectedDutyType(type)}
-                  className={`rounded-lg focus:outline-none transition-all border-2 px-0.5 py-0.5 ${
-                    selectedDutyType === type
-                      ? 'border-duty-' +
-                        type +
-                        ' shadow-duty-' +
-                        type +
-                        ' ring-2 ring-duty-' +
-                        type
-                      : 'border-transparent'
-                  }`}
-                  style={{ lineHeight: 0 }}
+              ) : (
+                <>
+                  <div className="flex justify-center gap-2 mb-2">
+                    {(['day', 'off'] as const).map((type) => (
+                      <button
+                        key={type}
+                        type="button"
+                        onClick={() => setSelectedDutyType(type)}
+                        className={`rounded-lg focus:outline-none transition-all border-2 px-0.5 py-0.5 ${
+                          selectedDutyType === type
+                            ? 'border-duty-' +
+                              type +
+                              ' shadow-duty-' +
+                              type +
+                              ' ring-2 ring-duty-' +
+                              type
+                            : 'border-transparent'
+                        }`}
+                        style={{ lineHeight: 0 }}
+                      >
+                        <span className={dutyColors[type]}>
+                          <DutyBadgeKor type={type} size="xxs" />
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                  <div className="flex justify-center gap-2">
+                    {(['evening', 'night', 'mid'] as const).map((type) => (
+                      <button
+                        key={type}
+                        type="button"
+                        onClick={() => setSelectedDutyType(type)}
+                        className={`rounded-lg focus:outline-none transition-all border-2 px-0.5 py-0.5 ${
+                          selectedDutyType === type
+                            ? 'border-duty-' +
+                              type +
+                              ' shadow-duty-' +
+                              type +
+                              ' ring-2 ring-duty-' +
+                              type
+                            : 'border-transparent'
+                        }`}
+                        style={{ lineHeight: 0 }}
+                      >
+                        <span className={dutyColors[type]}>
+                          <DutyBadgeKor type={type} size="xxs" />
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+            {/* 일정 리스트 */}
+            <div
+              className={`flex flex-col gap-2 flex-1 overflow-y-auto mb-2 ${isMobile ? 'max-h-[10rem]' : 'max-h-[28rem]'}`}
+            >
+              {sortedSchedules.map((schedule) => (
+                <div
+                  key={schedule.id}
+                  className="flex items-start gap-2 cursor-pointer"
+                  onClick={() => handleScheduleClick(schedule)}
                 >
-                  <span className={dutyColors[type]}>
-                    <DutyBadgeKor type={type} size="xs" />
-                  </span>
-                </button>
+                  {/* 색상 동그라미 */}
+                  <span
+                    className={`w-3 h-3 rounded-full mt-2 ${colorClassMap[schedule.color] || 'bg-gray-300'}`}
+                  />
+                  <div className="flex flex-col items-end min-w-[3.5rem]">
+                    <span className="text-xs text-gray-500">
+                      {schedule.startTime}
+                    </span>
+                    <span className="text-xs text-gray-400">
+                      {schedule.endTime}
+                    </span>
+                  </div>
+                  <div className="flex-1 bg-gray-50 rounded-lg px-2 py-1 text-sm font-medium">
+                    {schedule.title}
+                  </div>
+                </div>
               ))}
             </div>
-            <div className="flex justify-center gap-2">
-              {(['evening', 'night', 'mid'] as const).map((type) => (
-                <button
-                  key={type}
-                  type="button"
-                  onClick={() => setSelectedDutyType(type)}
-                  className={`rounded-lg focus:outline-none transition-all border-2 px-0.5 py-0.5 ${
-                    selectedDutyType === type
-                      ? 'border-duty-' +
-                        type +
-                        ' shadow-duty-' +
-                        type +
-                        ' ring-2 ring-duty-' +
-                        type
-                      : 'border-transparent'
-                  }`}
-                  style={{ lineHeight: 0 }}
-                >
-                  <span className={dutyColors[type]}>
-                    <DutyBadgeKor type={type} size="xs" />
-                  </span>
-                </button>
-              ))}
-            </div>
-          </div>
-          {/* 일정 리스트 */}
-          <div className="flex flex-col gap-2 flex-1 overflow-y-auto mb-2">
-            {sortedSchedules.map((schedule) => (
-              <div
-                key={schedule.id}
-                className="flex items-start gap-2 cursor-pointer"
-                onClick={() => handleScheduleClick(schedule)}
+            {/* +버튼, 근무 색상 변경 버튼 */}
+            <div
+              className={`flex gap-2 shrink-0 sm:absolute sm:bottom-0 sm:left-0 sm:w-full sm:bg-white sm:p-4 sm:z-10 sm:border-t sm:border-gray-200 ${!isMobile ? 'rounded-b-[1rem]' : ''}`}
+            >
+              <button
+                className="flex-1 bg-white border border-gray-200 rounded-xl py-2 flex items-center justify-center text-2xl font-bold text-primary shadow-sm hover:bg-primary hover:text-white transition-colors"
+                onClick={handleAddClick}
+                disabled={schedules.length >= MAX_SCHEDULES_PER_DAY}
+                style={
+                  schedules.length >= MAX_SCHEDULES_PER_DAY
+                    ? { opacity: 0.5, cursor: 'not-allowed' }
+                    : {}
+                }
               >
-                {/* 색상 동그라미 */}
-                <span
-                  className={`w-3 h-3 rounded-full mt-2 ${colorClassMap[schedule.color] || 'bg-gray-300'}`}
-                />
-                <div className="flex flex-col items-end min-w-[3.5rem]">
-                  <span className="text-xs text-gray-500">
-                    {schedule.startTime}
-                  </span>
-                  <span className="text-xs text-gray-400">
-                    {schedule.endTime}
-                  </span>
-                </div>
-                <div className="flex-1 bg-gray-50 rounded-lg px-2 py-1 text-sm font-medium">
-                  {schedule.title}
-                </div>
-              </div>
-            ))}
-          </div>
-          {/* +버튼, 근무 색상 변경 버튼 */}
-          <div className="flex gap-2">
-            <button
-              className="flex-1 bg-gray-200 rounded-xl py-2 flex items-center justify-center text-2xl font-bold text-gray-700"
-              onClick={handleAddClick}
-              disabled={schedules.length >= MAX_SCHEDULES_PER_DAY}
-              style={
-                schedules.length >= MAX_SCHEDULES_PER_DAY
-                  ? { opacity: 0.5, cursor: 'not-allowed' }
-                  : {}
-              }
-            >
-              +
-            </button>
-            <button
-              className="flex-1 bg-gray-200 rounded-xl py-2 text-gray-700 font-medium"
-              onClick={() => setIsColorModalOpen(true)}
-            >
-              근무 색상 변경
-            </button>
-          </div>
-          {schedules.length >= MAX_SCHEDULES_PER_DAY && (
-            <div className="text-sm text-red-500 mt-0 text-center">
-              하루에 최대 10개의 메모만 추가할 수 있습니다.
+                +
+              </button>
+              <button
+                className="flex-1 bg-white border border-gray-200 rounded-xl py-2 text-primary font-medium shadow-sm hover:bg-primary hover:text-white transition-colors"
+                onClick={() => setIsColorModalOpen(true)}
+              >
+                근무 색상 변경
+              </button>
             </div>
-          )}
-          {/* 모달 */}
-          {isScheduleModalOpen && (
-            <ScheduleEditModal
-              mode={scheduleModalMode}
-              initialData={selectedSchedule ?? undefined}
-              onClose={() => setIsScheduleModalOpen(false)}
-              onSave={handleSave}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-              currentScheduleCount={schedules.length}
-            />
-          )}
-        </div>
+          </>
+        )}
+      </div>
+      {/* 모달 */}
+      {isScheduleModalOpen && (
+        <ScheduleEditModal
+          mode={scheduleModalMode}
+          initialData={selectedSchedule ?? undefined}
+          onClose={() => setIsScheduleModalOpen(false)}
+          onSave={handleSave}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          currentScheduleCount={schedules.length}
+        />
       )}
     </div>
   );

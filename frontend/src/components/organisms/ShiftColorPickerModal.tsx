@@ -182,10 +182,10 @@ const ShiftColorPickerModal = ({
         onClick={(e) => e.stopPropagation()}
       >
         {/* 헤더 */}
-        <div className="bg-primary-30 text-white px-6 py-2 flex justify-between items-center">
-          <h2 className="text-xl font-bold">근무 색상 변경</h2>
+        <div className="bg-white border-b border-gray-200 px-6 py-3 flex justify-between items-center">
+          <h2 className="text-lg font-bold text-primary">근무 색상 변경</h2>
           <button
-            className="text-white text-2xl rounded-full  w-8 h-8 flex items-center justify-center"
+            className="text-gray-400 text-2xl rounded-full w-8 h-8 flex items-center justify-center hover:bg-gray-100 transition-colors"
             onClick={onClose}
           >
             &times;
@@ -246,9 +246,9 @@ const ShiftColorPickerModal = ({
         </div>
 
         {/* 버튼 영역 */}
-        <div className="px-6 py-4 bg-gray-50 border-t">
+        <div className="px-6 py-4 bg-white border-t border-gray-200">
           <button
-            className="w-full py-3 rounded-lg bg-primary-30 text-white font-bold hover:bg-primary-40 transition-colors"
+            className="w-full py-3 rounded-lg bg-white border border-primary text-primary font-bold hover:bg-primary hover:text-white transition-colors shadow-sm"
             onClick={onClose}
           >
             완료
