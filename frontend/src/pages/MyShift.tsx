@@ -157,8 +157,10 @@ const MyShift = () => {
           <div className="block lg:flex lg:gap-[2rem] mt-6">
             {/* 캘린더와 모달을 감싸는 컨테이너 */}
             <div className="calendar-modal-container flex flex-col lg:flex-row w-full gap-4">
-              {/* 캘린더 영역 - 65% */}
-              <div className="relative lg:w-[65%]">
+              {/* 캘린더 영역 - 모달이 없으면 100%, 있으면 65% */}
+              <div
+                className={`relative ${selectedDate && dayDutyData ? 'lg:w-[65%]' : 'lg:w-full'}`}
+              >
                 <MyShiftCalendar
                   onDateSelect={handleDateSelect}
                   selectedDate={selectedDate}

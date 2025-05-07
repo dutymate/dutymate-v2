@@ -41,36 +41,36 @@ interface RoleCardProps {
 const RoleCard = ({ option, selected, onClick }: RoleCardProps) => {
   return (
     <div
-      className={`cursor-pointer p-3 rounded-lg transition-all duration-200 flex items-center justify-between ${
+      className={`cursor-pointer p-2 rounded-lg transition-all duration-200 flex items-center justify-between ${
         selected
           ? 'bg-base-white border border-primary text-primary'
           : 'bg-white border border hover:bg-base-muted-30'
       }`}
       onClick={onClick}
     >
-      <div className="flex items-center gap-3">
-        <span className="text-2xl">{option.icon}</span>
+      <div className="flex items-center gap-2">
+        <span className="text-xl">{option.icon}</span>
         <div className="flex-1">
           <p
-            className={`text-[0.8125rem] ${selected ? 'text-primary' : 'text-gray-500'}`}
+            className={`text-[0.75rem] ${selected ? 'text-primary' : 'text-gray-500'}`}
           >
             {option.position}
           </p>
           <h3
-            className={`font-medium text-[0.9375rem] ${selected ? 'text-primary' : 'text-gray-900'}`}
+            className={`font-medium text-[0.875rem] ${selected ? 'text-primary' : 'text-gray-900'}`}
           >
             {option.title}
           </h3>
         </div>
       </div>
       <div
-        className={`w-5 h-5 rounded-full border flex items-center justify-center ${
+        className={`w-4 h-4 rounded-full border flex items-center justify-center ${
           selected ? 'border-primary bg-primary' : 'border-gray-300 bg-white'
         }`}
       >
         {selected && (
           <svg
-            className="w-3 h-3 text-white"
+            className="w-2.5 h-2.5 text-white"
             viewBox="0 0 20 20"
             fill="currentColor"
           >
@@ -139,10 +139,10 @@ const ExtraInfoForm = ({ initialData, onSubmit }: ExtraInfoFormProps) => {
   };
 
   return (
-    <div className="bg-white rounded-[0.925rem] shadow-[0_0_0.9375rem_rgba(0,0,0,0.1)] w-[20rem] px-[1.5rem] py-[1.5rem] sm:w-[23rem] sm:px-[2.5rem] sm:py-[2.5rem] lg:w-[26rem] lg:px-[3rem] lg:py-[3rem]">
+    <div className="bg-white rounded-[0.925rem] shadow-[0_0_0.9375rem_rgba(0,0,0,0.1)] w-[20rem] px-[1.25rem] py-[1.25rem] sm:w-[23rem] sm:px-[2rem] sm:py-[1.75rem] lg:w-[26rem] lg:px-[2.5rem] lg:py-[2rem]">
       <form onSubmit={handleSubmit}>
         {/* 간호사 연차 입력 */}
-        <div className="mb-[1rem] sm:mb-[1.5rem] [&_*]:text-[0.875rem] sm:[&_*]:text-[1rem] [&_span]:text-[0.75rem] sm:[&_span]:text-[0.875rem] [&_div.mt-2]:mt-1.5 sm:[&_div.mt-2]:mt-2 [&_select]:py-2 sm:[&_select]:py-2.5 [&_label]:text-[0.875rem] sm:[&_label]:text-[1rem] [&_.text-sm]:text-[0.75rem] sm:[&_.text-sm]:text-[0.875rem]">
+        <div className="mb-[0.75rem] sm:mb-[1rem] [&_*]:text-[0.825rem] sm:[&_*]:text-[0.9rem] [&_span]:text-[0.7rem] sm:[&_span]:text-[0.8rem] [&_div.mt-2]:mt-1 sm:[&_div.mt-2]:mt-1.5 [&_select]:py-1.5 sm:[&_select]:py-2 [&_label]:text-[0.825rem] sm:[&_label]:text-[0.9rem] [&_.text-sm]:text-[0.7rem] sm:[&_.text-sm]:text-[0.8rem]">
           <Select
             id="career"
             name="career"
@@ -157,8 +157,8 @@ const ExtraInfoForm = ({ initialData, onSubmit }: ExtraInfoFormProps) => {
         </div>
 
         {/* 성별 선택 */}
-        <div className="mb-[1rem] sm:mb-[1.5rem]">
-          <label className="block text-[0.875rem] sm:text-[1rem] font-medium text-gray-900 mb-[0.5rem] sm:mb-[0.75rem]">
+        <div className="mb-[0.75rem] sm:mb-[1rem]">
+          <label className="block text-[0.825rem] sm:text-[0.9rem] font-medium text-gray-900 mb-[0.375rem] sm:mb-[0.5rem]">
             성별
           </label>
           <ToggleButton
@@ -170,11 +170,11 @@ const ExtraInfoForm = ({ initialData, onSubmit }: ExtraInfoFormProps) => {
         </div>
 
         {/* 역할 선택 */}
-        <div className="mb-[1.5rem] sm:mb-[2rem] lg:mb-[2.5rem]">
-          <label className="block text-[0.875rem] sm:text-[1rem] font-medium text-gray-900 mb-[0.5rem] sm:mb-[0.75rem]">
+        <div className="mb-[1rem] sm:mb-[1.25rem] lg:mb-[1.5rem]">
+          <label className="block text-[0.825rem] sm:text-[0.9rem] font-medium text-gray-900 mb-[0.375rem] sm:mb-[0.5rem]">
             어떤 업무를 하시나요?
           </label>
-          <div className="space-y-1.5 sm:space-y-2">
+          <div className="space-y-1 sm:space-y-1.5">
             {roleOptions.map((option) => (
               <RoleCard
                 key={option.value}
@@ -184,21 +184,21 @@ const ExtraInfoForm = ({ initialData, onSubmit }: ExtraInfoFormProps) => {
               />
             ))}
           </div>
-          <p className="mt-1.5 sm:mt-2 text-[0.75rem] sm:text-[0.8125rem] text-gray-500">
+          <p className="mt-1 sm:mt-1.5 text-[0.7rem] sm:text-[0.75rem] text-gray-500">
             * 평간호사도 근무표 생성 기능이 필요한 경우 수간호사(근무표
             관리자)를 선택해주세요.
           </p>
         </div>
 
         {/* 작성 완료 버튼 */}
-        <div className="mt-[1.5rem] sm:mt-[2rem] lg:mt-0">
+        <div className="mt-[1rem] sm:mt-[1.25rem] lg:mt-0">
           <Button
             type="submit"
             size="lg"
             width="long"
             fullWidth
             disabled={isLoading}
-            className="w-full h-[3rem] sm:h-[3.5rem] lg:h-[3rem] text-[0.875rem] sm:text-[1.125rem] lg:text-[0.875rem]"
+            className="w-full h-[2.5rem] sm:h-[3rem] lg:h-[2.75rem] text-[0.825rem] sm:text-[1rem] lg:text-[0.825rem]"
           >
             <span>{isLoading ? '제출 중...' : '작성 완료'}</span>
           </Button>

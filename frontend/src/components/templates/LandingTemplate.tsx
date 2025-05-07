@@ -31,19 +31,19 @@ const LandingTemplate: React.FC<LandingTemplateProps> = ({
   };
 
   const renderContent = () => (
-    <div className="flex-1 flex flex-col items-center justify-center p-[1.5rem]">
+    <div className="flex-1 flex flex-col items-center justify-center p-[1rem] py-[0.75rem]">
       <img
         src="/images/logo.svg"
         alt="DutyMate Logo"
-        className="w-[60%] max-w-[17.5rem] mb-[2rem] cursor-pointer"
+        className="w-[50%] max-w-[15rem] mb-[1.5rem] cursor-pointer"
         onClick={handleLogoClick}
       />
       {showIntroText && (
-        <div className="text-center mb-[2rem]">
-          <h1 className="text-[1.5rem] font-bold text-gray-800 mb-[0.5rem]">
+        <div className="text-center mb-[1.5rem]">
+          <h1 className="text-[1.25rem] font-bold text-gray-800 mb-[0.375rem]">
             "듀티표의 마침표, 듀티메이트."
           </h1>
-          <p className="text-[1rem] text-gray-600">
+          <p className="text-[0.875rem] text-gray-600">
             간호사 업무의 효율성과 공정성을 높이는
             <br />
             자동화 듀티표 생성 서비스.

@@ -171,12 +171,15 @@ const MyShiftCalendar = ({
   };
 
   return (
-    <div className="bg-white rounded-[0.92375rem] shadow-[0_0_15px_rgba(0,0,0,0.1)] p-4 sm:p-6 h-full">
-      <div className="flex flex-col sm:flex-row items-center justify-between mb-4">
-        <div className="w-[11.25rem] hidden sm:block">
-          {/* 왼쪽 여백 공간 */}
+    <div className="bg-white rounded-[0.92375rem] shadow-[0_0_15px_rgba(0,0,0,0.1)] p-1 sm:p-6 h-full">
+      <div className="flex flex-row items-center justify-between mb-4 px-2">
+        {/* 왼쪽 여백 - 근무 요청 버튼과 동일한 너비의 빈 div */}
+        <div className="w-[6.5rem] shrink-0 flex justify-start">
+          {/* 빈 공간 */}
         </div>
-        <div className="flex items-center gap-4 sm:gap-14 mb-4 sm:mb-0">
+
+        {/* 중앙 - 연월 표시 */}
+        <div className="flex items-center gap-4 justify-center">
           <button
             onClick={handlePrevMonth}
             className="text-base-muted hover:text-base-foreground"
@@ -193,11 +196,14 @@ const MyShiftCalendar = ({
             <IoIosArrowForward className="w-6 h-6" />
           </button>
         </div>
-        <div className="flex gap-2 w-full sm:w-[11.25rem] justify-end sm:justify-end shrink-0">
+
+        {/* 오른쪽 - 근무 요청 버튼 */}
+        <div className="w-[6.5rem] shrink-0 flex justify-end">
           <Button
             color="primary"
-            className="whitespace-nowrap px-7 w-[45%] sm:w-auto text-base"
+            className="whitespace-nowrap px-3 text-sm"
             onClick={() => setIsReqModalOpen(true)}
+            size="md"
           >
             근무 요청
           </Button>
@@ -206,8 +212,8 @@ const MyShiftCalendar = ({
 
       <div className={`${isMobile ? '' : 'flex gap-[2rem]'}`}>
         <div
-          className={`bg-white rounded-[1rem] p-[0.5rem] ${
-            isMobile ? 'w-full' : 'w-full'
+          className={`bg-white rounded-[1rem] ${
+            isMobile ? 'w-full p-[0.25rem]' : 'w-full p-[0.5rem]'
           }`}
         >
           {/* 달력 헤더 */}
@@ -311,7 +317,7 @@ const MyShiftCalendar = ({
                     }
                   `}
                 >
-                  <div className="relative flex flex-col items-start">
+                  <div className="relative flex flex-row items-center">
                     <span
                       className={`
                         w-6 h-6 lg:w-8 lg:h-8
@@ -325,7 +331,7 @@ const MyShiftCalendar = ({
                       {day}
                     </span>
                     {holidayName && (
-                      <span className="text-[10px] lg:text-[11px] text-red-500 mt-1 lg:mt-2 line-clamp-1 max-w-full">
+                      <span className="text-[10px] lg:text-[11px] text-red-500 ml-1 lg:ml-2 line-clamp-1 max-w-[80%]">
                         {holidayName}
                       </span>
                     )}
