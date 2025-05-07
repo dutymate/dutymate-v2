@@ -59,6 +59,7 @@ import net.dutymate.api.domain.wardmember.service.WardMemberService;
 import net.dutymate.api.domain.wardschedules.collections.WardSchedule;
 import net.dutymate.api.domain.wardschedules.repository.WardScheduleRepository;
 import net.dutymate.api.domain.wardschedules.util.InitialDutyGenerator;
+import net.dutymate.api.domain.wardschedules.util.PreviousScheduleGenerator;
 import net.dutymate.api.global.auth.jwt.JwtUtil;
 import net.dutymate.api.global.exception.EmailNotVerifiedException;
 
@@ -95,6 +96,7 @@ public class MemberService {
 	private final InitialDutyGenerator initialDutyGenerator;
 	private final RedisTemplate<String, String> redisTemplate;
 	private final RequestRepository requestRepository;
+
 
 	@Value("${kakao.client.id}")
 	private String kakaoClientId;
@@ -745,9 +747,13 @@ public class MemberService {
 		wardMemberRepository.saveAll(newWardMemberList);
 		requestRepository.saveAll(newRequestList);
 
-		// 7. 현재 날짜 기준으로  year, month 생성
 		YearMonth yearMonth = YearMonth.nowYearMonth();
 
+		// 8. 이전 달의 근무 일정 생성 (마지막 4일치)
+		YearMonth prevYearMonth = yearMonth.prevYearMonth();
+		WardSchedule prevMonthSchedule = PreviousScheduleGenerator.createPreviousMonthSchedule(
+			ward, ward.getWardMemberList(), prevYearMonth);
+		wardScheduleRepository.save(prevMonthSchedule);
 		// 8. 병동 생성하는 멤버의 듀티표 초기화하여 mongodb에 저장하기
 		initialDutyGenerator.createNewWardSchedule(ward, ward.getWardMemberList(), yearMonth);
 
