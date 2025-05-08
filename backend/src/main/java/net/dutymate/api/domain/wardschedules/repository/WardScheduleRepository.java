@@ -11,6 +11,8 @@ public interface WardScheduleRepository extends MongoRepository<WardSchedule, St
 
 	Optional<WardSchedule> findByWardIdAndYearAndMonth(Long wardId, int year, int month);
 
+	List<WardSchedule> findAllByWardId(Long wardId);
+
 	void deleteByWardId(Long wardId);
 
 	void deleteByWardIdIn(List<Long> wardIds);

@@ -28,6 +28,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Getter
@@ -74,6 +75,7 @@ public class Member {
 	@Column(nullable = false)
 	private Boolean isVerified;
 
+	@Setter
 	@OneToOne(mappedBy = "member", cascade = CascadeType.ALL)
 	private WardMember wardMember;
 
@@ -95,7 +97,7 @@ public class Member {
 		this.nickname = StringGenerator.generateNickname();
 		this.createdAt = new Timestamp(System.currentTimeMillis());
 		this.isActive = true;
-		this.isVerified = true;		// 신규 회원은 이메일 인증된 상태로 간주
+		this.isVerified = true;        // 신규 회원은 이메일 인증된 상태로 간주
 	}
 
 	public void changeAdditionalInfo(Integer grade, Gender gender, Role role) {
@@ -135,16 +137,10 @@ public class Member {
 		this.password = BCrypt.hashpw(newPassword, BCrypt.gensalt());
 	}
 
-	public void linkMember(Member enterMember) {
-		this.email = enterMember.getEmail();
-		this.password = enterMember.getPassword();
-		this.name = enterMember.getName();
-		this.nickname = enterMember.getNickname();
-		this.gender = enterMember.getGender();
-		this.role = enterMember.getRole();
-		this.grade = enterMember.getGrade();
-		this.provider = enterMember.getProvider();
-		this.profileImg = enterMember.getProfileImg();
+	public void linkMember(Member tempMember) {
+		this.gender = tempMember.getGender();
+		this.role = tempMember.getRole();
+		this.grade = tempMember.getGrade();
 	}
 
 	public void updateVerifiedEmail(String email) {

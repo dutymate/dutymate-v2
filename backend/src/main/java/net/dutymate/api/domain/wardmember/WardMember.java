@@ -92,6 +92,11 @@ public class WardMember {
 		this.isSynced = isSynced;
 	}
 
+	public void changeMember(Member member) {
+		this.member = member;
+		member.setWardMember(this);
+	}
+
 	@PrePersist
 	protected void prePersist() {
 		if (this.shiftType == null) {

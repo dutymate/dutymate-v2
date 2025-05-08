@@ -2,6 +2,7 @@ package net.dutymate.api.domain.ward.service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import org.springframework.data.domain.PageRequest;
@@ -193,14 +194,34 @@ public class WardService {
 			.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "임시 간호사를 찾을 수 없습니다."));
 
 		// 임시 멤버 정보를 입장 멤버로 변경
-		linkedTempMember.linkMember(enterMember);
-		linkedTempMember.getWardMember().changeIsSynced(true);
+		enterMember.linkMember(linkedTempMember);
+		WardMember wardMember = linkedTempMember.getWardMember();
+		wardMember.changeIsSynced(true);
+		wardMember.changeMember(enterMember);
+
+		// 병동 스케줄에서 memberId 변경
+		List<WardSchedule> allWardSchedule = wardScheduleRepository.findAllByWardId(ward.getWardId());
+		for (WardSchedule wardSchedule : allWardSchedule) {
+			List<WardSchedule.Duty> duties = wardSchedule.getDuties();
+			for (WardSchedule.Duty duty : duties) {
+				List<WardSchedule.NurseShift> nurseShifts = duty.getDuty();
+				for (WardSchedule.NurseShift nurseShift : nurseShifts) {
+					if (Objects.equals(nurseShift.getMemberId(), linkedTempMember.getMemberId())) {
+						nurseShift.setMemberId(enterMemberId);
+					}
+				}
+				if (Objects.equals(duty.getHistory().getMemberId(), linkedTempMember.getMemberId())) {
+					duty.getHistory().setMemberId(enterMemberId);
+				}
+			}
+		}
+		wardScheduleRepository.saveAll(allWardSchedule);
 
 		// 병동 입장을 승인 or 거절하는 경우 모두 입장 대기 테이블에서 삭제시켜야 함
 		enterWaitingRepository.removeByMemberAndWard(enterMember, ward);
 
 		// 입장한 멤버는 테이블에서 삭제
-		memberRepository.delete(enterMember);
+		memberRepository.delete(linkedTempMember);
 	}
 
 	public void enterToWard(Ward ward, Member member) {

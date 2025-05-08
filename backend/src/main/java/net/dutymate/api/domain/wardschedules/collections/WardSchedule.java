@@ -70,6 +70,7 @@ public class WardSchedule {
 	@AllArgsConstructor(access = AccessLevel.PRIVATE)
 	@Builder
 	public static class NurseShift {
+		@Setter
 		@Field("member_id")
 		private Long memberId;
 		private String shifts;
@@ -86,6 +87,7 @@ public class WardSchedule {
 	@Jacksonized // Lombok의 @Builder와 JSON 직렬화 간의 충돌을 방지
 	public static class History {
 
+		@Setter
 		@Field("member_id")
 		private Long memberId;
 
