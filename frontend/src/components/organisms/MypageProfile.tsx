@@ -42,6 +42,10 @@ const MypageProfile = () => {
     isValid: boolean | null;
     message: string;
   }>({ isValid: null, message: '' });
+  const [nameStatus, setNameStatus] = useState<{
+    isValid: boolean;
+    message: string;
+  }>({ isValid: true, message: '' });
   const [isDragging, setIsDragging] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
 
@@ -102,30 +106,36 @@ const MypageProfile = () => {
     debounce(async (nickname: string) => {
       if (nickname === profile?.nickname) {
         setNicknameStatus({ isValid: null, message: '' });
+        setIsAvailable(nameStatus.isValid);
         return;
       }
 
-      if (nickname.length > 0) {
+      if (nickname.length > 0 && nickname.length < 20) {
         try {
           const isAvail = await checkNickname(nickname);
-          setIsAvailable(isAvail);
           setNicknameStatus({
             isValid: isAvail,
             message: isAvail
               ? '사용 가능한 닉네임입니다.'
               : '이미 사용 중인 닉네임입니다.',
           });
+          setIsAvailable(isAvail && nameStatus.isValid);
         } catch (error) {
           setNicknameStatus({
             isValid: false,
             message: '닉네임 확인 중 오류가 발생했습니다.',
           });
+          setIsAvailable(false);
         }
       } else {
-        setNicknameStatus({ isValid: null, message: '' });
+        setNicknameStatus({
+          isValid: false,
+          message: '닉네임은 최대 20자까지 가능합니다.',
+        });
+        setIsAvailable(false);
       }
     }, 500),
-    [profile, checkNickname]
+    [profile, checkNickname, nameStatus.isValid]
   );
 
   const handleNicknameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -138,6 +148,25 @@ const MypageProfile = () => {
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newName = e.target.value;
     setFormData({ ...formData, name: newName });
+
+    // Validate name length
+    const isNameValid = newName.length <= 20;
+
+    if (!isNameValid) {
+      setNameStatus({
+        isValid: false,
+        message: '이름은 최대 20자까지 가능합니다.',
+      });
+    } else {
+      setNameStatus({ isValid: true, message: '' });
+    }
+
+    // Update isAvailable based on both name and nickname validity
+    setIsAvailable(
+      isNameValid &&
+        (nicknameStatus.isValid === true || nicknameStatus.isValid === null)
+    );
+
     setIsDirty(true);
   };
 
@@ -378,14 +407,21 @@ const MypageProfile = () => {
                   <h4 className="text-sm font-medium text-gray-700">
                     개인정보
                   </h4>
-                  <MypageInput
-                    id="name"
-                    name="name"
-                    label="이름"
-                    value={formData.name}
-                    onChange={handleNameChange}
-                    className="bg-white border-0 shadow-sm focus:ring-2 focus:ring-primary-20 transition-all duration-200"
-                  />
+                  <div className="relative">
+                    <MypageInput
+                      id="name"
+                      name="name"
+                      label="이름"
+                      value={formData.name}
+                      onChange={handleNameChange}
+                      className="bg-white border-0 shadow-sm focus:ring-2 focus:ring-primary-20 transition-all duration-200"
+                    />
+                    {nameStatus.message && (
+                      <p className="mt-1 text-xs font-medium text-red-600">
+                        {nameStatus.message}
+                      </p>
+                    )}
+                  </div>
 
                   <div className="relative">
                     <MypageInput

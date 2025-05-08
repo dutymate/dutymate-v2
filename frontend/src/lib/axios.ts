@@ -57,7 +57,7 @@ axiosInstance.interceptors.response.use(
     switch (error.response?.status) {
       case 401: // 인증 에러
         // 토큰이 만료되었거나 유효하지 않은 경우
-        localStorage.removeItem('token');
+        sessionStorage.removeItem('token');
         window.location.href = '/login';
         break;
 
