@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +18,7 @@ import net.dutymate.api.domain.autoschedule.util.NurseScheduler;
 import net.dutymate.api.domain.common.utils.YearMonth;
 import net.dutymate.api.domain.member.Member;
 import net.dutymate.api.domain.request.Request;
+import net.dutymate.api.domain.request.RequestStatus;
 import net.dutymate.api.domain.request.repository.RequestRepository;
 import net.dutymate.api.domain.request.util.UpdateRequestStatuses;
 import net.dutymate.api.domain.rule.Rule;
@@ -93,11 +96,14 @@ public class AutoScheduleService {
 		// scheduleGenerator.generateSchedule(wardSchedule, rule, wardMembers, prevNurseShifts, yearMonth);
 		Long memberId = member.getMemberId();
 
-		List<Request> requests = requestRepository.findAllWardRequestsByYearMonth(
+		List<Request> acceptedRequests = requestRepository.findAcceptedWardRequestsByYearMonth(
 			member.getWardMember().getWard(),
 			yearMonth.year(),
-			yearMonth.month()
+			yearMonth.month(),
+			RequestStatus.ACCEPTED
 		);
+
+		System.out.println(acceptedRequests);
 		//HN 자동 로직에서 제거
 		wardMembers.removeIf(wm -> wm.getShiftType() == ShiftType.D
 			|| wm.getShiftType() == ShiftType.M
@@ -122,7 +128,7 @@ public class AutoScheduleService {
 
 		WardSchedule updateWardSchedule = nurseScheduler.generateSchedule(wardSchedule, rule, wardMembers,
 			prevNurseShifts, yearMonth, memberId,
-			requests, dailyNightCount);
+			acceptedRequests, dailyNightCount);
 
 		//rule 복구
 		rule.plusWdayDcnt(headWardMembers.size());
@@ -174,8 +180,58 @@ public class AutoScheduleService {
 			}
 		}
 
+		Set<Long> previouslyAcceptedRequestIds = acceptedRequests.stream()
+			.map(Request::getRequestId)
+			.collect(Collectors.toSet());
+
+
+		List<Request> allRequests = requestRepository.findAllWardRequestsByYearMonth(member.getWardMember().getWard(),
+			yearMonth.year(),
+			yearMonth.month());
 		//요청 상태 관리
-		updateRequestStatuses.updateRequestStatuses(requests, updateWardSchedule, yearMonth);
+		updateRequestStatuses.updateRequestStatuses(allRequests, updateWardSchedule, yearMonth);
+
+		// 원래 ACCEPTED였지만 자동 생성 후 DENIED로 변경된 요청 찾기
+		List<Request> unreflectedRequests = allRequests.stream()
+			.filter(req -> previouslyAcceptedRequestIds.contains(req.getRequestId())) // 원래 ACCEPTED였던 요청
+			.filter(req -> req.getStatus() == RequestStatus.DENIED) // 현재는 DENIED인 요청
+			.toList();
+
+		if (!unreflectedRequests.isEmpty()) {
+			System.out.println("자동 생성에 반영되지 않은 승인된 요청 수: " + unreflectedRequests.size());
+			for (Request req : unreflectedRequests) {
+				System.out.println("미반영 요청: 멤버ID=" + req.getWardMember().getMember().getMemberId()
+					+ ", 이름=" + req.getWardMember().getMember().getName()
+					+ ", 날짜=" + req.getRequestDate()
+					+ ", 요청근무=" + req.getRequestShift().getValue());
+			}
+
+			// 원한다면 이 정보를 응답에 포함시킬 수 있습니다
+			Map<String, Object> response = new HashMap<>();
+			response.put("message", "자동 생성 완료");
+			response.put("unreflectedRequestsCount", unreflectedRequests.size());
+
+			// 미반영 요청 정보를 응답에 포함
+			if (!unreflectedRequests.isEmpty()) {
+				List<Map<String, Object>> unreflectedInfo = unreflectedRequests.stream()
+					.map(req -> {
+						Map<String, Object> info = new HashMap<>();
+						info.put("memberId", req.getWardMember().getMember().getMemberId());
+						info.put("memberName", req.getWardMember().getMember().getName());
+						info.put("requestDate", req.getRequestDate());
+						info.put("requestShift", req.getRequestShift().getValue());
+						return info;
+					})
+					.collect(Collectors.toList());
+
+				response.put("unreflectedRequests", unreflectedInfo);
+			}
+
+			wardScheduleRepository.save(updateWardSchedule);
+
+			return ResponseEntity.ok(response);
+
+		}
 
 		wardScheduleRepository.save(updateWardSchedule);
 

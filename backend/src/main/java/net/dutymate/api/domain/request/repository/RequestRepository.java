@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import net.dutymate.api.domain.request.Request;
+import net.dutymate.api.domain.request.RequestStatus;
 import net.dutymate.api.domain.ward.Ward;
 import net.dutymate.api.domain.wardmember.WardMember;
 
@@ -29,4 +30,11 @@ public interface RequestRepository extends JpaRepository<Request, Long> {
 		@Param("year") Integer year,
 		@Param("month") Integer month
 	);
+
+	@Query("SELECT r FROM Request r WHERE r.wardMember.ward = :ward AND YEAR(r.requestDate) = :year AND MONTH(r.requestDate) = :month AND r.status = :status")
+	List<Request> findAcceptedWardRequestsByYearMonth(
+		@Param("ward") Ward ward,
+		@Param("year") Integer year,
+		@Param("month") Integer month,
+		@Param("status") RequestStatus status);
 }
