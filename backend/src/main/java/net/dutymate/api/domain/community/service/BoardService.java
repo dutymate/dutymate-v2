@@ -1,7 +1,6 @@
 package net.dutymate.api.domain.community.service;
 
 import java.util.List;
-import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Sort;
@@ -12,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import net.dutymate.api.domain.common.utils.FileNameUtils;
 import net.dutymate.api.domain.community.Board;
 import net.dutymate.api.domain.community.BoardLikes;
 import net.dutymate.api.domain.community.Category;
@@ -105,7 +105,7 @@ public class BoardService {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "파일이 비어 있습니다.");
 		}
 
-		String fileName = createFileName(multipartFile.getOriginalFilename(), dirName);
+		String fileName = FileNameUtils.createFileName(multipartFile.getOriginalFilename(), dirName);
 
 		try {
 
@@ -125,20 +125,6 @@ public class BoardService {
 		} catch (Exception e) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "파일 업로드 중 오류가 발생했습니다.");
 		}
-	}
-
-	// 파일명을 난수화하기 위해 UUID 활용
-	private String createFileName(String fileName, String dirName) {
-		String uuid = UUID.randomUUID().toString().replace("-", "");
-		String extension = getFileExtension(fileName);
-		return dirName + "/" + uuid + extension;
-	}
-
-	private String getFileExtension(String fileName) {
-		if (fileName == null || !fileName.contains(".")) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "잘못된 형식의 파일입니다.");
-		}
-		return fileName.substring(fileName.lastIndexOf("."));
 	}
 
 	@Transactional

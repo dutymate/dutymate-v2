@@ -9,6 +9,7 @@ import net.dutymate.api.domain.common.utils.YearMonth;
 import net.dutymate.api.domain.community.Board;
 import net.dutymate.api.domain.community.BoardLikes;
 import net.dutymate.api.domain.community.Comment;
+import net.dutymate.api.domain.group.GroupMember;
 import net.dutymate.api.domain.member.util.StringGenerator;
 import net.dutymate.api.domain.wardmember.Role;
 import net.dutymate.api.domain.wardmember.WardMember;
@@ -95,6 +96,9 @@ public class Member {
 	private Integer enterYear;
 
 	private Integer enterMonth;
+
+	@OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<GroupMember> groupMemberList;
 
 	// 멤버 초기값 설정 (닉네임, 생성시각, 활성화여부)
 	@PrePersist
