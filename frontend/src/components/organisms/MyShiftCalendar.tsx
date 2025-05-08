@@ -171,39 +171,45 @@ const MyShiftCalendar = ({
   };
 
   return (
-    <div className="bg-white rounded-[0.92375rem] shadow-[0_0_15px_rgba(0,0,0,0.1)] p-1 sm:p-6 h-full">
-      <div className="flex flex-row items-center justify-between mb-4 px-2">
-        {/* 왼쪽 여백 - 근무 요청 버튼과 동일한 너비의 빈 div */}
-        <div className="w-[6.5rem] shrink-0 flex justify-start">
-          {/* 빈 공간 */}
-        </div>
+    <div className="bg-white rounded-[0.92375rem] shadow-[0_0_15px_rgba(0,0,0,0.1)] p-1 pt-4 sm:p-6 h-full">
+      <div className="grid grid-cols-3 items-center mb-4 px-2">
+        {/* 왼쪽 - 빈 공간 */}
+        <div className="col-start-1"></div>
 
         {/* 중앙 - 연월 표시 */}
-        <div className="flex items-center gap-4 justify-center">
+        <div className="col-start-2 flex items-center justify-center gap-2 md:gap-4">
           <button
             onClick={handlePrevMonth}
             className="text-base-muted hover:text-base-foreground"
           >
-            <IoIosArrowBack className="w-6 h-6" />
+            <IoIosArrowBack className={`${isMobile ? 'w-5 h-5' : 'w-6 h-6'}`} />
           </button>
-          <h2 className="text-base-foreground text-[1rem] font-medium whitespace-nowrap">
+          <h2
+            className={`text-base-foreground ${
+              isMobile ? 'text-[0.875rem]' : 'text-[1rem]'
+            } font-medium whitespace-nowrap`}
+          >
             {currentDate.getFullYear()}년 {currentDate.getMonth() + 1}월
           </h2>
           <button
             onClick={handleNextMonth}
             className="text-base-muted hover:text-base-foreground"
           >
-            <IoIosArrowForward className="w-6 h-6" />
+            <IoIosArrowForward
+              className={`${isMobile ? 'w-5 h-5' : 'w-6 h-6'}`}
+            />
           </button>
         </div>
 
         {/* 오른쪽 - 근무 요청 버튼 */}
-        <div className="w-[6.5rem] shrink-0 flex justify-end">
+        <div className="col-start-3 flex justify-end shrink-0">
           <Button
             color="primary"
-            className="whitespace-nowrap px-3 text-sm"
+            className={`whitespace-nowrap ${
+              isMobile ? 'px-2 py-2 text-xs' : 'px-3 py-2 text-sm'
+            }`}
             onClick={() => setIsReqModalOpen(true)}
-            size="md"
+            size={isMobile ? 'xs' : 'md'}
           >
             근무 요청
           </Button>
