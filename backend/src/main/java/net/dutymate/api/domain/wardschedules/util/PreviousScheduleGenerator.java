@@ -27,6 +27,7 @@ public class PreviousScheduleGenerator {
 		List<WardSchedule.NurseShift> nurseShifts = new ArrayList<>();
 
 		// 각 간호사별 근무 일정 생성
+		int nightNurseCount = 0;
 		for (WardMember wardMember : wardMembers) {
 			char[] shifts = prevYearMonth.initializeShifts().toCharArray();
 
@@ -37,18 +38,20 @@ public class PreviousScheduleGenerator {
 
 			if (shiftType == ShiftType.N) {
 				// 야간 전담 간호사 패턴 (9, 10번 간호사)
-				if (memberId % 2 == 0) {
-					// 짝수 ID: NOOO
+				if (nightNurseCount == 0) {
+					// 첫번째 들어오는 사람: NOOO
 					shifts[startDay] = 'N';
 					shifts[startDay + 1] = 'O';
 					shifts[startDay + 2] = 'O';
 					shifts[startDay + 3] = 'O';
+					nightNurseCount++; // 카운터 증가
 				} else {
-					// 홀수 ID: ONNN
+					// 두번째 들어오는 사람: ONNN
 					shifts[startDay] = 'O';
 					shifts[startDay + 1] = 'N';
 					shifts[startDay + 2] = 'N';
 					shifts[startDay + 3] = 'N';
+					nightNurseCount = 0; // 카운터 리셋 (필요에 따라)
 				}
 			} else if (shiftType == ShiftType.M) {
 				// 수간호사 근무 패턴 (평일 주간, 주말 휴무)
