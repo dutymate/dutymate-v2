@@ -36,9 +36,39 @@ const WaitingForApproval = () => {
 
       // 페이지 새로고침 (또는 리다이렉트)
       navigate('/enter-ward');
-    } catch (error) {
+    } catch (error: any) {
       console.error('입장 취소 실패:', error);
-      toast.error('입장 취소 중 오류가 발생했습니다.');
+
+      // 오류 메시지 확인 및 라우팅 처리
+      if (
+        error.message &&
+        error.message.includes('이미 병동에 입장한 상태입니다')
+      ) {
+        toast.info('이미 병동에 입장되어 있습니다. 병동 화면으로 이동합니다.');
+        // 병동 화면으로 이동
+        navigate('/my-shift');
+      } else if (
+        error.message &&
+        error.message.includes('병동 입장이 거절된 상태입니다')
+      ) {
+        toast.warning(
+          '병동 입장이 거절되었습니다. 다시 입장 코드를 입력해주세요.'
+        );
+
+        // userInfo가 있는 경우에만 상태 업데이트
+        if (userInfo) {
+          userAuthStore.setUserInfo({
+            ...userInfo,
+            sentWardCode: false,
+          });
+        }
+
+        // 입장 코드 입력 화면으로 이동
+        navigate('/enter-ward');
+      } else {
+        // 기타 오류는 그대로 표시
+        toast.error(error.message || '입장 취소 중 오류가 발생했습니다.');
+      }
     }
   };
 
