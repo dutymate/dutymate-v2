@@ -6,6 +6,7 @@ import { useState } from 'react';
 import ScheduleEditModal from '@/components/organisms/SheduleEditModal';
 import ShiftColorPickerModal from '@/components/organisms/ShiftColorPickerModal';
 // 상수를 컴포넌트 외부로 이동
+import { createCalendar } from '@/services/calendarService';
 const weekDays = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'] as const;
 type WeekDay = (typeof weekDays)[number];
 
@@ -53,6 +54,7 @@ type ScheduleType = {
   endTime: string;
   color: string;
   place: string;
+  isAllDay: boolean;
 };
 
 const colorClassMap: Record<string, string> = {
@@ -123,26 +125,8 @@ const TodayShiftModal = ({
     setIsScheduleModalOpen(true);
   };
 
-  const handleSave = (data: Omit<ScheduleType, 'id'>) => {
-    if (!date) return;
-    if (scheduleModalMode === 'edit' && selectedSchedule) {
-      setSchedulesByDate((prev) => ({
-        ...prev,
-        [dateKey]: (prev[dateKey] || []).map((s) =>
-          s.id === selectedSchedule.id
-            ? { ...s, ...data, id: selectedSchedule.id }
-            : s
-        ),
-      }));
-    } else {
-      setSchedulesByDate((prev) => ({
-        ...prev,
-        [dateKey]: [
-          ...(prev[dateKey] || []),
-          { ...data, id: Date.now().toString() },
-        ],
-      }));
-    }
+  const handleSave = async (data: Omit<ScheduleType, 'id'>) => {
+    await createCalendar(data);
     setIsScheduleModalOpen(false);
   };
 
@@ -165,9 +149,13 @@ const TodayShiftModal = ({
     return hour * 60 + minute;
   }
 
-  const sortedSchedules = [...schedules].sort(
-    (a, b) => parseTimeString(a.startTime) - parseTimeString(b.startTime)
-  );
+  // 정렬: 하루종일 메모가 항상 위에 오도록, 하루종일끼리는 순서 유지, 나머지는 시간순
+  const sortedSchedules = [
+    ...schedules.filter((s) => s.isAllDay),
+    ...[...schedules.filter((s) => !s.isAllDay)].sort(
+      (a, b) => parseTimeString(a.startTime) - parseTimeString(b.startTime)
+    ),
+  ];
 
   const formatMonth = (month: number) => {
     return month < 10 ? `0${month}` : month;
@@ -402,14 +390,27 @@ const TodayShiftModal = ({
                   <span
                     className={`w-3 h-3 rounded-full mt-2 ${colorClassMap[schedule.color] || 'bg-gray-300'}`}
                   />
-                  <div className="flex flex-col items-end min-w-[3.5rem]">
-                    <span className="text-xs text-gray-500">
-                      {schedule.startTime}
-                    </span>
-                    <span className="text-xs text-gray-400">
-                      {schedule.endTime}
-                    </span>
+                  {/* 시간 or 종일 */}
+                  <div
+                    className="relative min-w-[3.5rem] flex flex-col items-end justify-center"
+                    style={{ height: '2.25rem' }}
+                  >
+                    {schedule.isAllDay ? (
+                      <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-2.5 text-xs text-primary font-bold">
+                        종일
+                      </span>
+                    ) : (
+                      <>
+                        <span className="text-xs text-gray-500">
+                          {schedule.startTime}
+                        </span>
+                        <span className="text-xs text-gray-400">
+                          {schedule.endTime}
+                        </span>
+                      </>
+                    )}
                   </div>
+                  {/* 제목 */}
                   <div className="flex-1 bg-gray-50 rounded-lg px-2 py-1 text-sm font-medium">
                     {schedule.title}
                   </div>
@@ -418,7 +419,7 @@ const TodayShiftModal = ({
             </div>
             {/* +버튼, 근무 색상 변경 버튼 */}
             <div
-              className={`flex gap-2 shrink-0 sm:absolute sm:bottom-0 sm:left-0 sm:w-full sm:bg-white sm:p-4 sm:z-10 sm:border-t sm:border-gray-200 ${!isMobile ? 'rounded-b-[1rem]' : ''}`}
+              className={`flex gap-2 shrink-0 sm:absolute sm:bottom-0 sm:left-0 sm:w-full sm:bg-white sm:p-4 sm:z-10 sm:border-t sm:border-gray-200 rounded-b-[1rem]`}
             >
               <button
                 className="flex-1 bg-white border border-gray-200 rounded-xl py-2 flex items-center justify-center text-2xl font-bold text-primary shadow-sm hover:bg-primary hover:text-white transition-colors"

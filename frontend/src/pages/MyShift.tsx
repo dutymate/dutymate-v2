@@ -14,6 +14,7 @@ import { dutyService } from '@/services/dutyService';
 import { useLoadingStore } from '@/stores/loadingStore';
 import useUserAuthStore from '@/stores/userAuthStore';
 import KakaoPlaceModal from '@/components/organisms/KakaoPlaceModal';
+// import { ScheduleType } from '@/types/ScheduleType';
 
 // Duty 타입 변환 유틸리티 함수
 const convertDutyType = (
@@ -42,13 +43,14 @@ const colorClassMap: Record<string, string> = {
 };
 
 // 일정 타입 정의 (두 컴포넌트와 동일하게 맞춰주세요)
-type ScheduleType = {
+export type ScheduleType = {
   id: string;
   title: string;
   startTime: string;
   endTime: string;
   color: string;
   place: string;
+  isAllDay: boolean;
 };
 
 const MyShift = () => {

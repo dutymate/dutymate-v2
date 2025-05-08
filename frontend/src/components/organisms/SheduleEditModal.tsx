@@ -9,6 +9,7 @@ interface ScheduleEditModalProps {
     endTime: string;
     color: string;
     place: string;
+    isAllDay: boolean;
   };
   onClose: () => void;
   onSave?: (data: Omit<any, 'id'>) => void;
@@ -33,6 +34,7 @@ const ScheduleEditModal = ({
     endTime: '오전 10:00',
     color: 'blue',
     place: '',
+    isAllDay: false,
   },
   onClose = () => {},
   onSave = () => {},
@@ -58,6 +60,7 @@ const ScheduleEditModal = ({
   const [selectedPlace, setSelectedPlace] = useState<Marker | null>(null);
   const [map, setMap] = useState<kakao.maps.Map | null>(null);
   const [isDirectPlaceInput, setIsDirectPlaceInput] = useState(false);
+  const [isAllDay, setIsAllDay] = useState(initialData?.isAllDay || false);
 
   // 장소 검색 함수
   const searchPlaces = (keyword: string) => {
@@ -285,7 +288,7 @@ const ScheduleEditModal = ({
       alert('하루에 최대 10개의 메모만 추가할 수 있습니다.');
       return;
     }
-    onSave?.({ title, startTime, endTime, color, place });
+    onSave?.({ title, startTime, endTime, color, place, isAllDay });
   };
 
   // 모달 타이틀
@@ -342,46 +345,72 @@ const ScheduleEditModal = ({
 
             {/* 시간 */}
             <div className="grid grid-cols-2 gap-2 relative">
-              <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
-                  시작 시간
-                </label>
-                <div
-                  className={`w-full px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg border flex items-center ${isEditable ? 'border-gray-300 cursor-pointer' : 'bg-gray-50 border-gray-200'}`}
-                  onClick={
-                    isEditable ? () => setActiveTimePicker('start') : undefined
-                  }
+              <div className="col-span-2 flex items-center mb-2">
+                <input
+                  type="checkbox"
+                  id="allDayCheckbox"
+                  checked={isAllDay}
+                  onChange={(e) => setIsAllDay(e.target.checked)}
+                  className="mr-2"
+                  disabled={!isEditable}
+                />
+                <label
+                  htmlFor="allDayCheckbox"
+                  className="text-xs sm:text-sm font-medium text-gray-700 select-none cursor-pointer"
                 >
-                  <span className="mr-1 text-sm">⏰</span>
-                  <span className="text-sm">{startTime}</span>
+                  하루 종일
+                </label>
+              </div>
+              <div className="col-span-2">
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                      시작 시간
+                    </label>
+                    <div
+                      className={`w-full px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg border flex items-center ${isEditable ? 'border-gray-300 cursor-pointer' : 'bg-gray-50 border-gray-200'} ${isAllDay ? 'bg-gray-100 pointer-events-none opacity-60' : ''}`}
+                      onClick={
+                        isEditable && !isAllDay
+                          ? () => setActiveTimePicker('start')
+                          : undefined
+                      }
+                    >
+                      <span className="mr-1 text-sm">⏰</span>
+                      <span className="text-sm">{startTime}</span>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                      종료 시간
+                    </label>
+                    <div
+                      className={`w-full px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg border flex items-center ${isEditable ? 'border-gray-300 cursor-pointer' : 'bg-gray-50 border-gray-200'} ${isAllDay ? 'bg-gray-100 pointer-events-none opacity-60' : ''}`}
+                      onClick={
+                        isEditable && !isAllDay
+                          ? () => setActiveTimePicker('end')
+                          : undefined
+                      }
+                    >
+                      <span className="mr-1 text-sm">⏰</span>
+                      <span className="text-sm">{endTime}</span>
+                    </div>
+                  </div>
+                  {isEditable && activeTimePicker && !isAllDay && (
+                    <div className="absolute left-0 top-full w-full z-20 time-picker-container">
+                      <TimePicker
+                        value={
+                          activeTimePicker === 'start' ? startTime : endTime
+                        }
+                        onChange={(v: string) => {
+                          if (activeTimePicker === 'start') setStartTime(v);
+                          else setEndTime(v);
+                        }}
+                        onClose={() => setActiveTimePicker(null)}
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
-              <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
-                  종료 시간
-                </label>
-                <div
-                  className={`w-full px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg border flex items-center ${isEditable ? 'border-gray-300 cursor-pointer' : 'bg-gray-50 border-gray-200'}`}
-                  onClick={
-                    isEditable ? () => setActiveTimePicker('end') : undefined
-                  }
-                >
-                  <span className="mr-1 text-sm">⏰</span>
-                  <span className="text-sm">{endTime}</span>
-                </div>
-              </div>
-              {isEditable && activeTimePicker && (
-                <div className="absolute left-0 top-full w-full z-20 time-picker-container">
-                  <TimePicker
-                    value={activeTimePicker === 'start' ? startTime : endTime}
-                    onChange={(v: string) => {
-                      if (activeTimePicker === 'start') setStartTime(v);
-                      else setEndTime(v);
-                    }}
-                    onClose={() => setActiveTimePicker(null)}
-                  />
-                </div>
-              )}
             </div>
 
             {/* 색상 */}
