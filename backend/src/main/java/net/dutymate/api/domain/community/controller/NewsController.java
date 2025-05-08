@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -31,7 +31,7 @@ public class NewsController {
 		return ResponseEntity.ok(newsService.getNews());
 	}
 
-	@PostMapping
+	@PutMapping
 	public ResponseEntity<?> refreshRecentNews(
 		@RequestHeader(value = "X-API-KEY", required = false) String apiKey) throws JsonProcessingException {
 		if (apiKey == null || !apiKey.equals(apiNewsSecret)) {
