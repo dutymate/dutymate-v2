@@ -26,7 +26,8 @@ public class WebConfig implements WebMvcConfigurer {
 		"/api/member/email-verification/**",           // 인증 메일 전송
 		"/api/member/password/**", //비밀번호 재설정
 		"/api/member/demo",
-		"/api/news"
+		"/api/news",
+		"/api/holiday/update",
 	};
 
 	@Override

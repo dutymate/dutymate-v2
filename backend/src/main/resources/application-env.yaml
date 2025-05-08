@@ -108,6 +108,8 @@ api:
     secret: ${API_DEMO_SECRET}
   news:
     secret: ${API_NEWS_SECRET}
+  holiday:
+    secret: ${API_HOLIDAY_SECRET}
 #공공데이터 포털 키
   data:
     go:
