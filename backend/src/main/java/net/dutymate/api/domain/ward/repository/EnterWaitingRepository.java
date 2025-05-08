@@ -1,6 +1,7 @@
 package net.dutymate.api.domain.ward.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -15,7 +16,7 @@ public interface EnterWaitingRepository extends JpaRepository<EnterWaiting, Long
 
 	List<EnterWaiting> findByWard(Ward ward);
 
-	EnterWaiting findByMember(Member member);
+	Optional<EnterWaiting> findByMember(Member member);
 
 	boolean existsByMember(Member member);
 

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -75,6 +76,7 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 public class MemberService {
 
 	public static final String DEMO_EMAIL_SUFFIX = "@dutymate.demo";
+	public static final String TEMP_NURSE_EMAIL = "tempEmail@temp.com";
 	private static final String DEMO_MEMBER_PREFIX = "demo:member:";
 	private static final String DEMO_PASSWORD = "qwer1234!";
 	private static final String DEMO_NAME = "데모계정";
@@ -83,8 +85,6 @@ public class MemberService {
 	private static final Integer DEMO_TEMP_NURSE_CNT = 10;
 	private static final Integer DEMO_AUTO_GEN_CNT = 1;
 	private static final Integer DEFAULT_AUTO_GEN_CNT = 1;
-	public static final String TEMP_NURSE_EMAIL = "tempEmail@temp.com";
-
 	private final MemberRepository memberRepository;
 	private final JwtUtil jwtUtil;
 	private final WardMemberRepository wardMemberRepository;
@@ -96,7 +96,6 @@ public class MemberService {
 	private final InitialDutyGenerator initialDutyGenerator;
 	private final RedisTemplate<String, String> redisTemplate;
 	private final RequestRepository requestRepository;
-
 
 	@Value("${kakao.client.id}")
 	private String kakaoClientId;
@@ -847,17 +846,35 @@ public class MemberService {
 
 	// 입장 대기 중인 상태 조회하기
 	public boolean getEnterWatingStatus(Member member) {
-		return enterWaitingRepository.existsByMember(member);
+		Member enterWaitingMember = memberRepository.findById(member.getMemberId())
+			.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "회원을 찾을 수 없습니다."));
+		return enterWaitingRepository.existsByMember(enterWaitingMember);
 	}
 
 	// 현재 입장한 병동이 있는지 여부 조회하기
 	public boolean getExistMyWard(Member member) {
-		return wardMemberRepository.existsByMember(member);
+		Member enterWaitingMember = memberRepository.findById(member.getMemberId())
+			.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "회원을 찾을 수 없습니다."));
+		return wardMemberRepository.existsByMember(enterWaitingMember);
 	}
 
 	// 입장 대기 신청 취소하기
 	public void deleteEnteringWardWaiting(Member member) {
-		EnterWaiting enterWaitingMember = enterWaitingRepository.findByMember(member);
-		enterWaitingRepository.delete(enterWaitingMember);
+		Optional<EnterWaiting> waitingOpt = enterWaitingRepository.findByMember(member);
+
+		if (waitingOpt.isPresent()) {
+			// 대기 중이면 취소 가능
+			enterWaitingRepository.delete(waitingOpt.get());
+			return;
+		}
+
+		// 대기 중이 아니면, 현재 병동 입장 상태 확인
+		boolean hasEnteredWard = wardMemberRepository.existsByMember(member);
+
+		if (hasEnteredWard) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "이미 병동에 입장한 상태입니다.");
+		} else {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "병동 입장이 거절된 상태입니다.");
+		}
 	}
 }
