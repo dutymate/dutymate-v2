@@ -1,11 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
+import useUserAuthStore from '@/stores/userAuthStore';
 
 interface DemoSignupModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSignup: () => void;
   onContinue: () => void;
-  timeLeft: number; // seconds
 }
 
 const formatTime = (sec: number) => {
@@ -19,29 +19,18 @@ const DemoSignupModal = ({
   onClose,
   onSignup,
   onContinue,
-  timeLeft,
 }: DemoSignupModalProps) => {
-  const [localTimeLeft, setLocalTimeLeft] = useState(timeLeft);
+  const { userInfo, timeLeft, isTimeout } = useUserAuthStore();
+  const isDemo = userInfo?.isDemo;
 
   useEffect(() => {
-    if (!isOpen) return;
-    setLocalTimeLeft(timeLeft); // 모달 열릴 때마다 초기화
+    if (!isOpen || !isDemo || isTimeout) return;
 
-    if (timeLeft <= 0) return;
-
-    const interval = setInterval(() => {
-      setLocalTimeLeft((prev) => {
-        if (prev <= 1) {
-          clearInterval(interval);
-          onClose(); // 또는 로그아웃 등
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [isOpen, timeLeft, onClose]);
+    // If timer reaches 0 while modal is open, close it
+    if (timeLeft <= 0) {
+      onClose();
+    }
+  }, [isOpen, timeLeft, onClose, isDemo, isTimeout]);
 
   if (!isOpen) return null;
 
@@ -66,7 +55,7 @@ const DemoSignupModal = ({
           <div className="text-mid text-gray-700 mb-8">
             남은 체험판 사용 가능 시간은{' '}
             <span className="text-primary font-bold">
-              {formatTime(localTimeLeft)}
+              {formatTime(timeLeft)}
             </span>
             입니다.
           </div>

@@ -648,7 +648,6 @@ const ShiftAdminTable = memo(
     const [isDemoSignupModalOpen, setIsDemoSignupModalOpen] = useState(false);
     const { userInfo } = useUserAuthStore();
     const isDemo = userInfo?.isDemo;
-    const [demoTimeLeft, setDemoTimeLeft] = useState(0);
 
     const handleAutoCreate = async () => {
       if (isAutoCreating) {
@@ -667,8 +666,6 @@ const ShiftAdminTable = memo(
 
         // DEMO: autogenCnt 0 & demo 계정이면 회원가입 유도 모달
         if (autoGenCnt <= 0 && isDemo) {
-          const { timeLeft } = useUserAuthStore.getState();
-          setDemoTimeLeft(timeLeft);
           setIsDemoSignupModalOpen(true);
           return;
         }
@@ -2045,7 +2042,6 @@ const ShiftAdminTable = memo(
             navigate('/login');
           }}
           onContinue={() => setIsDemoSignupModalOpen(false)}
-          timeLeft={demoTimeLeft}
         />
 
         <ResetDutyConfirmModal
