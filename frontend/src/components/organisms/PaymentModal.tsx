@@ -1,8 +1,15 @@
 import { useEffect, useState } from 'react';
 import { FaCheckCircle, FaRegStar } from 'react-icons/fa';
-import { IoMdClose } from 'react-icons/io';
 
 import SubscriptionSuccessModal from '@/components/organisms/SubscriptionSuccessModal';
+
+// GA4 타입 선언 (전역 Window 타입에 gtag 추가)
+declare global {
+  interface Window {
+    dataLayer: any[];
+    gtag?: (...args: any[]) => void;
+  }
+}
 
 interface PaymentModalProps {
   isOpen: boolean;
@@ -34,12 +41,58 @@ const PaymentModal = ({ isOpen, onClose, onSubscribe }: PaymentModalProps) => {
   if (!isOpen) return null;
 
   const handleSubscribe = (planType: 'monthly' | 'quarterly' | 'yearly') => {
+    // GTM 이벤트 트래킹 (상세 매개변수 추가)
+    if (typeof window !== 'undefined' && 'dataLayer' in window) {
+      // GA4에 최적화된 이벤트 구조
+      window.dataLayer.push({
+        event: 'button_click',
+        event_category: 'subscription',
+        event_action: 'click',
+        event_label: `${planType}_subscription`,
+        event_id: `subscribe_${planType}_${isMobile ? 'mobile' : 'desktop'}`,
+        subscription_plan: planType,
+        subscription_view: isMobile ? 'mobile' : 'desktop',
+        subscription_duration:
+          planType === 'monthly' ? '1' : planType === 'quarterly' ? '3' : '12',
+      });
+
+      // GA4 직접 이벤트 전송 (gtag 함수 사용)
+      if (typeof window.gtag === 'function') {
+        window.gtag('event', 'select_item', {
+          item_list_id: 'subscription_plans',
+          item_list_name: 'Subscription Plans',
+          items: [
+            {
+              item_id: planType,
+              item_name: `${planType} subscription`,
+              item_category: 'subscription',
+              item_variant: isMobile ? 'mobile' : 'desktop',
+            },
+          ],
+        });
+      }
+    }
+
     setSelectedPlan(planType);
     onSubscribe(planType);
   };
 
   const handleCompleteModalClose = () => {
     setSelectedPlan(null);
+    onClose();
+  };
+
+  const handleModalClose = () => {
+    // 닫기 버튼 클릭 트래킹
+    if (typeof window !== 'undefined' && 'dataLayer' in window) {
+      window.dataLayer.push({
+        event: 'button_click',
+        event_category: 'subscription_modal',
+        event_action: 'close',
+        event_label: 'modal_close',
+        event_id: 'close-payment-modal-button',
+      });
+    }
     onClose();
   };
 
@@ -97,12 +150,12 @@ const PaymentModal = ({ isOpen, onClose, onSubscribe }: PaymentModalProps) => {
         >
           <div className="flex justify-between items-center mb-4 md:mb-6">
             <button
-              onClick={onClose}
+              onClick={handleModalClose}
               id="close-payment-modal-button"
               className="absolute top-4 md:top-6 right-4 md:right-6 text-base-foreground hover:text-primary-dark transition-colors"
               style={{ fontSize: '1.75rem' }}
             >
-              <IoMdClose />
+              {/* <IoMdClose /> */}✕
             </button>
           </div>
 
@@ -159,7 +212,11 @@ const PaymentModal = ({ isOpen, onClose, onSubscribe }: PaymentModalProps) => {
                       </div>
                       <div className="flex items-end gap-1">
                         <span
-                          className={`text-3xl font-bold ${plan.type === 'quarterly' ? 'text-primary-dark' : 'text-base-foreground'}`}
+                          className={`text-3xl font-bold ${
+                            plan.type === 'quarterly'
+                              ? 'text-primary-dark'
+                              : 'text-base-foreground'
+                          }`}
                         >
                           {plan.price}
                         </span>
@@ -187,6 +244,15 @@ const PaymentModal = ({ isOpen, onClose, onSubscribe }: PaymentModalProps) => {
                           plan.type as 'monthly' | 'quarterly' | 'yearly'
                         )
                       }
+                      data-subscription-plan={plan.type}
+                      data-subscription-duration={
+                        plan.type === 'monthly'
+                          ? '1'
+                          : plan.type === 'quarterly'
+                            ? '3'
+                            : '12'
+                      }
+                      id={`subscribe-${plan.type}-desktop`}
                     >
                       {plan.buttonText}
                     </button>
@@ -259,7 +325,11 @@ const PaymentModal = ({ isOpen, onClose, onSubscribe }: PaymentModalProps) => {
 
                         <div className="flex items-end gap-0.5 justify-end">
                           <span
-                            className={`text-xl font-bold ${plan.type === 'quarterly' ? 'text-primary-dark' : 'text-base-foreground'}`}
+                            className={`text-xl font-bold ${
+                              plan.type === 'quarterly'
+                                ? 'text-primary-dark'
+                                : 'text-base-foreground'
+                            }`}
                           >
                             {plan.price}
                           </span>
@@ -275,16 +345,21 @@ const PaymentModal = ({ isOpen, onClose, onSubscribe }: PaymentModalProps) => {
 
                       <button
                         className={`w-full h-10 rounded-lg text-center font-medium text-xs
-													${
-                            plan.popular
-                              ? 'bg-primary text-white'
-                              : 'bg-[#666666] text-white'
-                          }`}
+													${plan.popular ? 'bg-primary text-white' : 'bg-[#666666] text-white'}`}
                         onClick={() =>
                           handleSubscribe(
                             plan.type as 'monthly' | 'quarterly' | 'yearly'
                           )
                         }
+                        data-subscription-plan={plan.type}
+                        data-subscription-duration={
+                          plan.type === 'monthly'
+                            ? '1'
+                            : plan.type === 'quarterly'
+                              ? '3'
+                              : '12'
+                        }
+                        id={`subscribe-${plan.type}-mobile`}
                       >
                         구독하기
                       </button>
