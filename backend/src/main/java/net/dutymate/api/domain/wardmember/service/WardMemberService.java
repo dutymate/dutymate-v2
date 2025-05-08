@@ -29,7 +29,6 @@ public class WardMemberService {
 
 	private final MemberRepository memberRepository;
 	private final WardScheduleRepository wardScheduleRepository;
-	private final WardMemberRepository wardMemberRepository;
 	private final InitialDutyGenerator initialDutyGenerator;
 
 	@Transactional
@@ -70,6 +69,7 @@ public class WardMemberService {
 
 		// member의 role 초기화하기
 		member.updateRole(null);
+		member.clearEnterDate();
 
 		// RDB에서 wardMember 삭제하기
 		ward.removeWardMember(wardMemeber); // 리스트에서 제거(연관관계 제거)

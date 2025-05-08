@@ -21,7 +21,6 @@ import net.dutymate.api.domain.member.Member;
 import net.dutymate.api.domain.member.repository.MemberRepository;
 import net.dutymate.api.domain.request.RequestStatus;
 import net.dutymate.api.domain.request.repository.RequestRepository;
-import net.dutymate.api.domain.request.util.UpdateRequestStatuses;
 import net.dutymate.api.domain.ward.Ward;
 import net.dutymate.api.domain.wardmember.Role;
 import net.dutymate.api.domain.wardmember.ShiftType;
@@ -577,7 +576,7 @@ public class WardScheduleService {
 
 	@Transactional
 	public void editMemberSchedule(Member member, EditMemberDutyRequestDto editMemberDutyRequestDto) {
-		if (member.getEnterYear() != null || member.getEnterMonth() != null || member.getWardMember() != null) {
+		if (member.getEnterYear() != null && member.getEnterMonth() != null && member.getWardMember() != null) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "병동에 입장한 회원은 개인 근무표를 작성할 수 없습니다.");
 		}
 

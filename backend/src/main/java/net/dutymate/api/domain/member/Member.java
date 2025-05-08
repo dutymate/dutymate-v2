@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.mindrot.jbcrypt.BCrypt;
 
+import net.dutymate.api.domain.common.utils.YearMonth;
 import net.dutymate.api.domain.community.Board;
 import net.dutymate.api.domain.community.BoardLikes;
 import net.dutymate.api.domain.community.Comment;
@@ -158,5 +159,15 @@ public class Member {
 
 	public void setAutoGenCnt(int autoGenCnt) {
 		this.autoGenCnt = autoGenCnt;
+	}
+
+	public void changeEnterYearMonth(YearMonth yearMonth) {
+		this.enterYear = yearMonth.year();
+		this.enterMonth = yearMonth.month();
+	}
+
+	public void clearEnterDate() {
+		this.enterYear = null;
+		this.enterMonth = null;
 	}
 }

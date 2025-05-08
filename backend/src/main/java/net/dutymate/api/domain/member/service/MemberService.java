@@ -500,6 +500,7 @@ public class MemberService {
 			ward.removeWardMember(wardMember);
 			deleteWardMemberInMongo(member, ward); // mongodb에서 삭제
 			member.updateRole(null);
+			member.clearEnterDate();
 			return;
 		}
 
@@ -541,6 +542,7 @@ public class MemberService {
 					wardRepository.delete(ward);
 				}
 				member.updateRole(null);
+				member.clearEnterDate();
 				return;
 			}
 
@@ -548,6 +550,7 @@ public class MemberService {
 			wardScheduleRepository.deleteByWardId(ward.getWardId()); // mongodb에서 삭제
 			wardRepository.delete(ward); // 해당 병동도 같이 삭제
 			member.updateRole(null);
+			member.clearEnterDate();
 		}
 	}
 
