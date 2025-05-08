@@ -1,6 +1,5 @@
 package net.dutymate.api.domain.wardschedules.repository;
 
-import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.mongodb.repository.MongoRepository;
@@ -11,5 +10,5 @@ public interface MemberScheduleRepository extends MongoRepository<MemberSchedule
 
 	Optional<MemberSchedule> findByMemberIdAndYearAndMonth(Long memberId, int year, int month);
 
-	List<MemberSchedule> findAllByMemberId(Long memberId);
+	void deleteByMemberId(Long memberId);
 }

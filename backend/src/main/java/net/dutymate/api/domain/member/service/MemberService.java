@@ -58,6 +58,7 @@ import net.dutymate.api.domain.wardmember.WardMember;
 import net.dutymate.api.domain.wardmember.repository.WardMemberRepository;
 import net.dutymate.api.domain.wardmember.service.WardMemberService;
 import net.dutymate.api.domain.wardschedules.collections.WardSchedule;
+import net.dutymate.api.domain.wardschedules.repository.MemberScheduleRepository;
 import net.dutymate.api.domain.wardschedules.repository.WardScheduleRepository;
 import net.dutymate.api.domain.wardschedules.util.InitialDutyGenerator;
 import net.dutymate.api.domain.wardschedules.util.PreviousScheduleGenerator;
@@ -96,6 +97,7 @@ public class MemberService {
 	private final InitialDutyGenerator initialDutyGenerator;
 	private final RedisTemplate<String, String> redisTemplate;
 	private final RequestRepository requestRepository;
+	private final MemberScheduleRepository memberScheduleRepository;
 
 	@Value("${kakao.client.id}")
 	private String kakaoClientId;
@@ -605,6 +607,7 @@ public class MemberService {
 
 			// 병동에 한 명만 남아 있는 경우
 			wardScheduleRepository.deleteByWardId(ward.getWardId()); // mongodb에서 삭제
+			memberScheduleRepository.deleteByMemberId(member.getMemberId());
 			wardRepository.delete(ward); // 해당 병동도 같이 삭제
 			memberRepository.delete(member); // 멤버 자체를 삭제
 		}
