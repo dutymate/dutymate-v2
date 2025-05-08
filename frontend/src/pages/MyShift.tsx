@@ -84,6 +84,14 @@ const MyShift = () => {
   // 카카오맵 모달 상태
   const [isPlaceModalOpen, setIsPlaceModalOpen] = useState(false);
 
+  // 추가된 activeTab state
+  const [activeTab, setActiveTab] = useState<'status' | 'calendar'>('status');
+
+  // 추가된 selectedDutyType state
+  const [selectedDutyType, setSelectedDutyType] = useState<
+    'day' | 'off' | 'evening' | 'night' | 'mid'
+  >('day');
+
   // 초기 데이터 로딩
   useEffect(() => {
     useLoadingStore.getState().setLoading(true);
@@ -118,6 +126,7 @@ const MyShift = () => {
       );
       setDayDutyData(data);
       setSelectedDuty(convertDutyType(data.myShift));
+      setSelectedDutyType(convertDutyType(data.myShift));
     } catch (error) {
       toast.error('해당 날짜의 근무 정보가 없습니다.');
       setSelectedDate(null); // 선택된 날짜 초기화
@@ -217,6 +226,10 @@ const MyShift = () => {
                       schedulesByDate={schedulesByDate}
                       setSchedulesByDate={setSchedulesByDate}
                       loading={loading}
+                      activeTab={activeTab}
+                      onTabChange={setActiveTab}
+                      selectedDutyType={selectedDutyType}
+                      onDutyTypeChange={setSelectedDutyType}
                     />
                   </div>
                   {/* 모바일 버전 */}
@@ -231,6 +244,10 @@ const MyShift = () => {
                       schedulesByDate={schedulesByDate}
                       setSchedulesByDate={setSchedulesByDate}
                       loading={loading}
+                      activeTab={activeTab}
+                      onTabChange={setActiveTab}
+                      selectedDutyType={selectedDutyType}
+                      onDutyTypeChange={setSelectedDutyType}
                     />
                   </div>
                 </>

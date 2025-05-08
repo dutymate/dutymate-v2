@@ -57,6 +57,7 @@ const ScheduleEditModal = ({
   const [markers, setMarkers] = useState<Marker[]>([]);
   const [selectedPlace, setSelectedPlace] = useState<Marker | null>(null);
   const [map, setMap] = useState<kakao.maps.Map | null>(null);
+  const [isDirectPlaceInput, setIsDirectPlaceInput] = useState(false);
 
   // 장소 검색 함수
   const searchPlaces = (keyword: string) => {
@@ -330,11 +331,12 @@ const ScheduleEditModal = ({
               </label>
               <input
                 type="text"
-                className={`w-full px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg border ${isEditable ? 'border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200' : 'bg-gray-50 border-gray-200'} transition-all text-sm`}
+                className={`w-full px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg border ${isEditable ? 'border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200' : 'bg-gray-50 border-gray-200 pointer-events-none select-none'} transition-all text-sm`}
                 placeholder="일정 제목을 입력하세요"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 readOnly={!isEditable}
+                tabIndex={isEditable ? 0 : -1}
               />
             </div>
 
@@ -424,37 +426,62 @@ const ScheduleEditModal = ({
                 장소
               </label>
               <div className="space-y-2">
-                <div
-                  className={`flex items-center w-full px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg border ${isEditable ? 'border-gray-300' : 'bg-gray-50 border-gray-200'}`}
-                  onClick={
-                    isEditable
-                      ? () => setIsPlaceSearchOpen(!isPlaceSearchOpen)
-                      : undefined
-                  }
-                  style={{ cursor: isEditable ? 'pointer' : 'default' }}
-                >
-                  <span className="mr-1 text-sm">📍</span>
+                {isEditable && (
+                  <div className="flex gap-2 mb-1">
+                    <button
+                      type="button"
+                      className={`px-2 py-1 rounded text-xs border ${!isDirectPlaceInput ? 'bg-primary text-white border-primary' : 'bg-white text-primary border-primary'}`}
+                      onClick={() => setIsDirectPlaceInput(false)}
+                    >
+                      장소 검색
+                    </button>
+                    <button
+                      type="button"
+                      className={`px-2 py-1 rounded text-xs border ${isDirectPlaceInput ? 'bg-primary text-white border-primary' : 'bg-white text-primary border-primary'}`}
+                      onClick={() => setIsDirectPlaceInput(true)}
+                    >
+                      직접 입력
+                    </button>
+                  </div>
+                )}
+                {isEditable && isDirectPlaceInput ? (
                   <input
                     type="text"
-                    className={`w-full text-sm ${isEditable ? 'focus:outline-none' : 'bg-gray-50'}`}
-                    placeholder="장소를 입력하세요"
+                    className="w-full px-2 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm"
+                    placeholder="장소를 직접 입력하세요"
                     value={place}
-                    readOnly
+                    onChange={(e) => setPlace(e.target.value)}
                   />
-                </div>
-
-                {isEditable && isPlaceSearchOpen && (
+                ) : (
+                  <div
+                    className={`flex items-center w-full px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg border ${isEditable ? 'border-gray-300' : 'bg-gray-50 border-gray-200'}`}
+                    style={{
+                      cursor:
+                        isEditable && !isDirectPlaceInput
+                          ? 'pointer'
+                          : 'default',
+                    }}
+                  >
+                    <span className="mr-1 text-sm">📍</span>
+                    <input
+                      type="text"
+                      className={`w-full text-sm ${isEditable ? 'focus:outline-none' : 'bg-gray-50 pointer-events-none select-none'}`}
+                      placeholder="장소를 입력하세요"
+                      value={place}
+                      onChange={(e) => {
+                        setPlace(e.target.value);
+                        setSearchKeyword(e.target.value);
+                        setIsPlaceSearchOpen(true);
+                      }}
+                      readOnly={!isEditable || isDirectPlaceInput}
+                      tabIndex={isEditable ? 0 : -1}
+                      onFocus={() => isEditable && setIsPlaceSearchOpen(true)}
+                      onKeyDown={handleKeyDown}
+                    />
+                  </div>
+                )}
+                {isEditable && isPlaceSearchOpen && !isDirectPlaceInput && (
                   <div className="border border-gray-200 rounded-lg overflow-hidden">
-                    <div className="p-2">
-                      <input
-                        type="text"
-                        value={searchKeyword}
-                        onChange={(e) => setSearchKeyword(e.target.value)}
-                        placeholder="장소를 검색하세요"
-                        className="w-full px-2 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm"
-                        onKeyDown={handleKeyDown}
-                      />
-                    </div>
                     <div style={{ width: '100%', height: '250px' }}>
                       <Map
                         center={{

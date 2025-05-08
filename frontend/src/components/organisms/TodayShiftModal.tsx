@@ -39,6 +39,10 @@ interface TodayShiftModalProps {
   setSchedulesByDate: React.Dispatch<
     React.SetStateAction<Record<string, ScheduleType[]>>
   >;
+  activeTab: 'status' | 'calendar';
+  onTabChange: (tab: 'status' | 'calendar') => void;
+  selectedDutyType: 'day' | 'off' | 'evening' | 'night' | 'mid';
+  onDutyTypeChange: (type: 'day' | 'off' | 'evening' | 'night' | 'mid') => void;
 }
 
 // 일정 타입 정의
@@ -71,13 +75,13 @@ const TodayShiftModal = ({
   onDateChange,
   schedulesByDate,
   setSchedulesByDate,
+  activeTab,
+  onTabChange,
+  selectedDutyType,
+  onDutyTypeChange,
 }: TodayShiftModalProps) => {
   if (!date) return null;
 
-  const [activeTab, setActiveTab] = useState<'status' | 'calendar'>('status');
-  const [selectedDutyType, setSelectedDutyType] = useState<
-    'day' | 'off' | 'evening' | 'night' | 'mid'
-  >('day');
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
   const [scheduleModalMode, setScheduleModalMode] = useState<
     'create' | 'view' | 'edit'
@@ -91,12 +95,14 @@ const TodayShiftModal = ({
 
   const dutyTypes = ['day', 'off', 'evening', 'night', 'mid'] as const;
   type DutyType = (typeof dutyTypes)[number];
-  const [dutyColors, setDutyColors] = useState<Record<DutyType, string>>({
-    day: 'bg-green-100',
-    off: 'bg-gray-100',
-    evening: 'bg-red-100',
-    night: 'bg-indigo-100',
-    mid: 'bg-blue-100',
+  const [dutyColors, setDutyColors] = useState<
+    Record<DutyType, { bg: string; text: string }>
+  >({
+    day: { bg: '#dcfce7', text: '#222222' },
+    off: { bg: '#f3f4f6', text: '#222222' },
+    evening: { bg: '#fee2e2', text: '#222222' },
+    night: { bg: '#e0e7ff', text: '#222222' },
+    mid: { bg: '#dbeafe', text: '#222222' },
   });
 
   const MAX_SCHEDULES_PER_DAY = 10;
@@ -204,7 +210,7 @@ const TodayShiftModal = ({
               ? 'bg-white text-primary border-b-2 border-primary'
               : 'bg-white text-gray-400'
           }`}
-          onClick={() => setActiveTab('status')}
+          onClick={() => onTabChange('status')}
         >
           전체 근무 현황
         </button>
@@ -214,7 +220,7 @@ const TodayShiftModal = ({
               ? 'bg-white text-primary border-b-2 border-primary'
               : 'bg-white text-gray-400'
           }`}
-          onClick={() => setActiveTab('calendar')}
+          onClick={() => onTabChange('calendar')}
         >
           캘린더
         </button>
@@ -309,7 +315,7 @@ const TodayShiftModal = ({
                       <button
                         key={type}
                         type="button"
-                        onClick={() => setSelectedDutyType(type)}
+                        onClick={() => onDutyTypeChange(type)}
                         className={`rounded-lg focus:outline-none transition-all border-2 px-0.5 py-0.5 ${
                           selectedDutyType === type
                             ? 'border-duty-' +
@@ -322,7 +328,7 @@ const TodayShiftModal = ({
                         }`}
                         style={{ lineHeight: 0 }}
                       >
-                        <span className={dutyColors[type]}>
+                        <span className={dutyColors[type].bg}>
                           <DutyBadgeKor type={type} size="xxs" />
                         </span>
                       </button>
@@ -336,7 +342,7 @@ const TodayShiftModal = ({
                       <button
                         key={type}
                         type="button"
-                        onClick={() => setSelectedDutyType(type)}
+                        onClick={() => onDutyTypeChange(type)}
                         className={`rounded-lg focus:outline-none transition-all border-2 px-0.5 py-0.5 ${
                           selectedDutyType === type
                             ? 'border-duty-' +
@@ -349,7 +355,7 @@ const TodayShiftModal = ({
                         }`}
                         style={{ lineHeight: 0 }}
                       >
-                        <span className={dutyColors[type]}>
+                        <span className={dutyColors[type].bg}>
                           <DutyBadgeKor type={type} size="xxs" />
                         </span>
                       </button>
@@ -360,7 +366,7 @@ const TodayShiftModal = ({
                       <button
                         key={type}
                         type="button"
-                        onClick={() => setSelectedDutyType(type)}
+                        onClick={() => onDutyTypeChange(type)}
                         className={`rounded-lg focus:outline-none transition-all border-2 px-0.5 py-0.5 ${
                           selectedDutyType === type
                             ? 'border-duty-' +
@@ -373,7 +379,7 @@ const TodayShiftModal = ({
                         }`}
                         style={{ lineHeight: 0 }}
                       >
-                        <span className={dutyColors[type]}>
+                        <span className={dutyColors[type].bg}>
                           <DutyBadgeKor type={type} size="xxs" />
                         </span>
                       </button>
