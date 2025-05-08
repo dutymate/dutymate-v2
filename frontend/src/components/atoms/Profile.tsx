@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { MdOutlineAccessTime } from 'react-icons/md';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 import { Icon } from '@/components/atoms/Icon';
 import { Tooltip } from '@/components/atoms/Tooltip';
@@ -10,6 +10,7 @@ import useUserAuthStore from '@/stores/userAuthStore';
 const Profile = () => {
   const { userInfo, setTimeout, isTimeout } = useUserAuthStore();
   const location = useLocation();
+  const navigate = useNavigate();
 
   const isMypage = location.pathname === '/my-page';
   const privacyPolicyUrl = import.meta.env.VITE_PRIVACY_POLICY_URL || '#';
@@ -67,30 +68,40 @@ const Profile = () => {
         <div className="flex flex-col">
           {/* ✅ 데모 타이머 */}
           {isDemo && (
-            <div className="hidden lg:flex items-center justify-start bg-primary-10 text-primary rounded-lg px-4 py-2 mb-4">
-              {/* 아이콘 */}
-              <div className="w-[2.4rem] flex justify-start ml-2">
-                <MdOutlineAccessTime className="text-primary text-5xl" />
-              </div>
-
-              {/* 오른쪽 영역: 타이틀 + 숫자 */}
-              <div className="ml-2 flex flex-col justify-center text-sm">
-                {/* ⬇️ 타이틀을 숫자와 분리 */}
-                <div className="ml-4 font-semibold text-orange-500 text-left whitespace-nowrap mb-1">
-                  {isTimeout ? '이용 시간 종료' : '이용 가능 시간'}
+            <div className="hidden lg:flex flex-col items-center justify-start bg-primary-10 text-primary rounded-lg px-4 py-2 mb-4">
+              <div className="flex items-center w-full">
+                {/* 아이콘 */}
+                <div className="w-[2.4rem] flex justify-start ml-2">
+                  <MdOutlineAccessTime className="text-primary text-5xl" />
                 </div>
 
-                {/* 타이머 숫자 또는 문구 */}
-                {timeLeft > 0 && !isTimeout ? (
-                  <div className="text-[1.5rem] font-bold text-gray-800 tracking-wider min-w-[7.5rem] text-left">
-                    {formatTime(timeLeft)}
+                {/* 오른쪽 영역: 타이틀 + 숫자 */}
+                <div className="ml-2 flex flex-col justify-center text-sm">
+                  {/* ⬇️ 타이틀을 숫자와 분리 */}
+                  <div className="ml-4 font-semibold text-orange-500 text-left whitespace-nowrap mb-1">
+                    {isTimeout ? '이용 시간 종료' : '이용 가능 시간'}
                   </div>
-                ) : (
-                  <div className="text-[1.5rem] font-bold text-gray-800 tracking-wider min-w-[7.5rem] text-left">
-                    00:00:00
-                  </div>
-                )}
+
+                  {/* 타이머 숫자 또는 문구 */}
+                  {timeLeft > 0 && !isTimeout ? (
+                    <div className="text-[1.5rem] font-bold text-gray-800 tracking-wider min-w-[7.5rem] text-left">
+                      {formatTime(timeLeft)}
+                    </div>
+                  ) : (
+                    <div className="text-[1.5rem] font-bold text-gray-800 tracking-wider min-w-[7.5rem] text-left">
+                      00:00:00
+                    </div>
+                  )}
+                </div>
               </div>
+
+              {/* 회원가입 버튼 */}
+              <button
+                onClick={() => navigate('/login')}
+                className="mt-3 w-[90%] py-1.5 rounded-lg text-sm font-bold bg-primary text-white hover:bg-primary-dark transition-colors"
+              >
+                회원가입 하러가기
+              </button>
             </div>
           )}
           {isDemo ? (
