@@ -178,4 +178,15 @@ public record YearMonth(Integer year, Integer month) {
 	public LocalDate atEndOfMonth() {
 		return LocalDate.of(year, month, 1).withDayOfMonth(daysInMonth());
 	}
+
+	public boolean isBefore(YearMonth other) {
+		if (this.year < other.year) {
+			return true;
+		}
+		return this.year.equals(other.year) && this.month < other.month;
+	}
+
+	public boolean isSameOrAfter(YearMonth other) {
+		return !isBefore(other);
+	}
 }

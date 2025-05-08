@@ -15,6 +15,7 @@ import net.dutymate.api.domain.common.utils.YearMonth;
 import net.dutymate.api.domain.member.Member;
 import net.dutymate.api.domain.wardschedules.dto.AllWardDutyResponseDto;
 import net.dutymate.api.domain.wardschedules.dto.EditDutyRequestDto;
+import net.dutymate.api.domain.wardschedules.dto.EditMemberDutyRequestDto;
 import net.dutymate.api.domain.wardschedules.dto.MyDutyResponseDto;
 import net.dutymate.api.domain.wardschedules.dto.TodayDutyResponseDto;
 import net.dutymate.api.domain.wardschedules.dto.WardScheduleResponseDto;
@@ -86,6 +87,15 @@ public class WardScheduleController {
 		@RequestParam(required = false) Integer month) {
 		YearMonth yearMonth = new YearMonth(year, month);
 		wardScheduleService.resetWardSchedule(member, yearMonth);
+		return ResponseEntity.ok().build();
+	}
+
+	@PutMapping("/my")
+	public ResponseEntity<?> editMemberSchedule(
+		@Auth Member member,
+		@RequestBody EditMemberDutyRequestDto editMemberDutyRequestDto
+	) {
+		wardScheduleService.editMemberSchedule(member, editMemberDutyRequestDto);
 		return ResponseEntity.ok().build();
 	}
 }

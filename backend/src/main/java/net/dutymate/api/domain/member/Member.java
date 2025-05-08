@@ -91,6 +91,10 @@ public class Member {
 	@Column(nullable = false)
 	private Integer autoGenCnt;
 
+	private Integer enterYear;
+
+	private Integer enterMonth;
+
 	// 멤버 초기값 설정 (닉네임, 생성시각, 활성화여부)
 	@PrePersist
 	public void prePersist() {

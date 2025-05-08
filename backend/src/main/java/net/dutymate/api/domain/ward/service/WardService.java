@@ -35,7 +35,9 @@ import net.dutymate.api.domain.ward.repository.WardRepository;
 import net.dutymate.api.domain.wardmember.Role;
 import net.dutymate.api.domain.wardmember.WardMember;
 import net.dutymate.api.domain.wardmember.repository.WardMemberRepository;
+import net.dutymate.api.domain.wardschedules.collections.MemberSchedule;
 import net.dutymate.api.domain.wardschedules.collections.WardSchedule;
+import net.dutymate.api.domain.wardschedules.repository.MemberScheduleRepository;
 import net.dutymate.api.domain.wardschedules.repository.WardScheduleRepository;
 import net.dutymate.api.domain.wardschedules.service.WardScheduleService;
 import net.dutymate.api.domain.wardschedules.util.InitialDutyGenerator;
@@ -55,6 +57,7 @@ public class WardService {
 	private final HospitalRepository hospitalRepository;
 	private final WardScheduleService wardScheduleService;
 	private final MemberService memberService;
+	private final MemberScheduleRepository memberScheduleRepository;
 
 	@Transactional
 	public void createWard(WardRequestDto requestWardDto, Member member) {
@@ -216,6 +219,13 @@ public class WardService {
 			}
 		}
 		wardScheduleRepository.saveAll(allWardSchedule);
+
+		// memberSchedule도 멤버id를 linkedTempMember로 바꾸기
+		List<MemberSchedule> allMemberSchedule = memberScheduleRepository.findAllByMemberId(enterMemberId);
+		for (MemberSchedule schedule : allMemberSchedule) {
+			schedule.setMemberId(linkedTempMember.getMemberId());
+		}
+		memberScheduleRepository.saveAll(allMemberSchedule);
 
 		// 병동 입장을 승인 or 거절하는 경우 모두 입장 대기 테이블에서 삭제시켜야 함
 		enterWaitingRepository.removeByMemberAndWard(enterMember, ward);
