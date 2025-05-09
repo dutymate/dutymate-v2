@@ -1,11 +1,12 @@
 import { BrowserRouter } from 'react-router-dom';
-import { ToastContainer } from 'react-toastify';
+import { Slide, ToastContainer } from 'react-toastify';
 
 import PageLoadingSpinner from '@/components/atoms/Loadingspinner';
 import ChannelTalkLoader from '@/components/organisms/ChannelTalkLoader';
 import Router from '@/routes/Router';
 
 import 'react-toastify/dist/ReactToastify.css';
+import './toast.css';
 
 function App() {
   if (import.meta.env.PROD) {
@@ -22,12 +23,18 @@ function App() {
       <Router />
       <ToastContainer
         position="top-center"
-        autoClose={1800}
-        hideProgressBar={false}
+        autoClose={1000}
+        hideProgressBar
         newestOnTop={false}
         closeOnClick
         rtl={false}
+        pauseOnFocusLoss={false}
+        draggable
+        pauseOnHover={false}
         theme="light"
+        stacked
+        transition={Slide}
+        className="custom-toast-container"
       />
     </BrowserRouter>
   );

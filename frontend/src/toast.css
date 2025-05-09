@@ -1,0 +1,9 @@
+/* 모바일 환경에서만 토스트 스타일 적용 */
+@media screen and (max-width: 640px) {
+  .Toastify__toast-container {
+    width: 60% !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    font-size: 16px !important;
+  }
+}
