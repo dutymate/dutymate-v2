@@ -51,9 +51,7 @@ const ExtraInfo = () => {
 
       // console.log("전역 상태 업데이트 완료");
 
-      toast.success('회원 정보 입력이 완료되었습니다.', {
-        autoClose: 3000,
-      });
+      toast.success('회원 정보 입력이 완료되었습니다.');
 
       // 명확한 타입 체크 추가
       setTimeout(() => {

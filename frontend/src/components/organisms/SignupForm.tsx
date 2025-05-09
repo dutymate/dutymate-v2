@@ -157,7 +157,7 @@ const SignupForm = () => {
           toast.error(error.message);
         }
       } else {
-        toast.error(error.message, { autoClose: 1000 });
+        toast.error(error.message);
       }
     }
   };

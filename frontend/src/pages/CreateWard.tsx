@@ -54,9 +54,7 @@ const CreateWard = () => {
       }
 
       // 성공 토스트 메시지 표시
-      toast.success('병동이 생성되었습니다.', {
-        autoClose: 3000,
-      });
+      toast.success('병동이 생성되었습니다.');
 
       // 잠시 후 페이지 이동
       setTimeout(() => {

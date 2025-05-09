@@ -773,10 +773,7 @@ const ShiftAdminTable = memo(
         setIsAutoCreating(true);
         // 자동생성 중임을 알림
         const loadingToast = toast.loading(
-          '근무표에 마침표를 찍고 있습니다...',
-          {
-            position: 'top-center',
-          }
+          '근무표에 마침표를 찍고 있습니다...'
         );
 
         // 강제 자동생성 API 호출
