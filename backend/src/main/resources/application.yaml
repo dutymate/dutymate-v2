@@ -22,3 +22,8 @@ spring:
   # Object Mapper 타임존 설정
   jackson:
     time-zone: Asia/Seoul
+
+management:
+  health:
+    mail:
+      enabled: false
