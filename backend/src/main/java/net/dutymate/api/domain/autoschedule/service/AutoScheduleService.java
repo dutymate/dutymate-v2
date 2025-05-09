@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import net.dutymate.api.domain.autoschedule.dto.AutoScheduleNurseCountResponseDto;
+import net.dutymate.api.domain.autoschedule.dto.AutoScheduleResponseDto;
 import net.dutymate.api.domain.autoschedule.util.NurseScheduler;
 import net.dutymate.api.domain.common.utils.YearMonth;
 import net.dutymate.api.domain.member.Member;
@@ -46,6 +47,14 @@ public class AutoScheduleService {
 	public ResponseEntity<?> generateAutoSchedule(YearMonth yearMonth, Member member, boolean force) {
 		// TODO 자동 생성 횟수 남아있는지 체크
 		Long wardId = member.getWardMember().getWard().getWardId();
+
+		if (member.getAutoGenCnt() <= 0) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+				.body(AutoScheduleResponseDto.builder()
+					.message("자동 생성 횟수가 부족합니다.")
+					.isSuccess(false)
+					.build());
+		}
 		//전월 달 근무 호출
 		YearMonth prevYearMonth = yearMonth.prevYearMonth();
 		WardSchedule prevWardSchedule = wardScheduleRepository
@@ -70,11 +79,6 @@ public class AutoScheduleService {
 			.filter(wm -> wm.getShiftType() == ShiftType.N)
 			.toList();
 
-		//주중 데이 전담 인원
-		List<WardMember> headWardMembers = wardMembers.stream()
-			.filter(wm -> wm.getShiftType() == ShiftType.D)
-			.toList();
-
 		//주중 Mid 전담 인원
 		List<WardMember> midWardMembers = wardMembers.stream()
 			.filter(wm -> wm.getShiftType() == ShiftType.M)
@@ -85,15 +89,13 @@ public class AutoScheduleService {
 		int neededNurseCount = nurseScheduler.neededNurseCount(yearMonth, rule, nightWardMemberCount)
 			+ midWardMembers.size();
 
-		if (wardMemberCount
-			< neededNurseCount && !force) {
+		if (wardMemberCount < neededNurseCount && !force) {
 			AutoScheduleNurseCountResponseDto responseDto = new AutoScheduleNurseCountResponseDto(
 				neededNurseCount
 			);
 			return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE)
 				.body(responseDto);
 		}
-		// scheduleGenerator.generateSchedule(wardSchedule, rule, wardMembers, prevNurseShifts, yearMonth);
 		Long memberId = member.getMemberId();
 
 		List<Request> acceptedRequests = requestRepository.findAcceptedWardRequestsByYearMonth(
@@ -103,14 +105,10 @@ public class AutoScheduleService {
 			RequestStatus.ACCEPTED
 		);
 
-		System.out.println(acceptedRequests);
 		//HN 자동 로직에서 제거
 		wardMembers.removeIf(wm -> wm.getShiftType() == ShiftType.D
 			|| wm.getShiftType() == ShiftType.M
 			|| wm.getShiftType() == ShiftType.N);
-
-		//HN 한명당 주간 근무 인원 한명 감소
-		rule.minusWdayDcnt(headWardMembers.size());
 
 		Map<Integer, Integer> dailyNightCount = new HashMap<>();
 		List<WardSchedule.NurseShift> newNightNurseShifts = new ArrayList<>();
@@ -130,22 +128,10 @@ public class AutoScheduleService {
 			prevNurseShifts, yearMonth, memberId,
 			acceptedRequests, dailyNightCount);
 
-		//rule 복구
-		rule.plusWdayDcnt(headWardMembers.size());
 
 		List<WardSchedule.NurseShift> updatedShifts = new ArrayList<>(updateWardSchedule.getDuties()
 			.get(updateWardSchedule.getNowIdx())
 			.getDuty());
-
-		//HN duty표 생성
-		for (WardMember wm : headWardMembers) {
-			WardSchedule.NurseShift newNurseShift = WardSchedule.NurseShift.builder()
-				.memberId(wm.getMember().getMemberId())
-				.shifts(nurseScheduler.headShiftBuilder(yearMonth))
-				.build();
-
-			updatedShifts.add(newNurseShift);
-		}
 
 		for (WardMember wm : midWardMembers) {
 			WardSchedule.NurseShift newNurseShift = WardSchedule.NurseShift.builder()
@@ -180,6 +166,13 @@ public class AutoScheduleService {
 			}
 		}
 
+		if (!isChanged) {
+			throw new ResponseStatusException(HttpStatus.METHOD_NOT_ALLOWED, "모든 조건을 만족하는 최적의 근무표입니다.");
+		}
+
+		member.updateAutoGenCnt(-1);
+
+
 		Set<Long> previouslyAcceptedRequestIds = acceptedRequests.stream()
 			.map(Request::getRequestId)
 			.collect(Collectors.toSet());
@@ -197,50 +190,28 @@ public class AutoScheduleService {
 			.filter(req -> req.getStatus() == RequestStatus.DENIED) // 현재는 DENIED인 요청
 			.toList();
 
-		if (!unreflectedRequests.isEmpty()) {
-			System.out.println("자동 생성에 반영되지 않은 승인된 요청 수: " + unreflectedRequests.size());
-			for (Request req : unreflectedRequests) {
-				System.out.println("미반영 요청: 멤버ID=" + req.getWardMember().getMember().getMemberId()
-					+ ", 이름=" + req.getWardMember().getMember().getName()
-					+ ", 날짜=" + req.getRequestDate()
-					+ ", 요청근무=" + req.getRequestShift().getValue());
-			}
 
-			// 원한다면 이 정보를 응답에 포함시킬 수 있습니다
-			Map<String, Object> response = new HashMap<>();
-			response.put("message", "자동 생성 완료");
-			response.put("unreflectedRequestsCount", unreflectedRequests.size());
-
-			// 미반영 요청 정보를 응답에 포함
-			if (!unreflectedRequests.isEmpty()) {
-				List<Map<String, Object>> unreflectedInfo = unreflectedRequests.stream()
-					.map(req -> {
-						Map<String, Object> info = new HashMap<>();
-						info.put("memberId", req.getWardMember().getMember().getMemberId());
-						info.put("memberName", req.getWardMember().getMember().getName());
-						info.put("requestDate", req.getRequestDate());
-						info.put("requestShift", req.getRequestShift().getValue());
-						return info;
-					})
-					.collect(Collectors.toList());
-
-				response.put("unreflectedRequests", unreflectedInfo);
-			}
-
-			wardScheduleRepository.save(updateWardSchedule);
-
-			return ResponseEntity.ok(response);
-
-		}
 
 		wardScheduleRepository.save(updateWardSchedule);
 
-		if (!isChanged) {
-			throw new ResponseStatusException(HttpStatus.METHOD_NOT_ALLOWED, "모든 조건을 만족하는 최적의 근무표입니다.");
-		}
+		List<AutoScheduleResponseDto.UnreflectedRequestInfo> unreflectedInfo =
+			unreflectedRequests.stream()
+				.map(req -> AutoScheduleResponseDto.UnreflectedRequestInfo.builder()
+					.memberId(req.getWardMember().getMember().getMemberId())
+					.memberName(req.getWardMember().getMember().getName())
+					.requestDate(req.getRequestDate())
+					.requestShift(req.getRequestShift().getValue())
+					.build())
+				.toList();
 
-		member.updateAutoGenCnt(-1);
-		return ResponseEntity.ok("자동 생성 완료");
+		AutoScheduleResponseDto responseDto = AutoScheduleResponseDto.builder()
+			.message("자동 생성 완료")
+			.isSuccess(true)
+			.unreflectedRequestsCount(unreflectedRequests.size())
+			.unreflectedRequests(unreflectedInfo)
+			.build();
+
+		return ResponseEntity.ok(responseDto);
 	}
 
 }
