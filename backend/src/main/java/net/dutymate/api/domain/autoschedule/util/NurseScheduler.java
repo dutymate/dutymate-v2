@@ -2,6 +2,7 @@ package net.dutymate.api.domain.autoschedule.util;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -36,17 +37,23 @@ public class NurseScheduler {
 		YearMonth yearMonth,
 		Long currentMemberId,
 		List<Request> requests,
-		Map<Integer, Integer> dailyNightCnt) {
+		Map<Integer, Integer> dailyNightCnt,
+		List<Long> reinforcementRequestIds) {
 		Map<Long, String> prevMonthSchedules = getPreviousMonthSchedules(prevNurseShifts);
 		Solution currentSolution = createInitialSolution(wardSchedule, rule, wardMembers, yearMonth, dailyNightCnt,
 			prevMonthSchedules);
 		Solution bestSolution = currentSolution.copy();
 
+		List<Long> safeReinforcementIds = reinforcementRequestIds != null ?
+			reinforcementRequestIds : Collections.emptyList();
+
 		List<ShiftRequest> shiftRequests = requests.stream()
 			.map(request -> ShiftRequest.builder()
+				.requestId(request.getRequestId())
 				.nurseId(request.getWardMember().getMember().getMemberId())
 				.day(request.getRequestDate().getDate())
 				.requestedShift(request.getRequestShift().getValue().charAt(0))
+				.isReinforced(safeReinforcementIds.contains(request.getRequestId()))
 				.build())
 			.toList();
 
@@ -923,7 +930,8 @@ public class NurseScheduler {
 
 			if (nurse != null) {
 				if (nurse.getShift(request.getDay()) != request.getRequestedShift()) {
-					violations++;
+					// 강화된 요청에 대해 더 높은 패널티 적용
+					violations += request.isReinforced() ? 3.0 : 1.0;  // 예: 5배 가중치
 				}
 			}
 		}
@@ -1037,9 +1045,10 @@ public class NurseScheduler {
 	@Getter
 	@Builder
 	private static class ShiftRequest {
+		private final Long requestId;    // 추가된 필드
 		private final Long nurseId;
 		private final int day;
 		private final char requestedShift;
+		private final boolean isReinforced;  // 강화된 요청인지 여부
 	}
-
 }

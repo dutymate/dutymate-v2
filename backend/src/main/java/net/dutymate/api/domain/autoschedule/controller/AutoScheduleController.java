@@ -36,13 +36,16 @@ public class AutoScheduleController {
 		@RequestParam(value = "force", required = false) boolean force,
 		@Auth Member member) {
 
-		return autoScheduleService.generateAutoSchedule(new YearMonth(year, month), member, force);
+		return autoScheduleService.generateAutoSchedule(new YearMonth(year, month), member, force, null);
 	}
 
 	@PostMapping("/re-auto-create")
-	public ResponseEntity<?> reAutoCreate(@RequestBody ReAutoScheduleRequestDto reAutoScheduleRequestDto) {
+	public ResponseEntity<?> reAutoCreate(@Auth Member member,
+		@RequestBody ReAutoScheduleRequestDto reAutoScheduleRequestDto) {
 
-		return ResponseEntity.ok().body("성공");
+		return autoScheduleService.generateAutoSchedule(new YearMonth(reAutoScheduleRequestDto.getYear(),
+				reAutoScheduleRequestDto.getMonth()), member,
+			true, reAutoScheduleRequestDto.getRequestIds());
 	}
 
 }

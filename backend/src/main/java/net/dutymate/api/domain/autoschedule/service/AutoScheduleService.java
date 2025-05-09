@@ -15,6 +15,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import net.dutymate.api.domain.autoschedule.dto.AutoScheduleNurseCountResponseDto;
 import net.dutymate.api.domain.autoschedule.dto.AutoScheduleResponseDto;
+import net.dutymate.api.domain.autoschedule.dto.ReAutoScheduleRequestDto;
 import net.dutymate.api.domain.autoschedule.util.NurseScheduler;
 import net.dutymate.api.domain.common.utils.YearMonth;
 import net.dutymate.api.domain.member.Member;
@@ -44,7 +45,8 @@ public class AutoScheduleService {
 	private final NurseScheduler nurseScheduler;
 
 	@Transactional
-	public ResponseEntity<?> generateAutoSchedule(YearMonth yearMonth, Member member, boolean force) {
+	public ResponseEntity<?> generateAutoSchedule(YearMonth yearMonth, Member member, boolean force,
+		List<Long> reinforcementRequestIds) {
 		Long wardId = member.getWardMember().getWard().getWardId();
 
 		// 잔여 자동 횟수 체크
@@ -126,7 +128,7 @@ public class AutoScheduleService {
 
 		WardSchedule updateWardSchedule = nurseScheduler.generateSchedule(wardSchedule, rule, wardMembers,
 			prevNurseShifts, yearMonth, memberId,
-			acceptedRequests, dailyNightCount);
+			acceptedRequests, dailyNightCount, reinforcementRequestIds);
 
 
 		List<WardSchedule.NurseShift> updatedShifts = new ArrayList<>(updateWardSchedule.getDuties()
@@ -247,4 +249,11 @@ public class AutoScheduleService {
 		return "X";
 	}
 
+
+	public void regenerateAutoSchedue(ReAutoScheduleRequestDto reAutoScheduleRequestDto) {
+
+		YearMonth yearMonth = new YearMonth(reAutoScheduleRequestDto.getYear(), reAutoScheduleRequestDto.getMonth());
+
+
+	}
 }
