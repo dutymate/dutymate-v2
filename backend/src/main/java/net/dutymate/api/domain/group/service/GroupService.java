@@ -1,5 +1,8 @@
 package net.dutymate.api.domain.group.service;
 
+import java.util.Comparator;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -13,6 +16,7 @@ import net.dutymate.api.domain.group.NurseGroup;
 import net.dutymate.api.domain.group.dto.GroupCreateRequestDto;
 import net.dutymate.api.domain.group.dto.GroupImgResponseDto;
 import net.dutymate.api.domain.group.dto.GroupUpdateRequestDto;
+import net.dutymate.api.domain.group.repository.GroupMemberRepository;
 import net.dutymate.api.domain.group.repository.GroupRepository;
 import net.dutymate.api.domain.member.Member;
 
@@ -28,6 +32,7 @@ public class GroupService {
 
 	private final S3Client s3Client;
 	private final GroupRepository groupRepository;
+	private final GroupMemberRepository groupMemberRepository;
 
 	@Value("${cloud.aws.region.static}")
 	private String region;
@@ -101,5 +106,40 @@ public class GroupService {
 
 		// 3. 그룹 정보 수정하기
 		group.update(groupUpdateRequestDto);
+	}
+
+	@Transactional
+	public void leaveGroup(Member member, Long groupId) {
+
+		// 1. 그룹 멤버인지 찾기
+		GroupMember groupMember = groupMemberRepository.findByGroup_GroupIdAndMember(groupId, member)
+			.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "그룹 멤버가 아닙니다."));
+
+		NurseGroup group = groupMember.getGroup();
+
+		// 2. 나가는 멤버가 그룹장인지 아닌지 확인
+		if (groupMember.getIsLeader()) {
+			// 2-1. 리더인 경우 -> 자신 외 다른 그룹 멤버 찾기
+			List<GroupMember> otherGroupMemberList = group.getGroupMemberList()
+				.stream()
+				.filter(gm -> !gm.getGroupMemberId().equals(groupMember.getGroupMemberId()))
+				.sorted(Comparator.comparing(GroupMember::getCreatedAt))
+				.toList();
+
+			// 2-2. 다른 그룹 멤버 여부에 따라
+			if (otherGroupMemberList.isEmpty()) {
+				// 그룹 멤버가 본인 혼자면, 그룹 자체를 삭제하기
+				groupRepository.delete(group);
+				return;
+			} else {
+				// 그룹 멤버가 있다면, 가장 오래된 멤버에게 그룹장 넘기기
+				GroupMember nextLeader = otherGroupMemberList.getFirst();
+				nextLeader.setIsLeader(true);
+			}
+
+		}
+		// 3. 본인은 그룹에서 탈퇴
+		group.getGroupMemberList().remove(groupMember);
+		groupMemberRepository.delete(groupMember);
 	}
 }

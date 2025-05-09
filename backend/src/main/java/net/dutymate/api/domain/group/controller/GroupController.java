@@ -1,6 +1,7 @@
 package net.dutymate.api.domain.group.controller;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -42,6 +43,12 @@ public class GroupController {
 	public ResponseEntity<?> updateGroup(@Auth Member member, @RequestBody GroupUpdateRequestDto groupUpdateRequestDto,
 		@PathVariable Long groupId) {
 		groupService.updateGroup(member, groupUpdateRequestDto, groupId);
+		return ResponseEntity.ok().build();
+	}
+
+	@DeleteMapping("/{groupId}")
+	public ResponseEntity<?> deleteGroup(@Auth Member member, @PathVariable Long groupId) {
+		groupService.leaveGroup(member, groupId);
 		return ResponseEntity.ok().build();
 	}
 

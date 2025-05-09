@@ -18,6 +18,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Getter
@@ -30,6 +31,7 @@ public class GroupMember {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long groupMemberId;
 
+	@Setter
 	@Column(nullable = false)
 	private Boolean isLeader;
 
