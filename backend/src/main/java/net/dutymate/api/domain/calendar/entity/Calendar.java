@@ -1,13 +1,21 @@
 package net.dutymate.api.domain.calendar.entity;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+
+import net.dutymate.api.domain.calendar.dto.CalendarRequestDto;
+import net.dutymate.api.domain.member.Member;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -15,31 +23,45 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "calendar")
 @Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
 @Builder
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class Calendar {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long calendarId;
 
-    @Column(nullable = false)
-    private String title;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long calendarId;
 
-    private String place;
+	@ManyToOne(fetch = FetchType.LAZY, optional = false)
+	@JoinColumn(name = "member_id", nullable = false)
+	private Member member;
 
-    @Column(nullable = false)
-    private String color;
+	@Column(nullable = false)
+	private String title;
 
-    @Column(nullable = false)
-    private Boolean isAllDay;
+	private String place;
 
-    private LocalDateTime startTime;
-    private LocalDateTime endTime;
+	@Column(nullable = false)
+	private String color;
 
+	@Column(nullable = false)
+	private Boolean isAllDay;
 
+	@Column(nullable = false)
+	private LocalDate date;
+
+	private LocalDateTime startTime;
+	private LocalDateTime endTime;
+
+	public void updateCalendar(CalendarRequestDto calendarRequestDto) {
+		this.title = calendarRequestDto.getTitle();
+		this.place = calendarRequestDto.getPlace();
+		this.color = calendarRequestDto.getColor();
+		this.isAllDay = calendarRequestDto.getIsAllDay();
+		this.date = calendarRequestDto.getDate();
+		this.startTime = calendarRequestDto.getStartTime();
+		this.endTime = calendarRequestDto.getEndTime();
+	}
 
 }
