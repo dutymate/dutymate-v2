@@ -714,10 +714,7 @@ const ShiftAdminTable = memo(
         setIsAutoCreating(true);
         // 자동생성 중임을 알림
         const loadingToast = toast.loading(
-          '근무표에 마침표를 찍고 있습니다...',
-          {
-            position: 'top-center',
-          }
+          '근무표에 마침표를 찍고 있습니다...'
         );
 
         // API 호출
@@ -726,12 +723,11 @@ const ShiftAdminTable = memo(
         // 화면 갱신
         await onUpdate(year, month);
 
-        // 성공 알림
-        toast.update(loadingToast, {
-          render: '자동생성에 성공했습니다',
-          type: 'success',
-          isLoading: false,
-        });
+        // 로딩 토스트 닫기
+        toast.dismiss(loadingToast);
+
+        // 성공 알림 새로 띄우기
+        toast.success('자동생성에 성공했습니다');
 
         // 자동 생성 횟수 감소
         setAutoGenCnt((prev) => prev - 1);
