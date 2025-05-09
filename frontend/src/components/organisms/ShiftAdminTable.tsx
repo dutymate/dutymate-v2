@@ -26,13 +26,14 @@ import MobileDutyControls from '@/components/molecules/MobileDutyControls';
 import RequestCheckModal from '@/components/organisms/RequestCheckModal';
 
 import { dutyService, SubscriptionPlan } from '@/services/dutyService';
-import { requestService, WardRequest } from '@/services/requestService';
+import { WardRequest } from '@/services/requestService';
 import { ruleService, WardRule } from '@/services/ruleService.ts';
 
 import useShiftStore from '@/stores/shiftStore';
 import useUserAuthStore from '@/stores/userAuthStore';
 import { useHolidayStore } from '@/stores/holidayStore';
 import { useRequestCountStore } from '@/stores/requestCountStore';
+import { useApplyAcceptedRequestsDemoOnly } from '@/hooks/useApplyAcceptedRequestsDemoOnly';
 
 import {
   getDefaultOffDays,
@@ -64,6 +65,7 @@ interface ShiftAdminTableProps {
     endDateShift: string;
     message: string;
   }[];
+  wardRequests: WardRequest[]; // 상위 컴포넌트에서 받아온 근무 요청 데이터
 }
 
 // 근무 타입 정의 (D: 데이, E: 이브닝, N: 나이트, O: 오프, X: 미지정, ALL: 전체)
@@ -182,11 +184,33 @@ const ShiftAdminTable = memo(
     month,
     onUpdate,
     issues = [],
+    wardRequests = [], // 상위 컴포넌트에서 받아온 요청 데이터
   }: ShiftAdminTableProps) => {
     const [isRuleModalOpen, setIsRuleModalOpen] = useState(false);
     const [isAutoGenerateModalOpen, setIsAutoGenerateModalOpen] =
       useState(false);
     const [isLoading] = useState(false);
+    const [isWeb, setIsWeb] = useState(false);
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const [wardRules, setWardRules] = useState<WardRule | null>(null);
+    const [isFromAutoGenerate, setIsFromAutoGenerate] = useState(false);
+    const [isRequestCheckModalOpen, setIsRequestCheckModalOpen] =
+      useState(false);
+    const requestCount = useRequestCountStore((state) => state.count);
+
+    useEffect(() => {
+      const checkIsWeb = () => {
+        setIsWeb(window.innerWidth >= 1280);
+      };
+
+      checkIsWeb();
+      window.addEventListener('resize', checkIsWeb);
+
+      return () => {
+        window.removeEventListener('resize', checkIsWeb);
+      };
+    }, []);
+
     const ruleButtonRef = useRef<HTMLButtonElement>(null);
     const tableRef = useRef<HTMLDivElement>(null);
 
@@ -247,6 +271,7 @@ const ShiftAdminTable = memo(
       [dutyData]
     );
 
+    // requests state 제거하고 wardRequests prop 사용
     const [pendingRequests, setPendingRequests] = useState<any[]>([]);
 
     const sendBatchRequest = useCallback(
@@ -859,15 +884,12 @@ const ShiftAdminTable = memo(
       const tempSelectedCell = selectedCell;
       setSelectedCell(null);
 
-      const tempRequests = requests;
-      setRequests([]);
-
       try {
         const dataUrl = await toPng(tableElement as HTMLElement, {
           quality: 1.0,
           pixelRatio: 2,
-          width: tableElement.scrollWidth + 14.5, // 여백 추가
-          height: tableElement.scrollHeight + 5, // 여백 추가
+          width: tableElement.scrollWidth + 14.5,
+          height: tableElement.scrollHeight + 5,
           backgroundColor: '#FFFFFF',
           style: {
             borderCollapse: 'collapse',
@@ -891,7 +913,6 @@ const ShiftAdminTable = memo(
         });
       }
       setSelectedCell(tempSelectedCell);
-      setRequests(tempRequests);
     };
 
     // URL 쿼리 파라미터로부터 초기 데이터 로드
@@ -908,32 +929,22 @@ const ShiftAdminTable = memo(
       }
     }, []); // 컴포넌트 마운트 시 한 번만 실행
 
-    const [requests, setRequests] = useState<WardRequest[]>([]);
+    const [isNurseCountModalOpen, setIsNurseCountModalOpen] = useState(false);
+    const [showWebDownloadDropdown, setShowWebDownloadDropdown] =
+      useState(false);
 
     useEffect(() => {
-      checkIsWeb();
-
-      const fetchRequests = async () => {
-        try {
-          const data = await requestService.getWardRequests();
-          setRequests(data);
-        } catch (error) {
-          console.error('Failed to fetch requests:', error);
-        }
+      const checkIsWeb = () => {
+        setIsWeb(window.innerWidth >= 1280);
       };
 
-      fetchRequests();
-
+      checkIsWeb();
       window.addEventListener('resize', checkIsWeb);
+
+      return () => {
+        window.removeEventListener('resize', checkIsWeb);
+      };
     }, []);
-
-    const checkIsWeb = () => {
-      setIsWeb(window.innerWidth >= 1280);
-    };
-
-    const [isNurseCountModalOpen, setIsNurseCountModalOpen] = useState(false);
-    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-    const [isWeb, setIsWeb] = useState(false);
 
     // 엑셀 다운로드 함수
     const handleExportToExcel = () => {
@@ -975,12 +986,6 @@ const ShiftAdminTable = memo(
       // 엑셀 파일 저장 및 다운로드
       XLSX.writeFile(wb, `근무표_${year}년_${month}월.xlsx`);
     };
-    // const [showDownloadDropdown, setShowDownloadDropdown] = useState(false);
-    const [showWebDownloadDropdown, setShowWebDownloadDropdown] =
-      useState(false);
-
-    const [wardRules, setWardRules] = useState<WardRule | null>(null);
-    const [isFromAutoGenerate, setIsFromAutoGenerate] = useState(false);
 
     useEffect(() => {
       const fetchShiftRules = async () => {
@@ -1114,12 +1119,6 @@ const ShiftAdminTable = memo(
       };
     }, [selectedCell, setSelectedCell]);
 
-    // RequestCheckModal 관련 상태 추가
-    const [isRequestCheckModalOpen, setIsRequestCheckModalOpen] =
-      useState(false);
-
-    const requestCount = useRequestCountStore((state) => state.count);
-
     const handleRequestCheckModalClose = () => {
       setIsRequestCheckModalOpen(false);
     };
@@ -1134,8 +1133,6 @@ const ShiftAdminTable = memo(
 
         // DEMO: autogenCnt 0 & demo 계정이면 회원가입 유도 모달
         if (autoGenCnt <= 0 && isDemo) {
-          const { timeLeft } = useUserAuthStore.getState();
-          setDemoTimeLeft(timeLeft);
           setIsDemoSignupModalOpen(true);
           return;
         }
@@ -1151,6 +1148,15 @@ const ShiftAdminTable = memo(
         toast.error('규칙을 불러오는데 실패했습니다');
       }
     };
+
+    // 승인된 요청 적용 hook 사용
+    useApplyAcceptedRequestsDemoOnly(
+      dutyData,
+      wardRequests,
+      year,
+      month,
+      setDuties
+    );
 
     return (
       <div>
@@ -1366,7 +1372,7 @@ const ShiftAdminTable = memo(
                             dayIndex + 1 <= issue.endDate
                         );
 
-                        const requestStatus = requests.find((request) => {
+                        const requestStatus = wardRequests.find((request) => {
                           const requestDate = new Date(request.date);
                           return (
                             requestDate.getFullYear() === year &&
@@ -1838,7 +1844,7 @@ const ShiftAdminTable = memo(
                                       dayIndex + 1 <= issue.endDate
                                   );
 
-                                  const requestStatus = requests.find(
+                                  const requestStatus = wardRequests.find(
                                     (request) => {
                                       const requestDate = new Date(
                                         request.date

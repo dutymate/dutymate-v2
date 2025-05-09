@@ -12,11 +12,12 @@ import { SEO } from '@/components/SEO';
 import useShiftStore from '@/stores/shiftStore';
 import useUserAuthStore from '@/stores/userAuthStore';
 import Title from '@/components/atoms/Title';
-import { requestService } from '@/services/requestService';
+import { requestService, WardRequest } from '@/services/requestService';
 import { useRequestCountStore } from '@/stores/requestCountStore';
 
 const DutyManagement = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [wardRequests, setWardRequests] = useState<WardRequest[]>([]);
 
   const { userInfo } = useUserAuthStore();
 
@@ -67,19 +68,24 @@ const DutyManagement = () => {
       urlMonth ? parseInt(urlMonth) : undefined
     );
 
-    // 대기 중인 요청 개수 가져오기
-    const fetchRequestCount = async () => {
+    // 요청 데이터 가져오기
+    const fetchRequests = async () => {
       if (userInfo?.role === 'HN') {
         try {
-          const count = await requestService.getPendingRequestCount();
-          setRequestCount(count);
+          const requests = await requestService.getWardRequests();
+          setWardRequests(requests);
+          // HOLD 상태의 요청만 카운트
+          const pendingCount = requests.filter(
+            (request: WardRequest) => request.status === 'HOLD'
+          ).length;
+          setRequestCount(pendingCount);
         } catch (error) {
-          console.error('Failed to fetch request count:', error);
+          console.error('Failed to fetch requests:', error);
         }
       }
     };
 
-    fetchRequestCount();
+    fetchRequests();
 
     // cleanup 함수 추가
     return () => {
@@ -148,6 +154,7 @@ const DutyManagement = () => {
               month={dutyInfo.month}
               onUpdate={fetchDutyInfo}
               issues={dutyInfo.issues}
+              wardRequests={wardRequests}
             />
             <div className="flex flex-col xl:flex-row gap-[1rem] w-full">
               <RuleCheckList />
