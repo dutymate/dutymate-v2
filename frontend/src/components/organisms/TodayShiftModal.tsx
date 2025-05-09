@@ -3,10 +3,11 @@ import { IoMdClose } from 'react-icons/io';
 import { DutyBadgeKor } from '@/components/atoms/DutyBadgeKor';
 import { convertDutyType } from '@/utils/dutyUtils';
 import { useState } from 'react';
-import ScheduleEditModal from '@/components/organisms/SheduleEditModal';
+import ScheduleEditModal from '@/components/organisms/ScheduleEditModal';
 import ShiftColorPickerModal from '@/components/organisms/ShiftColorPickerModal';
 // 상수를 컴포넌트 외부로 이동
-import { createCalendar } from '@/services/calendarService';
+import { createCalendar, deleteCalendar } from '@/services/calendarService';
+import type { ScheduleType } from '@/services/calendarService';
 const weekDays = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'] as const;
 type WeekDay = (typeof weekDays)[number];
 
@@ -45,17 +46,6 @@ interface TodayShiftModalProps {
   selectedDutyType: 'day' | 'off' | 'evening' | 'night' | 'mid';
   onDutyTypeChange: (type: 'day' | 'off' | 'evening' | 'night' | 'mid') => void;
 }
-
-// 일정 타입 정의
-type ScheduleType = {
-  id: string;
-  title: string;
-  startTime: string;
-  endTime: string;
-  color: string;
-  place: string;
-  isAllDay: boolean;
-};
 
 const colorClassMap: Record<string, string> = {
   blue: 'bg-blue-500',
@@ -125,23 +115,76 @@ const TodayShiftModal = ({
     setIsScheduleModalOpen(true);
   };
 
-  const handleSave = async (data: Omit<ScheduleType, 'id'>) => {
-    await createCalendar(data);
-    setIsScheduleModalOpen(false);
+  const handleDelete = async () => {
+    if (!selectedSchedule?.calendarId) {
+      console.log('삭제할 schedule이 없습니다:', selectedSchedule);
+      return;
+    }
+    try {
+      console.log('삭제 시도 calendarId:', selectedSchedule.calendarId);
+      await deleteCalendar(Number(selectedSchedule.calendarId));
+
+      // 삭제 후 데이터 다시 가져오기
+      const date = new Date(selectedSchedule.startTime);
+      const dateKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+
+      // 해당 날짜의 일정을 모두 제거하고 다시 가져오기
+      setSchedulesByDate((prev) => {
+        const newSchedules = { ...prev };
+        delete newSchedules[dateKey];
+        return newSchedules;
+      });
+
+      // 일정 목록 다시 가져오기
+      try {
+        const response = await fetch(`/api/calendar?date=${dateKey}`);
+        const data = await response.json();
+        if (data.success) {
+          setSchedulesByDate((prev) => ({
+            ...prev,
+            [dateKey]: data.data,
+          }));
+        }
+      } catch (error) {
+        console.error('Failed to fetch updated schedules:', error);
+      }
+
+      setIsScheduleModalOpen(false);
+      onClose?.();
+    } catch (e) {
+      alert('일정 삭제에 실패했습니다.');
+    }
+  };
+
+  const handleSave = async (data: Omit<ScheduleType, 'calendarId'>) => {
+    try {
+      const response = await createCalendar(data);
+      // API 응답에서 생성된 일정 데이터를 받아옵니다
+      const newSchedule = response.data;
+
+      // schedulesByDate 상태를 업데이트합니다
+      setSchedulesByDate((prev) => ({
+        ...prev,
+        [dateKey]: [...(prev[dateKey] || []), newSchedule],
+      }));
+
+      setIsScheduleModalOpen(false);
+    } catch (error) {
+      console.error('Failed to save schedule:', error);
+      alert('일정 저장에 실패했습니다.');
+    }
   };
 
   const handleEdit = () => setScheduleModalMode('edit');
-  const handleDelete = () => {
-    if (selectedSchedule) {
-      setSchedulesByDate((prev) => ({
-        ...prev,
-        [dateKey]: prev[dateKey].filter((s) => s.id !== selectedSchedule.id),
-      }));
-    }
-    setIsScheduleModalOpen(false);
-  };
 
   function parseTimeString(timeStr: string) {
+    if (!timeStr) return 0;
+
+    if (timeStr.includes('T')) {
+      const date = new Date(timeStr);
+      return date.getHours() * 60 + date.getMinutes();
+    }
+
     const [period, hm] = timeStr.split(' ');
     let [hour, minute] = hm.split(':').map(Number);
     if (period === '오후' && hour !== 12) hour += 12;
@@ -172,6 +215,20 @@ const TodayShiftModal = ({
     newDate.setDate(date.getDate() + 1);
     onDateChange(newDate);
   };
+
+  function formatTimeForDisplay(timeStr: string) {
+    if (!timeStr) return '';
+    if (timeStr.includes('T')) {
+      const date = new Date(timeStr);
+      let hour = date.getHours();
+      const minute = date.getMinutes();
+      const period = hour < 12 ? '오전' : '오후';
+      if (hour === 0) hour = 12;
+      else if (hour > 12) hour -= 12;
+      return `${period} ${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+    }
+    return timeStr;
+  }
 
   const modalContent = (
     <div
@@ -382,7 +439,7 @@ const TodayShiftModal = ({
             >
               {sortedSchedules.map((schedule) => (
                 <div
-                  key={schedule.id}
+                  key={schedule.calendarId}
                   className="flex items-start gap-2 cursor-pointer"
                   onClick={() => handleScheduleClick(schedule)}
                 >
@@ -402,10 +459,10 @@ const TodayShiftModal = ({
                     ) : (
                       <>
                         <span className="text-xs text-gray-500">
-                          {schedule.startTime}
+                          {formatTimeForDisplay(schedule.startTime)}
                         </span>
                         <span className="text-xs text-gray-400">
-                          {schedule.endTime}
+                          {formatTimeForDisplay(schedule.endTime)}
                         </span>
                       </>
                     )}
@@ -451,8 +508,12 @@ const TodayShiftModal = ({
           onClose={() => setIsScheduleModalOpen(false)}
           onSave={handleSave}
           onEdit={handleEdit}
-          onDelete={handleDelete}
+          onDelete={() => {
+            console.log('삭제 버튼 클릭됨 (모달 내부)');
+            handleDelete();
+          }}
           currentScheduleCount={schedules.length}
+          setSchedulesByDate={setSchedulesByDate}
         />
       )}
     </div>

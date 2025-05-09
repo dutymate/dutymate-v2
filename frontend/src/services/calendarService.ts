@@ -3,7 +3,7 @@ import axiosInstance from '@/lib/axios';
 const API = '/duty/my/calendar';
 
 export type ScheduleType = {
-  id: string;
+  calendarId: number;
   title: string;
   startTime: string;
   endTime: string;
@@ -18,13 +18,14 @@ export const getCalendarById = (calendarId: number) =>
 export const getCalendarsByDate = (date: string) =>
   axiosInstance.get(`${API}?date=${date}`);
 
-export const createCalendar = (data: Omit<ScheduleType, 'id'>) =>
+export const createCalendar = (data: Omit<ScheduleType, 'calendarId'>) =>
   axiosInstance.post(API, data);
 
 export const updateCalendar = (
   calendarId: number,
-  data: Omit<ScheduleType, 'id'>
+  data: Omit<ScheduleType, 'calendarId'>
 ) => axiosInstance.put(`${API}/${calendarId}`, data);
 
-export const deleteCalendar = (calendarId: number) =>
-  axiosInstance.delete(`${API}/${calendarId}`);
+export const deleteCalendar = (calendarId: number) => {
+  return axiosInstance.delete(`${API}/${calendarId}`);
+};

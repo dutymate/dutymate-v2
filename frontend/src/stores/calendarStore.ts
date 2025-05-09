@@ -7,7 +7,7 @@ type CalendarState = {
 };
 
 export type ScheduleType = {
-  id: string;
+  calendarId: number;
   title: string;
   startTime: string;
   endTime: string;

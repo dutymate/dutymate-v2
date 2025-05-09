@@ -15,16 +15,7 @@ import {
   getHolidayInfo,
 } from '@/utils/dateUtils';
 import { useHolidayStore } from '@/stores/holidayStore';
-
-// 일정 타입 정의 (MyShift.tsx와 동일하게)
-type ScheduleType = {
-  id: string;
-  title: string;
-  startTime: string;
-  endTime: string;
-  color: string;
-  place: string;
-};
+import type { ScheduleType } from '@/services/calendarService';
 
 interface MyShiftCalendarProps {
   onDateSelect: (date: Date) => void;
@@ -39,6 +30,10 @@ interface MyShiftCalendarProps {
   onMonthChange?: (year: number, month: number) => void;
   schedulesByDate: Record<string, ScheduleType[]>;
   colorClassMap: Record<string, string>;
+  setSchedulesByDate: React.Dispatch<
+    React.SetStateAction<Record<string, ScheduleType[]>>
+  >;
+  onClose?: () => void;
 }
 
 const MyShiftCalendar = ({
@@ -48,11 +43,13 @@ const MyShiftCalendar = ({
   onMonthChange,
   schedulesByDate,
   colorClassMap,
+  setSchedulesByDate,
 }: MyShiftCalendarProps) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1024); // lg 브레이크포인트
   const [isReqModalOpen, setIsReqModalOpen] = useState(false);
   const fetchHolidays = useHolidayStore((state) => state.fetchHolidays);
+  // const [selectedSchedule] = useState<ScheduleType | null>(null);
 
   // 화면 크기 변경 감지
   useEffect(() => {
@@ -182,6 +179,33 @@ const MyShiftCalendar = ({
   const getHolidayText = (day: number) => {
     const holidayInfo = getHolidayInfo(currentYear, currentMonth, day);
     return holidayInfo?.name || null;
+  };
+
+  // 일정 삭제 함수 추가
+  const handleDeleteSchedule = (dateKey: string, calendarId: number) => {
+    setSchedulesByDate((prev) => ({
+      ...prev,
+      [dateKey]:
+        prev[dateKey]?.filter(
+          (schedule) => schedule.calendarId !== calendarId
+        ) || [],
+    }));
+  };
+
+  // 일정 수정 함수 추가
+  const handleUpdateSchedule = (
+    dateKey: string,
+    updatedSchedule: ScheduleType
+  ) => {
+    setSchedulesByDate((prev) => ({
+      ...prev,
+      [dateKey]:
+        prev[dateKey]?.map((schedule) =>
+          schedule.calendarId === updatedSchedule.calendarId
+            ? updatedSchedule
+            : schedule
+        ) || [],
+    }));
   };
 
   return (
@@ -376,8 +400,22 @@ const MyShiftCalendar = ({
                         <div className="flex flex-wrap items-center gap-1 mt-1 mb-1 max-w-full">
                           {circles.map((schedule) => (
                             <span
-                              key={schedule.id}
+                              key={schedule.calendarId}
                               className={`w-3 h-3 rounded-full inline-block ${colorClassMap[schedule.color] || 'bg-gray-300'}`}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteSchedule(
+                                  `${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
+                                  schedule.calendarId
+                                );
+                              }}
+                              onDoubleClick={(e) => {
+                                e.stopPropagation();
+                                handleUpdateSchedule(
+                                  `${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
+                                  schedule
+                                );
+                              }}
                             />
                           ))}
                         </div>

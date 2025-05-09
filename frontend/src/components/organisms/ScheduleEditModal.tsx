@@ -1,9 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Map, MapMarker } from 'react-kakao-maps-sdk';
+import { deleteCalendar as deleteCalendarService } from '@/services/calendarService';
+import type { ScheduleType } from '@/services/calendarService';
 
 interface ScheduleEditModalProps {
   mode: 'create' | 'view' | 'edit';
   initialData?: {
+    calendarId?: number;
     title: string;
     startTime: string;
     endTime: string;
@@ -12,10 +15,13 @@ interface ScheduleEditModalProps {
     isAllDay: boolean;
   };
   onClose: () => void;
-  onSave?: (data: Omit<any, 'id'>) => void;
+  onSave?: (data: Omit<any, 'calendarId'>) => void;
   onDelete?: () => void;
   onEdit?: () => void;
   currentScheduleCount?: number;
+  setSchedulesByDate: React.Dispatch<
+    React.SetStateAction<Record<string, ScheduleType[]>>
+  >;
 }
 
 interface Marker {
@@ -38,15 +44,18 @@ const ScheduleEditModal = ({
   },
   onClose = () => {},
   onSave = () => {},
-  onDelete = () => {},
+  // onDelete = () => {},
   onEdit = () => {},
   currentScheduleCount = 0,
+  setSchedulesByDate,
 }: ScheduleEditModalProps) => {
   const [title, setTitle] = useState(initialData?.title || '');
   const [startTime, setStartTime] = useState(
-    initialData?.startTime || '오전 09:00'
+    toDisplayTime(initialData?.startTime || '오전 09:00')
   );
-  const [endTime, setEndTime] = useState(initialData?.endTime || '오전 10:00');
+  const [endTime, setEndTime] = useState(
+    toDisplayTime(initialData?.endTime || '오전 10:00')
+  );
   const [color, setColor] = useState(initialData?.color || 'blue');
   const [place, setPlace] = useState(initialData?.place || '');
   const [activeTimePicker, setActiveTimePicker] = useState<
@@ -149,7 +158,6 @@ const ScheduleEditModal = ({
   }: {
     value: string;
     onChange: (v: string) => void;
-    onClose: () => void;
   }) => {
     const [period, setPeriod] = useState<'오전' | '오후'>(
       value.includes('오전') ? '오전' : '오후'
@@ -157,63 +165,11 @@ const ScheduleEditModal = ({
     const timeParts = value.split(' ')[1].split(':');
     const [hour, setHour] = useState<string>(timeParts[0]);
     const [minute, setMinute] = useState<string>(timeParts[1]);
-    const [activeDropdown, setActiveDropdown] = useState<
-      'period' | 'hour' | 'minute' | null
-    >(null);
 
     useEffect(() => {
       const hourStr = String(hour).padStart(2, '0');
       onChange(`${period} ${hourStr}:${minute}`);
     }, [period, hour, minute]);
-
-    const CustomDropdown = ({
-      options,
-      value,
-      onChange,
-      type,
-    }: {
-      options: string[];
-      value: string;
-      onChange: (value: string) => void;
-      type: 'period' | 'hour' | 'minute';
-      label: string;
-    }) => {
-      const isActive = activeDropdown === type;
-
-      return (
-        <div className="relative w-1/3">
-          <div
-            className="border border-green-500 rounded-full px-4 py-2 bg-white cursor-pointer flex items-center justify-between"
-            onClick={() => setActiveDropdown(isActive ? null : type)}
-          >
-            <span>{value}</span>
-            <span className="text-gray-500">▼</span>
-          </div>
-
-          {isActive && (
-            <div
-              className="absolute z-20 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto"
-              onClick={(e) => e.stopPropagation()}
-            >
-              {options.map((option) => (
-                <div
-                  key={option}
-                  className={`px-4 py-2 hover:bg-green-50 cursor-pointer ${
-                    value === option ? 'bg-green-100' : ''
-                  }`}
-                  onClick={() => {
-                    onChange(option);
-                    setActiveDropdown(null);
-                  }}
-                >
-                  {option}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      );
-    };
 
     return (
       <div
@@ -221,44 +177,55 @@ const ScheduleEditModal = ({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex justify-between items-center space-x-2">
-          <CustomDropdown
-            options={['오전', '오후']}
-            value={period}
-            onChange={(value) => setPeriod(value as '오전' | '오후')}
-            type="period"
-            label="오전/오후"
-          />
-
-          <CustomDropdown
-            options={Array.from({ length: 12 }, (_, i) =>
-              String(i + 1).padStart(2, '0')
-            )}
-            value={hour}
-            onChange={setHour}
-            type="hour"
-            label="시"
-          />
-
-          <CustomDropdown
-            options={[
-              '00',
-              '05',
-              '10',
-              '15',
-              '20',
-              '25',
-              '30',
-              '35',
-              '40',
-              '45',
-              '50',
-              '55',
-            ]}
-            value={minute}
-            onChange={setMinute}
-            type="minute"
-            label="분"
-          />
+          <div className="flex-1">
+            <select
+              value={period}
+              onChange={(e) => setPeriod(e.target.value as '오전' | '오후')}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+            >
+              <option value="오전">오전</option>
+              <option value="오후">오후</option>
+            </select>
+          </div>
+          <div className="flex-1">
+            <select
+              value={hour}
+              onChange={(e) => setHour(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+            >
+              {Array.from({ length: 12 }, (_, i) => (
+                <option key={i + 1} value={String(i + 1).padStart(2, '0')}>
+                  {i + 1}시
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="flex-1">
+            <select
+              value={minute}
+              onChange={(e) => setMinute(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+            >
+              {[
+                '00',
+                '05',
+                '10',
+                '15',
+                '20',
+                '25',
+                '30',
+                '35',
+                '40',
+                '45',
+                '50',
+                '55',
+              ].map((m) => (
+                <option key={m} value={m}>
+                  {m}분
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
     );
@@ -281,6 +248,22 @@ const ScheduleEditModal = ({
     };
   }, [activeTimePicker]);
 
+  // 시간 문자열을 ISO 8601 형식으로 변환하는 함수 (백엔드 전송용)
+  const convertToISOFormat = (timeStr: string) => {
+    const [period, hm] = timeStr.split(' ');
+    let [hour, minute] = hm.split(':').map(Number);
+
+    if (period === '오후' && hour !== 12) hour += 12;
+    if (period === '오전' && hour === 12) hour = 0;
+
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+
+    return `${year}-${month}-${day}T${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}:00`;
+  };
+
   // 저장 처리
   const MAX_SCHEDULES_PER_DAY = 10;
   const handleSave = () => {
@@ -288,7 +271,52 @@ const ScheduleEditModal = ({
       alert('하루에 최대 10개의 메모만 추가할 수 있습니다.');
       return;
     }
-    onSave?.({ title, startTime, endTime, color, place, isAllDay });
+    onSave?.({
+      title,
+      startTime: convertToISOFormat(startTime),
+      endTime: convertToISOFormat(endTime),
+      color,
+      place,
+      isAllDay,
+    });
+  };
+
+  //삭제 처리
+  const handleDelete = async () => {
+    if (!initialData?.calendarId) {
+      console.log('initialData.calendarId가 없습니다');
+      return;
+    }
+    try {
+      await deleteCalendarService(Number(initialData.calendarId));
+      const date = new Date(initialData.startTime);
+      const dateKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+
+      // 해당 날짜의 일정을 모두 제거하고 다시 가져오기
+      setSchedulesByDate((prev) => {
+        const newSchedules = { ...prev };
+        delete newSchedules[dateKey];
+        return newSchedules;
+      });
+
+      // 일정 목록 다시 가져오기
+      try {
+        const response = await fetch(`/api/calendar?date=${dateKey}`);
+        const data = await response.json();
+        if (data.success) {
+          setSchedulesByDate((prev) => ({
+            ...prev,
+            [dateKey]: data.data,
+          }));
+        }
+      } catch (error) {
+        console.error('Failed to fetch updated schedules:', error);
+      }
+
+      onClose();
+    } catch (e) {
+      alert('일정 삭제에 실패했습니다.');
+    }
   };
 
   // 모달 타이틀
@@ -297,6 +325,20 @@ const ScheduleEditModal = ({
     : isView
       ? '일정 보기'
       : '일정 수정';
+
+  function toDisplayTime(timeStr: string) {
+    if (!timeStr) return '오전 09:00';
+    if (timeStr.includes('T')) {
+      const date = new Date(timeStr);
+      let hour = date.getHours();
+      const minute = date.getMinutes();
+      const period = hour < 12 ? '오전' : '오후';
+      if (hour === 0) hour = 12;
+      else if (hour > 12) hour -= 12;
+      return `${period} ${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+    }
+    return timeStr;
+  }
 
   return (
     <div
@@ -368,7 +410,11 @@ const ScheduleEditModal = ({
                       시작 시간
                     </label>
                     <div
-                      className={`w-full px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg border flex items-center ${isEditable ? 'border-gray-300 cursor-pointer' : 'bg-gray-50 border-gray-200'} ${isAllDay ? 'bg-gray-100 pointer-events-none opacity-60' : ''}`}
+                      className={`w-full px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg border flex items-center ${
+                        isEditable
+                          ? 'border-gray-300 cursor-pointer hover:border-primary'
+                          : 'bg-gray-50 border-gray-200'
+                      } ${isAllDay ? 'bg-gray-100 pointer-events-none opacity-60' : ''}`}
                       onClick={
                         isEditable && !isAllDay
                           ? () => setActiveTimePicker('start')
@@ -376,7 +422,9 @@ const ScheduleEditModal = ({
                       }
                     >
                       <span className="mr-1 text-sm">⏰</span>
-                      <span className="text-sm">{startTime}</span>
+                      <span className="text-sm">
+                        {toDisplayTime(startTime)}
+                      </span>
                     </div>
                   </div>
                   <div>
@@ -384,7 +432,11 @@ const ScheduleEditModal = ({
                       종료 시간
                     </label>
                     <div
-                      className={`w-full px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg border flex items-center ${isEditable ? 'border-gray-300 cursor-pointer' : 'bg-gray-50 border-gray-200'} ${isAllDay ? 'bg-gray-100 pointer-events-none opacity-60' : ''}`}
+                      className={`w-full px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg border flex items-center ${
+                        isEditable
+                          ? 'border-gray-300 cursor-pointer hover:border-primary'
+                          : 'bg-gray-50 border-gray-200'
+                      } ${isAllDay ? 'bg-gray-100 pointer-events-none opacity-60' : ''}`}
                       onClick={
                         isEditable && !isAllDay
                           ? () => setActiveTimePicker('end')
@@ -392,20 +444,19 @@ const ScheduleEditModal = ({
                       }
                     >
                       <span className="mr-1 text-sm">⏰</span>
-                      <span className="text-sm">{endTime}</span>
+                      <span className="text-sm">{toDisplayTime(endTime)}</span>
                     </div>
                   </div>
                   {isEditable && activeTimePicker && !isAllDay && (
                     <div className="absolute left-0 top-full w-full z-20 time-picker-container">
                       <TimePicker
-                        value={
+                        value={toDisplayTime(
                           activeTimePicker === 'start' ? startTime : endTime
-                        }
+                        )}
                         onChange={(v: string) => {
                           if (activeTimePicker === 'start') setStartTime(v);
                           else setEndTime(v);
                         }}
-                        onClose={() => setActiveTimePicker(null)}
                       />
                     </div>
                   )}
@@ -591,7 +642,7 @@ const ScheduleEditModal = ({
                 </button>
                 <button
                   className="w-full py-1.5 sm:py-2 rounded-lg bg-white border border-gray-300 text-gray-700 font-bold text-sm sm:text-base shadow-sm hover:bg-gray-100 transition-colors"
-                  onClick={onDelete}
+                  onClick={handleDelete}
                 >
                   삭제
                 </button>
@@ -608,7 +659,7 @@ const ScheduleEditModal = ({
                 </button>
                 <button
                   className="w-full py-1.5 sm:py-2 rounded-lg bg-white border border-gray-300 text-gray-700 font-bold text-sm sm:text-base shadow-sm hover:bg-gray-100 transition-colors"
-                  onClick={onDelete}
+                  onClick={handleDelete}
                 >
                   삭제
                 </button>
