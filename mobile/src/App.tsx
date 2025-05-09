@@ -19,6 +19,7 @@ interface AppProps {
 export default function App(props: AppProps) {
 	const webViewRef = useRef<WebView>(null);
 	const uri = Constants.expoConfig?.extra?.url ?? "http://localhost:5173";
+	const customUserAgent = "customUserAgent";
 
 	/**
 	 * Android 하드웨어 뒤로가기 버튼 처리 함수입니다.
@@ -52,6 +53,8 @@ export default function App(props: AppProps) {
 				<WebView
 					ref={webViewRef}
 					source={{ uri }}
+					userAgent={customUserAgent}
+					sharedCookiesEnabled={true}
 					allowsBackForwardNavigationGestures={
 						props.allowsBackForwardNavigationGestures ?? true
 					}
