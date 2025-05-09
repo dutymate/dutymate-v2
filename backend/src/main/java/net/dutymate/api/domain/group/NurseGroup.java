@@ -1,7 +1,10 @@
 package net.dutymate.api.domain.group;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.List;
+
+import net.dutymate.api.domain.group.dto.GroupUpdateRequestDto;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -11,6 +14,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
+
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -22,7 +26,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class Groups {
+public class NurseGroup {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -40,10 +44,22 @@ public class Groups {
 	private String groupImg;
 
 	@OneToMany(mappedBy = "group", cascade = CascadeType.ALL, orphanRemoval = true)
-	private List<GroupMember> groupMemberList;
+	@Builder.Default
+	private List<GroupMember> groupMemberList = new ArrayList<>();
 
 	@PrePersist
 	public void prePersist() {
+
 		this.createdAt = new Timestamp(System.currentTimeMillis());
+	}
+
+	public void addGroupMember(GroupMember groupMember) {
+		groupMemberList.add(groupMember);
+	}
+
+	public void update(GroupUpdateRequestDto groupUpdateRequestDto) {
+		this.groupName = groupUpdateRequestDto.getGroupName();
+		this.groupDescription = groupUpdateRequestDto.getGroupDescription();
+		this.groupImg = groupUpdateRequestDto.getGroupImg();
 	}
 }

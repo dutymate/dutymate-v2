@@ -44,7 +44,7 @@ public class GroupMember {
 	// GroupMember : Group = N : 1
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
 	@JoinColumn(name = "group_id", nullable = false)
-	private Groups group;
+	private NurseGroup group;
 
 	@PrePersist
 	public void prePersist() {
