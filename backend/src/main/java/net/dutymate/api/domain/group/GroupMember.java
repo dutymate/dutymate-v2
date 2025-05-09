@@ -22,8 +22,8 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @Builder
-@NoArgsConstructor(access= AccessLevel.PROTECTED)
-@AllArgsConstructor(access= AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class GroupMember {
 
 	@Id
@@ -43,7 +43,7 @@ public class GroupMember {
 
 	// GroupMember : Group = N : 1
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
-	@JoinColumn(name= "group_id", nullable = false)
+	@JoinColumn(name = "group_id", nullable = false)
 	private Groups group;
 
 	@PrePersist

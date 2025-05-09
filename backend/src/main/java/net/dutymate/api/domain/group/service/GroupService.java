@@ -30,7 +30,7 @@ public class GroupService {
 	public GroupImgResponseDto uploadGroupImage(MultipartFile multipartFile) {
 		String dirName = "group";
 
-		if (multipartFile == null || multipartFile.isEmpty()){
+		if (multipartFile == null || multipartFile.isEmpty()) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "파일이 비어 있습니다.");
 		}
 
@@ -39,11 +39,9 @@ public class GroupService {
 		try {
 			return GroupImgResponseDto.of(fileName);
 
-		} catch (Exception e){
+		} catch (Exception e) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "파일 업로드 중 오류가 발생했습니다.");
 		}
 	}
-
-
 
 }
