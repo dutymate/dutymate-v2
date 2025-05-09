@@ -9,11 +9,11 @@ import lombok.Data;
 @Builder
 public class GroupListResponseDto {
 
-	Long groupId;
-	String groupName;
-	String groupDescription;
-	Integer memberCnt;
-	String groupImg;
+	private Long groupId;
+	private String groupName;
+	private String groupDescription;
+	private Integer memberCnt;
+	private String groupImg;
 
 	public static GroupListResponseDto of(NurseGroup group) {
 		return GroupListResponseDto.builder()

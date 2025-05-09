@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import net.dutymate.api.domain.common.utils.YearMonth;
 import net.dutymate.api.domain.group.dto.GroupCreateRequestDto;
 import net.dutymate.api.domain.group.dto.GroupUpdateRequestDto;
 import net.dutymate.api.domain.group.service.GroupService;
@@ -57,4 +58,10 @@ public class GroupController {
 		return ResponseEntity.ok(groupService.getAllGroups(member));
 	}
 
+	@GetMapping("/{groupId}")
+	public ResponseEntity<?> getDetailGroup(@Auth Member member, @PathVariable Long groupId,
+		@RequestParam(required = false) Integer year,
+		@RequestParam(required = false) Integer month, @RequestParam(defaultValue = "name") String orderBy) {
+		return ResponseEntity.ok(groupService.getSingleGroup(member, groupId, new YearMonth(year, month), orderBy));
+	}
 }

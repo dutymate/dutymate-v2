@@ -1,7 +1,12 @@
 package net.dutymate.api.domain.group.service;
 
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -11,15 +16,19 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import net.dutymate.api.domain.common.utils.FileNameUtils;
+import net.dutymate.api.domain.common.utils.YearMonth;
 import net.dutymate.api.domain.group.GroupMember;
 import net.dutymate.api.domain.group.NurseGroup;
 import net.dutymate.api.domain.group.dto.GroupCreateRequestDto;
+import net.dutymate.api.domain.group.dto.GroupDetailResponseDto;
 import net.dutymate.api.domain.group.dto.GroupImgResponseDto;
 import net.dutymate.api.domain.group.dto.GroupListResponseDto;
 import net.dutymate.api.domain.group.dto.GroupUpdateRequestDto;
 import net.dutymate.api.domain.group.repository.GroupMemberRepository;
 import net.dutymate.api.domain.group.repository.GroupRepository;
 import net.dutymate.api.domain.member.Member;
+import net.dutymate.api.domain.wardschedules.collections.MemberSchedule;
+import net.dutymate.api.domain.wardschedules.repository.MemberScheduleRepository;
 
 import lombok.RequiredArgsConstructor;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -33,6 +42,7 @@ public class GroupService {
 	private final S3Client s3Client;
 	private final GroupRepository groupRepository;
 	private final GroupMemberRepository groupMemberRepository;
+	private final MemberScheduleRepository memberScheduleRepository;
 
 	@Value("${cloud.aws.region.static}")
 	private String region;
@@ -97,12 +107,7 @@ public class GroupService {
 			.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "그룹을 찾을 수 없습니다."));
 
 		// 2. member가 해당 그룹의 멤버인지 확인
-		boolean isGroupMember = group.getGroupMemberList().stream()
-			.anyMatch(gm -> gm.getMember().getMemberId().equals(member.getMemberId()));
-
-		if (!isGroupMember) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "그룹 멤버가 아닙니다.");
-		}
+		group.validateMember(member);
 
 		// 3. 그룹 정보 수정하기
 		group.update(groupUpdateRequestDto);
@@ -154,4 +159,94 @@ public class GroupService {
 			.map(GroupListResponseDto::of)
 			.toList();
 	}
+
+	public Object getSingleGroup(Member member, Long groupId, YearMonth yearMonth, String orderBy) {
+
+		// 1. 그룹 여부 확인하기
+		NurseGroup group = groupRepository.findById(groupId)
+			.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "그룹을 찾을 수 없습니다."));
+
+		// 2. member가 해당 그룹의 멤버인지 확인
+		group.validateMember(member);
+
+		// 3. 그룹에 속한 멤버 리스트 찾기
+		List<GroupMember> groupMemberList = group.getGroupMemberList();
+
+		// 4. memberId와 name 매핑하기
+		// memberSchedule에서 가져온 memberId를 기반으로 name 조회하기 위함
+		Map<Long, String> memberIdToName = groupMemberList.stream()
+			.collect(Collectors.toMap(gm -> gm.getMember().getMemberId(), gm -> gm.getMember().getName()));
+
+		List<Long> memberIdList = new ArrayList<>(memberIdToName.keySet());
+
+		// 5. MongoDB에서 member shifts 조회
+		List<MemberSchedule> scheduleList = memberScheduleRepository.findAllByMemberIdInAndYearAndMonth(memberIdList,
+			yearMonth.year(), yearMonth.month());
+
+		// 6. 조회된 스케줄을 Map으로 변환하기
+		Map<Long, MemberSchedule> scheduleMap = scheduleList.stream()
+			.collect(Collectors.toMap(MemberSchedule::getMemberId, memberSchedule -> memberSchedule));
+
+		int daysInMonth = yearMonth.daysInMonth();
+		// TreeMap을 쓰는 이유 : Date 기준으로 정렬하기 위함
+		Map<LocalDate, List<GroupDetailResponseDto.MemberDto>> dateToMembersMap = new TreeMap<>();
+
+		// 7. 그룹 멤버 기준으로 duty 채우기 (없으면, X로 반환)
+		for (GroupMember gm : groupMemberList) {
+			Long memberId = gm.getMember().getMemberId();
+			String name = gm.getMember().getName();
+
+			String shiftStr = scheduleMap.containsKey(memberId) && scheduleMap.get(memberId).getShifts() != null ?
+				scheduleMap.get(memberId).getShifts() : "X".repeat(daysInMonth);
+
+			for (int day = 1; day <= daysInMonth; day++) {
+				if (day - 1 >= shiftStr.length()) {
+					continue;
+				}
+
+				String duty = String.valueOf(shiftStr.charAt(day - 1)); // 'D'
+				LocalDate date = yearMonth.atDay(day); // '2025-05-09'
+
+				GroupDetailResponseDto.MemberDto memberDto = GroupDetailResponseDto.MemberDto.builder()
+					.memberId(memberId)
+					.name(name)
+					.duty(duty)
+					.build();
+
+				if (!dateToMembersMap.containsKey(date)) {
+					dateToMembersMap.put(date, new ArrayList<>());
+				}
+				dateToMembersMap.get(date).add(memberDto);
+			}
+		}
+
+		// 7. 정렬하기 (이름순 또는 근무순)
+		Comparator<GroupDetailResponseDto.MemberDto> comparator = getComparator(orderBy);
+		for (List<GroupDetailResponseDto.MemberDto> memberDtoList : dateToMembersMap.values()) {
+			memberDtoList.sort(comparator);
+		}
+
+		// 8. DTO 변환하기
+		List<GroupDetailResponseDto.ShiftDto> shiftDtoList = dateToMembersMap.entrySet()
+			.stream()
+			.map(entry -> GroupDetailResponseDto.ShiftDto.builder()
+				.date(entry.getKey().toString())
+				.memberList(entry.getValue())
+				.build())
+			.toList();
+
+		return GroupDetailResponseDto.of(group, shiftDtoList);
+	}
+
+	private Comparator<GroupDetailResponseDto.MemberDto> getComparator(String orderBy) {
+		// 근무순 정렬
+		if ("duty".equals(orderBy)) {
+			List<String> order = List.of("D", "M", "E", "N", "O", "X");
+			return Comparator.comparingInt(member -> order.indexOf(member.getDuty()));
+		}
+
+		// 이름순 정렬
+		return Comparator.comparing(GroupDetailResponseDto.MemberDto::getName);
+	}
+
 }

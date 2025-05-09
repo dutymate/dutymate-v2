@@ -189,4 +189,8 @@ public record YearMonth(Integer year, Integer month) {
 	public boolean isSameOrAfter(YearMonth other) {
 		return !isBefore(other);
 	}
+
+	public LocalDate atDay(int day) {
+		return java.time.YearMonth.of(year, month).atDay(day);
+	}
 }

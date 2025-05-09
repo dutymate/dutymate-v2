@@ -4,7 +4,11 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
+
 import net.dutymate.api.domain.group.dto.GroupUpdateRequestDto;
+import net.dutymate.api.domain.member.Member;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -60,5 +64,16 @@ public class NurseGroup {
 		this.groupName = groupUpdateRequestDto.getGroupName();
 		this.groupDescription = groupUpdateRequestDto.getGroupDescription();
 		this.groupImg = groupUpdateRequestDto.getGroupImg();
+	}
+
+	public boolean isMember(Long memberId) {
+		return groupMemberList.stream()
+			.anyMatch(gm -> gm.getMember().getMemberId().equals(memberId));
+	}
+
+	public void validateMember(Member member) {
+		if (!isMember(member.getMemberId())) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "그룹 멤버가 아닙니다.");
+		}
 	}
 }
