@@ -55,6 +55,7 @@ export default function App(props: AppProps) {
 					source={{ uri }}
 					userAgent={customUserAgent}
 					sharedCookiesEnabled={true}
+					onContentProcessDidTerminate={() => webViewRef.current?.reload()}
 					allowsBackForwardNavigationGestures={
 						props.allowsBackForwardNavigationGestures ?? true
 					}
