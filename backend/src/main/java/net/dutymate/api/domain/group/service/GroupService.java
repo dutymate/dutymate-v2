@@ -196,8 +196,9 @@ public class GroupService {
 			Long memberId = gm.getMember().getMemberId();
 			String name = gm.getMember().getName();
 
-			String shiftStr = scheduleMap.containsKey(memberId) && scheduleMap.get(memberId).getShifts() != null ?
-				scheduleMap.get(memberId).getShifts() : "X".repeat(daysInMonth);
+			String shiftStr = scheduleMap.containsKey(memberId) && scheduleMap.get(memberId).getShifts() != null
+				? scheduleMap.get(memberId).getShifts()
+				: "X".repeat(daysInMonth);
 
 			for (int day = 1; day <= daysInMonth; day++) {
 				if (day - 1 >= shiftStr.length()) {
