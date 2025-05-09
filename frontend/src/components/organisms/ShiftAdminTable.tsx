@@ -24,9 +24,14 @@ import SubscriptionSuccessModal from '@/components/organisms/SubscriptionSuccess
 import NurseShortageModal from '@/components/organisms/NurseShortageModal';
 import MobileDutyControls from '@/components/molecules/MobileDutyControls';
 import RequestCheckModal from '@/components/organisms/RequestCheckModal';
+import UnreflectedRequestsModal from '@/components/organisms/UnreflectedRequestsModal';
 
-import { dutyService, SubscriptionPlan } from '@/services/dutyService';
-import { WardRequest } from '@/services/requestService';
+import {
+  dutyService,
+  SubscriptionPlan,
+  UnreflectedRequest,
+} from '@/services/dutyService';
+import { requestService, WardRequest } from '@/services/requestService';
 import { ruleService, WardRule } from '@/services/ruleService.ts';
 
 import useShiftStore from '@/stores/shiftStore';
@@ -718,15 +723,41 @@ const ShiftAdminTable = memo(
         );
 
         // API 호출
-        await dutyService.autoCreateDuty(year, month);
+        const response = await dutyService.autoCreateDuty(year, month);
 
         // 화면 갱신
         await onUpdate(year, month);
 
-        // 로딩 토스트 닫기
+       
+        // 반영되지 않은 요청이 있는 경우 모달 표시
+        if (
+          response.unreflectedRequestsCount > 0 &&
+          response.unreflectedRequests?.length > 0
+        ) {
+          setUnreflectedRequests(response.unreflectedRequests);
+          toast.update(loadingToast, {
+            render: '자동생성 완료, 일부 요청은 반영되지 않았습니다.',
+            type: 'warning',
+            isLoading: false,
+            autoClose: 2000,
+            position: 'top-center',
+          });
+          setIsUnreflectedRequestsModalOpen(true);
+        } else {
+          // 성공 알림
+          toast.update(loadingToast, {
+            render: '자동생성에 성공했습니다',
+            type: 'success',
+            isLoading: false,
+            autoClose: 2000,
+            position: 'top-center',
+          });
+        }
+
+         // 로딩 토스트 닫기
         toast.dismiss(loadingToast);
 
-        // 성공 알림 새로 띄우기
+         // 성공 알림 새로 띄우기
         toast.success('자동생성에 성공했습니다');
 
         // 자동 생성 횟수 감소
@@ -773,17 +804,35 @@ const ShiftAdminTable = memo(
         );
 
         // 강제 자동생성 API 호출
-        await dutyService.autoCreateDuty(year, month, true);
+        const response = await dutyService.autoCreateDuty(year, month, true);
 
         // 화면 갱신
         await onUpdate(year, month);
 
-        // 성공 알림
-        toast.update(loadingToast, {
-          render: '자동생성에 성공했습니다',
-          type: 'success',
-          isLoading: false,
-        });
+        // 반영되지 않은 요청이 있는 경우 모달 표시
+        if (
+          response.unreflectedRequestsCount > 0 &&
+          response.unreflectedRequests?.length > 0
+        ) {
+          setUnreflectedRequests(response.unreflectedRequests);
+          toast.update(loadingToast, {
+            render: '자동생성 완료, 일부 요청은 반영되지 않았습니다.',
+            type: 'warning',
+            isLoading: false,
+            autoClose: 2000,
+            position: 'top-center',
+          });
+          setIsUnreflectedRequestsModalOpen(true);
+        } else {
+          // 성공 알림
+          toast.update(loadingToast, {
+            render: '자동생성에 성공했습니다',
+            type: 'success',
+            isLoading: false,
+            autoClose: 2000,
+            position: 'top-center',
+          });
+        }
 
         // 자동 생성 횟수 감소
         setAutoGenCnt((prev) => prev - 1);
@@ -1106,6 +1155,74 @@ const ShiftAdminTable = memo(
       month,
       setDuties
     );
+    
+    // Add state for unreflected requests modal
+    const [isUnreflectedRequestsModalOpen, setIsUnreflectedRequestsModalOpen] =
+      useState(false);
+    const [unreflectedRequests, setUnreflectedRequests] = useState<
+      UnreflectedRequest[]
+    >([]);
+
+    // Add function to regenerate with priority requests
+    const handleRegenerateWithPriority = async (
+      selectedRequestIds: number[]
+    ) => {
+      try {
+        setIsAutoCreating(true);
+        // 선택된 요청 ID로 자동 생성 API 호출 (백엔드 API 수정 필요)
+        const loadingToast = toast.loading(
+          '선택한 요청에 우선순위를 적용하여 재생성 중...',
+          {
+            position: 'top-center',
+          }
+        );
+        // 새로운 재생성 API 호출
+        const response = await dutyService.reAutoCreateDuty(
+          year,
+          month,
+          selectedRequestIds
+        );
+
+        // 화면 갱신
+        await onUpdate(year, month);
+
+        // 반영되지 않은 요청이 있는 경우 모달 표시
+        if (
+          response.unreflectedRequestsCount > 0 &&
+          response.unreflectedRequests?.length > 0
+        ) {
+          setUnreflectedRequests(response.unreflectedRequests);
+          toast.update(loadingToast, {
+            render: '일부 요청은 여전히 반영되지 않았습니다.',
+            type: 'warning',
+            isLoading: false,
+            autoClose: 2000,
+            position: 'top-center',
+          });
+          setIsUnreflectedRequestsModalOpen(true);
+        } else {
+          // 모든 요청이 반영된 경우
+          toast.update(loadingToast, {
+            render: '선택한 요청이 모두 반영되었습니다.',
+            type: 'success',
+            isLoading: false,
+            autoClose: 2000,
+            position: 'top-center',
+          });
+        }
+
+        // 자동 생성 횟수 감소
+        setAutoGenCnt((prev) => prev - 1);
+      } catch (error: any) {
+        // 에러 처리
+        toast.error('재생성에 실패했습니다', {
+          position: 'top-center',
+          autoClose: 2000,
+        });
+      } finally {
+        setIsAutoCreating(false);
+      }
+    };
 
     return (
       <div>
@@ -2064,6 +2181,14 @@ const ShiftAdminTable = memo(
           isOpen={isRequestCheckModalOpen}
           onClose={handleRequestCheckModalClose}
           onAutoGenerate={handleRequestCheckModalConfirm}
+        />
+
+        {/* Add the UnreflectedRequestsModal */}
+        <UnreflectedRequestsModal
+          isOpen={isUnreflectedRequestsModalOpen}
+          onClose={() => setIsUnreflectedRequestsModalOpen(false)}
+          unreflectedRequests={unreflectedRequests}
+          onRegenerateWithPriority={handleRegenerateWithPriority}
         />
       </div>
     );

@@ -191,18 +191,27 @@ public class AutoScheduleService {
 			.toList();
 
 
-
-		wardScheduleRepository.save(updateWardSchedule);
-
 		List<AutoScheduleResponseDto.UnreflectedRequestInfo> unreflectedInfo =
 			unreflectedRequests.stream()
-				.map(req -> AutoScheduleResponseDto.UnreflectedRequestInfo.builder()
-					.memberId(req.getWardMember().getMember().getMemberId())
-					.memberName(req.getWardMember().getMember().getName())
-					.requestDate(req.getRequestDate())
-					.requestShift(req.getRequestShift().getValue())
-					.build())
+				.map(req -> {
+					// 해당 멤버의 해당 날짜에 배정된 실제 근무 찾기
+					String actualShift = findActualShift(
+						updateWardSchedule,
+						req.getWardMember().getMember().getMemberId(),
+						req.getRequestDate()
+					);
+
+					return AutoScheduleResponseDto.UnreflectedRequestInfo.builder()
+						.requestId(req.getRequestId())
+						.memberName(req.getWardMember().getMember().getName())
+						.requestDate(req.getRequestDate())
+						.requestShift(req.getRequestShift().getValue())
+						.actualShift(actualShift)
+						.requestMemo(req.getMemo())
+						.build();
+				})
 				.toList();
+
 
 		AutoScheduleResponseDto responseDto = AutoScheduleResponseDto.builder()
 			.message("자동 생성 완료")
@@ -211,7 +220,31 @@ public class AutoScheduleService {
 			.unreflectedRequests(unreflectedInfo)
 			.build();
 
+		wardScheduleRepository.save(updateWardSchedule);
+
 		return ResponseEntity.ok(responseDto);
+	}
+
+	private String findActualShift(WardSchedule wardSchedule, Long memberId, java.sql.Date requestDate) {
+		// java.sql.Date를 LocalDate로 변환하고 일(day) 추출
+		int day = requestDate.toLocalDate().getDayOfMonth();
+
+		// 최신 스케줄 가져오기
+		WardSchedule.Duty currentDuty = wardSchedule.getDuties().get(wardSchedule.getNowIdx());
+
+		// 해당 멤버의 스케줄 찾기
+		for (WardSchedule.NurseShift nurseShift : currentDuty.getDuty()) {
+			if (nurseShift.getMemberId().equals(memberId)) {
+				String shifts = nurseShift.getShifts();
+				// day는 1부터 시작하지만, shifts 문자열의 인덱스는 0부터 시작하므로 -1 필요
+				if (day <= shifts.length()) {
+					return String.valueOf(shifts.charAt(day - 1));
+				}
+			}
+		}
+
+		// 정보를 찾을 수 없는 경우
+		return "X";
 	}
 
 }

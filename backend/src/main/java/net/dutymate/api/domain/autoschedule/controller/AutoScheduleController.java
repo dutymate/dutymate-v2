@@ -1,11 +1,20 @@
 package net.dutymate.api.domain.autoschedule.controller;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.coyote.Response;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import net.dutymate.api.domain.autoschedule.dto.ReAutoScheduleRequestDto;
 import net.dutymate.api.domain.autoschedule.service.AutoScheduleService;
 import net.dutymate.api.domain.common.utils.YearMonth;
 import net.dutymate.api.domain.member.Member;
@@ -14,13 +23,13 @@ import net.dutymate.api.global.auth.annotation.Auth;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/api/duty/auto-create")
+@RequestMapping("/api/duty")
 @RequiredArgsConstructor
 public class AutoScheduleController {
 
 	private final AutoScheduleService autoScheduleService;
 
-	@GetMapping
+	@GetMapping("/auto-create")
 	public ResponseEntity<?> autoCreate(
 		@RequestParam(value = "year", required = false) Integer year,
 		@RequestParam(value = "month", required = false) Integer month,
@@ -28,6 +37,12 @@ public class AutoScheduleController {
 		@Auth Member member) {
 
 		return autoScheduleService.generateAutoSchedule(new YearMonth(year, month), member, force);
+	}
+
+	@PostMapping("/re-auto-create")
+	public ResponseEntity<?> reAutoCreate(@RequestBody ReAutoScheduleRequestDto reAutoScheduleRequestDto) {
+
+		return ResponseEntity.ok().body("성공");
 	}
 
 }

@@ -82,6 +82,22 @@ export interface DutyUpdateRequest {
   };
 }
 
+export interface UnreflectedRequest {
+  requestId: number;
+  memberName: string;
+  requestDate: string;
+  requestShift: string;
+  actualShift: string;
+  requestMemo: string;
+}
+
+export interface AutoCreateResponse {
+  message: string;
+  unreflectedRequestsCount: number;
+  unreflectedRequests: UnreflectedRequest[];
+  success: boolean;
+}
+
 export type SubscriptionPlan = 'monthly' | 'quarterly' | 'yearly';
 
 // API 서비스
@@ -194,14 +210,26 @@ export const dutyService = {
    * @param year - 년도
    * @param month - 월
    * @param force - 강제 자동생성 여부
+   * @param priorityRequestIds - 우선순위를 부여할 요청 ID 배열 (선택사항)
+   * @returns AutoCreateResponse - 자동 생성 결과 (반영되지 않은 요청 목록 포함)
    */
-  autoCreateDuty: (year: number, month: number, force?: boolean) => {
+  autoCreateDuty: (
+    year: number,
+    month: number,
+    force?: boolean,
+    priorityRequestIds?: number[]
+  ) => {
     return axiosInstance
       .get('/duty/auto-create', {
-        params: { year, month, force },
+        params: {
+          year,
+          month,
+          force,
+          priorityRequestIds: priorityRequestIds?.join(','),
+        },
       })
       .then((response) => {
-        return response.data;
+        return response.data as AutoCreateResponse;
       })
       .catch((error) => {
         if (error.code === 'ERR_NETWORK') {
@@ -347,6 +375,46 @@ export const dutyService = {
       return response.data;
     } catch (error) {
       console.error('구독 처리 중 오류 발생:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * 반영되지 않은 요청 재반영 API
+   * @param year - 년도
+   * @param month - 월
+   * @param requestIds - 재반영할 요청 ID 목록
+   * @returns AutoCreateResponse - 자동 생성 결과 (반영되지 않은 요청 목록 포함)
+   */
+  reAutoCreateDuty: async (
+    year: number,
+    month: number,
+    requestIds: number[]
+  ) => {
+    try {
+      const response = await axiosInstance.post('/duty/re-auto-create', {
+        year,
+        month,
+        requestIds,
+      });
+      return response.data as AutoCreateResponse;
+    } catch (error: any) {
+      if (error.code === 'ERR_NETWORK') {
+        console.error(
+          '서버에 연결할 수 없습니다. 서버가 실행 중인지 확인해주세요.'
+        );
+        throw new Error('서버 연결 실패');
+      }
+      if (error.response) {
+        switch (error.response.status) {
+          case 401:
+            window.location.href = '/login';
+            break;
+          default:
+            console.error('Error occurred:', error);
+            throw error;
+        }
+      }
       throw error;
     }
   },
