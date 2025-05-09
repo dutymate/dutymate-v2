@@ -31,7 +31,8 @@ public interface RequestRepository extends JpaRepository<Request, Long> {
 		@Param("month") Integer month
 	);
 
-	@Query("SELECT r FROM Request r WHERE r.wardMember.ward = :ward AND YEAR(r.requestDate) = :year AND MONTH(r.requestDate) = :month AND r.status = :status")
+	@Query("SELECT r FROM Request r WHERE r.wardMember.ward = :ward AND YEAR(r.requestDate) = :year "
+		+ "AND MONTH(r.requestDate) = :month AND r.status = :status")
 	List<Request> findAcceptedWardRequestsByYearMonth(
 		@Param("ward") Ward ward,
 		@Param("year") Integer year,

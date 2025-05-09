@@ -45,9 +45,9 @@ public class AutoScheduleService {
 
 	@Transactional
 	public ResponseEntity<?> generateAutoSchedule(YearMonth yearMonth, Member member, boolean force) {
-		// TODO 자동 생성 횟수 남아있는지 체크
 		Long wardId = member.getWardMember().getWard().getWardId();
 
+		// 잔여 자동 횟수 체크
 		if (member.getAutoGenCnt() <= 0) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
 				.body(AutoScheduleResponseDto.builder()
