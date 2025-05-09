@@ -2,6 +2,7 @@ package net.dutymate.api.domain.group.controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -35,8 +36,7 @@ public class GroupController {
 
 	@PostMapping("/image")
 	public ResponseEntity<?> uploadGroupImage(@RequestParam("file") MultipartFile multipartFile) {
-		groupService.uploadGroupImage(multipartFile);
-		return ResponseEntity.ok().build();
+		return ResponseEntity.ok(groupService.uploadGroupImage(multipartFile));
 	}
 
 	@PutMapping("/{groupId}")
@@ -50,6 +50,11 @@ public class GroupController {
 	public ResponseEntity<?> deleteGroup(@Auth Member member, @PathVariable Long groupId) {
 		groupService.leaveGroup(member, groupId);
 		return ResponseEntity.ok().build();
+	}
+
+	@GetMapping
+	public ResponseEntity<?> getAllGroups(@Auth Member member) {
+		return ResponseEntity.ok(groupService.getAllGroups(member));
 	}
 
 }

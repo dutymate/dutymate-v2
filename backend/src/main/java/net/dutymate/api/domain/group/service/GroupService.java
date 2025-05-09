@@ -15,16 +15,16 @@ import net.dutymate.api.domain.group.GroupMember;
 import net.dutymate.api.domain.group.NurseGroup;
 import net.dutymate.api.domain.group.dto.GroupCreateRequestDto;
 import net.dutymate.api.domain.group.dto.GroupImgResponseDto;
+import net.dutymate.api.domain.group.dto.GroupListResponseDto;
 import net.dutymate.api.domain.group.dto.GroupUpdateRequestDto;
 import net.dutymate.api.domain.group.repository.GroupMemberRepository;
 import net.dutymate.api.domain.group.repository.GroupRepository;
 import net.dutymate.api.domain.member.Member;
 
+import lombok.RequiredArgsConstructor;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-
-import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -141,5 +141,17 @@ public class GroupService {
 		// 3. 본인은 그룹에서 탈퇴
 		group.getGroupMemberList().remove(groupMember);
 		groupMemberRepository.delete(groupMember);
+	}
+
+	@Transactional(readOnly = true)
+	public List<GroupListResponseDto> getAllGroups(Member member) {
+
+		List<GroupMember> groupMembers = groupMemberRepository.findByMember(member);
+
+		return groupMembers.stream()
+			.map(GroupMember::getGroup)
+			.distinct()
+			.map(GroupListResponseDto::of)
+			.toList();
 	}
 }
