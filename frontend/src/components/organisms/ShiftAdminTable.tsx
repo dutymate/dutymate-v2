@@ -290,10 +290,7 @@ const ShiftAdminTable = memo(
         } catch (error) {
           console.error('Failed to update shifts:', error);
           // Optionally, revert the optimistic update or notify the user
-          toast.error('근무표 수정에 실패했습니다. 다시 시도해주세요.', {
-            position: 'bottom-left',
-            autoClose: 1000,
-          });
+          toast.error('근무표 수정에 실패했습니다. 다시 시도해주세요.');
         }
       }, 1000),
       [year, month]
@@ -495,10 +492,7 @@ const ShiftAdminTable = memo(
         nextYear > maxAllowed.year ||
         (nextYear === maxAllowed.year && nextMonth > maxAllowed.month)
       ) {
-        toast.warning('다음 달까지만 조회할 수 있습니다.', {
-          position: 'top-center',
-          autoClose: 2000,
-        });
+        toast.warning('다음 달까지만 조회할 수 있습니다.');
         return;
       }
 
@@ -642,10 +636,7 @@ const ShiftAdminTable = memo(
     const handleResetDuty = async () => {
       // 모든 셀이 이미 X인 경우
       if (isAllCellsEmpty) {
-        toast.warning('이미 초기화되었습니다.', {
-          position: 'top-center',
-          autoClose: 1000,
-        });
+        toast.warning('이미 초기화되었습니다.');
         return;
       }
 
@@ -659,13 +650,9 @@ const ShiftAdminTable = memo(
 
         await onUpdate(year, month);
 
-        toast.success('초기화되었습니다.', {
-          autoClose: 1000,
-        });
+        toast.success('초기화되었습니다.');
       } catch (error) {
-        toast.error('초기화에 실패하였습니다.', {
-          autoClose: 2000,
-        });
+        toast.error('초기화에 실패하였습니다.');
       } finally {
         setIsResetDutyConfirmModalOpen(false);
       }
@@ -678,10 +665,7 @@ const ShiftAdminTable = memo(
 
     const handleAutoCreate = async () => {
       if (isAutoCreating) {
-        toast.warning('이미 자동생성 중입니다.', {
-          position: 'top-center',
-          autoClose: 2000,
-        });
+        toast.warning('이미 자동생성 중입니다.');
         return;
       }
 
@@ -747,8 +731,6 @@ const ShiftAdminTable = memo(
           render: '자동생성에 성공했습니다',
           type: 'success',
           isLoading: false,
-          autoClose: 2000,
-          position: 'top-center',
         });
 
         // 자동 생성 횟수 감소
@@ -760,17 +742,11 @@ const ShiftAdminTable = memo(
         if (error.response) {
           switch (error.response.status) {
             case 401:
-              toast.error('로그인이 필요합니다.', {
-                position: 'top-center',
-                autoClose: 2000,
-              });
+              toast.error('로그인이 필요합니다.');
               window.location.href = '/login';
               break;
             case 400:
-              toast.error('근무 일정을 찾을 수 없습니다.', {
-                position: 'top-center',
-                autoClose: 2000,
-              });
+              toast.error('근무 일정을 찾을 수 없습니다.');
               break;
             case 406:
               // 필요한 간호사 수 설정
@@ -779,22 +755,13 @@ const ShiftAdminTable = memo(
               setIsNurseShortageModalOpen(true);
               break;
             case 405:
-              toast.info('모든 조건을 만족하는 최적의 근무표입니다.', {
-                position: 'top-center',
-                autoClose: 2000,
-              });
+              toast.info('모든 조건을 만족하는 최적의 근무표입니다.');
               break;
             default:
-              toast.error('자동생성에 실패했습니다', {
-                position: 'top-center',
-                autoClose: 2000,
-              });
+              toast.error('자동생성에 실패했습니다');
           }
         } else {
-          toast.error('자동생성에 실패했습니다', {
-            position: 'top-center',
-            autoClose: 2000,
-          });
+          toast.error('자동생성에 실패했습니다');
         }
       } finally {
         setIsAutoCreating(false);
@@ -823,17 +790,12 @@ const ShiftAdminTable = memo(
           render: '자동생성에 성공했습니다',
           type: 'success',
           isLoading: false,
-          autoClose: 2000,
-          position: 'top-center',
         });
 
         // 자동 생성 횟수 감소
         setAutoGenCnt((prev) => prev - 1);
       } catch (error) {
-        toast.error('자동생성에 실패했습니다', {
-          position: 'top-center',
-          autoClose: 2000,
-        });
+        toast.error('자동생성에 실패했습니다');
       } finally {
         setIsAutoCreating(false);
         setIsNurseShortageModalOpen(false);
@@ -901,16 +863,10 @@ const ShiftAdminTable = memo(
         link.href = dataUrl;
         link.click();
 
-        toast.success('듀티표가 다운로드되었습니다.', {
-          position: 'top-center',
-          autoClose: 2000,
-        });
+        toast.success('듀티표가 다운로드되었습니다.');
       } catch (error) {
         console.error('Download error:', error);
-        toast.error('듀티표 다운로드에 실패했습니다.', {
-          position: 'top-center',
-          autoClose: 2000,
-        });
+        toast.error('듀티표 다운로드에 실패했습니다.');
       }
       setSelectedCell(tempSelectedCell);
     };
