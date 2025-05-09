@@ -567,6 +567,7 @@ public class MemberService {
 			ward.removeWardMember(member.getWardMember());
 			memberRepository.delete(member);
 			deleteWardMemberInMongo(member, ward); // mongodb에서 삭제
+			memberScheduleRepository.deleteByMemberId(member.getMemberId());
 			return;
 		}
 
@@ -590,7 +591,6 @@ public class MemberService {
 				// HN이 있으면 나만 병동에서 삭제
 				if (hasOtherHN) {
 					ward.removeWardMember(member.getWardMember());
-					memberRepository.delete(member);
 					deleteWardMemberInMongo(member, ward); // mongodb에서 삭제
 				} else if (hasOtherUser) {
 					throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "병동 관리자 권한을 넘긴 후 탈퇴할 수 있습니다.");
@@ -602,6 +602,8 @@ public class MemberService {
 					wardScheduleRepository.deleteByWardId(ward.getWardId());
 					wardRepository.delete(ward);
 				}
+				memberRepository.delete(member);
+				memberScheduleRepository.deleteByMemberId(member.getMemberId());
 				return;
 			}
 

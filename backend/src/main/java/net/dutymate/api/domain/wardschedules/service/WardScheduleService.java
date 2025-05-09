@@ -290,22 +290,11 @@ public class WardScheduleService {
 		final int daysInAWeek = 7;
 
 		// 사용자 병동 입장X
-		if (member.getEnterYear() == null || member.getEnterMonth() == null || member.getWardMember() == null) {
-			String shifts = getOrCreateMemberSchedule(member, yearMonth).getShifts();
-			String prevShifts = getOrCreateMemberSchedule(member, prevYearMonth).getShifts()
-				.substring(prevYearMonth.daysInMonth() - daysInAWeek);
-			String nextShifts = getOrCreateMemberSchedule(member, nextYearMonth).getShifts()
-				.substring(0, daysInAWeek);
-
-			return MyDutyResponseDto.of(yearMonth, prevShifts, nextShifts, shifts);
-		}
-
-		// 사용자 병동 입장O
-		// 입장 연월을 기준으로 Shifts 구하기
-		String shifts = getShiftsByEnterDate(member, yearMonth);
-		String prevShifts = getShiftsByEnterDate(member, prevYearMonth)
+		String shifts = getOrCreateMemberSchedule(member, yearMonth).getShifts();
+		String prevShifts = getOrCreateMemberSchedule(member, prevYearMonth).getShifts()
 			.substring(prevYearMonth.daysInMonth() - daysInAWeek);
-		String nextShifts = getShiftsByEnterDate(member, nextYearMonth).substring(0, daysInAWeek);
+		String nextShifts = getOrCreateMemberSchedule(member, nextYearMonth).getShifts()
+			.substring(0, daysInAWeek);
 
 		return MyDutyResponseDto.of(yearMonth, prevShifts, nextShifts, shifts);
 	}
