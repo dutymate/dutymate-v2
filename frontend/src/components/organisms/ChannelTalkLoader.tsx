@@ -7,8 +7,11 @@ const ChannelTalkLoader = () => {
   const { isAuthenticated, userInfo } = useUserAuthStore();
 
   useEffect(() => {
-    // 채널톡 스크립트 로드
-    channelService.loadScript();
+    // 이미 ChannelIO가 초기화되어 있는지 확인
+    if (!window.ChannelIO) {
+      // 채널톡 스크립트 로드
+      channelService.loadScript();
+    }
 
     // 환경 변수에서 플러그인 키 가져오기
     const pluginKey = import.meta.env.VITE_CHANNEL_TALK_PLUGIN_KEY || '';
@@ -24,7 +27,7 @@ const ChannelTalkLoader = () => {
       }
     };
 
-    // 채널톡 부트하기
+    // 채널톡 부트하기 (재부팅이 필요한 경우를 위해 항상 실행)
     if (isAuthenticated && userInfo) {
       // 로그인한 사용자인 경우
       channelService.boot({
