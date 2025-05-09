@@ -6,17 +6,9 @@ import Constants from "expo-constants";
 import { StatusBar } from "expo-status-bar";
 
 /**
- * App 컴포넌트의 props 타입입니다.
- * - `allowsBackForwardNavigationGestures`: WebView의 앞뒤 탐색 제스처 허용 여부 (iOS만 지원).
- */
-interface AppProps {
-	allowsBackForwardNavigationGestures?: boolean;
-}
-
-/**
  * 앱의 메인 컴포넌트입니다. WebView를 사용해 웹 페이지를 렌더링합니다.
  */
-export default function App(props: AppProps) {
+export default function App() {
 	const webViewRef = useRef<WebView>(null);
 	const uri = Constants.expoConfig?.extra?.url ?? "http://localhost:5173";
 	const customUserAgent = "customUserAgent";
@@ -56,9 +48,7 @@ export default function App(props: AppProps) {
 					userAgent={customUserAgent}
 					sharedCookiesEnabled={true}
 					onContentProcessDidTerminate={() => webViewRef.current?.reload()}
-					allowsBackForwardNavigationGestures={
-						props.allowsBackForwardNavigationGestures ?? true
-					}
+					allowsBackForwardNavigationGestures
 				/>
 			</SafeAreaView>
 		</>
