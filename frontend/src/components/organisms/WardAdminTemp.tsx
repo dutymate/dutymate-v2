@@ -3,12 +3,14 @@ import { FaMinus, FaPlus } from 'react-icons/fa6';
 import { toast } from 'react-toastify';
 
 import { Icon } from '@/components/atoms/Icon';
+import { MAX_TOTAL_NURSES, MAX_TEMP_NURSES } from '@/pages/WardAdmin';
 
 interface WardAdminTempProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: (count: number) => void;
   currentNurseCount: number;
+  currentTempNurses: number;
 }
 
 const WardAdminTemp = ({
@@ -16,9 +18,9 @@ const WardAdminTemp = ({
   onClose,
   onConfirm,
   currentNurseCount,
+  currentTempNurses,
 }: WardAdminTempProps) => {
   const [count, setCount] = useState(1);
-  const MAX_NURSES = 20; // 최대 병동 인원
 
   // 모달이 닫힐 때 count를 1로 초기화
   useEffect(() => {
@@ -37,21 +39,43 @@ const WardAdminTemp = ({
 
   const handleIncrease = () => {
     const totalAfterAdd = currentNurseCount + count + 1;
-    if (totalAfterAdd <= MAX_NURSES) {
-      setCount(count + 1);
-    } else {
-      toast.warning(`병동 최대 인원은 ${MAX_NURSES}명입니다.`);
+    const tempAfterAdd = currentTempNurses + count + 1;
+
+    if (tempAfterAdd > MAX_TEMP_NURSES) {
+      toast.warning(
+        `임시 간호사는 최대 ${MAX_TEMP_NURSES}명까지만 추가할 수 있습니다.`
+      );
+      return;
     }
+
+    if (totalAfterAdd > MAX_TOTAL_NURSES) {
+      toast.warning('병동 최대 인원(30명)을 초과할 수 없습니다.');
+      return;
+    }
+
+    setCount(count + 1);
   };
 
   const handleConfirm = () => {
     const totalAfterAdd = currentNurseCount + count;
-    if (totalAfterAdd > MAX_NURSES) {
+    const tempAfterAdd = currentTempNurses + count;
+
+    if (totalAfterAdd > MAX_TOTAL_NURSES) {
       toast.warning(
-        `현재 ${currentNurseCount}명이므로, ${MAX_NURSES - currentNurseCount}명까지만 추가할 수 있습니다.`
+        currentNurseCount >= MAX_TOTAL_NURSES
+          ? '더 이상 간호사를 추가할 수 없습니다.'
+          : `병동 최대 인원은 ${MAX_TOTAL_NURSES}명입니다. ${MAX_TOTAL_NURSES - currentNurseCount}명까지만 추가할 수 있습니다.`
       );
       return;
     }
+
+    if (tempAfterAdd > MAX_TEMP_NURSES) {
+      toast.warning(
+        `임시 간호사는 최대 ${MAX_TEMP_NURSES}명까지만 추가할 수 있습니다.`
+      );
+      return;
+    }
+
     onConfirm(count);
     setCount(1);
     onClose();
@@ -100,10 +124,10 @@ const WardAdminTemp = ({
             <button
               onClick={handleIncrease}
               className="p-[0.5rem] hover:bg-gray-100 rounded-[0.75rem] transition-colors"
-              disabled={count >= MAX_NURSES}
+              disabled={count >= MAX_TOTAL_NURSES}
             >
               <FaPlus
-                className={`text-[1.25rem] ${count >= MAX_NURSES ? 'text-gray-300' : 'text-gray-600'}`}
+                className={`text-[1.25rem] ${count >= MAX_TOTAL_NURSES ? 'text-gray-300' : 'text-gray-600'}`}
               />
             </button>
           </div>

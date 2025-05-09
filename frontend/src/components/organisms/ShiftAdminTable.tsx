@@ -39,6 +39,7 @@ import useUserAuthStore from '@/stores/userAuthStore';
 import { useHolidayStore } from '@/stores/holidayStore';
 import { useRequestCountStore } from '@/stores/requestCountStore';
 import { useApplyAcceptedRequestsDemoOnly } from '@/hooks/useApplyAcceptedRequestsDemoOnly';
+import useWardStore from '@/stores/wardStore';
 
 import {
   getDefaultOffDays,
@@ -57,6 +58,7 @@ interface ShiftAdminTableProps {
     role: 'HN' | 'RN';
     prevShifts: string; // 이전 달 마지막 주 근무
     shifts: string; // 현재 달 근무
+    isSynced?: boolean; // 추가된 속성
   }[];
   invalidCnt: number; // 규칙 위반 수
   year: number; // 년도
@@ -189,7 +191,7 @@ const ShiftAdminTable = memo(
     month,
     onUpdate,
     issues = [],
-    wardRequests = [], // 상위 컴포넌트에서 받아온 요청 데이터
+    wardRequests = [],
   }: ShiftAdminTableProps) => {
     const [isRuleModalOpen, setIsRuleModalOpen] = useState(false);
     const [isAutoGenerateModalOpen, setIsAutoGenerateModalOpen] =
@@ -712,6 +714,22 @@ const ShiftAdminTable = memo(
     const [isNurseShortageModalOpen, setIsNurseShortageModalOpen] =
       useState(false);
     const [neededNurseCount, setNeededNurseCount] = useState(0);
+
+    const { addVirtualNurse } = useWardStore();
+
+    // 임시 간호사 추가 핸들러 수정
+    const handleAddTemporaryNurses = async (count: number) => {
+      try {
+        await addVirtualNurse(count);
+
+        // 화면 갱신
+        await onUpdate(year, month);
+
+        toast.success(`임시 간호사 ${count}명이 추가되었습니다.`);
+      } catch (error) {
+        toast.error('임시 간호사 추가에 실패했습니다.');
+      }
+    };
 
     const executeAutoGenerate = async () => {
       setIsAutoGenCountModalOpen(false);
@@ -2157,6 +2175,7 @@ const ShiftAdminTable = memo(
           isOpen={isNurseShortageModalOpen}
           onClose={() => setIsNurseShortageModalOpen(false)}
           onForceGenerate={handleForceAutoGenerate}
+          onAddTemporaryNurses={handleAddTemporaryNurses}
           neededNurseCount={neededNurseCount}
           currentNurseCount={nurses.length}
         />

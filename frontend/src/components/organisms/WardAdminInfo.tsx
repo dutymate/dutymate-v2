@@ -16,6 +16,7 @@ import {
   WardInfo,
 } from '@/services/wardService';
 import useUserAuthStore from '@/stores/userAuthStore';
+import { MAX_TOTAL_NURSES, MAX_TEMP_NURSES } from '@/pages/WardAdmin';
 
 interface WardAdminInfoProps {
   wardInfo: WardInfo;
@@ -81,6 +82,24 @@ const WardAdminInfo = ({ wardInfo, onAddTempNurse }: WardAdminInfoProps) => {
   const { userInfo } = useUserAuthStore();
   const isDemo = userInfo?.isDemo;
 
+  const handleOpenTempModal = () => {
+    const currentTempNurses =
+      wardInfo.nurses?.filter((nurse) => !nurse.isSynced)?.length || 0;
+    const totalNurses = wardInfo.nursesTotalCnt;
+
+    if (totalNurses >= MAX_TOTAL_NURSES) {
+      toast.warning('병동 최대 인원(30명)을 초과할 수 없습니다.');
+      return;
+    }
+
+    if (currentTempNurses >= MAX_TEMP_NURSES) {
+      toast.warning('임시 간호사는 최대 20명까지만 추가할 수 있습니다.');
+      return;
+    }
+
+    setIsTempModalOpen(true);
+  };
+
   return (
     <div className="w-full">
       <div className="bg-white rounded-[1.15rem] p-4">
@@ -110,10 +129,7 @@ const WardAdminInfo = ({ wardInfo, onAddTempNurse }: WardAdminInfoProps) => {
               <h3 className="text-[0.95rem] text-gray-600 font-medium">
                 병동 인원
               </h3>
-              <TempNurseButton
-                onClick={() => setIsTempModalOpen(true)}
-                isDemo={isDemo}
-              />
+              <TempNurseButton onClick={handleOpenTempModal} isDemo={isDemo} />
             </div>
             <p className="font-semibold border border-gray-300 rounded-[0.375rem] px-3 py-1 text-center">
               {wardInfo.nursesTotalCnt}명
@@ -215,6 +231,9 @@ const WardAdminInfo = ({ wardInfo, onAddTempNurse }: WardAdminInfoProps) => {
         onClose={() => setIsTempModalOpen(false)}
         onConfirm={handleTempNurseAdd}
         currentNurseCount={wardInfo.nursesTotalCnt}
+        currentTempNurses={
+          wardInfo.nurses?.filter((nurse) => !nurse.isSynced)?.length || 0
+        }
       />
     </div>
   );

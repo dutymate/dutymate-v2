@@ -14,6 +14,10 @@ import { useLoadingStore } from '@/stores/loadingStore';
 import useUserAuthStore from '@/stores/userAuthStore';
 import useWardStore from '@/stores/wardStore';
 
+// 병동 관련 상수
+export const MAX_TOTAL_NURSES = 30; // 병동 최대 인원
+export const MAX_TEMP_NURSES = 20; // 최대 임시 간호사 수
+
 const WardAdmin = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
