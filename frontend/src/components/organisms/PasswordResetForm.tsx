@@ -362,8 +362,9 @@ const PasswordResetForm = () => {
       </form>
 
       <div className="text-center mt-[1rem]">
+        <span className="text-gray-600">변경하지 않고 </span>
         <Link to="/login" className="text-primary-dark hover:underline">
-          로그인 페이지로 돌아가기
+          로그인하기
         </Link>
       </div>
     </div>
