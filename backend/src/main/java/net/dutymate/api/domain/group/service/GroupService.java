@@ -1,14 +1,17 @@
 package net.dutymate.api.domain.group.service;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,6 +25,7 @@ import net.dutymate.api.domain.group.NurseGroup;
 import net.dutymate.api.domain.group.dto.GroupCreateRequestDto;
 import net.dutymate.api.domain.group.dto.GroupDetailResponseDto;
 import net.dutymate.api.domain.group.dto.GroupImgResponseDto;
+import net.dutymate.api.domain.group.dto.GroupInviteResponseDto;
 import net.dutymate.api.domain.group.dto.GroupListResponseDto;
 import net.dutymate.api.domain.group.dto.GroupMemberListResponseDto;
 import net.dutymate.api.domain.group.dto.GroupUpdateRequestDto;
@@ -44,12 +48,16 @@ public class GroupService {
 	private final GroupRepository groupRepository;
 	private final GroupMemberRepository groupMemberRepository;
 	private final MemberScheduleRepository memberScheduleRepository;
+	private final RedisTemplate<String, String> redisTemplate;
 
 	@Value("${cloud.aws.region.static}")
 	private String region;
 
 	@Value("${cloud.aws.s3.bucket}")
 	private String bucket;
+
+	@Value("${app.base-url}")
+	private String baseUrl;
 
 	@Transactional
 	public void createGroup(GroupCreateRequestDto groupCreateRequestDto, Member member) {
@@ -282,4 +290,35 @@ public class GroupService {
 		requesterGroupMember.getGroup().getGroupMemberList().remove(targetGroupMember);
 		groupMemberRepository.delete(targetGroupMember);
 	}
+
+	@Transactional
+	public GroupInviteResponseDto createInvitationGroupLink(Member member, Long groupId) {
+
+		// 1. 그룹 존재 여부 확인하기
+		NurseGroup group = groupRepository.findById(groupId)
+			.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "그룹이 존재하지 않습니다."));
+
+		// 2. 그룹 멤버인지 확인
+		group.validateMember(member);
+
+		// // 3. 그룹장인지 확인하기
+		// GroupMember groupMember = group.getGroupMemberList()
+		// 	.stream()
+		// 	.filter(gm -> gm.getMember().equals(member))
+		// 	.findFirst()
+		// 	.orElseThrow(()-> new ResponseStatusException(HttpStatus.BAD_REQUEST, "그룹 멤버가 아닙니다."));
+		//
+		// if(!groupMember.getIsLeader()){
+		// 	throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "그룹장만 초대할 수 있습니다.");
+		// }
+
+		// 4. 그룹 초대 링크 Token으로 만들어 Redis에 24시간 동안 저장하기
+		String token = UUID.randomUUID().toString();
+
+		redisTemplate.opsForValue().set("invite:" + token, groupId.toString(), Duration.ofHours(24));
+
+		String inviteLink = baseUrl + "/invite/" + token;
+		return GroupInviteResponseDto.from(inviteLink, group);
+	}
+
 }

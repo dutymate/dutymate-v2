@@ -14,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import net.dutymate.api.domain.common.utils.YearMonth;
 import net.dutymate.api.domain.group.dto.GroupCreateRequestDto;
+import net.dutymate.api.domain.group.dto.GroupInviteResponseDto;
 import net.dutymate.api.domain.group.dto.GroupUpdateRequestDto;
 import net.dutymate.api.domain.group.service.GroupService;
 import net.dutymate.api.domain.member.Member;
@@ -77,5 +78,10 @@ public class GroupController {
 		@PathVariable("memberId") Long memberId) {
 		groupService.removeGroupMember(member, groupId, memberId);
 		return ResponseEntity.ok().build();
+	}
+
+	@PostMapping("/{groupId}/invite-link")
+	public ResponseEntity<GroupInviteResponseDto> createInvitationGroupLink(@Auth Member member, @PathVariable Long groupId){
+		return ResponseEntity.ok(groupService.createInvitationGroupLink(member, groupId));
 	}
 }

@@ -110,8 +110,13 @@ api:
     secret: ${API_NEWS_SECRET}
   holiday:
     secret: ${API_HOLIDAY_SECRET}
+
 #공공데이터 포털 키
   data:
     go:
       kr:
         key: ${API_GO_DATA_KR_KEY}
+
+# 초대 링크 보내기
+app :
+  base-url: ${APP_BASE_URL}
