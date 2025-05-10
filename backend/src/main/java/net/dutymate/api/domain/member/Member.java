@@ -174,4 +174,8 @@ public class Member {
 		this.enterYear = null;
 		this.enterMonth = null;
 	}
+
+	public YearMonth enterYearMonth() {
+		return new YearMonth(this.enterYear, this.enterMonth);
+	}
 }

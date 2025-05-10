@@ -9,10 +9,14 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
 
 import net.dutymate.api.domain.autoschedule.Shift;
+import net.dutymate.api.domain.common.utils.YearMonth;
 import net.dutymate.api.domain.member.Member;
 import net.dutymate.api.domain.ward.Ward;
+import net.dutymate.api.domain.wardschedules.collections.MemberSchedule;
 import net.dutymate.api.domain.wardschedules.collections.WardSchedule;
+import net.dutymate.api.domain.wardschedules.repository.MemberScheduleRepository;
 import net.dutymate.api.domain.wardschedules.repository.WardScheduleRepository;
+import net.dutymate.api.domain.wardschedules.service.WardScheduleService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -21,7 +25,7 @@ import lombok.RequiredArgsConstructor;
 public class ShiftUtil {
 
 	private final WardScheduleRepository wardScheduleRepository;
-	private final InitialDutyGenerator initialDutyGenerator;
+	private final MemberScheduleRepository memberScheduleRepository;
 
 	// 병동 스케줄에서 Shift 조회 메서드
 	public Shift getShift(int year, int month, int date, Member member) {
@@ -58,14 +62,15 @@ public class ShiftUtil {
 			.build()));
 
 		// 새로 만들 스냅샷에 수정사항 반영
-		newDuty.stream()
-			.filter(prev -> Objects.equals(prev.getMemberId(), member.getMemberId()))
-			.forEach(prev -> {
+		String updatedShifts = null;
+		for (WardSchedule.NurseShift prev : newDuty) {
+			if (Objects.equals(prev.getMemberId(), member.getMemberId())) {
 				String before = prev.getShifts();
-				String after = before.substring(0, date - 1) + shift + before.substring(date);
+				updatedShifts = before.substring(0, date - 1) + shift + before.substring(date);
 
-				prev.changeShifts(after);
-			});
+				prev.changeShifts(updatedShifts);
+			}
+		}
 
 		// 기존 병동 스케줄에 새로운 스냅샷 추가 및 저장
 		wardSchedule.getDuties().add(WardSchedule.Duty.builder()
@@ -84,5 +89,16 @@ public class ShiftUtil {
 
 		wardSchedule.setNowIdx(wardSchedule.getNowIdx() + 1);
 		wardScheduleRepository.save(wardSchedule);
+
+		// 병동 듀티 -> 개인 듀티 : 연동 작업
+		YearMonth yearMonth = new YearMonth(year, month);
+		if (updatedShifts != null && yearMonth.isSameOrAfter(member.enterYearMonth())) {
+			MemberSchedule memberSchedule = memberScheduleRepository
+				.findByMemberIdAndYearAndMonth(member.getMemberId(), year, month)
+				.orElseGet(() -> WardScheduleService.createBlankMemberSchedule(member.getMemberId(), yearMonth));
+
+			memberSchedule.setShifts(updatedShifts);
+			memberScheduleRepository.save(memberSchedule);
+		}
 	}
 }

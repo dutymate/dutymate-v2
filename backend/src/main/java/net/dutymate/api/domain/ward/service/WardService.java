@@ -35,6 +35,7 @@ import net.dutymate.api.domain.ward.repository.WardRepository;
 import net.dutymate.api.domain.wardmember.Role;
 import net.dutymate.api.domain.wardmember.WardMember;
 import net.dutymate.api.domain.wardmember.repository.WardMemberRepository;
+import net.dutymate.api.domain.wardschedules.collections.MemberSchedule;
 import net.dutymate.api.domain.wardschedules.collections.WardSchedule;
 import net.dutymate.api.domain.wardschedules.repository.MemberScheduleRepository;
 import net.dutymate.api.domain.wardschedules.repository.WardScheduleRepository;
@@ -56,6 +57,7 @@ public class WardService {
 	private final HospitalRepository hospitalRepository;
 	private final WardScheduleService wardScheduleService;
 	private final MemberService memberService;
+	private final MemberScheduleRepository memberScheduleRepository;
 
 	@Transactional
 	public void createWard(WardRequestDto requestWardDto, Member member) {
@@ -173,7 +175,30 @@ public class WardService {
 		enterWaitingRepository.removeByMemberAndWard(enterMember, ward);
 
 		// 입장한 멤버 입장 연월 설정
-		enterMember.changeEnterYearMonth(YearMonth.nowYearMonth());
+		YearMonth nowYearMonth = YearMonth.nowYearMonth();
+		enterMember.changeEnterYearMonth(nowYearMonth);
+
+		List<WardSchedule> allWardSchedule = wardScheduleRepository.findAllByWardId(ward.getWardId());
+
+		// TODO conflict 해결에서 선택된 듀티표를 현재 연월의 wardSchedule에 반영하는 기능 추가 필요
+		// 1. 현재 연월 wardSchedule 조회 후
+		// 2. 선택된 듀티표로 nurseShift 업데이트, history 초기화(개인 듀티 선택 시)
+
+		List<MemberSchedule> memberSchedulesToSave = new ArrayList<>();
+		for (WardSchedule wardSchedule : allWardSchedule) {
+			YearMonth wardScheduleYearMonth = new YearMonth(wardSchedule.getYear(), wardSchedule.getMonth());
+			// 입장 연월 이후의 병동 스케줄 -> 멤버 스케줄 연동 (덮어쓰기)
+			if (wardScheduleYearMonth.isSameOrAfter(nowYearMonth)) {
+				MemberSchedule memberSchedule
+					= wardScheduleService.getOrCreateMemberSchedule(enterMember.getMemberId(), wardScheduleYearMonth);
+				String updatedShifts = wardScheduleService.getShiftsInWard(enterMember, wardSchedule,
+					wardScheduleYearMonth.daysInMonth());
+				memberSchedule.setShifts(updatedShifts);
+				memberSchedulesToSave.add(memberSchedule);
+			}
+		}
+		memberScheduleRepository.saveAll(memberSchedulesToSave);
+
 	}
 
 	@Transactional
@@ -200,19 +225,28 @@ public class WardService {
 		Member linkedTempMember = memberRepository.findById(tempLinkRequestDto.getTempMemberId())
 			.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "임시 간호사를 찾을 수 없습니다."));
 
-		// 임시 멤버 정보를 입장 멤버로 변경
+		// 입장 멤버 정보를 임시 멤버로 변경
 		enterMember.linkMember(linkedTempMember);
 		WardMember wardMember = linkedTempMember.getWardMember();
 		wardMember.changeIsSynced(true);
 		wardMember.changeMember(enterMember);
 
-		// 병동 스케줄에서 memberId 변경
+		// 입장한 멤버 입장 연월 설정
+		YearMonth nowYearMonth = YearMonth.nowYearMonth();
+		enterMember.changeEnterYearMonth(nowYearMonth);
+
+		// 병동 스케줄 순회
 		List<WardSchedule> allWardSchedule = wardScheduleRepository.findAllByWardId(ward.getWardId());
+
+		// TODO conflict 해결에서 선택된 듀티표를 현재 연월의 wardSchedule에 반영하는 기능 추가 필요
+		// 1. 현재 연월 wardSchedule 조회 후
+		// 2. 선택된 듀티표로 nurseShift 업데이트, history 초기화(개인 듀티 선택 시)
+
+		List<MemberSchedule> memberSchedulesToSave = new ArrayList<>();
 		for (WardSchedule wardSchedule : allWardSchedule) {
-			List<WardSchedule.Duty> duties = wardSchedule.getDuties();
-			for (WardSchedule.Duty duty : duties) {
-				List<WardSchedule.NurseShift> nurseShifts = duty.getDuty();
-				for (WardSchedule.NurseShift nurseShift : nurseShifts) {
+			// 1. 병동 스케줄에서 memberId 변경
+			for (WardSchedule.Duty duty : wardSchedule.getDuties()) {
+				for (WardSchedule.NurseShift nurseShift : duty.getDuty()) {
 					if (Objects.equals(nurseShift.getMemberId(), linkedTempMember.getMemberId())) {
 						nurseShift.setMemberId(enterMemberId);
 					}
@@ -221,14 +255,24 @@ public class WardService {
 					duty.getHistory().setMemberId(enterMemberId);
 				}
 			}
+
+			YearMonth wardScheduleYearMonth = new YearMonth(wardSchedule.getYear(), wardSchedule.getMonth());
+
+			// 입장 연월 이후의 병동 스케줄 -> 멤버 스케줄 연동 (덮어쓰기)
+			if (wardScheduleYearMonth.isSameOrAfter(nowYearMonth)) {
+				MemberSchedule memberSchedule
+					= wardScheduleService.getOrCreateMemberSchedule(enterMember.getMemberId(), wardScheduleYearMonth);
+				String updatedShifts = wardScheduleService.getShiftsInWard(enterMember, wardSchedule,
+					wardScheduleYearMonth.daysInMonth());
+				memberSchedule.setShifts(updatedShifts);
+				memberSchedulesToSave.add(memberSchedule);
+			}
 		}
 		wardScheduleRepository.saveAll(allWardSchedule);
+		memberScheduleRepository.saveAll(memberSchedulesToSave);
 
 		// 병동 입장을 승인 or 거절하는 경우 모두 입장 대기 테이블에서 삭제시켜야 함
 		enterWaitingRepository.removeByMemberAndWard(enterMember, ward);
-
-		// 입장한 멤버 입장 연월 설정
-		enterMember.changeEnterYearMonth(YearMonth.nowYearMonth());
 
 		// 임시 멤버는 테이블에서 삭제
 		memberRepository.delete(linkedTempMember);

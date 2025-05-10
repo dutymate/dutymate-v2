@@ -8,31 +8,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.IntStream;
 
-import org.springframework.stereotype.Component;
-
 import net.dutymate.api.domain.autoschedule.Shift;
-import net.dutymate.api.domain.member.service.MemberService;
+import net.dutymate.api.domain.rule.Rule;
 import net.dutymate.api.domain.rule.dto.RuleResponseDto;
-import net.dutymate.api.domain.rule.service.RuleService;
 import net.dutymate.api.domain.wardschedules.dto.WardScheduleResponseDto;
 
-import lombok.RequiredArgsConstructor;
-
-@Component
-@RequiredArgsConstructor
 public class DutyAutoCheck {
 
 	private static final String NIGHT_SHIFT_VIOLATION_MESSAGE = "Night 근무 규칙을 위반했습니다.";
 	private static final String MAX_SHIFT_VIOLATION_MESSAGE = "최대 근무일 규칙을 위반했습니다.";
 	private static final String[] FORBIDDEN_PATTERNS = {"ND", "NE", "ED", "NOD", "NM", "EM", "NOM"};
-	private final RuleService ruleService;
-	private final MemberService memberService;
 
-	public List<WardScheduleResponseDto.Issue> check(List<WardScheduleResponseDto.NurseShifts> nurseShiftsDto, int year,
-		int month) {
+	public static List<WardScheduleResponseDto.Issue> check(List<WardScheduleResponseDto.NurseShifts> nurseShiftsDto,
+		Rule wardRule) {
 		List<WardScheduleResponseDto.Issue> issues = new ArrayList<>();
-		RuleResponseDto rule = ruleService.getRule(
-			memberService.getMemberById(nurseShiftsDto.getFirst().getMemberId()));
+		RuleResponseDto rule = RuleResponseDto.of(wardRule);
 
 		for (WardScheduleResponseDto.NurseShifts ns : nurseShiftsDto) {
 			List<WardScheduleResponseDto.Issue> personalIssues = checkPersonalDuty(ns, rule);
@@ -44,7 +34,7 @@ public class DutyAutoCheck {
 		return issues;
 	}
 
-	private List<WardScheduleResponseDto.Issue> checkPersonalDuty(WardScheduleResponseDto.NurseShifts ns,
+	private static List<WardScheduleResponseDto.Issue> checkPersonalDuty(WardScheduleResponseDto.NurseShifts ns,
 		RuleResponseDto rule) {
 
 		List<WardScheduleResponseDto.Issue> result = new ArrayList<>();
@@ -59,7 +49,7 @@ public class DutyAutoCheck {
 		return result;
 	}
 
-	private void nightIssuesGenerator(Long memberId, String name, int prevShiftsDay,
+	private static void nightIssuesGenerator(Long memberId, String name, int prevShiftsDay,
 		String shifts, RuleResponseDto rule, List<WardScheduleResponseDto.Issue> issues) {
 
 		// 월 경계에 걸친 야간 연속 근무 체크
@@ -134,7 +124,7 @@ public class DutyAutoCheck {
 		}
 	}
 
-	private void maxShiftsIssuesGenerator(Long memberId, String name, int prevShiftsDay,
+	private static void maxShiftsIssuesGenerator(Long memberId, String name, int prevShiftsDay,
 		String shifts, RuleResponseDto rule, List<WardScheduleResponseDto.Issue> issues) {
 
 		// 첫 번째 검사: 이전 달에서 이어지는 연속 근무 체크
@@ -208,11 +198,11 @@ public class DutyAutoCheck {
 		}
 	}
 
-	private boolean isWorkingShift(char shift) {
+	private static boolean isWorkingShift(char shift) {
 		return shift == 'D' || shift == 'E' || shift == 'N' || shift == 'M';
 	}
 
-	private void specificPatternIssuesGenerator(Long memberId, String name, int prevShiftsDay,
+	private static void specificPatternIssuesGenerator(Long memberId, String name, int prevShiftsDay,
 		String shifts, List<WardScheduleResponseDto.Issue> issues) {
 
 		for (String pattern : FORBIDDEN_PATTERNS) {
