@@ -81,7 +81,14 @@ public class GroupController {
 	}
 
 	@PostMapping("/{groupId}/invite-link")
-	public ResponseEntity<GroupInviteResponseDto> createInvitationGroupLink(@Auth Member member, @PathVariable Long groupId){
+	public ResponseEntity<GroupInviteResponseDto> createInvitationGroupLink(@Auth Member member,
+		@PathVariable Long groupId) {
 		return ResponseEntity.ok(groupService.createInvitationGroupLink(member, groupId));
+	}
+
+	@PostMapping("/invite/{inviteToken}/join")
+	public ResponseEntity<?> joinGroupInvite(@Auth Member member, @PathVariable String inviteToken) {
+		groupService.acceptInviteToken(member, inviteToken);
+		return ResponseEntity.ok().build();
 	}
 }

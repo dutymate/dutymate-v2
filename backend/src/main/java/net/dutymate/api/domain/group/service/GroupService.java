@@ -291,6 +291,7 @@ public class GroupService {
 		groupMemberRepository.delete(targetGroupMember);
 	}
 
+	// 초대 링크 생성하기
 	@Transactional
 	public GroupInviteResponseDto createInvitationGroupLink(Member member, Long groupId) {
 
@@ -321,4 +322,35 @@ public class GroupService {
 		return GroupInviteResponseDto.from(inviteLink, group);
 	}
 
+	// 초대 링크 클릭 시 -> 그룹 멤버로 초대하기
+	@Transactional
+	public void acceptInviteToken(Member member, String inviteToken) {
+
+		// 1. 유효한 링크인지 확인
+		String groupIdStr = redisTemplate.opsForValue().get("invite:" + inviteToken);
+
+		if (groupIdStr == null) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "초대 링크가 유효하지 않습니다.");
+		}
+
+		// 2. 유효한 그룹인지 확인
+		Long groupId = Long.parseLong(groupIdStr);
+		NurseGroup group = groupRepository.findById(groupId)
+			.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "그룹이 존재하지 않습니다."));
+
+		// 3. 그룹 가입 여부 확인
+		if (group.isMember(member.getMemberId())) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "이미 그룹에 가입되어 있습니다.");
+		}
+
+		// 4. 그룹 멤버로 추가하기
+		GroupMember groupMember = GroupMember.builder()
+			.group(group)
+			.member(member)
+			.isLeader(false)
+			.build();
+
+		group.addGroupMember(groupMember);
+		groupMemberRepository.save(groupMember);
+	}
 }
