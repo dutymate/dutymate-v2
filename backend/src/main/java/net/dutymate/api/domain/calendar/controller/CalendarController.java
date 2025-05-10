@@ -20,6 +20,7 @@ import net.dutymate.api.domain.calendar.service.CalendarService;
 import net.dutymate.api.domain.member.Member;
 import net.dutymate.api.global.auth.annotation.Auth;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -42,14 +43,14 @@ public class CalendarController {
 	}
 
 	@PostMapping
-	public ResponseEntity<?> createCalendar(@Auth Member member, @RequestBody CalendarRequestDto request) {
+	public ResponseEntity<?> createCalendar(@Auth Member member, @RequestBody @Valid CalendarRequestDto request) {
 		calendarService.createCalendar(member, request);
 		return ResponseEntity.ok().build();
 	}
 
 	@PutMapping("/{calendarId}")
 	public ResponseEntity<?> updateCalendar(
-		@Auth Member member, @PathVariable Long calendarId, @RequestBody CalendarRequestDto request) {
+		@Auth Member member, @PathVariable Long calendarId, @RequestBody @Valid CalendarRequestDto request) {
 		calendarService.updateCalendar(member, calendarId, request);
 		return ResponseEntity.ok().build();
 	}

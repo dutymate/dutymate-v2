@@ -6,18 +6,16 @@ import java.time.LocalDateTime;
 import net.dutymate.api.domain.calendar.entity.Calendar;
 import net.dutymate.api.domain.member.Member;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @Data
 public class CalendarRequestDto {
 
+	@Size(max = 30, message = "일정은 최대 30자까지만 입력 가능합니다.")
 	private String title;
 	private String place;
+	@Size(max = 6, message = "색상코드는 6자리까지만 입력 가능합니다.")
 	private String color;
 	private Boolean isAllDay;
 	private LocalDate date;
