@@ -62,6 +62,11 @@ const GroupMemberPage = () => {
     img: string;
   }) => {
     setGroupInfo({ ...groupInfo, ...data });
+    // 전역 groups 배열도 업데이트
+    const idx = groups.findIndex((g) => g.id === groupInfo.id);
+    if (idx !== -1) {
+      groups[idx] = { ...groups[idx], ...data };
+    }
     setEditModalOpen(false);
     // 실제로는 서버에 PATCH 요청 등 필요
   };
