@@ -56,6 +56,21 @@ module.exports = {
       fontFamily: {
         pretendard: ['Pretendard', 'system-ui', 'sans-serif'],
       },
+      // 그룹 페이지 애니메이션
+      keyframes: {
+        slideup: {
+          '0%': { transform: 'translateY(100%)' },
+          '100%': { transform: 'translateY(0)' }
+        },
+        fadein: {
+          '0%': { opacity: '0' },
+          '100%': { opacity: '1' }
+        }
+      },
+      animation: {
+        'slideup': 'slideup 0.3s ease-out',
+        'fadein': 'fadein 0.2s ease-out'
+      }
     },
   },
   plugins: [],

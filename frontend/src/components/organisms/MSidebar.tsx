@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { BiSolidUserPin } from 'react-icons/bi';
-import { FaHospital } from 'react-icons/fa';
+import { FaHospital, FaCoffee } from 'react-icons/fa';
 import { HiOutlineUsers } from 'react-icons/hi2';
 import { IoIosChatboxes } from 'react-icons/io';
 import { IoCloseOutline } from 'react-icons/io5';
@@ -27,6 +27,7 @@ const headNurseNavigation: NavigationItem[] = [
   { name: '나의 듀티표', href: '/my-shift', icon: BiSolidUserPin },
   { name: '병동 듀티표', href: '/team-shift', icon: HiOutlineUsers },
   { name: '커뮤니티', href: '/community', icon: IoIosChatboxes },
+  { name: '친구 찾기', href: '/group', icon: FaCoffee },
   { name: '튜토리얼', href: '/tutorial', icon: PiLightbulbFilamentFill },
 ];
 
@@ -35,6 +36,7 @@ const staffNurseNavigation: NavigationItem[] = [
   { name: '나의 듀티표', href: '/my-shift', icon: BiSolidUserPin },
   { name: '병동 듀티표', href: '/team-shift', icon: HiOutlineUsers },
   { name: '커뮤니티', href: '/community', icon: IoIosChatboxes },
+  { name: '친구 찾기', href: '/group', icon: FaCoffee },
   { name: '튜토리얼', href: '/tutorial', icon: PiLightbulbFilamentFill },
 ];
 

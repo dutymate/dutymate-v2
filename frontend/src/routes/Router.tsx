@@ -97,6 +97,8 @@ const Router = () => {
         path="/community/write"
         element={<ProtectedRoute element={<CommunityWritePage />} />}
       />
+
+      {/* 그룹 관련 페이지 */}
       <Route
         path="/group"
         element={<ProtectedRoute element={<NurseGroupPage />} />}
@@ -109,6 +111,7 @@ const Router = () => {
         path="/group/:groupId/member"
         element={<ProtectedRoute element={<GroupMemberPage />} />}
       />
+
       <Route
         path="/req-admin"
         element={<ProtectedRoute element={<ReqAdmin />} />}

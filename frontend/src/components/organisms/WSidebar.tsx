@@ -3,7 +3,7 @@
 import React, { useEffect } from 'react';
 import { AiFillSchedule } from 'react-icons/ai';
 import { BiSolidUserPin } from 'react-icons/bi';
-import { FaHospital } from 'react-icons/fa';
+import { FaHospital, FaCoffee } from 'react-icons/fa';
 import { HiOutlineUsers } from 'react-icons/hi2';
 import { IoIosChatboxes } from 'react-icons/io';
 import { PiLightbulbFilamentFill } from 'react-icons/pi';
@@ -51,6 +51,7 @@ const headNurseNavigation: NavigationItem[] = [
   { name: '나의 듀티표', href: '/my-shift', icon: BiSolidUserPin },
   { name: '병동 듀티표', href: '/team-shift', icon: HiOutlineUsers },
   { name: '커뮤니티', href: '/community', icon: IoIosChatboxes },
+  { name: '친구 찾기', href: '/group', icon: FaCoffee },
   { name: '튜토리얼', href: '/tutorial', icon: PiLightbulbFilamentFill },
 ];
 
@@ -59,6 +60,7 @@ const staffNurseNavigation: NavigationItem[] = [
   { name: '나의 듀티표', href: '/my-shift', icon: BiSolidUserPin },
   { name: '병동 듀티표', href: '/team-shift', icon: HiOutlineUsers },
   { name: '커뮤니티', href: '/community', icon: IoIosChatboxes },
+  { name: '친구 찾기', href: '/group', icon: FaCoffee },
   { name: '튜토리얼', href: '/tutorial', icon: PiLightbulbFilamentFill },
 ];
 
