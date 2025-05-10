@@ -22,6 +22,9 @@ import Signup from '@/pages/Signup';
 import TeamShift from '@/pages/TeamShift';
 import WardAdmin from '@/pages/WardAdmin';
 import useUserAuthStore from '@/stores/userAuthStore';
+import NurseGroupPage from '@/pages/Group/NurseGroupPage';
+import GroupDetailPage from '@/pages/Group/GroupDetailPage';
+import GroupMemberPage from '@/pages/Group/GroupMemberPage';
 
 interface ProtectedRouteProps {
   element: ReactElement;
@@ -95,6 +98,18 @@ const Router = () => {
         element={<ProtectedRoute element={<CommunityWritePage />} />}
       />
       <Route
+        path="/group"
+        element={<ProtectedRoute element={<NurseGroupPage />} />}
+      />
+      <Route
+        path="/group/:groupId"
+        element={<ProtectedRoute element={<GroupDetailPage />} />}
+      />
+      <Route
+        path="/group/:groupId/member"
+        element={<ProtectedRoute element={<GroupMemberPage />} />}
+      />
+      <Route
         path="/req-admin"
         element={<ProtectedRoute element={<ReqAdmin />} />}
       />
@@ -106,7 +121,6 @@ const Router = () => {
         path="/my-page"
         element={<ProtectedRoute element={<Mypage />} />}
       />
-
       {/* 이스터에그 */}
       <Route path="/game" element={<ProtectedRoute element={<Game />} />} />
 

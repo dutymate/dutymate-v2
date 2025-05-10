@@ -8,6 +8,7 @@ import { IoIosChatboxes } from 'react-icons/io';
 import { IoCloseOutline } from 'react-icons/io5';
 import { PiLightbulbFilamentFill } from 'react-icons/pi';
 import { Link, useNavigate } from 'react-router-dom';
+// import { FaCoffee } from 'react-icons/fa';
 
 import Profile from '@/components/atoms/Profile';
 import { useRequestCountStore } from '@/stores/requestCountStore';
