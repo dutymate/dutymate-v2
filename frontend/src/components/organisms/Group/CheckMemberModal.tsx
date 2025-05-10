@@ -5,6 +5,7 @@ import ShareDateModal from './ShareDateModal';
 import { useState } from 'react';
 
 interface Member {
+  memberId: number;
   name: string;
   isLeader?: boolean;
 }
@@ -62,7 +63,7 @@ const CheckMemberModal: React.FC<CheckMemberModalProps> = ({
         <div className="flex flex-wrap gap-2 mb-7 max-[1023px]:justify-center">
           {members.map((m) => (
             <button
-              key={m.name}
+              key={m.memberId}
               className={`
                 flex items-center px-4 py-1.5 rounded-xl border text-sm font-semibold transition
                 ${

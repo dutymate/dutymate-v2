@@ -7,75 +7,110 @@ import CheckMemberModal from '@/components/organisms/Group/CheckMemberModal';
 import EditGroupModal from '@/components/organisms/Group/EditGroupModal';
 import InviteMemberModal from '@/components/organisms/Group/InviteMemberModal';
 import ExitGroupModal from '@/components/organisms/Group/ExitGroupModal';
+import RemoveMemberModal from '@/components/organisms/Group/RemoveMemberModal';
 import { useState } from 'react';
 import { groups } from './NurseGroupPage';
 import useUserAuthStore from '@/stores/userAuthStore';
 
 interface Member {
+  memberId: number;
   name: string;
   isLeader?: boolean;
-  joinedAt: string;
+  createdAt: string;
 }
 
 const GroupMemberPage = () => {
   const { groupId } = useParams();
   const navigate = useNavigate();
   const { userInfo } = useUserAuthStore();
-  const group = groups.find((g) => String(g.id) === String(groupId));
+  const group = groups.find((g) => String(g.groupId) === String(groupId));
   const [checkMemberOpen, setCheckMemberOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [inviteModalOpen, setInviteModalOpen] = useState(false);
   const [exitModalOpen, setExitModalOpen] = useState(false);
   const [groupInfo, setGroupInfo] = useState(group);
+  const [removeModalOpen, setRemoveModalOpen] = useState(false);
+  const [removeTargetName, setRemoveTargetName] = useState<string | undefined>(
+    undefined
+  );
 
   if (!groupInfo) return <div>그룹을 찾을 수 없습니다.</div>;
 
   const members: Member[] =
-    groupInfo.count === 1
+    groupInfo.groupMemberCount === 1
       ? [
           {
+            memberId: 1,
             name: userInfo?.name || '나',
             isLeader: true,
-            joinedAt: new Date().toISOString().slice(0, 10),
+            createdAt: new Date().toISOString().slice(0, 10),
           },
         ]
       : [
-          { name: '임태호', isLeader: true, joinedAt: '2025-05-05' },
-          { name: '김서현', joinedAt: '2025-05-05' },
-          { name: '김현진', joinedAt: '2025-05-05' },
-          { name: '이재현', joinedAt: '2025-05-05' },
-          { name: '한종우', joinedAt: '2025-05-05' },
-          { name: '김민성', joinedAt: '2025-05-05' },
+          {
+            memberId: 1,
+            name: '임태호',
+            isLeader: true,
+            createdAt: '2025-05-05',
+          },
+          { memberId: 2, name: '김서현', createdAt: '2025-05-05' },
+          { memberId: 3, name: '김현진', createdAt: '2025-05-05' },
+          { memberId: 4, name: '이재현', createdAt: '2025-05-05' },
+          { memberId: 5, name: '한종우', createdAt: '2025-05-05' },
+          { memberId: 6, name: '김민성', createdAt: '2025-05-05' },
         ];
+
   const [selectedMembers, setSelectedMembers] = useState<string[]>(
     members.map((m) => m.name)
   );
 
+  const [localMembers, setLocalMembers] = useState<Member[]>(members);
+
   const handleKick = (name: string) => {
-    // 내보내기 로직
-    console.log('Kick member:', name);
+    setRemoveTargetName(name);
+    setRemoveModalOpen(true);
+  };
+
+  const handleRemoveMember = () => {
+    if (!removeTargetName || !groupInfo) return;
+    // 1. 멤버 삭제
+    const updatedMembers = members.filter((m) => m.name !== removeTargetName);
+    // 2. 인원수 감소
+    const updatedGroupInfo = {
+      ...groupInfo,
+      groupMemberCount: groupInfo.groupMemberCount - 1,
+    };
+    setGroupInfo(updatedGroupInfo);
+    // 3. 전역 groups 배열 동기화
+    const idx = groups.findIndex((g) => g.groupId === groupInfo.groupId);
+    if (idx !== -1) {
+      groups[idx] = {
+        ...groups[idx],
+        groupMemberCount: updatedGroupInfo.groupMemberCount,
+      };
+    }
+    // 4. members 배열 동기화 (로컬)
+    setLocalMembers(updatedMembers);
+    setRemoveModalOpen(false);
+    setRemoveTargetName(undefined);
   };
 
   const handleEditGroup = (data: {
-    name: string;
-    desc: string;
-    img: string;
+    groupName: string;
+    groupDescription: string;
+    groupImg: string;
   }) => {
     setGroupInfo({ ...groupInfo, ...data });
-    // 전역 groups 배열도 업데이트
-    const idx = groups.findIndex((g) => g.id === groupInfo.id);
+    const idx = groups.findIndex((g) => g.groupId === groupInfo.groupId);
     if (idx !== -1) {
       groups[idx] = { ...groups[idx], ...data };
     }
     setEditModalOpen(false);
-    // 실제로는 서버에 PATCH 요청 등 필요
   };
 
   const handleLeave = () => {
-    // 그룹 나가기 로직
     if (groupInfo) {
-      // 전역 groups 배열에서 해당 그룹 삭제
-      const idx = groups.findIndex((g) => g.id === groupInfo.id);
+      const idx = groups.findIndex((g) => g.groupId === groupInfo.groupId);
       if (idx !== -1) {
         groups.splice(idx, 1);
       }
@@ -89,7 +124,6 @@ const GroupMemberPage = () => {
       subtitle="소속 인원과 정보를 관리할 수 있습니다."
     >
       <div className="space-y-3">
-        {/* ← 목록으로 버튼 */}
         <div className="flex mb-3">
           <button
             onClick={() => navigate(-1)}
@@ -98,18 +132,17 @@ const GroupMemberPage = () => {
             ← 목록으로
           </button>
         </div>
-        {/* 상단: 그룹 정보 */}
         <div className="bg-white rounded-xl p-4 shadow border">
           <div className="flex items-center gap-4 mb-3">
             <img
-              src={groupInfo.img}
-              alt={groupInfo.name}
+              src={groupInfo.groupImg}
+              alt={groupInfo.groupName}
               className="w-16 h-16 rounded-lg object-cover"
             />
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
                 <span className="font-bold text-base md:text-lg truncate">
-                  {groupInfo.name}
+                  {groupInfo.groupName}
                 </span>
                 <button
                   className="ml-1 p-1 rounded-full hover:bg-gray-100"
@@ -120,12 +153,12 @@ const GroupMemberPage = () => {
                   <HiOutlinePencil className="text-gray-400 text-lg" />
                 </button>
                 <span className="text-gray-500 text-sm">
-                  👥 {groupInfo.count}
+                  👥 {groupInfo.groupMemberCount}
                 </span>
               </div>
               <div className="flex items-center w-full mt-1">
                 <div className="text-xs md:text-base text-gray-400 truncate flex-1">
-                  {groupInfo.desc}
+                  {groupInfo.groupDescription}
                 </div>
                 <button
                   className="flex items-center border border-primary text-primary rounded px-2 py-1 text-xs md:text-base md:px-4 md:py-2 font-semibold bg-white hover:bg-primary-50 ml-2"
@@ -139,16 +172,14 @@ const GroupMemberPage = () => {
           </div>
         </div>
 
-        {/* 멤버 목록 */}
         <div className="bg-white rounded-xl p-4 shadow border">
-          {/* 헤더: 이름/가입날짜/내보내기 - 가운데 정렬 */}
           <div className="flex font-semibold text-gray-500 mb-3 justify-center text-center">
             <div className="w-1/3">이름</div>
             <div className="w-1/3">가입 날짜</div>
             <div className="w-1/3"></div>
           </div>
-          {members.map((m) => (
-            <div key={m.name} className="flex items-center mb-2">
+          {localMembers.map((m) => (
+            <div key={m.memberId} className="flex items-center mb-2">
               <div className="w-1/3 flex items-center md:pl-[1.5rem]">
                 {m.isLeader ? (
                   <span className="flex items-center bg-yellow-100 text-yellow-700 font-bold px-3 py-1 rounded-lg text-sm">
@@ -161,7 +192,7 @@ const GroupMemberPage = () => {
                 )}
               </div>
               <div className="w-1/3 text-center text-gray-500 text-sm">
-                {m.joinedAt}
+                {m.createdAt}
               </div>
               <div className="w-1/3 flex justify-end md:pr-[1.5rem]">
                 {!m.isLeader && (
@@ -177,7 +208,6 @@ const GroupMemberPage = () => {
           ))}
         </div>
 
-        {/* 그룹 나가기 버튼 */}
         <button
           className="w-full bg-white text-gray-700 font-semibold py-3 rounded-xl border border-gray-200 hover:bg-gray-50"
           type="button"
@@ -198,9 +228,9 @@ const GroupMemberPage = () => {
         onClose={() => setEditModalOpen(false)}
         onAddGroup={handleEditGroup}
         initialData={{
-          name: groupInfo.name,
-          desc: groupInfo.desc,
-          img: groupInfo.img,
+          groupName: groupInfo.groupName,
+          groupDescription: groupInfo.groupDescription,
+          groupImg: groupInfo.groupImg,
         }}
       />
       <InviteMemberModal
@@ -212,6 +242,12 @@ const GroupMemberPage = () => {
         onClose={() => setExitModalOpen(false)}
         isLeader={false}
         onExit={handleLeave}
+      />
+      <RemoveMemberModal
+        open={removeModalOpen}
+        onClose={() => setRemoveModalOpen(false)}
+        memberName={removeTargetName}
+        onRemove={handleRemoveMember}
       />
     </GroupLayout>
   );

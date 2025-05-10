@@ -8,13 +8,13 @@ const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
   open,
   onClose,
 }) => {
-  const link = window.location.href;
+  const inviteUrl = window.location.href;
   const [showModal, setShowModal] = useState(false);
   const [modalMessage, setModalMessage] = useState('');
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(link);
+      await navigator.clipboard.writeText(inviteUrl);
       setModalMessage('링크가 복사되었습니다!');
       setShowModal(true);
     } catch {
@@ -43,7 +43,7 @@ const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
           </button>
           <h2 className="text-lg font-bold mb-4">친구 초대 링크</h2>
           <div className="w-full bg-gray-100 rounded px-3 py-2 text-xs text-gray-700 break-all mb-4 text-center">
-            {link}
+            {inviteUrl}
           </div>
           <button
             className="w-full bg-primary text-white text-base font-bold py-2 rounded-xl shadow active:bg-primary-dark transition"

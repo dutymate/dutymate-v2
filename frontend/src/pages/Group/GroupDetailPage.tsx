@@ -15,24 +15,26 @@ import useUserAuthStore from '@/stores/userAuthStore';
 
 // 기존 더미 데이터 유지
 export const members = [
-  { name: '임태호', isLeader: true },
-  { name: '김서현' },
-  { name: '김현진' },
-  { name: '이재현' },
-  { name: '한종우' },
-  { name: '김민성' },
+  { memberId: 1, name: '임태호', isLeader: true },
+  { memberId: 2, name: '김서현' },
+  { memberId: 3, name: '김현진' },
+  { memberId: 4, name: '이재현' },
+  { memberId: 5, name: '한종우' },
+  { memberId: 6, name: '김민성' },
 ];
 
 type Member = {
+  memberId: number;
   name: string;
   isLeader?: boolean;
+  duty?: 'D' | 'E' | 'N' | 'O' | 'M';
 };
 
 const GroupDetailPage = () => {
   const { groupId } = useParams();
   const navigate = useNavigate();
   const [sortByName, setSortByName] = useState(true);
-  const group = groups.find((g) => String(g.id) === String(groupId));
+  const group = groups.find((g) => String(g.groupId) === String(groupId));
   const { userInfo } = useUserAuthStore();
   const [modalStep, setModalStep] = useState<
     'none' | 'check' | 'date' | 'share'
@@ -50,13 +52,15 @@ const GroupDetailPage = () => {
 
   // 멤버 배열 및 선택 상태 선언
   const [selectedMembers, setSelectedMembers] = useState<string[]>(
-    group?.count === 1 ? [userInfo?.name || '나'] : members.map((m) => m.name)
+    group?.groupMemberCount === 1
+      ? [userInfo?.name || '나']
+      : members.map((m) => m.name)
   );
 
   // 정렬된 멤버 목록 생성
   const sortedMembers =
-    group?.count === 1
-      ? [{ name: userInfo?.name || '나', isLeader: true }]
+    group?.groupMemberCount === 1
+      ? [{ memberId: 1, name: userInfo?.name || '나', isLeader: true }]
       : [...members].sort((a, b): number => {
           if (sortByName) {
             return a.name.localeCompare(b.name, 'ko');
@@ -86,7 +90,7 @@ const GroupDetailPage = () => {
       }
     };
 
-    if (group?.count === 1) {
+    if (group?.groupMemberCount === 1) {
       fetchDutyData();
     }
   }, [currentMonth, group]);
@@ -108,7 +112,7 @@ const GroupDetailPage = () => {
   // 듀티 데이터를 기반으로 캘린더 데이터 생성
   const generateMonthData = () => {
     // 새로 생성된 그룹(count === 1)인 경우 실제 듀티 데이터 사용
-    if (group.count === 1 && dutyData) {
+    if (group.groupMemberCount === 1 && dutyData) {
       const daysInMonth = new Date(dutyData.year, dutyData.month, 0).getDate();
       const data = [];
 
@@ -247,7 +251,7 @@ const GroupDetailPage = () => {
             <div className="lg:ml-4">
               <div className="flex items-center gap-2 sm:gap-1">
                 <span className="text-lg md:text-2xl font-bold max-[639px]:text-base">
-                  {group.name}
+                  {group.groupName}
                 </span>
                 <FaCog
                   className="text-gray-400 cursor-pointer text-lg md:text-2xl ml-2 md:ml-4 sm:text-base"
@@ -255,7 +259,7 @@ const GroupDetailPage = () => {
                 />
               </div>
               <div className="text-gray-400 text-xs md:text-base">
-                {group.desc}
+                {group.groupDescription}
               </div>
             </div>
             <button
@@ -279,9 +283,11 @@ const GroupDetailPage = () => {
               <IoIosArrowBack className="text-xl md:text-3xl sm:text-base max-[639px]:text-[0.9rem]" />
             </button>
             <span className="font-semibold text-lg md:text-2xl sm:text-base max-[639px]:text-[0.9rem]">
-              {group.count === 1 ? currentMonth.getFullYear() : 2025}년{' '}
+              {group.groupMemberCount === 1 ? currentMonth.getFullYear() : 2025}
+              년{' '}
               <span className="ml-1">
-                {group.count === 1 ? currentMonth.getMonth() + 1 : 5}월
+                {group.groupMemberCount === 1 ? currentMonth.getMonth() + 1 : 5}
+                월
               </span>
             </span>
             <button
@@ -294,7 +300,7 @@ const GroupDetailPage = () => {
           </div>
 
           {/* 이름순/근무순, 약속 날짜 정하기 */}
-          {group.count !== 1 && (
+          {group.groupMemberCount !== 1 && (
             <div className="flex gap-2 mb-2 items-center">
               <div className="flex items-center gap-0 text-gray-400 text-xs md:text-base font-medium select-none">
                 <span

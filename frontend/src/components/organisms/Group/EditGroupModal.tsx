@@ -4,11 +4,15 @@ import useMediaQuery from '@/hooks/useMediaQuery';
 interface EditGroupModalProps {
   open: boolean;
   onClose: () => void;
-  onAddGroup?: (group: { name: string; desc: string; img: string }) => void;
+  onAddGroup?: (group: {
+    groupName: string;
+    groupDescription: string;
+    groupImg: string;
+  }) => void;
   initialData?: {
-    name: string;
-    desc: string;
-    img: string;
+    groupName: string;
+    groupDescription: string;
+    groupImg: string;
   };
 }
 
@@ -26,16 +30,16 @@ const EditGroupModal: React.FC<EditGroupModalProps> = ({
   initialData,
 }) => {
   const isMobile = useMediaQuery('(max-width: 1023px)');
-  const [name, setName] = useState(initialData?.name || '');
-  const [desc, setDesc] = useState(initialData?.desc || '');
-  const [img, setImg] = useState<string | null>(initialData?.img || null);
+  const [name, setName] = useState(initialData?.groupName || '');
+  const [desc, setDesc] = useState(initialData?.groupDescription || '');
+  const [img, setImg] = useState<string | null>(initialData?.groupImg || null);
   const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
     if (!open) {
-      setName(initialData?.name || '');
-      setDesc(initialData?.desc || '');
-      setImg(initialData?.img || null);
+      setName(initialData?.groupName || '');
+      setDesc(initialData?.groupDescription || '');
+      setImg(initialData?.groupImg || null);
       setShowModal(false);
     }
   }, [open, initialData]);
@@ -64,7 +68,8 @@ const EditGroupModal: React.FC<EditGroupModalProps> = ({
     }
     const groupImg =
       img || RANDOM_IMAGES[Math.floor(Math.random() * RANDOM_IMAGES.length)];
-    onAddGroup && onAddGroup({ name, desc, img: groupImg });
+    onAddGroup &&
+      onAddGroup({ groupName: name, groupDescription: desc, groupImg });
     onClose();
   };
 
