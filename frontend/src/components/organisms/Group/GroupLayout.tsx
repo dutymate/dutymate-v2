@@ -3,10 +3,19 @@ import WSidebar from '@/components/organisms/WSidebar';
 import Title from '@/components/atoms/Title';
 import useUserAuthStore from '@/stores/userAuthStore';
 import { useState } from 'react';
+import { IoMdMenu } from 'react-icons/io';
+
+interface GroupLayoutProps {
+  children: React.ReactNode;
+  title?: string;
+  subtitle?: string;
+}
 
 export default function GroupLayout({
   children,
-}: { children: React.ReactNode }) {
+  title,
+  subtitle,
+}: GroupLayoutProps) {
   const { userInfo } = useUserAuthStore();
   const isDemo = userInfo?.isDemo;
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -28,8 +37,10 @@ export default function GroupLayout({
       <div className="flex-1 min-w-0 px-4 lg:px-8 py-6 overflow-y-auto">
         <div className="hidden lg:block mb-3">
           <Title
-            title="친구 찾기"
-            subtitle="그룹을 만들어 친구들끼리 근무표를 공유해보세요"
+            title={title || '친구 찾기'}
+            subtitle={
+              subtitle || '그룹을 만들어 친구들끼리 근무표를 공유해보세요'
+            }
           />
         </div>
         <div className="flex items-center gap-3 lg:hidden mb-4">
@@ -37,12 +48,12 @@ export default function GroupLayout({
             onClick={() => setIsSidebarOpen(true)}
             className="p-2 hover:bg-gray-100 rounded-lg"
           >
-            <span className="w-6 h-6 text-gray-600">☰</span>
+            <IoMdMenu className="w-6 h-6 text-gray-600" />
           </button>
           <div className="flex-1">
-            <h1 className="text-lg font-bold">친구 그룹</h1>
+            <h1 className="text-lg font-bold">{title || '친구 그룹'}</h1>
             <p className="text-sm text-gray-500">
-              그룹을 만들어 친구들끼리 근무표를 공유해보세요
+              {subtitle || '그룹을 만들어 친구들끼리 근무표를 공유해보세요'}
             </p>
           </div>
         </div>

@@ -1,8 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
+import useMediaQuery from '@/hooks/useMediaQuery';
+import ShareDateModal from './ShareDateModal';
 
 interface DateSuggestionModalProps {
   open: boolean;
   onClose: () => void;
+  onShareClick?: () => void;
 }
 
 const dummyData = [
@@ -43,23 +46,35 @@ const dummyData = [
 const DateSuggestionModal: React.FC<DateSuggestionModalProps> = ({
   open,
   onClose,
+  onShareClick,
 }) => {
+  const isMobile = useMediaQuery('(max-width: 1023px)');
+  const [shareOpen, setShareOpen] = useState(false);
+
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/30">
+    <div className="fixed inset-0 z-50 flex items-end lg:items-center justify-center bg-black/30">
       <div className="absolute inset-0" onClick={onClose} />
-      <div className="relative w-full max-w-lg bg-white rounded-t-2xl p-6 z-10 animate-slideup">
+      <div
+        className={`
+          relative bg-white rounded-t-2xl lg:rounded-2xl shadow-xl w-full
+          ${isMobile ? 'max-w-full pb-4 pt-2 px-4 animate-slideup' : 'max-w-md p-5'}
+          flex flex-col
+          z-10
+        `}
+        style={isMobile ? { bottom: 0 } : {}}
+      >
         <button
-          className="absolute top-4 right-4 text-gray-400 text-2xl"
+          className="absolute top-3 right-3 text-gray-400 text-xl"
           onClick={onClose}
         >
           ×
         </button>
-        <div className="text-xl font-semibold mb-6">추천 날짜 리스트</div>
-        <div className="space-y-7 mb-8">
+        <div className="text-lg font-semibold mb-4">추천 날짜 리스트</div>
+        <div className="space-y-5 mb-6">
           {dummyData.map((item) => (
             <div key={item.date}>
-              <div className="text-lg font-bold mb-1">{item.date}</div>
+              <div className="text-base font-bold mb-1">{item.date}</div>
               {item.comment && (
                 <div className="text-sm text-gray-500 mb-2">{item.comment}</div>
               )}
@@ -67,7 +82,7 @@ const DateSuggestionModal: React.FC<DateSuggestionModalProps> = ({
                 {item.members.map((m) => (
                   <span
                     key={m.name}
-                    className={`px-4 py-2 rounded-xl border font-semibold text-base ${item.color}`}
+                    className={`px-3 py-1.5 rounded-xl border font-semibold text-sm ${item.color}`}
                   >
                     {m.name}
                   </span>
@@ -77,11 +92,15 @@ const DateSuggestionModal: React.FC<DateSuggestionModalProps> = ({
           ))}
         </div>
         <button
-          className="w-full bg-gray-700 text-white text-lg font-bold py-3 rounded-xl shadow mt-2 active:bg-gray-800 transition"
-          onClick={onClose}
+          className="w-full bg-gray-700 text-white text-base font-bold py-2 rounded-xl shadow mt-2 active:bg-gray-800 transition"
+          onClick={() => {
+            setShareOpen(true);
+            if (onShareClick) onShareClick();
+          }}
         >
           공유하기
         </button>
+        <ShareDateModal open={shareOpen} onClose={() => setShareOpen(false)} />
       </div>
     </div>
   );
