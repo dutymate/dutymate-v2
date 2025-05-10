@@ -19,6 +19,7 @@ import net.dutymate.api.domain.group.service.GroupService;
 import net.dutymate.api.domain.member.Member;
 import net.dutymate.api.global.auth.annotation.Auth;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -30,7 +31,7 @@ public class GroupController {
 
 	@PostMapping
 	public ResponseEntity<?> createGroup(@Auth Member member,
-		@RequestBody GroupCreateRequestDto groupCreateRequestDto) {
+		@RequestBody @Valid GroupCreateRequestDto groupCreateRequestDto) {
 		groupService.createGroup(groupCreateRequestDto, member);
 		return ResponseEntity.ok().build();
 	}
@@ -41,7 +42,8 @@ public class GroupController {
 	}
 
 	@PutMapping("/{groupId}")
-	public ResponseEntity<?> updateGroup(@Auth Member member, @RequestBody GroupUpdateRequestDto groupUpdateRequestDto,
+	public ResponseEntity<?> updateGroup(@Auth Member member,
+		@RequestBody @Valid GroupUpdateRequestDto groupUpdateRequestDto,
 		@PathVariable Long groupId) {
 		groupService.updateGroup(member, groupUpdateRequestDto, groupId);
 		return ResponseEntity.ok().build();
