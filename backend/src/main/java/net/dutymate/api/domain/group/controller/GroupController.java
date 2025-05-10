@@ -71,4 +71,11 @@ public class GroupController {
 	public ResponseEntity<?> getAllGroupMembers(@Auth Member member, @PathVariable Long groupId) {
 		return ResponseEntity.ok(groupService.getAllGroupMembers(member, groupId));
 	}
+
+	@DeleteMapping("/{groupId}/member/{memberId}")
+	public ResponseEntity<?> removeMemberFromGroup(@Auth Member member, @PathVariable("groupId") Long groupId,
+		@PathVariable("memberId") Long memberId) {
+		groupService.removeGroupMember(member, groupId, memberId);
+		return ResponseEntity.ok().build();
+	}
 }

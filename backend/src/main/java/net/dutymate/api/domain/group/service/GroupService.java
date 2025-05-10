@@ -45,7 +45,6 @@ public class GroupService {
 	private final GroupMemberRepository groupMemberRepository;
 	private final MemberScheduleRepository memberScheduleRepository;
 
-
 	@Value("${cloud.aws.region.static}")
 	private String region;
 
@@ -60,11 +59,7 @@ public class GroupService {
 
 		// 2. 새 그룹원 추가하기
 		// 그룹을 생성하는 사람은 그룹장 (isLeader = true)
-		GroupMember groupLeader = GroupMember.builder()
-			.group(newGroup)
-			.member(member)
-			.isLeader(true)
-			.build();
+		GroupMember groupLeader = GroupMember.builder().group(newGroup).member(member).isLeader(true).build();
 
 		newGroup.addGroupMember(groupLeader);
 
@@ -155,11 +150,7 @@ public class GroupService {
 
 		List<GroupMember> groupMembers = groupMemberRepository.findByMember(member);
 
-		return groupMembers.stream()
-			.map(GroupMember::getGroup)
-			.distinct()
-			.map(GroupListResponseDto::of)
-			.toList();
+		return groupMembers.stream().map(GroupMember::getGroup).distinct().map(GroupListResponseDto::of).toList();
 	}
 
 	@Transactional(readOnly = true)
@@ -242,6 +233,7 @@ public class GroupService {
 		return GroupDetailResponseDto.of(group, shiftDtoList);
 	}
 
+	// 그룹 듀티표 근무표 정렬 순서 반환하기
 	private Comparator<GroupDetailResponseDto.MemberDto> getComparator(String orderBy) {
 		// 근무순 정렬
 		if ("duty".equals(orderBy)) {
@@ -253,6 +245,7 @@ public class GroupService {
 		return Comparator.comparing(GroupDetailResponseDto.MemberDto::getName);
 	}
 
+	@Transactional(readOnly = true)
 	public GroupMemberListResponseDto getAllGroupMembers(Member member, Long groupId) {
 		// 1. 그룹 여부 확인하기
 		NurseGroup group = groupRepository.findById(groupId)
@@ -262,5 +255,31 @@ public class GroupService {
 		group.validateMember(member);
 
 		return GroupMemberListResponseDto.of(group);
+	}
+
+	@Transactional
+	public void removeGroupMember(Member member, Long groupId, Long targetMemberId) {
+		// 1. member가 그룹장인지 확인
+		GroupMember requesterGroupMember = groupMemberRepository.findByGroup_GroupIdAndMember(groupId, member)
+			.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "그룹 멤버가 아닙니다."));
+
+		if (!requesterGroupMember.getIsLeader()) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "그룹장만 멤버를 내보낼 수 있습니다.");
+		}
+
+		// 2. 내보낼 대상 멤버가 해당 그룹에 속해 있는지 확인
+		GroupMember targetGroupMember = groupMemberRepository.findByGroup_GroupIdAndMember_MemberId(groupId,
+				targetMemberId)
+			.orElseThrow(() ->
+				new ResponseStatusException(HttpStatus.BAD_REQUEST, "해당 멤버는 이 그룹에 속해 있지 않습니다."));
+
+		// 3. 그룹장이 자기 자신을 내보내려는 경우 방지
+		if (member.getMemberId().equals(targetMemberId)) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "자기 자신은 내보낼 수 없습니다.");
+		}
+
+		// 4. 멤버 삭제
+		requesterGroupMember.getGroup().getGroupMemberList().remove(targetGroupMember);
+		groupMemberRepository.delete(targetGroupMember);
 	}
 }
