@@ -4,16 +4,24 @@ import { useNavigate } from 'react-router-dom';
 import GroupLayout from '@/components/organisms/Group/GroupLayout';
 import EditGroupModal from '@/components/organisms/Group/EditGroupModal';
 import { PiPlusCircle } from 'react-icons/pi';
+import { dutyService } from '@/services/dutyService';
 
-type Group = {
+export type Group = {
   id: number;
   name: string;
   desc: string;
   count: number;
   img: string;
+  dutyData?: {
+    year: number;
+    month: number;
+    shifts: string;
+    prevShifts: string;
+    nextShifts: string;
+  };
 };
 
-const INITIAL_GROUPS: Group[] = [
+export const INITIAL_GROUPS: Group[] = [
   {
     id: 1,
     name: 'A202 병동 친구들',
@@ -30,17 +38,45 @@ const INITIAL_GROUPS: Group[] = [
   },
 ];
 
+// 전역 상태로 사용할 groups 배열
+export const groups: Group[] = [...INITIAL_GROUPS];
+
 const NurseGroupPage = () => {
   const navigate = useNavigate();
   const [addGroupOpen, setAddGroupOpen] = useState(false);
-  const [groups, setGroups] = useState<Group[]>(INITIAL_GROUPS);
+  const [localGroups, setLocalGroups] = useState<Group[]>(groups);
 
-  const handleAddGroup = (group: {
+  const handleAddGroup = async (group: {
     name: string;
     desc: string;
     img: string;
   }) => {
-    setGroups((prev) => [...prev, { ...group, id: Date.now(), count: 1 }]);
+    try {
+      // 현재 날짜의 듀티 데이터 가져오기
+      const today = new Date();
+      const dutyData = await dutyService.getMyDuty(
+        today.getFullYear(),
+        today.getMonth() + 1
+      );
+
+      const newGroup = {
+        ...group,
+        id: Date.now(),
+        count: 1,
+        dutyData,
+      };
+
+      groups.push(newGroup); // 전역 상태 업데이트
+      setLocalGroups([...groups]); // 로컬 상태 업데이트
+      navigate(`/group/${newGroup.id}`);
+    } catch (error) {
+      console.error('Failed to fetch duty data:', error);
+      // 듀티 데이터를 가져오지 못해도 그룹은 생성
+      const newGroup = { ...group, id: Date.now(), count: 1 };
+      groups.push(newGroup);
+      setLocalGroups([...groups]);
+      navigate(`/group/${newGroup.id}`);
+    }
   };
 
   return (
@@ -50,7 +86,7 @@ const NurseGroupPage = () => {
     >
       {/* 그룹 목록 화면 */}
       <div className="space-y-3">
-        {groups.map((g) => (
+        {localGroups.map((g) => (
           <div
             key={g.id}
             className="flex items-center bg-white rounded-xl p-3 shadow border cursor-pointer"

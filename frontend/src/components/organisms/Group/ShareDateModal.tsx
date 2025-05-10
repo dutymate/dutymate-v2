@@ -21,16 +21,21 @@ const ShareDateModal: React.FC<ShareDateModalProps> = ({ open, onClose }) => {
     }
   };
 
+  const handleOutsideClick = () => {
+    onClose();
+    setShowModal(false);
+  };
+
   if (!open) return null;
 
   return (
     <>
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
-        <div className="absolute inset-0" onClick={onClose} />
+        <div className="absolute inset-0" onClick={handleOutsideClick} />
         <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-xs p-6 flex flex-col items-center z-10">
           <button
             className="absolute top-4 right-4 text-gray-400 text-2xl"
-            onClick={onClose}
+            onClick={handleOutsideClick}
           >
             ×
           </button>
@@ -50,7 +55,8 @@ const ShareDateModal: React.FC<ShareDateModalProps> = ({ open, onClose }) => {
       {/* 알림 모달 */}
       {showModal && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-xl shadow-xl px-8 py-6 flex flex-col items-center">
+          <div className="absolute inset-0" onClick={handleOutsideClick} />
+          <div className="bg-white rounded-xl shadow-xl px-8 py-6 flex flex-col items-center relative z-10">
             <div className="text-base font-semibold mb-4">{modalMessage}</div>
             <button
               className="mt-2 px-6 py-2 bg-primary text-white rounded-lg font-bold shadow hover:bg-primary-dark transition"

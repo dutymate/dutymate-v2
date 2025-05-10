@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FaCog, FaUserPlus } from 'react-icons/fa';
 import { IoIosArrowBack, IoIosArrowForward } from 'react-icons/io';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -9,7 +9,11 @@ import ShareDateModal from '@/components/organisms/Group/ShareDateModal';
 import InviteMemberModal from '@/components/organisms/Group/InviteMemberModal';
 import useMediaQuery from '@/hooks/useMediaQuery';
 import DutyBadgeEng from '@/components/atoms/DutyBadgeEng';
+import { groups } from './NurseGroupPage';
+import { dutyService } from '@/services/dutyService';
+import useUserAuthStore from '@/stores/userAuthStore';
 
+// 기존 더미 데이터 유지
 export const members = [
   { name: '임태호', isLeader: true },
   { name: '김서현' },
@@ -19,74 +23,9 @@ export const members = [
   { name: '김민성' },
 ];
 
-const groups = [
-  {
-    id: 1,
-    name: 'A202 병동 친구들',
-    desc: '간단한 병동 소개멘트',
-    count: 6,
-    img: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb',
-  },
-  {
-    id: 2,
-    name: '서울대 간호19 동기들',
-    desc: '간단한 병동 소개멘트',
-    count: 6,
-    img: 'https://images.unsplash.com/photo-1465101046530-73398c7f28ca',
-  },
-];
-
-const generateMonthData = () => {
-  const daysInMonth = 31;
-  const data = [];
-
-  const firstDayOfMonth = new Date(2025, 4, 1).getDay();
-  const lastDayPrevMonth = new Date(2025, 4, 0).getDate();
-
-  for (let i = 0; i < firstDayOfMonth; i++) {
-    const day = lastDayPrevMonth - firstDayOfMonth + i + 1;
-    data.push({
-      date: day,
-      isPrevMonth: true,
-      duties: members.map((member: { name: string; isLeader?: boolean }) => {
-        const dutyType = ['D', 'E', 'N', 'D', 'O', 'D'][
-          members.indexOf(member) % 6
-        ];
-        return { member, duty: dutyType };
-      }),
-    });
-  }
-
-  for (let i = 1; i <= daysInMonth; i++) {
-    data.push({
-      date: i,
-      isCurrentMonth: true,
-      duties: members.map((member: { name: string; isLeader?: boolean }) => {
-        const dutyType = ['D', 'E', 'N', 'D', 'O', 'D'][
-          members.indexOf(member) % 6
-        ];
-        return { member, duty: dutyType };
-      }),
-    });
-  }
-
-  const remainingDays = 7 - (data.length % 7);
-  if (remainingDays < 7) {
-    for (let i = 1; i <= remainingDays; i++) {
-      data.push({
-        date: i,
-        isNextMonth: true,
-        duties: members.map((member: { name: string; isLeader?: boolean }) => {
-          const dutyType = ['D', 'E', 'N', 'D', 'O', 'D'][
-            members.indexOf(member) % 6
-          ];
-          return { member, duty: dutyType };
-        }),
-      });
-    }
-  }
-
-  return data;
+type Member = {
+  name: string;
+  isLeader?: boolean;
 };
 
 const GroupDetailPage = () => {
@@ -94,37 +33,193 @@ const GroupDetailPage = () => {
   const navigate = useNavigate();
   const [sortByName, setSortByName] = useState(true);
   const group = groups.find((g) => String(g.id) === String(groupId));
-  const monthData = generateMonthData();
+  const { userInfo } = useUserAuthStore();
   const [modalStep, setModalStep] = useState<
     'none' | 'check' | 'date' | 'share'
   >('none');
   const [inviteModalOpen, setInviteModalOpen] = useState(false);
   const isMobile = useMediaQuery('(max-width: 1023px)');
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [dutyData, setDutyData] = useState<{
+    year: number;
+    month: number;
+    shifts: string;
+    prevShifts: string;
+    nextShifts: string;
+  } | null>(null);
 
   // 멤버 배열 및 선택 상태 선언
   const [selectedMembers, setSelectedMembers] = useState<string[]>(
-    members.map((m) => m.name)
+    group?.count === 1 ? [userInfo?.name || '나'] : members.map((m) => m.name)
   );
 
   // 정렬된 멤버 목록 생성
-  const sortedMembers = [...members].sort((a, b) => {
-    if (sortByName) {
-      return a.name.localeCompare(b.name, 'ko');
-    } else {
-      // 근무순 정렬 (D > M > E > N > O)
-      const dutyOrder = { D: 0, M: 1, E: 2, N: 3, O: 4 };
-      const getDuty = (member: typeof a) => {
-        const duty =
-          monthData[0]?.duties.find((d) => d.member.name === member.name)
-            ?.duty || '';
-        return dutyOrder[duty as keyof typeof dutyOrder] ?? 5;
-      };
-      return getDuty(a) - getDuty(b);
+  const sortedMembers =
+    group?.count === 1
+      ? [{ name: userInfo?.name || '나', isLeader: true }]
+      : [...members].sort((a, b): number => {
+          if (sortByName) {
+            return a.name.localeCompare(b.name, 'ko');
+          } else {
+            // 근무순 정렬 (D > M > E > N > O)
+            const dutyOrder = { D: 0, M: 1, E: 2, N: 3, O: 4 };
+            const getDuty = (member: typeof a) => {
+              const duty =
+                monthData[0]?.duties.find((d) => d.member.name === member.name)
+                  ?.duty || '';
+              return dutyOrder[duty as keyof typeof dutyOrder] ?? 5;
+            };
+            return getDuty(a) - getDuty(b);
+          }
+        });
+
+  useEffect(() => {
+    const fetchDutyData = async () => {
+      try {
+        const data = await dutyService.getMyDuty(
+          currentMonth.getFullYear(),
+          currentMonth.getMonth() + 1
+        );
+        setDutyData(data);
+      } catch (error) {
+        console.error('Failed to fetch duty data:', error);
+      }
+    };
+
+    if (group?.count === 1) {
+      fetchDutyData();
     }
-  });
+  }, [currentMonth, group]);
 
   if (!group) return <div className="p-4">그룹을 찾을 수 없습니다.</div>;
 
+  const handlePrevMonth = () => {
+    setCurrentMonth(
+      new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1)
+    );
+  };
+
+  const handleNextMonth = () => {
+    setCurrentMonth(
+      new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1)
+    );
+  };
+
+  // 듀티 데이터를 기반으로 캘린더 데이터 생성
+  const generateMonthData = () => {
+    // 새로 생성된 그룹(count === 1)인 경우 실제 듀티 데이터 사용
+    if (group.count === 1 && dutyData) {
+      const daysInMonth = new Date(dutyData.year, dutyData.month, 0).getDate();
+      const data = [];
+
+      const firstDayOfMonth = new Date(
+        dutyData.year,
+        dutyData.month - 1,
+        1
+      ).getDay();
+      const lastDayPrevMonth = new Date(
+        dutyData.year,
+        dutyData.month - 1,
+        0
+      ).getDate();
+
+      // 이전 달의 날짜들
+      for (let i = 0; i < firstDayOfMonth; i++) {
+        const day = lastDayPrevMonth - firstDayOfMonth + i + 1;
+        data.push({
+          date: day,
+          isPrevMonth: true,
+          duties: sortedMembers.map((member) => ({
+            member,
+            duty: dutyData.prevShifts[day - 1] as 'D' | 'E' | 'N' | 'O' | 'M',
+          })),
+        });
+      }
+
+      // 현재 달의 날짜들
+      for (let i = 1; i <= daysInMonth; i++) {
+        data.push({
+          date: i,
+          isCurrentMonth: true,
+          duties: sortedMembers.map((member) => ({
+            member,
+            duty: dutyData.shifts[i - 1] as 'D' | 'E' | 'N' | 'O' | 'M',
+          })),
+        });
+      }
+
+      // 다음 달의 날짜들
+      const remainingDays = 7 - (data.length % 7);
+      if (remainingDays < 7) {
+        for (let i = 1; i <= remainingDays; i++) {
+          data.push({
+            date: i,
+            isNextMonth: true,
+            duties: sortedMembers.map((member) => ({
+              member,
+              duty: dutyData.nextShifts[i - 1] as 'D' | 'E' | 'N' | 'O' | 'M',
+            })),
+          });
+        }
+      }
+
+      return data;
+    }
+
+    // 기존 더미 데이터 사용
+    const daysInMonth = 31;
+    const data = [];
+
+    const firstDayOfMonth = new Date(2025, 4, 1).getDay();
+    const lastDayPrevMonth = new Date(2025, 4, 0).getDate();
+
+    for (let i = 0; i < firstDayOfMonth; i++) {
+      const day = lastDayPrevMonth - firstDayOfMonth + i + 1;
+      data.push({
+        date: day,
+        isPrevMonth: true,
+        duties: members.map((member: Member) => {
+          const dutyType = ['D', 'E', 'N', 'D', 'O', 'D'][
+            members.indexOf(member) % 6
+          ];
+          return { member, duty: dutyType };
+        }),
+      });
+    }
+
+    for (let i = 1; i <= daysInMonth; i++) {
+      data.push({
+        date: i,
+        isCurrentMonth: true,
+        duties: members.map((member: Member) => {
+          const dutyType = ['D', 'E', 'N', 'D', 'O', 'D'][
+            members.indexOf(member) % 6
+          ];
+          return { member, duty: dutyType };
+        }),
+      });
+    }
+
+    const remainingDays = 7 - (data.length % 7);
+    if (remainingDays < 7) {
+      for (let i = 1; i <= remainingDays; i++) {
+        data.push({
+          date: i,
+          isNextMonth: true,
+          duties: members.map((member: Member) => {
+            const dutyType = ['D', 'E', 'N', 'D', 'O', 'D'][
+              members.indexOf(member) % 6
+            ];
+            return { member, duty: dutyType };
+          }),
+        });
+      }
+    }
+
+    return data;
+  };
+
+  const monthData = generateMonthData();
   const weeks = [];
   for (let i = 0; i < monthData.length; i += 7) {
     weeks.push(monthData.slice(i, i + 7));
@@ -136,7 +231,7 @@ const GroupDetailPage = () => {
       subtitle="모두의 스케줄을 한눈에 확인하세요"
     >
       <div className="space-y-3">
-        {/* ← 목록으로 버튼 (GroupMemberPage와 동일한 위치/스타일) */}
+        {/* ← 목록으로 버튼 */}
         <div className="flex mb-3">
           <button
             onClick={() => navigate('/group')}
@@ -178,15 +273,20 @@ const GroupDetailPage = () => {
           <div className="flex items-center justify-center my-2 gap-4 md:gap-8 sm:gap-2">
             <button
               className="p-1 text-lg md:text-3xl sm:p-0.5 sm:text-base max-[639px]:text-[0.9rem]"
+              onClick={handlePrevMonth}
               aria-label="이전달"
             >
               <IoIosArrowBack className="text-xl md:text-3xl sm:text-base max-[639px]:text-[0.9rem]" />
             </button>
             <span className="font-semibold text-lg md:text-2xl sm:text-base max-[639px]:text-[0.9rem]">
-              2025년 <span className="ml-1">5월</span>
+              {group.count === 1 ? currentMonth.getFullYear() : 2025}년{' '}
+              <span className="ml-1">
+                {group.count === 1 ? currentMonth.getMonth() + 1 : 5}월
+              </span>
             </span>
             <button
               className="p-1 text-lg md:text-3xl sm:p-0.5 sm:text-base max-[639px]:text-[0.9rem]"
+              onClick={handleNextMonth}
               aria-label="다음달"
             >
               <IoIosArrowForward className="text-xl md:text-3xl sm:text-base max-[639px]:text-[0.9rem]" />
@@ -194,45 +294,49 @@ const GroupDetailPage = () => {
           </div>
 
           {/* 이름순/근무순, 약속 날짜 정하기 */}
-          <div className="flex gap-2 mb-2 items-center">
-            <div className="flex items-center gap-0 text-gray-400 text-xs md:text-base font-medium select-none">
-              <span
-                className={`cursor-pointer px-2 transition font-bold ${sortByName ? 'text-gray-700' : 'text-gray-400'}`}
-                onClick={() => setSortByName(true)}
+          {group.count !== 1 && (
+            <div className="flex gap-2 mb-2 items-center">
+              <div className="flex items-center gap-0 text-gray-400 text-xs md:text-base font-medium select-none">
+                <span
+                  className={`cursor-pointer px-2 transition font-bold ${sortByName ? 'text-gray-700' : 'text-gray-400'}`}
+                  onClick={() => setSortByName(true)}
+                >
+                  이름순
+                </span>
+                <span className="mx-1 text-gray-300 text-xs md:text-base">
+                  |
+                </span>
+                <span
+                  className={`cursor-pointer px-2 transition font-bold ${!sortByName ? 'text-gray-700' : 'text-gray-400'}`}
+                  onClick={() => setSortByName(false)}
+                >
+                  근무순
+                </span>
+              </div>
+              <button
+                className="ml-auto flex items-center gap-2 bg-gradient-to-r from-primary to-orange-400 text-white px-6 py-2 rounded-full text-base md:text-xl font-bold shadow-lg hover:brightness-110 hover:scale-105 transition-all border-0 outline-none sm:px-4 sm:py-1.5 sm:text-sm max-[639px]:px-2 max-[639px]:py-1 max-[639px]:text-xs tracking-wide"
+                onClick={() => setModalStep('check')}
               >
-                이름순
-              </span>
-              <span className="mx-1 text-gray-300 text-xs md:text-base">|</span>
-              <span
-                className={`cursor-pointer px-2 transition font-bold ${!sortByName ? 'text-gray-700' : 'text-gray-400'}`}
-                onClick={() => setSortByName(false)}
-              >
-                근무순
-              </span>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={2}
+                  stroke="currentColor"
+                  className="w-5 h-5 md:w-6 md:h-6"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M6.75 3v2.25M17.25 3v2.25M3.75 7.5h16.5M4.5 19.5h15a.75.75 0 00.75-.75V7.5a.75.75 0 00-.75-.75h-15A.75.75 0 003.75 7.5v11.25c0 .414.336.75.75.75z"
+                  />
+                </svg>
+                약속 잡기
+              </button>
             </div>
-            <button
-              className="ml-auto flex items-center gap-2 bg-gradient-to-r from-primary to-orange-400 text-white px-6 py-2 rounded-full text-base md:text-xl font-bold shadow-lg hover:brightness-110 hover:scale-105 transition-all border-0 outline-none sm:px-4 sm:py-1.5 sm:text-sm max-[639px]:px-2 max-[639px]:py-1 max-[639px]:text-xs tracking-wide"
-              onClick={() => setModalStep('check')}
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={2}
-                stroke="currentColor"
-                className="w-5 h-5 md:w-6 md:h-6"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M6.75 3v2.25M17.25 3v2.25M3.75 7.5h16.5M4.5 19.5h15a.75.75 0 00.75-.75V7.5a.75.75 0 00-.75-.75h-15A.75.75 0 003.75 7.5v11.25c0 .414.336.75.75.75z"
-                />
-              </svg>
-              약속 잡기
-            </button>
-          </div>
+          )}
 
-          {/* 캘린더 표 - 한 칸에 멤버별 듀티 여러 줄 */}
+          {/* 캘린더 표 */}
           <div className="overflow-x-auto">
             <table className="min-w-full border-collapse">
               <thead>
@@ -323,12 +427,13 @@ const GroupDetailPage = () => {
           </div>
         </div>
       </div>
-      {/* 모달 플로우: 한 번에 하나만 렌더 */}
+
+      {/* 모달 플로우 */}
       {modalStep === 'check' && (
         <CheckMemberModal
           open
           onClose={() => setModalStep('none')}
-          members={members}
+          members={sortedMembers}
           selectedMembers={selectedMembers}
           setSelectedMembers={setSelectedMembers}
           onNext={() => setModalStep('date')}
@@ -347,10 +452,6 @@ const GroupDetailPage = () => {
       <InviteMemberModal
         open={inviteModalOpen}
         onClose={() => setInviteModalOpen(false)}
-        onInvite={(email) => {
-          console.log('Invite:', email);
-          setInviteModalOpen(false);
-        }}
       />
     </GroupLayout>
   );

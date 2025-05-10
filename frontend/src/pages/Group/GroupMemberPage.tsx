@@ -8,6 +8,8 @@ import EditGroupModal from '@/components/organisms/Group/EditGroupModal';
 import InviteMemberModal from '@/components/organisms/Group/InviteMemberModal';
 import ExitGroupModal from '@/components/organisms/Group/ExitGroupModal';
 import { useState } from 'react';
+import { groups } from './NurseGroupPage';
+import useUserAuthStore from '@/stores/userAuthStore';
 
 interface Member {
   name: string;
@@ -15,27 +17,11 @@ interface Member {
   joinedAt: string;
 }
 
-const INITIAL_GROUPS = [
-  {
-    id: 1,
-    name: 'A202 병동 친구들',
-    desc: '간단한 병동 소개멘트',
-    count: 6,
-    img: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb',
-  },
-  {
-    id: 2,
-    name: '서울대 간호19 동기들',
-    desc: '간단한 병동 소개멘트',
-    count: 6,
-    img: 'https://images.unsplash.com/photo-1465101046530-73398c7f28ca',
-  },
-];
-
 const GroupMemberPage = () => {
   const { groupId } = useParams();
   const navigate = useNavigate();
-  const group = INITIAL_GROUPS.find((g) => String(g.id) === String(groupId));
+  const { userInfo } = useUserAuthStore();
+  const group = groups.find((g) => String(g.id) === String(groupId));
   const [checkMemberOpen, setCheckMemberOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [inviteModalOpen, setInviteModalOpen] = useState(false);
@@ -44,14 +30,23 @@ const GroupMemberPage = () => {
 
   if (!groupInfo) return <div>그룹을 찾을 수 없습니다.</div>;
 
-  const members: Member[] = [
-    { name: '임태호', isLeader: true, joinedAt: '2025-05-05' },
-    { name: '김서현', joinedAt: '2025-05-05' },
-    { name: '김현진', joinedAt: '2025-05-05' },
-    { name: '이재현', joinedAt: '2025-05-05' },
-    { name: '한종우', joinedAt: '2025-05-05' },
-    { name: '김민성', joinedAt: '2025-05-05' },
-  ];
+  const members: Member[] =
+    groupInfo.count === 1
+      ? [
+          {
+            name: userInfo?.name || '나',
+            isLeader: true,
+            joinedAt: new Date().toISOString().slice(0, 10),
+          },
+        ]
+      : [
+          { name: '임태호', isLeader: true, joinedAt: '2025-05-05' },
+          { name: '김서현', joinedAt: '2025-05-05' },
+          { name: '김현진', joinedAt: '2025-05-05' },
+          { name: '이재현', joinedAt: '2025-05-05' },
+          { name: '한종우', joinedAt: '2025-05-05' },
+          { name: '김민성', joinedAt: '2025-05-05' },
+        ];
   const [selectedMembers, setSelectedMembers] = useState<string[]>(
     members.map((m) => m.name)
   );
@@ -73,8 +68,14 @@ const GroupMemberPage = () => {
 
   const handleLeave = () => {
     // 그룹 나가기 로직
-    console.log('Leave group');
-    navigate(-1);
+    if (groupInfo) {
+      // 전역 groups 배열에서 해당 그룹 삭제
+      const idx = groups.findIndex((g) => g.id === groupInfo.id);
+      if (idx !== -1) {
+        groups.splice(idx, 1);
+      }
+    }
+    navigate('/group');
   };
 
   return (
@@ -200,10 +201,6 @@ const GroupMemberPage = () => {
       <InviteMemberModal
         open={inviteModalOpen}
         onClose={() => setInviteModalOpen(false)}
-        onInvite={(email) => {
-          console.log('Invite:', email);
-          setInviteModalOpen(false);
-        }}
       />
       <ExitGroupModal
         open={exitModalOpen}

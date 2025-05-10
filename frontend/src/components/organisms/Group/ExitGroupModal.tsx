@@ -15,6 +15,7 @@ const ExitGroupModal: React.FC<ExitGroupModalProps> = ({
   onClose,
   isLeader = false,
   onTransfer,
+  onExit,
 }) => {
   const isMobile = useMediaQuery('(max-width: 1023px)');
   const [showModal, setShowModal] = useState(false);
@@ -29,8 +30,8 @@ const ExitGroupModal: React.FC<ExitGroupModalProps> = ({
       );
       setShowModal(true);
     } else {
-      // onExit?.();
-      onClose(); // Just close the modal
+      onExit?.();
+      onClose();
     }
   };
 
