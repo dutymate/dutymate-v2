@@ -23,6 +23,7 @@ import net.dutymate.api.domain.group.dto.GroupCreateRequestDto;
 import net.dutymate.api.domain.group.dto.GroupDetailResponseDto;
 import net.dutymate.api.domain.group.dto.GroupImgResponseDto;
 import net.dutymate.api.domain.group.dto.GroupListResponseDto;
+import net.dutymate.api.domain.group.dto.GroupMemberListResponseDto;
 import net.dutymate.api.domain.group.dto.GroupUpdateRequestDto;
 import net.dutymate.api.domain.group.repository.GroupMemberRepository;
 import net.dutymate.api.domain.group.repository.GroupRepository;
@@ -43,6 +44,7 @@ public class GroupService {
 	private final GroupRepository groupRepository;
 	private final GroupMemberRepository groupMemberRepository;
 	private final MemberScheduleRepository memberScheduleRepository;
+
 
 	@Value("${cloud.aws.region.static}")
 	private String region;
@@ -160,7 +162,8 @@ public class GroupService {
 			.toList();
 	}
 
-	public Object getSingleGroup(Member member, Long groupId, YearMonth yearMonth, String orderBy) {
+	@Transactional(readOnly = true)
+	public GroupDetailResponseDto getSingleGroup(Member member, Long groupId, YearMonth yearMonth, String orderBy) {
 
 		// 1. 그룹 여부 확인하기
 		NurseGroup group = groupRepository.findById(groupId)
@@ -221,13 +224,13 @@ public class GroupService {
 			}
 		}
 
-		// 7. 정렬하기 (이름순 또는 근무순)
+		// 8. 정렬하기 (이름순 또는 근무순)
 		Comparator<GroupDetailResponseDto.MemberDto> comparator = getComparator(orderBy);
 		for (List<GroupDetailResponseDto.MemberDto> memberDtoList : dateToMembersMap.values()) {
 			memberDtoList.sort(comparator);
 		}
 
-		// 8. DTO 변환하기
+		// 9. DTO 변환하기
 		List<GroupDetailResponseDto.ShiftDto> shiftDtoList = dateToMembersMap.entrySet()
 			.stream()
 			.map(entry -> GroupDetailResponseDto.ShiftDto.builder()
@@ -250,4 +253,14 @@ public class GroupService {
 		return Comparator.comparing(GroupDetailResponseDto.MemberDto::getName);
 	}
 
+	public GroupMemberListResponseDto getAllGroupMembers(Member member, Long groupId) {
+		// 1. 그룹 여부 확인하기
+		NurseGroup group = groupRepository.findById(groupId)
+			.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "그룹을 찾을 수 없습니다."));
+
+		// 2. member가 해당 그룹의 멤버인지 확인
+		group.validateMember(member);
+
+		return GroupMemberListResponseDto.of(group);
+	}
 }

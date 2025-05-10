@@ -66,4 +66,9 @@ public class GroupController {
 		@RequestParam(required = false) Integer month, @RequestParam(defaultValue = "name") String orderBy) {
 		return ResponseEntity.ok(groupService.getSingleGroup(member, groupId, new YearMonth(year, month), orderBy));
 	}
+
+	@GetMapping("/{groupId}/member")
+	public ResponseEntity<?> getAllGroupMembers(@Auth Member member, @PathVariable Long groupId) {
+		return ResponseEntity.ok(groupService.getAllGroupMembers(member, groupId));
+	}
 }
