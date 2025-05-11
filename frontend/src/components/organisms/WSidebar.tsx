@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { AiFillSchedule } from 'react-icons/ai';
 import { BiSolidUserPin } from 'react-icons/bi';
 import { FaHospital, FaCoffee } from 'react-icons/fa';
@@ -8,10 +8,12 @@ import { HiOutlineUsers } from 'react-icons/hi2';
 import { IoIosChatboxes } from 'react-icons/io';
 import { PiLightbulbFilamentFill } from 'react-icons/pi';
 import { SlCalender } from 'react-icons/sl';
+// import { MdFeedback } from 'react-icons/md'; // 설문조사 버튼 사용 시 주석 해제
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 import Profile from '@/components/atoms/Profile';
 import { useRequestCountStore } from '@/stores/requestCountStore';
+import SurveyModal from './SurveyModal';
 
 interface TooltipProps {
   content: string;
@@ -147,6 +149,7 @@ const Sidebar = ({ userType, isDemo }: SidebarProps) => {
   const location = useLocation();
   const navigation =
     userType === 'HN' ? headNurseNavigation : staffNurseNavigation;
+  const [showSurvey, setShowSurvey] = useState(false);
 
   useEffect(() => {
     if (
@@ -166,6 +169,23 @@ const Sidebar = ({ userType, isDemo }: SidebarProps) => {
     }
   };
 
+  // Close Survey modal handler
+  const handleCloseSurvey = () => {
+    setShowSurvey(false);
+  };
+
+  // 설문조사 데이터 초기화 함수 - 설문조사 테스트 버튼 사용 시 주석 해제
+  /*
+  const resetSurveyData = (e: React.MouseEvent) => {
+    e.preventDefault();
+    localStorage.removeItem('survey_completed');
+    localStorage.removeItem('survey_completed_date');
+    localStorage.removeItem('survey_data');
+    localStorage.removeItem('payment_modal_closed_time');
+    alert('설문조사 데이터가 초기화되었습니다.');
+  };
+  */
+
   return (
     <div className="fixed inset-y-0 left-0 z-40 flex flex-col bg-white w-[238px] border-r border-gray-200 rounded-tr-[18.47px] rounded-br-[18.47px] shadow-[0_4.62px_18.47px_rgba(0,0,0,0.05)]">
       {/* Logo */}
@@ -181,9 +201,31 @@ const Sidebar = ({ userType, isDemo }: SidebarProps) => {
           {navigation.map((item, index) => (
             <NavigationItem key={index} item={item} isDemo={isDemo} />
           ))}
+
+          {/* 임시 설문조사 버튼 - 테스트 완료 후 주석 처리 */}
+          {/* 
+          <li className="flex justify-center px-[1.3rem]">
+            <button
+              onClick={() => setShowSurvey(true)}
+              onContextMenu={resetSurveyData}
+              className="flex items-center gap-x-3 px-4 py-2.5 w-full rounded-lg
+              font-['Pretendard Variable'] text-[0.9rem] group
+              text-gray-700 hover:text-primary hover:bg-primary-10"
+              title="오른쪽 클릭으로 설문조사 데이터 초기화"
+            >
+              <MdFeedback className="w-4 h-4 min-w-4 text-gray-500 group-hover:text-primary" />
+              <div className="flex items-center justify-between w-full">
+                <span className="font-semibold">설문조사 테스트</span>
+              </div>
+            </button>
+          </li>
+          */}
         </div>
       </nav>
       <Profile />
+
+      {/* Survey Modal */}
+      <SurveyModal isOpen={showSurvey} onClose={handleCloseSurvey} />
     </div>
   );
 };

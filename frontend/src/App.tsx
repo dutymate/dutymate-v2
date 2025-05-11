@@ -3,6 +3,7 @@ import { Slide, ToastContainer } from 'react-toastify';
 
 import PageLoadingSpinner from '@/components/atoms/Loadingspinner';
 import ChannelTalkLoader from '@/components/organisms/ChannelTalkLoader';
+import SurveyProvider from '@/components/organisms/SurveyProvider';
 import Router from '@/routes/Router';
 
 import 'react-toastify/dist/ReactToastify.css';
@@ -18,24 +19,26 @@ function App() {
 
   return (
     <BrowserRouter>
-      <ChannelTalkLoader />
-      <PageLoadingSpinner />
-      <Router />
-      <ToastContainer
-        position="top-center"
-        autoClose={1000}
-        hideProgressBar
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss={false}
-        draggable
-        pauseOnHover={false}
-        theme="light"
-        stacked
-        transition={Slide}
-        className="custom-toast-container"
-      />
+      <SurveyProvider>
+        <ChannelTalkLoader />
+        <PageLoadingSpinner />
+        <Router />
+        <ToastContainer
+          position="top-center"
+          autoClose={1000}
+          hideProgressBar
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss={false}
+          draggable
+          pauseOnHover={false}
+          theme="light"
+          stacked
+          transition={Slide}
+          className="custom-toast-container"
+        />
+      </SurveyProvider>
     </BrowserRouter>
   );
 }
