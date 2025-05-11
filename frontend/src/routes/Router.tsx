@@ -25,6 +25,7 @@ import useUserAuthStore from '@/stores/userAuthStore';
 import NurseGroupPage from '@/pages/Group/NurseGroupPage';
 import GroupDetailPage from '@/pages/Group/GroupDetailPage';
 import GroupMemberPage from '@/pages/Group/GroupMemberPage';
+import GroupInvitePage from '@/pages/Group/GroupInvitePage';
 
 interface ProtectedRouteProps {
   element: ReactElement;
@@ -59,6 +60,12 @@ const Router = () => {
       <Route path="/oauth/kakao" element={<KakaoRedirect />} />
       <Route path="/oauth/google" element={<GoogleRedirect />} />
       <Route path="/password-reset" element={<PasswordReset />} />
+
+      {/* 그룹 초대 링크 - 로그인 필요 */}
+      <Route
+        path="/invite/:inviteToken"
+        element={<ProtectedRoute element={<GroupInvitePage />} />}
+      />
 
       {/* 로그인이 필요한 페이지 */}
       <Route

@@ -29,6 +29,7 @@ const GroupMemberPage = () => {
   >(undefined);
   const [members, setMembers] = useState<GroupMember[]>([]);
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
+  const [inviteLink, setInviteLink] = useState<string>('');
 
   // 그룹 정보 가져오기
   useEffect(() => {
@@ -114,6 +115,7 @@ const GroupMemberPage = () => {
       // 2. 인원수 감소
       const updatedGroupInfo = {
         ...groupInfo,
+        groupMemberCount: updatedMembers.length,
       };
       setGroupInfo(updatedGroupInfo);
 
@@ -141,6 +143,7 @@ const GroupMemberPage = () => {
     groupDescription: string;
     groupImg: string | null;
   }) => {
+    console.log(data);
     if (!groupInfo) return;
 
     try {
@@ -180,6 +183,12 @@ const GroupMemberPage = () => {
         toast.error('그룹 나가기에 실패했습니다.');
       }
     }
+  };
+
+  const handleInviteButton = async () => {
+    const response = await groupService.createInvitationLink(Number(groupId));
+    setInviteLink(response.inviteUrl);
+    setInviteModalOpen(true);
   };
 
   return (
@@ -226,9 +235,9 @@ const GroupMemberPage = () => {
                   {groupInfo.groupDescription}
                 </div>
                 <button
-                  className="flex items-center border border-primary text-primary rounded-full px-2 py-1 text-xs md:text-base md:px-4 md:py-2 font-semibold bg-white hover:bg-primary-50 ml-2"
+                  className="flex items-center border border-primary text-primary rounded-lg px-2 py-1 text-xs md:text-base md:px-4 md:py-2 font-semibold bg-white hover:bg-primary-50 ml-2"
                   type="button"
-                  onClick={() => setInviteModalOpen(true)}
+                  onClick={handleInviteButton}
                 >
                   <FaUserPlus className="mr-1 md:text-base" /> 친구 초대
                 </button>
@@ -302,6 +311,8 @@ const GroupMemberPage = () => {
       <InviteMemberModal
         open={inviteModalOpen}
         onClose={() => setInviteModalOpen(false)}
+        inviteLink={inviteLink}
+        groupName={groupInfo.groupName}
       />
       <ExitGroupModal
         open={exitModalOpen}

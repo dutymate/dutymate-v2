@@ -15,6 +15,11 @@ import { IoIosArrowBack, IoIosArrowForward } from 'react-icons/io';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
+export interface InviteLinkResponse {
+  inviteUrl: string;
+  groupName: string;
+}
+
 const GroupDetailPage = () => {
   const { groupId } = useParams();
   const navigate = useNavigate();
@@ -35,6 +40,7 @@ const GroupDetailPage = () => {
   //   nextShifts: string;
   // } | null>(null);
   const [groupMembers, setGroupMembers] = useState<ShiftMember[]>([]);
+  const [inviteLink, setInviteLink] = useState<string>('');
 
   // fetchGroupData 함수를 useCallback으로 래핑하여 의존성 관리
   const fetchGroupData = useCallback(async () => {
@@ -219,6 +225,12 @@ const GroupDetailPage = () => {
     weeks.push(monthData.slice(i, i + 7));
   }
 
+  const handleInviteButton = async () => {
+    const response = await groupService.createInvitationLink(Number(groupId));
+    setInviteLink(response.inviteUrl);
+    setInviteModalOpen(true);
+  };
+
   return (
     <GroupLayout
       title="함께 보는 근무표"
@@ -253,9 +265,9 @@ const GroupDetailPage = () => {
               </div>
             </div>
             <button
-              className="flex items-center border border-primary text-primary rounded-full px-3 py-1 text-sm md:text-base md:px-4 md:py-2 font-semibold bg-white hover:bg-primary-50 max-[639px]:px-2 max-[639px]:py-0.5 max-[639px]:text-[0.65rem] cursor-pointer"
+              className="flex items-center border border-primary text-primary rounded-lg px-3 py-1 text-sm md:text-base md:px-4 md:py-2 font-semibold bg-white hover:bg-primary-50 max-[639px]:px-2 max-[639px]:py-0.5 max-[639px]:text-[0.65rem] cursor-pointer"
               type="button"
-              onClick={() => setInviteModalOpen(true)}
+              onClick={handleInviteButton}
             >
               <FaUserPlus className="mr-1 text-sm md:text-base max-[639px]:text-xs" />
               <span className="hidden md:inline">친구 초대</span>
@@ -311,7 +323,7 @@ const GroupDetailPage = () => {
               </span>
             </div>
             <button
-              className="ml-auto flex items-center gap-2 bg-gradient-to-r from-primary to-orange-400 text-white px-6 py-2 rounded-full text-base md:text-xl font-bold shadow-lg hover:brightness-110 hover:scale-105 transition-all border-0 outline-none sm:px-4 sm:py-1.5 sm:text-sm max-[639px]:px-2 max-[639px]:py-1 max-[639px]:text-xs tracking-wide"
+              className="ml-auto flex items-center gap-2 bg-primary text-white px-6 py-2 rounded-lg text-base md:text-xl font-bold shadow-lg hover:brightness-110 hover:scale-105 transition-all border-0 outline-none sm:px-4 sm:py-1.5 sm:text-sm max-[639px]:px-2 max-[639px]:py-1 max-[639px]:text-xs tracking-wide"
               onClick={() => setModalStep('check')}
             >
               <svg
@@ -442,6 +454,8 @@ const GroupDetailPage = () => {
       <InviteMemberModal
         open={inviteModalOpen}
         onClose={() => setInviteModalOpen(false)}
+        inviteLink={inviteLink}
+        groupName={group.groupName}
       />
     </GroupLayout>
   );

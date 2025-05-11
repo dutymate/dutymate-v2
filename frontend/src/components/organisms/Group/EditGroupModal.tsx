@@ -42,9 +42,32 @@ const EditGroupModal: React.FC<EditGroupModalProps> = ({
 
   if (!open) return null;
 
-  const handleImgChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) setImg(URL.createObjectURL(file));
+  const handleImgChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      const file = e.target.files?.[0];
+
+      if (file) {
+        // 미리보기용 임시 URL 생성
+        const previewUrl = URL.createObjectURL(file);
+        setImg(previewUrl); // 임시 미리보기 URL 설정
+
+        try {
+          // 이미지 업로드 API 호출
+          const response = await groupService.uploadGroupImage(file);
+          // 업로드 완료 후 실제 URL로 교체
+          setImg(response.groupImgUrl);
+        } catch (error) {
+          // 오류 처리
+        }
+      }
+    } catch (error: any) {
+      console.error('Failed to upload image:', error);
+      if (error && error.message) {
+        toast.error(error.message);
+      } else {
+        toast.error('이미지 업로드에 실패했습니다.');
+      }
+    }
   };
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
