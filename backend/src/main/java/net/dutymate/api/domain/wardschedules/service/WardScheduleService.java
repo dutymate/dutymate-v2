@@ -415,6 +415,10 @@ public class WardScheduleService {
 	public AllWardDutyResponseDto getAllWardDuty(Member member, Integer year, Integer month) {
 		WardMember wardMember = member.getWardMember();
 
+		if (wardMember == null) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "병동에 속하지 않은 회원입니다.");
+		}
+
 		// 1. 입력된 연월 가져오기, null이면 현재 연월
 		YearMonth yearMonth = new YearMonth(year, month);
 
