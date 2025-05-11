@@ -15,6 +15,8 @@ import org.springframework.web.multipart.MultipartFile;
 import net.dutymate.api.domain.common.utils.YearMonth;
 import net.dutymate.api.domain.group.dto.GroupCreateRequestDto;
 import net.dutymate.api.domain.group.dto.GroupInviteResponseDto;
+import net.dutymate.api.domain.group.dto.GroupMeetingRequestDto;
+import net.dutymate.api.domain.group.dto.GroupMeetingResponseDto;
 import net.dutymate.api.domain.group.dto.GroupUpdateRequestDto;
 import net.dutymate.api.domain.group.service.GroupService;
 import net.dutymate.api.domain.member.Member;
@@ -89,6 +91,14 @@ public class GroupController {
 	@PostMapping("/invite/{inviteToken}/join")
 	public ResponseEntity<?> joinGroupInvite(@Auth Member member, @PathVariable String inviteToken) {
 		groupService.acceptInviteToken(member, inviteToken);
+		return ResponseEntity.ok().build();
+	}
+
+	@PostMapping("/{groupId}/meeting-date")
+	public ResponseEntity<GroupMeetingResponseDto> createGroupMeetingDate(@Auth Member member, @PathVariable Long groupId, @RequestParam
+		GroupMeetingRequestDto groupMeetingRequestDto, @RequestParam(required = false) Integer year,
+		@RequestParam(required = false) Integer month){
+		groupService.createGroupMeetingDate(member, groupId, groupMeetingRequestDto, new YearMonth(year, month));
 		return ResponseEntity.ok().build();
 	}
 }

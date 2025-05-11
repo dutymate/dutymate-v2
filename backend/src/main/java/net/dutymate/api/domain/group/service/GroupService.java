@@ -4,11 +4,13 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -27,11 +29,14 @@ import net.dutymate.api.domain.group.dto.GroupDetailResponseDto;
 import net.dutymate.api.domain.group.dto.GroupImgResponseDto;
 import net.dutymate.api.domain.group.dto.GroupInviteResponseDto;
 import net.dutymate.api.domain.group.dto.GroupListResponseDto;
+import net.dutymate.api.domain.group.dto.GroupMeetingRequestDto;
+import net.dutymate.api.domain.group.dto.GroupMeetingResponseDto;
 import net.dutymate.api.domain.group.dto.GroupMemberListResponseDto;
 import net.dutymate.api.domain.group.dto.GroupUpdateRequestDto;
 import net.dutymate.api.domain.group.repository.GroupMemberRepository;
 import net.dutymate.api.domain.group.repository.GroupRepository;
 import net.dutymate.api.domain.member.Member;
+import net.dutymate.api.domain.member.repository.MemberRepository;
 import net.dutymate.api.domain.wardschedules.collections.MemberSchedule;
 import net.dutymate.api.domain.wardschedules.repository.MemberScheduleRepository;
 
@@ -49,6 +54,7 @@ public class GroupService {
 	private final GroupMemberRepository groupMemberRepository;
 	private final MemberScheduleRepository memberScheduleRepository;
 	private final RedisTemplate<String, String> redisTemplate;
+	private final MemberRepository memberRepository;
 
 	@Value("${cloud.aws.region.static}")
 	private String region;
@@ -198,9 +204,8 @@ public class GroupService {
 			Long memberId = gm.getMember().getMemberId();
 			String name = gm.getMember().getName();
 
-			String shiftStr = scheduleMap.containsKey(memberId) && scheduleMap.get(memberId).getShifts() != null
-				? scheduleMap.get(memberId).getShifts()
-				: "X".repeat(daysInMonth);
+			String shiftStr = scheduleMap.containsKey(memberId) && scheduleMap.get(memberId).getShifts() != null ?
+				scheduleMap.get(memberId).getShifts() : "X".repeat(daysInMonth);
 
 			for (int day = 1; day <= daysInMonth; day++) {
 				if (day - 1 >= shiftStr.length()) {
@@ -278,8 +283,7 @@ public class GroupService {
 		// 2. 내보낼 대상 멤버가 해당 그룹에 속해 있는지 확인
 		GroupMember targetGroupMember = groupMemberRepository.findByGroup_GroupIdAndMember_MemberId(groupId,
 				targetMemberId)
-			.orElseThrow(() ->
-				new ResponseStatusException(HttpStatus.BAD_REQUEST, "해당 멤버는 이 그룹에 속해 있지 않습니다."));
+			.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "해당 멤버는 이 그룹에 속해 있지 않습니다."));
 
 		// 3. 그룹장이 자기 자신을 내보내려는 경우 방지
 		if (member.getMemberId().equals(targetMemberId)) {
@@ -344,13 +348,83 @@ public class GroupService {
 		}
 
 		// 4. 그룹 멤버로 추가하기
-		GroupMember groupMember = GroupMember.builder()
-			.group(group)
-			.member(member)
-			.isLeader(false)
-			.build();
+		GroupMember groupMember = GroupMember.builder().group(group).member(member).isLeader(false).build();
 
 		group.addGroupMember(groupMember);
 		groupMemberRepository.save(groupMember);
 	}
+
+	public GroupMeetingResponseDto createGroupMeetingDate(Member member, Long groupId, GroupMeetingRequestDto groupMeetingRequestDto,
+		YearMonth yearMonth) {
+
+		NurseGroup group = groupRepository.findById(groupId)
+			.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "그룹을 찾을 수 없습니다."));
+		group.validateMember(member);
+
+		// memberId -> Member 이름 매핑
+		Map<Long, String> memberIdToName = memberRepository.findAllById(groupMeetingRequestDto.getGroupMemberIds())
+			.stream()
+			.collect(Collectors.toMap(Member::getMemberId, Member::getName));
+
+		// memberId -> shift 배열 (31일)
+		Map<Long, String[]> memberShiftMap = new HashMap<>();
+		for (MemberSchedule schedule : memberScheduleRepository.findAllByMemberIdInAndYearAndMonth(groupMeetingRequestDto.getGroupMemberIds(),
+			yearMonth.year(), yearMonth.month())) {
+			String[] shifts = schedule.getShifts().split("");
+			memberShiftMap.put(schedule.getMemberId(), shifts);
+		}
+
+		int daysInMonth = yearMonth.daysInMonth();
+
+		List<GroupMeetingResponseDto.RecommendedDate> result = IntStream.range(0, daysInMonth).mapToObj(dayIndex -> {
+			int score = calculateDailyScore(memberShiftMap, dayIndex);
+			LocalDate date = yearMonth.atDay(dayIndex + 1);
+
+			List<GroupMeetingResponseDto.MemberDutyDto> dutyList = groupMeetingRequestDto.getGroupMemberIds()
+				.stream()
+				.map(id -> GroupMeetingResponseDto.MemberDutyDto.builder()
+					.memberId(id)
+					.name(memberIdToName.get(id))
+					.duty(getDutySafe(memberShiftMap.get(id), dayIndex))
+					.build())
+				.toList();
+
+			return GroupMeetingResponseDto.RecommendedDate.builder()
+				.date(date)
+				.score(score)
+				.memberList(dutyList)
+				.build();
+		}).sorted((a, b) -> Integer.compare(b.getScore(), a.getScore())).toList();
+
+		return GroupMeetingResponseDto.builder().recommendedDateList(result).build();
+
+	}
+
+	private int calculateDailyScore(Map<Long, String[]> memberShiftMap, int dayIndex) {
+		int totalScore = 0;
+		for (Map.Entry<Long, String[]> entry : memberShiftMap.entrySet()) {
+			String[] shifts = entry.getValue();
+			String duty = getDutySafe(shifts, dayIndex);
+			totalScore += switch (duty) {
+				case "O" -> 10;
+				case "D", "M" -> 7;
+				case "E" -> 5;
+				case "N" -> getNightScore(shifts, dayIndex);
+				default -> 0;
+			};
+		}
+		return totalScore;
+	}
+
+	private int getNightScore(String[] shifts, int dayIndex) {
+		if (dayIndex == 0 || !"N".equals(shifts[dayIndex - 1])) {
+			return 3; // 첫 N 근무
+		}
+		return 1; // 연속된 N
+	}
+
+	private String getDutySafe(String[] shifts, int dayIndex) {
+		return (shifts != null && dayIndex < shifts.length) ? shifts[dayIndex] : "X";
+	}
+
 }
