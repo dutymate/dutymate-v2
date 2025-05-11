@@ -204,8 +204,9 @@ public class GroupService {
 			Long memberId = gm.getMember().getMemberId();
 			String name = gm.getMember().getName();
 
-			String shiftStr = scheduleMap.containsKey(memberId) && scheduleMap.get(memberId).getShifts() != null ?
-				scheduleMap.get(memberId).getShifts() : "X".repeat(daysInMonth);
+			String shiftStr = scheduleMap.containsKey(memberId) && scheduleMap.get(memberId).getShifts() != null
+				? scheduleMap.get(memberId).getShifts()
+				: "X".repeat(daysInMonth);
 
 			for (int day = 1; day <= daysInMonth; day++) {
 				if (day - 1 >= shiftStr.length()) {
@@ -282,8 +283,7 @@ public class GroupService {
 
 		// 2. 내보낼 대상 멤버가 해당 그룹에 속해 있는지 확인
 		GroupMember targetGroupMember = groupMemberRepository.findByGroup_GroupIdAndMember_MemberId(groupId,
-				targetMemberId)
-			.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "해당 멤버는 이 그룹에 속해 있지 않습니다."));
+			targetMemberId).orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "그룹 멤버가 아닙니다."));
 
 		// 3. 그룹장이 자기 자신을 내보내려는 경우 방지
 		if (member.getMemberId().equals(targetMemberId)) {
@@ -306,18 +306,7 @@ public class GroupService {
 		// 2. 그룹 멤버인지 확인
 		group.validateMember(member);
 
-		// // 3. 그룹장인지 확인하기
-		// GroupMember groupMember = group.getGroupMemberList()
-		// 	.stream()
-		// 	.filter(gm -> gm.getMember().equals(member))
-		// 	.findFirst()
-		// 	.orElseThrow(()-> new ResponseStatusException(HttpStatus.BAD_REQUEST, "그룹 멤버가 아닙니다."));
-		//
-		// if(!groupMember.getIsLeader()){
-		// 	throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "그룹장만 초대할 수 있습니다.");
-		// }
-
-		// 4. 그룹 초대 링크 Token으로 만들어 Redis에 24시간 동안 저장하기
+		// 3. 그룹 초대 링크 Token으로 만들어 Redis에 24시간 동안 저장하기
 		String token = UUID.randomUUID().toString();
 
 		redisTemplate.opsForValue().set("invite:" + token, groupId.toString(), Duration.ofHours(24));
@@ -354,22 +343,35 @@ public class GroupService {
 		groupMemberRepository.save(groupMember);
 	}
 
-	public GroupMeetingResponseDto createGroupMeetingDate(Member member, Long groupId, GroupMeetingRequestDto groupMeetingRequestDto,
-		YearMonth yearMonth) {
+	@Transactional
+	public GroupMeetingResponseDto createGroupMeetingDate(Member member, Long groupId,
+		GroupMeetingRequestDto groupMeetingRequestDto, YearMonth yearMonth) {
 
+		// 1. 존재하는 그룹인지 확인
 		NurseGroup group = groupRepository.findById(groupId)
-			.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "그룹을 찾을 수 없습니다."));
+			.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "그룹을 찾을 수 없습니다."));
 		group.validateMember(member);
 
-		// memberId -> Member 이름 매핑
-		Map<Long, String> memberIdToName = memberRepository.findAllById(groupMeetingRequestDto.getGroupMemberIds())
+		// 2. 요청된 멤버들이 모두 유효한 사용자이고, 해당 그룹의 멤버인지 확인
+		List<Long> groupMemberIds = groupMeetingRequestDto.getGroupMemberIds();
+		Map<Long, String> memberIdToName = memberRepository.findAllById(groupMemberIds)
 			.stream()
 			.collect(Collectors.toMap(Member::getMemberId, Member::getName));
 
+		if (memberIdToName.size() != groupMemberIds.size()) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "유효하지 않은 회원이 포함되어 있습니다.");
+		}
+
+		for (Long id : groupMemberIds) {
+			if (!group.isMember(id)) {
+				throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "그룹에 속하지 않은 멤버가 포함되어 있습니다.");
+			}
+		}
+
 		// memberId -> shift 배열 (31일)
 		Map<Long, String[]> memberShiftMap = new HashMap<>();
-		for (MemberSchedule schedule : memberScheduleRepository.findAllByMemberIdInAndYearAndMonth(groupMeetingRequestDto.getGroupMemberIds(),
-			yearMonth.year(), yearMonth.month())) {
+		for (MemberSchedule schedule : memberScheduleRepository.findAllByMemberIdInAndYearAndMonth(
+			groupMeetingRequestDto.getGroupMemberIds(), yearMonth.year(), yearMonth.month())) {
 			String[] shifts = schedule.getShifts().split("");
 			memberShiftMap.put(schedule.getMemberId(), shifts);
 		}
@@ -394,7 +396,7 @@ public class GroupService {
 				.score(score)
 				.memberList(dutyList)
 				.build();
-		}).sorted((a, b) -> Integer.compare(b.getScore(), a.getScore())).toList();
+		}).sorted((a, b) -> Integer.compare(b.getScore(), a.getScore())).limit(5).toList();
 
 		return GroupMeetingResponseDto.builder().recommendedDateList(result).build();
 
@@ -402,9 +404,13 @@ public class GroupService {
 
 	private int calculateDailyScore(Map<Long, String[]> memberShiftMap, int dayIndex) {
 		int totalScore = 0;
+		List<String> duties = new ArrayList<>();
+
+		// 모든 멤버의 해당 일자 duty 수집 및 점수 합산
 		for (Map.Entry<Long, String[]> entry : memberShiftMap.entrySet()) {
 			String[] shifts = entry.getValue();
 			String duty = getDutySafe(shifts, dayIndex);
+			duties.add(duty);
 			totalScore += switch (duty) {
 				case "O" -> 10;
 				case "D", "M" -> 7;
@@ -413,6 +419,12 @@ public class GroupService {
 				default -> 0;
 			};
 		}
+
+		// D와 E 또는 M과 E가 함께 있으면 약속 부적합 → 점수 0 처리
+		if ((duties.contains("D") && duties.contains("E")) || (duties.contains("M") && duties.contains("E"))) {
+			return 0;
+		}
+
 		return totalScore;
 	}
 

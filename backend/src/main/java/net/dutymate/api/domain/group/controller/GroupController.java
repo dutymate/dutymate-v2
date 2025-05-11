@@ -95,10 +95,12 @@ public class GroupController {
 	}
 
 	@PostMapping("/{groupId}/meeting-date")
-	public ResponseEntity<GroupMeetingResponseDto> createGroupMeetingDate(@Auth Member member, @PathVariable Long groupId, @RequestParam
+	public ResponseEntity<GroupMeetingResponseDto> createGroupMeetingDate(@Auth Member member,
+		@PathVariable Long groupId, @RequestBody
 		GroupMeetingRequestDto groupMeetingRequestDto, @RequestParam(required = false) Integer year,
-		@RequestParam(required = false) Integer month){
-		groupService.createGroupMeetingDate(member, groupId, groupMeetingRequestDto, new YearMonth(year, month));
-		return ResponseEntity.ok().build();
+		@RequestParam(required = false) Integer month) {
+
+		return ResponseEntity.ok(
+			groupService.createGroupMeetingDate(member, groupId, groupMeetingRequestDto, new YearMonth(year, month)));
 	}
 }
