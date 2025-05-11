@@ -21,8 +21,8 @@ public class MypageResponseDto {
 
 	public static MypageResponseDto of(WardMember wardMember, Member member) {
 		return MypageResponseDto.builder()
-			.hospitalName(wardMember.getWard().getHospitalName())
-			.wardName(wardMember.getWard().getWardName())
+			.hospitalName(wardMember == null ? "" : wardMember.getWard().getHospitalName())
+			.wardName(wardMember == null ? "" : wardMember.getWard().getWardName())
 			.profileImg(member.getProfileImg())
 			.email(member.getEmail())
 			.name(member.getName())
