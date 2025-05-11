@@ -67,6 +67,13 @@ module "elasticache" {
   sg_valkey_id     = module.security_group.sg_valkey_id
 }
 
+module "eventbridge" {
+  source                                = "./Modules/EventBridge"
+  api_secret_key                        = var.api_secret_key
+  domain_name                           = var.domain_name
+  eventbridge_api_destinations_role_arn = module.iam.eventbridge_api_destinations_role_arn
+}
+
 module "iam" {
   source = "./Modules/IAM"
 }
