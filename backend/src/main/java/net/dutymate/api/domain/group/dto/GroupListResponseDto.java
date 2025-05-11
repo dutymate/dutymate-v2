@@ -12,7 +12,7 @@ public class GroupListResponseDto {
 	private Long groupId;
 	private String groupName;
 	private String groupDescription;
-	private Integer memberCnt;
+	private Integer groupMemberCount;
 	private String groupImg;
 
 	public static GroupListResponseDto of(NurseGroup group) {
@@ -20,7 +20,7 @@ public class GroupListResponseDto {
 			.groupId(group.getGroupId())
 			.groupName(group.getGroupName())
 			.groupDescription(group.getGroupDescription())
-			.memberCnt(group.getGroupMemberList().size())
+			.groupMemberCount(group.getGroupMemberList().size())
 			.groupImg(group.getGroupImg())
 			.build();
 	}
