@@ -84,6 +84,7 @@ export interface DutyUpdateRequest {
 
 export interface UnreflectedRequest {
   requestId: number;
+  memberId: number;
   memberName: string;
   requestDate: string;
   requestShift: string;

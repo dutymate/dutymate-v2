@@ -3,6 +3,8 @@ import { Button } from '@/components/atoms/Button';
 import { Icon } from '@/components/atoms/Icon';
 import DutyBadgeEng from '@/components/atoms/DutyBadgeEng';
 import { UnreflectedRequest } from '@/services/dutyService';
+import { requestService } from '@/services/requestService';
+import { toast } from 'react-toastify';
 
 interface UnreflectedRequestsModalProps {
   isOpen: boolean;
@@ -21,6 +23,7 @@ const UnreflectedRequestsModal: React.FC<UnreflectedRequestsModalProps> = ({
     Record<number, boolean>
   >({});
   const [isRegenerating, setIsRegenerating] = useState(false);
+  const [isRejecting, setIsRejecting] = useState(false);
   const [viewingMemo, setViewingMemo] = useState<{
     id: number;
     memo: string;
@@ -71,7 +74,12 @@ const UnreflectedRequestsModal: React.FC<UnreflectedRequestsModalProps> = ({
 
       // 선택된 요청으로 재생성 요청
       await onRegenerateWithPriority(selectedRequestIds);
-      onClose();
+
+      // 재생성 후 선택된 요청들 초기화
+      setSelectedRequests({});
+
+      // 메모 모달이 열려있다면 닫기
+      setViewingMemo(null);
     } catch (error) {
       console.error('Error regenerating with priority:', error);
     } finally {
@@ -87,6 +95,38 @@ const UnreflectedRequestsModal: React.FC<UnreflectedRequestsModalProps> = ({
 
   const closeMemoModal = () => {
     setViewingMemo(null);
+  };
+
+  const handleComplete = async () => {
+    try {
+      setIsRejecting(true);
+      const loadingToast = toast.loading(
+        '반영되지 않은 요청을 거절 처리 중...'
+      );
+
+      // 모든 반영되지 않은 요청을 거절 상태로 변경
+      const rejectPromises = unreflectedRequests.map((request) =>
+        requestService.editRequestStatus(request.requestId, {
+          memberId: request.memberId,
+          status: 'DENIED',
+        })
+      );
+
+      await Promise.all(rejectPromises);
+
+      toast.update(loadingToast, {
+        render: '반영되지 않은 요청이 거절 처리되었습니다.',
+        type: 'success',
+        isLoading: false,
+      });
+
+      onClose();
+    } catch (error) {
+      console.error('Error rejecting requests:', error);
+      toast.error('요청 거절 처리에 실패했습니다.');
+    } finally {
+      setIsRejecting(false);
+    }
   };
 
   // 모달 외부 클릭 감지
@@ -333,7 +373,12 @@ const UnreflectedRequestsModal: React.FC<UnreflectedRequestsModalProps> = ({
                 '선택 요청 재반영'
               )}
             </Button>
-            <Button size="xs" color="off" onClick={onClose}>
+            <Button
+              size="xs"
+              color="off"
+              onClick={handleComplete}
+              disabled={isRejecting}
+            >
               완료
             </Button>
           </div>

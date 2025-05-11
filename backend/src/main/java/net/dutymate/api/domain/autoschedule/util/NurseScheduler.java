@@ -44,8 +44,8 @@ public class NurseScheduler {
 			prevMonthSchedules);
 		Solution bestSolution = currentSolution.copy();
 
-		List<Long> safeReinforcementIds = reinforcementRequestIds != null ?
-			reinforcementRequestIds : Collections.emptyList();
+		List<Long> safeReinforcementIds = reinforcementRequestIds != null
+			? reinforcementRequestIds : Collections.emptyList();
 
 		List<ShiftRequest> shiftRequests = requests.stream()
 			.map(request -> ShiftRequest.builder()
@@ -335,7 +335,7 @@ public class NurseScheduler {
 		score += evaluateConsecutiveShifts(solution, rule) * 10000;
 		score += evaluatePreviousMonthConstraints(solution, prevMonthSchedules, rule) * 10000;
 
-		score += evaluateShiftRequests(solution, requests) * 10000;
+		score += evaluateShiftRequests(solution, requests) * 5000;
 
 		// 약한 제약 조건
 		score += evaluateNodPatterns(solution, prevMonthSchedules) * 5000;

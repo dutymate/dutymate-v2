@@ -41,7 +41,6 @@ public class AutoScheduleService {
 	private final WardScheduleRepository wardScheduleRepository;
 	private final RequestRepository requestRepository;
 
-	private final UpdateRequestStatuses updateRequestStatuses;
 	private final NurseScheduler nurseScheduler;
 
 	@Transactional
@@ -183,35 +182,38 @@ public class AutoScheduleService {
 		List<Request> allRequests = requestRepository.findAllWardRequestsByYearMonth(member.getWardMember().getWard(),
 			yearMonth.year(),
 			yearMonth.month());
-		//요청 상태 관리
-		updateRequestStatuses.updateRequestStatuses(allRequests, updateWardSchedule, yearMonth);
 
-		// 원래 ACCEPTED였지만 자동 생성 후 DENIED로 변경된 요청 찾기
-		List<Request> unreflectedRequests = allRequests.stream()
-			.filter(req -> previouslyAcceptedRequestIds.contains(req.getRequestId())) // 원래 ACCEPTED였던 요청
-			.filter(req -> req.getStatus() == RequestStatus.DENIED) // 현재는 DENIED인 요청
+		// 원래 ACCEPTED였지만 자동 생성 후 실제 스케줄과 다른 요청 찾기
+		List<Request> unreflectedRequests = acceptedRequests.stream()
+			.filter(req -> {
+				// 요청한 날짜의 실제 근무 찾기
+				String actualShift = findActualShift(
+					updateWardSchedule,
+					req.getWardMember().getMember().getMemberId(),
+					req.getRequestDate()
+				);
+
+				// 요청한 근무와 실제 배정된 근무가 다른 경우
+				String requestedShift = req.getRequestShift().getValue();
+				return !actualShift.equals(requestedShift);
+			})
 			.toList();
-
 
 		List<AutoScheduleResponseDto.UnreflectedRequestInfo> unreflectedInfo =
 			unreflectedRequests.stream()
-				.map(req -> {
-					// 해당 멤버의 해당 날짜에 배정된 실제 근무 찾기
-					String actualShift = findActualShift(
+				.map(req -> AutoScheduleResponseDto.UnreflectedRequestInfo.builder()
+					.requestId(req.getRequestId())
+					.memberId(req.getWardMember().getMember().getMemberId())
+					.memberName(req.getWardMember().getMember().getName())
+					.requestDate(req.getRequestDate())
+					.requestShift(req.getRequestShift().getValue())
+					.actualShift(findActualShift(
 						updateWardSchedule,
 						req.getWardMember().getMember().getMemberId(),
 						req.getRequestDate()
-					);
-
-					return AutoScheduleResponseDto.UnreflectedRequestInfo.builder()
-						.requestId(req.getRequestId())
-						.memberName(req.getWardMember().getMember().getName())
-						.requestDate(req.getRequestDate())
-						.requestShift(req.getRequestShift().getValue())
-						.actualShift(actualShift)
-						.requestMemo(req.getMemo())
-						.build();
-				})
+					))
+					.requestMemo(req.getMemo())
+					.build())
 				.toList();
 
 
@@ -247,13 +249,5 @@ public class AutoScheduleService {
 
 		// 정보를 찾을 수 없는 경우
 		return "X";
-	}
-
-
-	public void regenerateAutoSchedue(ReAutoScheduleRequestDto reAutoScheduleRequestDto) {
-
-		YearMonth yearMonth = new YearMonth(reAutoScheduleRequestDto.getYear(), reAutoScheduleRequestDto.getMonth());
-
-
 	}
 }

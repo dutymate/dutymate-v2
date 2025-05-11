@@ -24,6 +24,7 @@ public class AutoScheduleResponseDto {
 	@AllArgsConstructor
 	public static class UnreflectedRequestInfo {
 		private Long requestId;
+		private Long memberId;
 		private String memberName;
 		private Date requestDate;
 		private String requestShift;
