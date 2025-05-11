@@ -152,3 +152,44 @@ resource "aws_iam_role_policy_attachment" "appserver_ecs_task_role_policy" {
   role       = aws_iam_role.appserver_ecs_task_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonElastiCacheFullAccess"
 }
+
+resource "aws_iam_role" "eventbridge_api_destinations_role" {
+  name = "dutymate-eventbridge-api-destinations-role"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = "events.amazonaws.com"
+        }
+      }
+    ]
+  })
+
+  tags = {
+    Name = "dutymate-eventbridge-api-destinations-role"
+  }
+}
+
+resource "aws_iam_policy" "eventbridge_api_destinations_policy" {
+  name        = "dutymate-eventbridge-api-destinations-policy"
+  description = "Policy for EventBridge API Destinations"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action   = ["events:InvokeApiDestination"]
+        Effect   = "Allow"
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "eventbridge_api_destinations_role_policy_attach" {
+  role       = aws_iam_role.eventbridge_api_destinations_role.name
+  policy_arn = aws_iam_policy.eventbridge_api_destinations_policy.arn
+}
