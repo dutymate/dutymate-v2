@@ -25,6 +25,8 @@ import NurseShortageModal from '@/components/organisms/NurseShortageModal';
 import MobileDutyControls from '@/components/molecules/MobileDutyControls';
 import RequestCheckModal from '@/components/organisms/RequestCheckModal';
 import UnreflectedRequestsModal from '@/components/organisms/UnreflectedRequestsModal';
+import NurseShortageAlert from '@/components/molecules/NurseShortageAlert';
+import useNurseShortageCalculation from '@/hooks/useNurseShortageCalculation';
 
 import {
   dutyService,
@@ -731,6 +733,44 @@ const ShiftAdminTable = memo(
       }
     };
 
+    // 간호사 부족 계산 커스텀 훅 사용
+    const {
+      shortage: estimatedNurseShortage,
+      wardRules: nurseShortageRules,
+      setWardRules: setNurseShortageRules,
+    } = useNurseShortageCalculation({
+      year,
+      month,
+      nursesCount: nurses.length,
+      initialWardRules: wardRules,
+    });
+
+    // 백엔드에서 전달받은 neededNurseCount와 프론트엔드에서 계산한 estimatedNurseShortage 동기화
+    useEffect(() => {
+      // 백엔드 값이 0이거나 없는 경우 프론트엔드 계산값 사용
+      if (!neededNurseCount && estimatedNurseShortage > 0) {
+        setNeededNurseCount(estimatedNurseShortage);
+      }
+    }, [estimatedNurseShortage, neededNurseCount]);
+
+    // wardRules 상태를 nurseShortageRules와 동기화
+    useEffect(() => {
+      if (
+        nurseShortageRules &&
+        (!wardRules ||
+          JSON.stringify(nurseShortageRules) !== JSON.stringify(wardRules))
+      ) {
+        setWardRules(nurseShortageRules);
+      }
+    }, [nurseShortageRules]);
+
+    // wardRules 변경 시 nurseShortageRules도 업데이트
+    useEffect(() => {
+      if (wardRules) {
+        setNurseShortageRules(wardRules);
+      }
+    }, [wardRules, setNurseShortageRules]);
+
     const executeAutoGenerate = async () => {
       setIsAutoGenCountModalOpen(false);
       try {
@@ -739,6 +779,11 @@ const ShiftAdminTable = memo(
         const loadingToast = toast.loading(
           '근무표에 마침표를 찍고 있습니다...'
         );
+
+        // 시작 시 프론트엔드 계산 값으로 설정 (API 호출 전)
+        if (estimatedNurseShortage > 0) {
+          setNeededNurseCount(estimatedNurseShortage);
+        }
 
         // API 호출
         const response = await dutyService.autoCreateDuty(year, month);
@@ -789,8 +834,12 @@ const ShiftAdminTable = memo(
               toast.error('근무 일정을 찾을 수 없습니다.');
               break;
             case 406:
-              // 필요한 간호사 수 설정
-              setNeededNurseCount(error.response.data.neededNurseCount || 0);
+              // 백엔드에서 받은 필요한 간호사 수로 업데이트
+              setNeededNurseCount(
+                error.response.data.neededNurseCount ||
+                  estimatedNurseShortage ||
+                  0
+              );
               // 간호사 수 부족 시 확인 모달 표시
               setIsNurseShortageModalOpen(true);
               break;
@@ -1229,6 +1278,12 @@ const ShiftAdminTable = memo(
 
     return (
       <div>
+        {/* 간호사 부족 알림 배너 */}
+        <NurseShortageAlert
+          shortage={estimatedNurseShortage}
+          onRuleButtonClick={handleRuleButtonClick}
+        />
+
         {/* 모바일 뷰 */}
         <div className="xl:hidden">
           {/* 상단 컨트롤 영역 */}
@@ -1616,7 +1671,7 @@ const ShiftAdminTable = memo(
             className="bg-white rounded-[0.92375rem] shadow-[0_0_0.9375rem_rgba(0,0,0,0.1)] p-[1.5rem]"
             ref={tableRef}
           >
-            {/* 월 선택 및 버튼 영역 */}
+            {/* 상단 컨트롤 영역 */}
             <div className="bg-white rounded-xl py-[0.5rem] px-[0.5rem] mb-[0.1875rem]">
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
@@ -2176,6 +2231,7 @@ const ShiftAdminTable = memo(
           onClose={() => setIsNurseShortageModalOpen(false)}
           onForceGenerate={handleForceAutoGenerate}
           onAddTemporaryNurses={handleAddTemporaryNurses}
+          executeAutoGenerate={executeAutoGenerate}
           neededNurseCount={neededNurseCount}
           currentNurseCount={nurses.length}
         />
