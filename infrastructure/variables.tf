@@ -1,3 +1,7 @@
+variable "api_secret_key" {
+  type = string
+}
+
 variable "availability_zones" {
   type = list(string)
 }
