@@ -20,14 +20,14 @@ public class GroupMemberListResponseDto {
 	private Integer groupMemberCount;
 	private List<MemberDto> memberList;
 
-	public static GroupMemberListResponseDto of(NurseGroup group) {
+	public static GroupMemberListResponseDto of(NurseGroup group, List<GroupMember> sortedMembers) {
 		return GroupMemberListResponseDto.builder()
 			.groupId(group.getGroupId())
 			.groupName(group.getGroupName())
 			.groupDescription(group.getGroupDescription())
 			.groupImg(group.getGroupImg())
-			.groupMemberCount(group.getGroupMemberList().size())
-			.memberList(group.getGroupMemberList().stream().map(MemberDto::of).toList())
+			.groupMemberCount(sortedMembers.size())
+			.memberList(sortedMembers.stream().map(MemberDto::of).toList())
 			.build();
 	}
 
