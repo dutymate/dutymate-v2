@@ -378,25 +378,30 @@ public class GroupService {
 
 		int daysInMonth = yearMonth.daysInMonth();
 
-		List<GroupMeetingResponseDto.RecommendedDate> result = IntStream.range(0, daysInMonth).mapToObj(dayIndex -> {
-			int score = calculateDailyScore(memberShiftMap, dayIndex);
-			LocalDate date = yearMonth.atDay(dayIndex + 1);
+		List<GroupMeetingResponseDto.RecommendedDate> result = IntStream.range(0, daysInMonth)
+			.mapToObj(dayIndex -> {
+				int score = calculateDailyScore(memberShiftMap, dayIndex);
+				LocalDate date = yearMonth.atDay(dayIndex + 1);
 
-			List<GroupMeetingResponseDto.MemberDutyDto> dutyList = groupMeetingRequestDto.getGroupMemberIds()
-				.stream()
-				.map(id -> GroupMeetingResponseDto.MemberDutyDto.builder()
-					.memberId(id)
-					.name(memberIdToName.get(id))
-					.duty(getDutySafe(memberShiftMap.get(id), dayIndex))
-					.build())
-				.toList();
+				List<GroupMeetingResponseDto.MemberDutyDto> dutyList = groupMeetingRequestDto.getGroupMemberIds()
+					.stream()
+					.map(id -> GroupMeetingResponseDto.MemberDutyDto.builder()
+						.memberId(id)
+						.name(memberIdToName.get(id))
+						.duty(getDutySafe(memberShiftMap.get(id), dayIndex))
+						.build())
+					.toList();
 
-			return GroupMeetingResponseDto.RecommendedDate.builder()
-				.date(date)
-				.score(score)
-				.memberList(dutyList)
-				.build();
-		}).sorted((a, b) -> Integer.compare(b.getScore(), a.getScore())).limit(5).toList();
+				return GroupMeetingResponseDto.RecommendedDate.builder()
+					.date(date)
+					.score(score)
+					.memberList(dutyList)
+					.build();
+			})
+			.filter(dto -> dto.getScore() > 0)
+			.sorted((a, b) -> Integer.compare(b.getScore(), a.getScore()))
+			.limit(5)
+			.toList();
 
 		return GroupMeetingResponseDto.builder().recommendedDateList(result).build();
 
@@ -405,6 +410,10 @@ public class GroupService {
 	private int calculateDailyScore(Map<Long, String[]> memberShiftMap, int dayIndex) {
 		int totalScore = 0;
 		List<String> duties = new ArrayList<>();
+
+		// TODO
+		// 1. 연속 근무 여부를 고려하여 점수 차등화하기 (근무자의 피로도 계산 등)
+		// 2. 전날 근무를 했는지 안했는지, 다음날 근무가 있는지 없는지 등
 
 		// 모든 멤버의 해당 일자 duty 수집 및 점수 합산
 		for (Map.Entry<Long, String[]> entry : memberShiftMap.entrySet()) {
@@ -420,9 +429,9 @@ public class GroupService {
 			};
 		}
 
-		// D와 E 또는 M과 E가 함께 있으면 약속 부적합 → 점수 0 처리
+		// (D-E) / (M-E)  연속된 근무자가 함께 있으면 약속 부적합 → 점수 음수 처리
 		if ((duties.contains("D") && duties.contains("E")) || (duties.contains("M") && duties.contains("E"))) {
-			return 0;
+			return -100;
 		}
 
 		return totalScore;
@@ -432,11 +441,10 @@ public class GroupService {
 		if (dayIndex == 0 || !"N".equals(shifts[dayIndex - 1])) {
 			return 3; // 첫 N 근무
 		}
-		return 1; // 연속된 N
+		return -100; // 연속된 N
 	}
 
 	private String getDutySafe(String[] shifts, int dayIndex) {
 		return (shifts != null && dayIndex < shifts.length) ? shifts[dayIndex] : "X";
 	}
-
 }
