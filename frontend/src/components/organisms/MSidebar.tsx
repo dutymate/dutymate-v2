@@ -49,7 +49,7 @@ const NavigationItem = React.memo(
     userType,
   }: { item: NavigationItem; isDemo: boolean; userType: 'HN' | 'RN' }) => {
     const requestCount = useRequestCountStore((state) => state.count);
-    const demoBlockedRoutes = ['/community', '/my-page'];
+    const demoBlockedRoutes = ['/community', '/my-page', '/group'];
     const handleClick = (
       e: React.MouseEvent<HTMLAnchorElement, MouseEvent>
     ) => {
@@ -70,7 +70,9 @@ const NavigationItem = React.memo(
     const isActive =
       item.href === location.pathname ||
       (location.pathname.startsWith('/community/') &&
-        item.href.startsWith('/community'));
+        item.href.startsWith('/community')) ||
+      (location.pathname.startsWith('/group/') &&
+        item.href.startsWith('/group'));
 
     return (
       <li className="flex justify-center px-[1.3rem]">

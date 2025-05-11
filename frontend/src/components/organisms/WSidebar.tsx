@@ -77,15 +77,21 @@ const NavigationItem = React.memo(
         window.open(import.meta.env.VITE_TUTORIAL_URL, '_blank');
       }
 
-      if (isDemo && (item.href === '/community' || item.href === '/my-page')) {
+      if (
+        isDemo &&
+        (item.href === '/community' ||
+          item.href === '/my-page' ||
+          item.href === '/group')
+      ) {
         e.preventDefault();
       }
     };
 
     const isActive =
-      item.href === location.pathname ||
-      (location.pathname.startsWith('/community/') &&
-        item.href.startsWith('/community'));
+      location.pathname === item.href ||
+      (item.href === '/community' &&
+        location.pathname.startsWith('/community')) ||
+      (item.href === '/group' && location.pathname.startsWith('/group'));
 
     return (
       <li className="flex justify-center px-[1.3rem]">
@@ -95,7 +101,12 @@ const NavigationItem = React.memo(
 					flex items-center gap-x-3 px-4 py-2.5 w-full rounded-lg
 					font-['Pretendard Variable'] text-[0.9rem] group
 					${
-            isDemo && (item.href === '/community' || item.href === '/my-page')
+            isDemo &&
+            (
+              item.href === '/community' ||
+                item.href === '/my-page' ||
+                item.href === '/group'
+            )
               ? 'text-gray-400 cursor-not-allowed'
               : isActive
                 ? 'text-primary-dark bg-primary-10'
@@ -106,7 +117,12 @@ const NavigationItem = React.memo(
         >
           {React.createElement(item.icon, {
             className: `w-4 h-4 min-w-4 ${
-              isDemo && (item.href === '/community' || item.href === '/my-page')
+              isDemo &&
+              (
+                item.href === '/community' ||
+                  item.href === '/my-page' ||
+                  item.href === '/group'
+              )
                 ? 'text-gray-400 cursor-not-allowed'
                 : isActive
                   ? 'text-primary-dark'
@@ -115,7 +131,9 @@ const NavigationItem = React.memo(
           })}
 
           {isDemo &&
-          (item.href === '/community' || item.href === '/my-page') ? (
+          (item.href === '/community' ||
+            item.href === '/my-page' ||
+            item.href === '/group') ? (
             <Tooltip content="로그인 후 이용 가능합니다." width="w-40">
               <div>
                 <span className="font-semibold text-center w-full block">
@@ -155,7 +173,9 @@ const Sidebar = ({ userType, isDemo }: SidebarProps) => {
     if (
       isDemo &&
       (location.pathname === '/community' ||
-        location.pathname.startsWith('/community/'))
+        location.pathname.startsWith('/community/') ||
+        location.pathname === '/group' ||
+        location.pathname.startsWith('/group/'))
     ) {
       navigate('/error');
     }
