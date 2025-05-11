@@ -15,10 +15,13 @@ import net.dutymate.api.domain.request.Request;
 import net.dutymate.api.domain.request.RequestStatus;
 import net.dutymate.api.domain.request.dto.EditRequestStatusRequestDto;
 import net.dutymate.api.domain.request.dto.MyRequestResponseDto;
+import net.dutymate.api.domain.request.dto.RequestCreateByAdminDto;
 import net.dutymate.api.domain.request.dto.RequestCreateDto;
 import net.dutymate.api.domain.request.dto.WardRequestResponseDto;
 import net.dutymate.api.domain.request.repository.RequestRepository;
 import net.dutymate.api.domain.ward.Ward;
+import net.dutymate.api.domain.wardmember.Role;
+import net.dutymate.api.domain.wardmember.repository.WardMemberRepository;
 import net.dutymate.api.domain.wardschedules.util.ShiftUtil;
 
 import lombok.RequiredArgsConstructor;
@@ -30,6 +33,7 @@ public class RequestService {
 	private final RequestRepository requestRepository;
 	private final MemberRepository memberRepository;
 	private final ShiftUtil shiftUtil;
+	private final WardMemberRepository wardMemberRepository;
 
 	@Transactional
 	public void createRequest(RequestCreateDto requestCreateDto, Member member) {
@@ -122,4 +126,22 @@ public class RequestService {
 		requestRepository.delete(request);
 	}
 
+	@Transactional
+	public void createRequestByAdmin(Member member, RequestCreateByAdminDto requestCreateByAdminDto) {
+
+		if (member.getWardMember() == null) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "병동에 속하지 않은 회원입니다.");
+		}
+
+		if (member.getRole() != Role.HN) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "병동의 관리자가 아닙니다.");
+		}
+
+		Member requestMember = memberRepository.findById(requestCreateByAdminDto.memberId())
+			.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "해당 유저를 찾을 수 없습니다."));
+
+		Request request = Request.create(requestCreateByAdminDto, requestMember.getWardMember());
+
+		requestRepository.save(request);
+	}
 }

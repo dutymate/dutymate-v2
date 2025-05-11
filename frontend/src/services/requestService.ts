@@ -25,6 +25,13 @@ export interface CreateRequestDto {
   memo: string;
 }
 
+export interface CreateRequestByAdminDto {
+  memberId: number;
+  date: string; // YYYY-MM-DD 형식
+  shift: 'D' | 'E' | 'N' | 'O';
+  memo: string;
+}
+
 export interface EditRequestStatusDto {
   memberId: number;
   status: 'ACCEPTED' | 'DENIED' | 'HOLD';
@@ -182,6 +189,37 @@ export const requestService = {
   deleteRequest: (requestId: number) => {
     return axiosInstance
       .delete(`/request/${requestId}`)
+      .then((response) => {
+        return response.data;
+      })
+      .catch((error) => {
+        if (error.code === 'ERR_NETWORK') {
+          console.error(
+            '서버에 연결할 수 없습니다. 서버가 실행 중인지 확인해주세요.'
+          );
+          throw new Error('서버 연결 실패');
+        }
+        if (error.response) {
+          switch (error.response.status) {
+            case 401:
+              window.location.href = '/login';
+              break;
+            default:
+              console.error('Error occurred:', error);
+              throw error;
+          }
+        }
+        throw error;
+      });
+  },
+
+  /**
+   * 관리자가 다른 간호사를 대신해 근무 요청 생성
+   * @param data - 요청할 근무 정보 (회원 ID, 날짜, 근무 유형, 메모)
+   */
+  createRequestByAdmin: (data: CreateRequestByAdminDto) => {
+    return axiosInstance
+      .post(`/request/admin`, data)
       .then((response) => {
         return response.data;
       })

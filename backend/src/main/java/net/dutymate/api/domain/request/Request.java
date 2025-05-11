@@ -7,6 +7,7 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 import net.dutymate.api.domain.autoschedule.Shift;
+import net.dutymate.api.domain.request.dto.RequestCreateByAdminDto;
 import net.dutymate.api.domain.wardmember.WardMember;
 
 import jakarta.persistence.Column;
@@ -56,5 +57,16 @@ public class Request {
 
 	public void changeStatus(RequestStatus status) {
 		this.status = status;
+	}
+
+	public static Request create(RequestCreateByAdminDto dto, WardMember wardMember) {
+		return Request.builder()
+			.wardMember(wardMember)
+			.requestDate(dto.date())
+			.requestShift(Shift.valueOf(dto.shift().toUpperCase()))
+			.memo(dto.memo())
+			.status(RequestStatus.HOLD) // 기본값 설정
+			.createdAt(new Timestamp(System.currentTimeMillis()))
+			.build();
 	}
 }

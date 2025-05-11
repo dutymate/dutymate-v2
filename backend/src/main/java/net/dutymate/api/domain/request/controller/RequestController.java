@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import net.dutymate.api.domain.member.Member;
 import net.dutymate.api.domain.request.dto.EditRequestStatusRequestDto;
 import net.dutymate.api.domain.request.dto.MyRequestResponseDto;
+import net.dutymate.api.domain.request.dto.RequestCreateByAdminDto;
 import net.dutymate.api.domain.request.dto.RequestCreateDto;
 import net.dutymate.api.domain.request.dto.WardRequestResponseDto;
 import net.dutymate.api.domain.request.service.RequestService;
@@ -66,6 +67,15 @@ public class RequestController {
 		requestService.deleteRequest(member, requestId);
 		return ResponseEntity.ok().build();
 
+	}
+
+	@PostMapping("/request/admin")
+	public ResponseEntity<?> createRequestAdmin(@Auth Member member,
+		@RequestBody RequestCreateByAdminDto requestCreateByAdminDto) {
+
+		requestService.createRequestByAdmin(member, requestCreateByAdminDto);
+
+		return ResponseEntity.ok().build();
 	}
 
 }
