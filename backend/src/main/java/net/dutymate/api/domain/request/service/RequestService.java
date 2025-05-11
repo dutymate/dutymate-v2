@@ -33,6 +33,10 @@ public class RequestService {
 
 	@Transactional
 	public void createRequest(RequestCreateDto requestCreateDto, Member member) {
+		if (member.getWardMember() == null) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "병동에 속하지 않은 회원입니다.");
+		}
+
 		Request request = requestCreateDto.toRequest(member);
 		requestRepository.save(request);
 	}
