@@ -494,9 +494,12 @@ public class MemberService {
 
 	@Transactional
 	public void exitWard(Member member) {
-		Ward ward = member.getWardMember().getWard();
-
 		WardMember wardMember = member.getWardMember();
+		if (wardMember == null) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "병동에 속하지 않은 회원입니다.");
+		}
+
+		Ward ward = member.getWardMember().getWard();
 
 		if (member.getRole() == Role.RN) {
 			ward.removeWardMember(wardMember);
