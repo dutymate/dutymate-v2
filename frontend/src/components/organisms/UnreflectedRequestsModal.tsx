@@ -5,6 +5,11 @@ import DutyBadgeEng from '@/components/atoms/DutyBadgeEng';
 import { UnreflectedRequest } from '@/services/dutyService';
 import { requestService } from '@/services/requestService';
 import { toast } from 'react-toastify';
+import { dutyService } from '@/services/dutyService';
+import useUserAuthStore from '@/stores/userAuthStore';
+import PaymentModal from '@/components/organisms/PaymentModal';
+import DemoSignupModal from '@/components/organisms/DemoSignupModal';
+import { useNavigate } from 'react-router-dom';
 
 interface UnreflectedRequestsModalProps {
   isOpen: boolean;
@@ -29,6 +34,12 @@ const UnreflectedRequestsModal: React.FC<UnreflectedRequestsModalProps> = ({
     memo: string;
   } | null>(null);
   const memoModalRef = useRef<HTMLDivElement>(null);
+  const [autoGenCnt, setAutoGenCnt] = useState(0);
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [isDemoSignupModalOpen, setIsDemoSignupModalOpen] = useState(false);
+  const { userInfo } = useUserAuthStore();
+  const isDemo = userInfo?.isDemo;
+  const navigate = useNavigate();
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -60,30 +71,76 @@ const UnreflectedRequestsModal: React.FC<UnreflectedRequestsModalProps> = ({
     }
   };
 
+  // 자동 생성 횟수 가져오기
+  useEffect(() => {
+    const fetchAutoGenCount = async () => {
+      try {
+        const data = await dutyService.getAutoGenCount();
+        setAutoGenCnt(data);
+      } catch (error) {
+        console.error('Failed to fetch auto generation count:', error);
+      }
+    };
+
+    if (isOpen) {
+      fetchAutoGenCount();
+    }
+  }, [isOpen]);
+
   const handleRegenerate = async () => {
     if (Object.keys(selectedRequests).length === 0) {
-      return; // 선택된 요청이 없으면 아무 작업도 하지 않음
+      return;
     }
 
     try {
+      // DEMO: autogenCnt 0 & demo 계정이면 회원가입 유도 모달
+      if (autoGenCnt <= 0 && isDemo) {
+        setIsDemoSignupModalOpen(true);
+        return;
+      }
+
+      // 자동 생성 횟수가 0 이하인 경우 결제 모달로 이동
+      if (autoGenCnt <= 0) {
+        setIsPaymentModalOpen(true);
+        return;
+      }
+
       setIsRegenerating(true);
-      // 선택된 요청의 멤버 ID 배열 추출
       const selectedRequestIds = Object.entries(selectedRequests)
         .filter(([_, isSelected]) => isSelected)
         .map(([index]) => unreflectedRequests[parseInt(index)].requestId);
 
-      // 선택된 요청으로 재생성 요청
       await onRegenerateWithPriority(selectedRequestIds);
 
-      // 재생성 후 선택된 요청들 초기화
       setSelectedRequests({});
-
-      // 메모 모달이 열려있다면 닫기
       setViewingMemo(null);
+
+      // 자동 생성 횟수 감소
+      setAutoGenCnt((prev) => prev - 1);
     } catch (error) {
       console.error('Error regenerating with priority:', error);
     } finally {
       setIsRegenerating(false);
+    }
+  };
+
+  const handleSubscribe = async (plan: 'monthly' | 'quarterly' | 'yearly') => {
+    try {
+      const response = await dutyService.subscribe();
+      setIsPaymentModalOpen(false);
+
+      if (response && response.addNum !== undefined) {
+        setAutoGenCnt(response.addNum);
+      } else {
+        const defaultCounts = {
+          monthly: 100,
+          quarterly: 100,
+          yearly: 100,
+        };
+        setAutoGenCnt(defaultCounts[plan]);
+      }
+    } catch (error) {
+      setIsPaymentModalOpen(false);
     }
   };
 
@@ -350,37 +407,43 @@ const UnreflectedRequestsModal: React.FC<UnreflectedRequestsModalProps> = ({
           )}
           <div className="flex justify-end gap-2 mt-1">
             {selectedCount > 0 && (
-              <div className="flex-1 text-xs text-gray-600 flex  items-center">
+              <div className="flex-1 text-xs text-gray-600 flex items-center">
                 <span className="font-medium">{selectedCount}개</span> 요청
                 선택됨
               </div>
             )}
-            <Button
-              size="xs"
-              color="primary"
-              onClick={handleRegenerate}
-              disabled={isRegenerating || selectedCount === 0}
-              className={
-                selectedCount === 0 ? 'opacity-50 cursor-not-allowed' : ''
-              }
-            >
-              {isRegenerating ? (
-                <div className="flex items-center">
-                  <div className="animate-spin mr-1.5 h-3 w-3 border-2 border-white border-t-transparent rounded-full"></div>
-                  재생성 중...
-                </div>
-              ) : (
-                '선택 요청 재반영'
-              )}
-            </Button>
-            <Button
-              size="xs"
-              color="off"
-              onClick={handleComplete}
-              disabled={isRejecting}
-            >
-              완료
-            </Button>
+            <div className="flex items-center gap-2">
+              <div className="text-xs text-gray-600 flex items-center">
+                <span className="font-medium text-primary">{autoGenCnt}</span>회
+                남음
+              </div>
+              <Button
+                size="xs"
+                color="primary"
+                onClick={handleRegenerate}
+                disabled={isRegenerating || selectedCount === 0}
+                className={
+                  selectedCount === 0 ? 'opacity-50 cursor-not-allowed' : ''
+                }
+              >
+                {isRegenerating ? (
+                  <div className="flex items-center">
+                    <div className="animate-spin mr-1.5 h-3 w-3 border-2 border-white border-t-transparent rounded-full"></div>
+                    재생성 중...
+                  </div>
+                ) : (
+                  '선택 요청 재반영'
+                )}
+              </Button>
+              <Button
+                size="xs"
+                color="off"
+                onClick={handleComplete}
+                disabled={isRejecting}
+              >
+                완료
+              </Button>
+            </div>
           </div>
         </div>
 
@@ -411,6 +474,24 @@ const UnreflectedRequestsModal: React.FC<UnreflectedRequestsModalProps> = ({
           </div>
         )}
       </div>
+
+      {/* Add PaymentModal */}
+      <PaymentModal
+        isOpen={isPaymentModalOpen}
+        onClose={() => setIsPaymentModalOpen(false)}
+        onSubscribe={handleSubscribe}
+      />
+
+      {/* Add DemoSignupModal */}
+      <DemoSignupModal
+        isOpen={isDemoSignupModalOpen}
+        onClose={() => setIsDemoSignupModalOpen(false)}
+        onSignup={() => {
+          setIsDemoSignupModalOpen(false);
+          navigate('/login');
+        }}
+        onContinue={() => setIsDemoSignupModalOpen(false)}
+      />
     </div>
   );
 };

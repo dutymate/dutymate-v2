@@ -1,27 +1,39 @@
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/atoms/Button';
+import { Icon } from '@/components/atoms/Icon';
 
 interface NurseShortageModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onForceGenerate: () => void;
+  onForceGenerate: () => Promise<void>;
   neededNurseCount: number;
   currentNurseCount: number;
 }
 
-const NurseShortageModal = ({
+const NurseShortageModal: React.FC<NurseShortageModalProps> = ({
   isOpen,
   onClose,
   onForceGenerate,
   neededNurseCount,
   currentNurseCount,
-}: NurseShortageModalProps) => {
+}) => {
   const navigate = useNavigate();
+  const [isGenerating, setIsGenerating] = useState(false);
   const additionalNursesNeeded = neededNurseCount - currentNurseCount;
 
   const handleAddNurse = () => {
     onClose();
     navigate('/ward-admin');
+  };
+
+  const handleForceGenerate = async () => {
+    try {
+      setIsGenerating(true);
+      await onForceGenerate();
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   if (!isOpen) return null;
@@ -38,12 +50,29 @@ const NurseShortageModal = ({
             onClick={onClose}
             className="text-primary hover:text-primary/80"
           >
-            <span className="text-lg">×</span>
+            <Icon name="close" size={20} />
           </button>
         </div>
 
         {/* 내용 */}
         <div className="p-4">
+          <div className="flex items-center gap-2 mb-2 p-2 bg-yellow-50 rounded-md">
+            <Icon
+              name="alert"
+              size={18}
+              className="text-yellow-500 flex-shrink-0"
+            />
+            <p className="text-sm">
+              <span className="font-medium block">
+                현재 간호사 수가 부족합니다.
+              </span>
+              <span className="text-xs text-gray-600 mt-1 block">
+                필요한 간호사 수: {neededNurseCount}명
+                <br />
+                현재 간호사 수: {currentNurseCount}명
+              </span>
+            </p>
+          </div>
           <p className="text-sm text-gray-600 mb-4">
             현재 모든 인원의 <span className="font-bold">법정 공휴일</span>을
             보장할 수 없습니다.
@@ -60,8 +89,20 @@ const NurseShortageModal = ({
             <Button size="register" color="primary" onClick={handleAddNurse}>
               인원추가
             </Button>
-            <Button size="register" color="evening" onClick={onForceGenerate}>
-              자동생성
+            <Button
+              size="register"
+              color="evening"
+              onClick={handleForceGenerate}
+              disabled={isGenerating}
+            >
+              {isGenerating ? (
+                <div className="flex items-center">
+                  <div className="animate-spin mr-1.5 h-3 w-3 border-2 border-white border-t-transparent rounded-full"></div>
+                  자동생성 중...
+                </div>
+              ) : (
+                '강제 자동생성'
+              )}
             </Button>
           </div>
         </div>
