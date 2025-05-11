@@ -1,4 +1,3 @@
-// import React from 'react';
 import { FaCrown, FaUserPlus } from 'react-icons/fa';
 import { HiOutlinePencil } from 'react-icons/hi2';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -8,114 +7,157 @@ import EditGroupModal from '@/components/organisms/Group/EditGroupModal';
 import InviteMemberModal from '@/components/organisms/Group/InviteMemberModal';
 import ExitGroupModal from '@/components/organisms/Group/ExitGroupModal';
 import RemoveMemberModal from '@/components/organisms/Group/RemoveMemberModal';
-import { useState } from 'react';
-import { groups } from './NurseGroupPage';
-import useUserAuthStore from '@/stores/userAuthStore';
-
-interface Member {
-  memberId: number;
-  name: string;
-  isLeader?: boolean;
-  createdAt: string;
-}
+import { useState, useEffect } from 'react';
+import { groupService } from '@/services/groupService';
+import { toast } from 'react-toastify';
+import { BiLoaderAlt } from 'react-icons/bi';
+import { Group, GroupMember } from '@/types/group';
 
 const GroupMemberPage = () => {
   const { groupId } = useParams();
   const navigate = useNavigate();
-  const { userInfo } = useUserAuthStore();
-  const group = groups.find((g) => String(g.groupId) === String(groupId));
+  const [loading, setLoading] = useState(true);
   const [checkMemberOpen, setCheckMemberOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [inviteModalOpen, setInviteModalOpen] = useState(false);
   const [exitModalOpen, setExitModalOpen] = useState(false);
-  const [groupInfo, setGroupInfo] = useState(group);
+  const [groupInfo, setGroupInfo] = useState<Group | null>(null);
   const [removeModalOpen, setRemoveModalOpen] = useState(false);
-  const [removeTargetName, setRemoveTargetName] = useState<string | undefined>(
-    undefined
-  );
+  const [removeTargetMember, setRemoveTargetMember] = useState<
+    number | undefined
+  >(undefined);
+  const [members, setMembers] = useState<GroupMember[]>([]);
+  const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
 
+  // 그룹 정보 가져오기
+  useEffect(() => {
+    const fetchGroupData = async () => {
+      if (!groupId) return;
+
+      try {
+        setLoading(true);
+
+        // 그룹 정보와 멤버 정보를 한 번에 가져오기
+        const response = await groupService.getAllGroupMembers(Number(groupId));
+
+        // 그룹 정보 설정
+        const groupData = {
+          groupId: response.groupId,
+          groupName: response.groupName,
+          groupDescription: response.groupDescription,
+          groupMemberCount: response.groupMemberCount,
+          groupImg: response.groupImg || '',
+        };
+
+        setGroupInfo(groupData);
+
+        // 멤버 정보 설정
+        if (response.memberList) {
+          const memberList = response.memberList.map((member: GroupMember) => ({
+            memberId: member.memberId,
+            name: member.name,
+            isLeader: member.isLeader,
+            createdAt:
+              member.createdAt || new Date().toISOString().slice(0, 10),
+          }));
+
+          setMembers(memberList);
+          setSelectedMembers(memberList.map((m: GroupMember) => m.name));
+        }
+      } catch (error) {
+        console.error('Failed to fetch group data:', error);
+        toast.error('그룹 정보를 불러오는데 실패했습니다.');
+        navigate('/group');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchGroupData();
+  }, [groupId, navigate]);
+
+  if (loading)
+    return (
+      <div className="flex flex-col items-center justify-center p-4 py-10">
+        <BiLoaderAlt className="animate-spin text-primary text-4xl mb-2" />
+        <div className="text-gray-500">로딩 중...</div>
+      </div>
+    );
   if (!groupInfo) return <div>그룹을 찾을 수 없습니다.</div>;
 
-  const members: Member[] =
-    groupInfo.groupMemberCount === 1
-      ? [
-          {
-            memberId: 1,
-            name: userInfo?.name || '나',
-            isLeader: true,
-            createdAt: new Date().toISOString().slice(0, 10),
-          },
-        ]
-      : [
-          {
-            memberId: 1,
-            name: '임태호',
-            isLeader: true,
-            createdAt: '2025-05-05',
-          },
-          { memberId: 2, name: '김서현', createdAt: '2025-05-05' },
-          { memberId: 3, name: '김현진', createdAt: '2025-05-05' },
-          { memberId: 4, name: '이재현', createdAt: '2025-05-05' },
-          { memberId: 5, name: '한종우', createdAt: '2025-05-05' },
-          { memberId: 6, name: '김민성', createdAt: '2025-05-05' },
-        ];
-
-  const [selectedMembers, setSelectedMembers] = useState<string[]>(
-    members.map((m) => m.name)
-  );
-
-  const [localMembers, setLocalMembers] = useState<Member[]>(members);
-
-  const handleKick = (name: string) => {
-    setRemoveTargetName(name);
+  const handleKick = async (memberId: number) => {
+    setRemoveTargetMember(memberId);
     setRemoveModalOpen(true);
   };
 
-  const handleRemoveMember = () => {
-    if (!removeTargetName || !groupInfo) return;
-    // 1. 멤버 삭제
-    const updatedMembers = members.filter((m) => m.name !== removeTargetName);
-    // 2. 인원수 감소
-    const updatedGroupInfo = {
-      ...groupInfo,
-      groupMemberCount: groupInfo.groupMemberCount - 1,
-    };
-    setGroupInfo(updatedGroupInfo);
-    // 3. 전역 groups 배열 동기화
-    const idx = groups.findIndex((g) => g.groupId === groupInfo.groupId);
-    if (idx !== -1) {
-      groups[idx] = {
-        ...groups[idx],
-        groupMemberCount: updatedGroupInfo.groupMemberCount,
+  const handleRemoveMember = async () => {
+    if (!removeTargetMember || !groupInfo) return;
+
+    try {
+      // API 호출 - 멤버 삭제
+      await groupService.removeGroupMember(Number(groupId), removeTargetMember);
+
+      // 1. 멤버 삭제
+      const updatedMembers = members.filter(
+        (m) => m.memberId !== removeTargetMember
+      );
+      // 2. 인원수 감소
+      const updatedGroupInfo = {
+        ...groupInfo,
       };
+      setGroupInfo(updatedGroupInfo);
+
+      // 3. members 배열 동기화
+      setMembers(updatedMembers);
+      setSelectedMembers(updatedMembers.map((m: GroupMember) => m.name));
+      setRemoveModalOpen(false);
+      setRemoveTargetMember(undefined);
+
+      toast.success(
+        `${members.find((m) => m.memberId === removeTargetMember)?.name} 멤버를 그룹에서 내보냈습니다.`
+      );
+    } catch (error) {
+      console.error('Failed to remove member:', error);
+      toast.error('멤버 삭제에 실패했습니다.');
     }
-    // 4. members 배열 동기화 (로컬)
-    setLocalMembers(updatedMembers);
-    setRemoveModalOpen(false);
-    setRemoveTargetName(undefined);
   };
 
-  const handleEditGroup = (data: {
+  const handleEditGroup = async (data: {
     groupName: string;
     groupDescription: string;
     groupImg: string;
   }) => {
-    setGroupInfo({ ...groupInfo, ...data });
-    const idx = groups.findIndex((g) => g.groupId === groupInfo.groupId);
-    if (idx !== -1) {
-      groups[idx] = { ...groups[idx], ...data };
+    if (!groupInfo) return;
+
+    try {
+      // API 호출
+      await groupService.updateGroup(groupInfo.groupId, {
+        groupName: data.groupName,
+        groupDescription: data.groupDescription,
+        groupImg: data.groupImg,
+      });
+
+      // 로컬 상태 업데이트
+      setGroupInfo({ ...groupInfo, ...data });
+      setEditModalOpen(false);
+      toast.success('그룹 정보가 업데이트되었습니다.');
+    } catch (error) {
+      console.error('Failed to update group:', error);
+      toast.error('그룹 정보 업데이트에 실패했습니다.');
     }
-    setEditModalOpen(false);
   };
 
-  const handleLeave = () => {
-    if (groupInfo) {
-      const idx = groups.findIndex((g) => g.groupId === groupInfo.groupId);
-      if (idx !== -1) {
-        groups.splice(idx, 1);
-      }
+  const handleLeave = async () => {
+    if (!groupInfo) return;
+
+    try {
+      await groupService.leaveGroup(groupInfo.groupId);
+      navigate('/group');
+      toast.success('그룹을 나갔습니다.');
+    } catch (error) {
+      console.error('Failed to leave group:', error);
+      toast.error('그룹 나가기에 실패했습니다.');
     }
-    navigate('/group');
   };
 
   return (
@@ -135,8 +177,8 @@ const GroupMemberPage = () => {
         <div className="bg-white rounded-xl p-4 shadow border">
           <div className="flex items-center gap-4 mb-3">
             <img
-              src={groupInfo.groupImg}
-              alt={groupInfo.groupName}
+              src={groupInfo.groupImg || ''}
+              alt={groupInfo.groupName || '그룹'}
               className="w-16 h-16 rounded-lg object-cover"
             />
             <div className="flex-1 min-w-0">
@@ -178,7 +220,7 @@ const GroupMemberPage = () => {
             <div className="w-1/3">가입 날짜</div>
             <div className="w-1/3"></div>
           </div>
-          {localMembers.map((m) => (
+          {members.map((m) => (
             <div key={m.memberId} className="flex items-center mb-2">
               <div className="w-1/3 flex items-center md:pl-[1.5rem]">
                 {m.isLeader ? (
@@ -198,7 +240,7 @@ const GroupMemberPage = () => {
                 {!m.isLeader && (
                   <button
                     className="text-gray-500 text-sm hover:text-red-500"
-                    onClick={() => handleKick(m.name)}
+                    onClick={() => handleKick(m.memberId)}
                   >
                     내보내기
                   </button>
@@ -228,9 +270,9 @@ const GroupMemberPage = () => {
         onClose={() => setEditModalOpen(false)}
         onAddGroup={handleEditGroup}
         initialData={{
-          groupName: groupInfo.groupName,
-          groupDescription: groupInfo.groupDescription,
-          groupImg: groupInfo.groupImg,
+          groupName: groupInfo.groupName || '',
+          groupDescription: groupInfo.groupDescription || '',
+          groupImg: groupInfo.groupImg || '',
         }}
       />
       <InviteMemberModal
@@ -246,7 +288,9 @@ const GroupMemberPage = () => {
       <RemoveMemberModal
         open={removeModalOpen}
         onClose={() => setRemoveModalOpen(false)}
-        memberName={removeTargetName}
+        memberName={
+          members.find((m) => m.memberId === removeTargetMember)?.name
+        }
         onRemove={handleRemoveMember}
       />
     </GroupLayout>
