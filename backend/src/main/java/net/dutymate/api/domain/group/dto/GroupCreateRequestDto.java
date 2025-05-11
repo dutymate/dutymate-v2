@@ -14,11 +14,11 @@ public class GroupCreateRequestDto {
 	private String groupDescription;
 	private String groupImg;
 
-	public NurseGroup toGroup() {
+	public NurseGroup toGroup(String groupImage) {
 		return NurseGroup.builder()
 			.groupName(groupName)
 			.groupDescription(groupDescription)
-			.groupImg(groupImg)
+			.groupImg(groupImage)
 			.build();
 	}
 }

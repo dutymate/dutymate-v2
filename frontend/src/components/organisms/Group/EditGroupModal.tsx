@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import useMediaQuery from '@/hooks/useMediaQuery';
+import { groupService } from '@/services/groupService';
+import { toast } from 'react-toastify';
 
 interface EditGroupModalProps {
   open: boolean;
@@ -7,21 +9,15 @@ interface EditGroupModalProps {
   onAddGroup?: (group: {
     groupName: string;
     groupDescription: string;
-    groupImg: string;
+    groupImg: string | null;
   }) => void;
   initialData?: {
     groupName: string;
     groupDescription: string;
-    groupImg: string;
+    groupImg: string | null;
+    groupId: number;
   };
 }
-
-const RANDOM_IMAGES = [
-  'https://images.unsplash.com/photo-1506744038136-46273834b3fb',
-  'https://images.unsplash.com/photo-1465101046530-73398c7f28ca',
-  'https://images.unsplash.com/photo-1500534314209-a25ddb2bd429',
-  'https://images.unsplash.com/photo-1465101178521-c1a9136a3b99',
-];
 
 const EditGroupModal: React.FC<EditGroupModalProps> = ({
   open,
@@ -61,15 +57,35 @@ const EditGroupModal: React.FC<EditGroupModalProps> = ({
     if (value.length <= 20) setDesc(value);
   };
 
+  const handleRandomImage = async () => {
+    console.log(initialData?.groupId);
+    try {
+      if (initialData?.groupId) {
+        const response = await groupService.updateGroupRandomImage(
+          initialData.groupId
+        );
+        setImg(response.groupImgUrl);
+      }
+    } catch (error: any) {
+      console.error('Failed to get random image:', error);
+      if (error && error.message) {
+        toast.error(error.message);
+      } else {
+        toast.error('랜덤 이미지를 불러오는데 실패했습니다.');
+      }
+      // Fallback to null if API call fails
+      setImg(null);
+    }
+  };
+
   const handleSubmit = () => {
     if (!name.trim() || !desc.trim()) {
       setShowModal(true);
       return;
     }
-    const groupImg =
-      img || RANDOM_IMAGES[Math.floor(Math.random() * RANDOM_IMAGES.length)];
+
     onAddGroup &&
-      onAddGroup({ groupName: name, groupDescription: desc, groupImg });
+      onAddGroup({ groupName: name, groupDescription: desc, groupImg: img });
     onClose();
   };
 
@@ -99,7 +115,7 @@ const EditGroupModal: React.FC<EditGroupModalProps> = ({
           </h2>
         </div>
         {/* 이미지 업로드 */}
-        <div className="flex justify-center mb-4 w-full relative">
+        <div className="flex flex-col items-center mb-4 w-full">
           <label className="w-24 h-24 border-2 border-orange-300 rounded-xl flex items-center justify-center cursor-pointer text-2xl text-orange-400 bg-white hover:bg-orange-50 transition overflow-hidden relative">
             {img ? (
               <img
@@ -141,6 +157,15 @@ const EditGroupModal: React.FC<EditGroupModalProps> = ({
               </span>
             )}
           </label>
+          {/* 랜덤 이미지 버튼 (수정 모드에서만) */}
+          {initialData && (
+            <button
+              onClick={handleRandomImage}
+              className="mt-2 text-xs text-gray-500 hover:text-orange-500 cursor-pointer"
+            >
+              랜덤 이미지 선택
+            </button>
+          )}
         </div>
         {/* 입력폼 */}
         {initialData ? (

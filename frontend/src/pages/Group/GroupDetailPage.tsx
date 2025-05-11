@@ -1,18 +1,19 @@
-import { useState, useEffect, useCallback } from 'react';
+import DutyBadgeEng from '@/components/atoms/DutyBadgeEng';
+import PageLoadingSpinner from '@/components/atoms/Loadingspinner';
+import CheckMemberModal from '@/components/organisms/Group/CheckMemberModal';
+import DateSuggestionModal from '@/components/organisms/Group/DateSuggestionModal';
+import GroupLayout from '@/components/organisms/Group/GroupLayout';
+import InviteMemberModal from '@/components/organisms/Group/InviteMemberModal';
+import ShareDateModal from '@/components/organisms/Group/ShareDateModal';
+import useMediaQuery from '@/hooks/useMediaQuery';
+import { groupService } from '@/services/groupService';
+import { useLoadingStore } from '@/stores/loadingStore';
+import { DayInfo, DutyType, Group, ShiftMember } from '@/types/group';
+import { useCallback, useEffect, useState } from 'react';
 import { FaCog, FaUserPlus } from 'react-icons/fa';
 import { IoIosArrowBack, IoIosArrowForward } from 'react-icons/io';
 import { useNavigate, useParams } from 'react-router-dom';
-import GroupLayout from '@/components/organisms/Group/GroupLayout';
-import CheckMemberModal from '@/components/organisms/Group/CheckMemberModal';
-import DateSuggestionModal from '@/components/organisms/Group/DateSuggestionModal';
-import ShareDateModal from '@/components/organisms/Group/ShareDateModal';
-import InviteMemberModal from '@/components/organisms/Group/InviteMemberModal';
-import useMediaQuery from '@/hooks/useMediaQuery';
-import DutyBadgeEng from '@/components/atoms/DutyBadgeEng';
-import { groupService } from '@/services/groupService';
 import { toast } from 'react-toastify';
-import { BiLoaderAlt } from 'react-icons/bi';
-import { Group, DutyType, DayInfo, ShiftMember } from '@/types/group';
 
 const GroupDetailPage = () => {
   const { groupId } = useParams();
@@ -94,13 +95,18 @@ const GroupDetailPage = () => {
     }
   }, [groupMembers]);
 
-  if (loading)
+  // useEffect to update the loading state
+  useEffect(() => {
+    useLoadingStore.setState({ isLoading: loading });
+  }, [loading]);
+
+  if (loading) {
     return (
       <div className="flex flex-col items-center justify-center p-4 py-10">
-        <BiLoaderAlt className="animate-spin text-primary text-4xl mb-2" />
-        <div className="text-gray-500">로딩 중...</div>
+        <PageLoadingSpinner />
       </div>
     );
+  }
   if (!group) return <div className="p-4">그룹을 찾을 수 없습니다.</div>;
 
   // 월 변경 핸들러 수정 - 정렬 기준 초기화 추가
@@ -247,7 +253,7 @@ const GroupDetailPage = () => {
               </div>
             </div>
             <button
-              className="flex items-center border border-primary text-primary rounded px-3 py-1 text-sm md:text-base md:px-4 md:py-2 font-semibold bg-white hover:bg-primary-50 max-[639px]:px-2 max-[639px]:py-0.5 max-[639px]:text-[0.65rem] cursor-pointer"
+              className="flex items-center border border-primary text-primary rounded-full px-3 py-1 text-sm md:text-base md:px-4 md:py-2 font-semibold bg-white hover:bg-primary-50 max-[639px]:px-2 max-[639px]:py-0.5 max-[639px]:text-[0.65rem] cursor-pointer"
               type="button"
               onClick={() => setInviteModalOpen(true)}
             >

@@ -7,6 +7,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.TreeMap;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -68,17 +69,24 @@ public class GroupService {
 	@Transactional
 	public void createGroup(GroupCreateRequestDto groupCreateRequestDto, Member member) {
 
-		// 1. 새로운 그룹 객체 생성
-		NurseGroup newGroup = groupCreateRequestDto.toGroup();
+		// 1. 그룹 이미지가 없는 경우, 랜덤 이미지로 대체
+		String groupImage = groupCreateRequestDto.getGroupImg();
+		if (groupImage == null || groupImage.isEmpty()) {
+			groupImage = getRandomImage();
+		}
 
-		// 2. 새 그룹원 추가하기
+		// 2. 새로운 그룹 객체 생성
+		NurseGroup newGroup = groupCreateRequestDto.toGroup(groupImage);
+
+		// 3. 새 그룹원 추가하기
 		// 그룹을 생성하는 사람은 그룹장 (isLeader = true)
 		GroupMember groupLeader = GroupMember.builder().group(newGroup).member(member).isLeader(true).build();
 
 		newGroup.addGroupMember(groupLeader);
 
-		// 3. 그룹 추가하기
+		// 4. 그룹 추가하기
 		groupRepository.save(newGroup);
+
 	}
 
 	@Transactional
@@ -268,7 +276,12 @@ public class GroupService {
 		// 2. member가 해당 그룹의 멤버인지 확인
 		group.validateMember(member);
 
-		return GroupMemberListResponseDto.of(group);
+		List<GroupMember> sortedMembers = group.getGroupMemberList()
+			.stream()
+			.sorted(Comparator.comparing(GroupMember::getCreatedAt))
+			.toList();
+
+		return GroupMemberListResponseDto.of(group, sortedMembers);
 	}
 
 	@Transactional
@@ -446,5 +459,21 @@ public class GroupService {
 
 	private String getDutySafe(String[] shifts, int dayIndex) {
 		return (shifts != null && dayIndex < shifts.length) ? shifts[dayIndex] : "X";
+	}
+
+	@Transactional(readOnly = true)
+	public GroupImgResponseDto updateGroupRandomImage(Member member, Long groupId) {
+		groupMemberRepository.findByGroup_GroupIdAndMember(groupId, member)
+			.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "그룹 멤버가 아닙니다."));
+
+		return GroupImgResponseDto.of(getRandomImage());
+	}
+
+	private String getRandomImage() {
+		int randomIndex = new Random().nextInt(3) + 1; // 1 ~ 3
+
+		String fileUrl =
+			"https://" + bucket + ".s3." + region + ".amazonaws.com/group/random-image-" + randomIndex + ".png";
+		return fileUrl;
 	}
 }

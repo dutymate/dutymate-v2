@@ -1,4 +1,4 @@
-import { FaCrown, FaUserPlus } from 'react-icons/fa';
+import { FaCrown, FaUserFriends, FaUserPlus } from 'react-icons/fa';
 import { HiOutlinePencil } from 'react-icons/hi2';
 import { useNavigate, useParams } from 'react-router-dom';
 import GroupLayout from '@/components/organisms/Group/GroupLayout';
@@ -10,8 +10,9 @@ import RemoveMemberModal from '@/components/organisms/Group/RemoveMemberModal';
 import { useState, useEffect } from 'react';
 import { groupService } from '@/services/groupService';
 import { toast } from 'react-toastify';
-import { BiLoaderAlt } from 'react-icons/bi';
 import { Group, GroupMember } from '@/types/group';
+import PageLoadingSpinner from '@/components/atoms/Loadingspinner';
+import { useLoadingStore } from '@/stores/loadingStore';
 
 const GroupMemberPage = () => {
   const { groupId } = useParams();
@@ -64,9 +65,13 @@ const GroupMemberPage = () => {
           setMembers(memberList);
           setSelectedMembers(memberList.map((m: GroupMember) => m.name));
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('Failed to fetch group data:', error);
-        toast.error('그룹 정보를 불러오는데 실패했습니다.');
+        if (error && error.message) {
+          toast.error(error.message);
+        } else {
+          toast.error('그룹 정보를 불러오는데 실패했습니다.');
+        }
         navigate('/group');
       } finally {
         setLoading(false);
@@ -76,13 +81,18 @@ const GroupMemberPage = () => {
     fetchGroupData();
   }, [groupId, navigate]);
 
-  if (loading)
+  useEffect(() => {
+    useLoadingStore.setState({ isLoading: loading });
+  }, [loading]);
+
+  if (loading) {
     return (
       <div className="flex flex-col items-center justify-center p-4 py-10">
-        <BiLoaderAlt className="animate-spin text-primary text-4xl mb-2" />
-        <div className="text-gray-500">로딩 중...</div>
+        <PageLoadingSpinner />
       </div>
     );
+  }
+
   if (!groupInfo) return <div>그룹을 찾을 수 없습니다.</div>;
 
   const handleKick = async (memberId: number) => {
@@ -116,16 +126,20 @@ const GroupMemberPage = () => {
       toast.success(
         `${members.find((m) => m.memberId === removeTargetMember)?.name} 멤버를 그룹에서 내보냈습니다.`
       );
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to remove member:', error);
-      toast.error('멤버 삭제에 실패했습니다.');
+      if (error && error.message) {
+        toast.error(error.message);
+      } else {
+        toast.error('멤버 삭제에 실패했습니다.');
+      }
     }
   };
 
   const handleEditGroup = async (data: {
     groupName: string;
     groupDescription: string;
-    groupImg: string;
+    groupImg: string | null;
   }) => {
     if (!groupInfo) return;
 
@@ -141,9 +155,13 @@ const GroupMemberPage = () => {
       setGroupInfo({ ...groupInfo, ...data });
       setEditModalOpen(false);
       toast.success('그룹 정보가 업데이트되었습니다.');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to update group:', error);
-      toast.error('그룹 정보 업데이트에 실패했습니다.');
+      if (error && error.message) {
+        toast.error(error.message);
+      } else {
+        toast.error('그룹 정보 업데이트에 실패했습니다.');
+      }
     }
   };
 
@@ -154,9 +172,13 @@ const GroupMemberPage = () => {
       await groupService.leaveGroup(groupInfo.groupId);
       navigate('/group');
       toast.success('그룹을 나갔습니다.');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to leave group:', error);
-      toast.error('그룹 나가기에 실패했습니다.');
+      if (error && error.message) {
+        toast.error(error.message);
+      } else {
+        toast.error('그룹 나가기에 실패했습니다.');
+      }
     }
   };
 
@@ -194,8 +216,9 @@ const GroupMemberPage = () => {
                 >
                   <HiOutlinePencil className="text-gray-400 text-lg" />
                 </button>
-                <span className="text-gray-500 text-sm">
-                  👥 {groupInfo.groupMemberCount}
+                <span className="flex items-center text-gray-500 text-sm ml-2">
+                  <FaUserFriends className="mr-1" />{' '}
+                  {groupInfo.groupMemberCount}
                 </span>
               </div>
               <div className="flex items-center w-full mt-1">
@@ -203,7 +226,7 @@ const GroupMemberPage = () => {
                   {groupInfo.groupDescription}
                 </div>
                 <button
-                  className="flex items-center border border-primary text-primary rounded px-2 py-1 text-xs md:text-base md:px-4 md:py-2 font-semibold bg-white hover:bg-primary-50 ml-2"
+                  className="flex items-center border border-primary text-primary rounded-full px-2 py-1 text-xs md:text-base md:px-4 md:py-2 font-semibold bg-white hover:bg-primary-50 ml-2"
                   type="button"
                   onClick={() => setInviteModalOpen(true)}
                 >
@@ -272,7 +295,8 @@ const GroupMemberPage = () => {
         initialData={{
           groupName: groupInfo.groupName || '',
           groupDescription: groupInfo.groupDescription || '',
-          groupImg: groupInfo.groupImg || '',
+          groupImg: groupInfo.groupImg || null,
+          groupId: groupInfo.groupId,
         }}
       />
       <InviteMemberModal

@@ -44,6 +44,11 @@ public class GroupController {
 		return ResponseEntity.ok(groupService.uploadGroupImage(multipartFile));
 	}
 
+	@GetMapping("/{groupId}/random-image")
+	public ResponseEntity<?> getGroupRandomImage(@Auth Member member, @PathVariable Long groupId) {
+		return ResponseEntity.ok(groupService.updateGroupRandomImage(member, groupId));
+	}
+
 	@PutMapping("/{groupId}")
 	public ResponseEntity<?> updateGroup(@Auth Member member,
 		@RequestBody @Valid GroupUpdateRequestDto groupUpdateRequestDto,

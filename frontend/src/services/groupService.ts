@@ -13,13 +13,13 @@ export interface GroupListResponse {
 export interface GroupCreateRequest {
   groupName: string;
   groupDescription?: string;
-  groupImg?: string;
+  groupImg?: string | null;
 }
 
 export interface GroupUpdateRequest {
   groupName?: string;
   groupDescription?: string;
-  groupImg?: string;
+  groupImg?: string | null;
 }
 
 export interface ApiErrorResponse {
@@ -205,6 +205,19 @@ export const removeGroupMember = async (
   }
 };
 
+// 그룹 랜덤 이미지 업데이트
+export const updateGroupRandomImage = async (groupId: number) => {
+  try {
+    const response = await axiosInstance.get(`/group/${groupId}/random-image`);
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw error.response?.data;
+    }
+    throw error;
+  }
+};
+
 export const groupService = {
   getAllGroups,
   getGroup,
@@ -216,4 +229,5 @@ export const groupService = {
   joinGroupByInvite,
   getAllGroupMembers,
   removeGroupMember,
+  updateGroupRandomImage,
 };

@@ -1,13 +1,14 @@
-import { useState, useEffect } from 'react';
-import { FaUserFriends } from 'react-icons/fa';
-import { useNavigate } from 'react-router-dom';
-import GroupLayout from '@/components/organisms/Group/GroupLayout';
+import PageLoadingSpinner from '@/components/atoms/Loadingspinner';
 import EditGroupModal from '@/components/organisms/Group/EditGroupModal';
-import { PiPlusCircle } from 'react-icons/pi';
-import { groupService, GroupListResponse } from '@/services/groupService';
-import { toast } from 'react-toastify';
-import { BiLoaderAlt } from 'react-icons/bi';
+import GroupLayout from '@/components/organisms/Group/GroupLayout';
+import { GroupListResponse, groupService } from '@/services/groupService';
+import { useLoadingStore } from '@/stores/loadingStore';
 import { Group } from '@/types/group';
+import { useEffect, useState } from 'react';
+import { FaUserFriends } from 'react-icons/fa';
+import { PiPlusCircle } from 'react-icons/pi';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
 const NurseGroupPage = () => {
   const navigate = useNavigate();
@@ -28,9 +29,13 @@ const NurseGroupPage = () => {
         groupImg: group.groupImg,
       }));
       setGroups(formattedGroups);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to fetch groups:', error);
-      toast.error('그룹 목록을 불러오는데 실패했습니다.');
+      if (error && error.message) {
+        toast.error(error.message);
+      } else {
+        toast.error('그룹 목록을 불러오는데 실패했습니다.');
+      }
     } finally {
       setLoading(false);
     }
@@ -43,7 +48,7 @@ const NurseGroupPage = () => {
   const handleAddGroup = async (group: {
     groupName: string;
     groupDescription: string;
-    groupImg: string;
+    groupImg: string | null;
   }) => {
     try {
       // 그룹 생성 API 호출
@@ -57,11 +62,19 @@ const NurseGroupPage = () => {
       await fetchGroups();
 
       toast.success('그룹이 생성되었습니다.');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to create group:', error);
-      toast.error('그룹 생성에 실패했습니다.');
+      if (error && error.message) {
+        toast.error(error.message);
+      } else {
+        toast.error('그룹 생성에 실패했습니다.');
+      }
     }
   };
+
+  useEffect(() => {
+    useLoadingStore.setState({ isLoading: loading });
+  }, [loading]);
 
   return (
     <GroupLayout
@@ -72,8 +85,7 @@ const NurseGroupPage = () => {
       <div className="space-y-3">
         {loading ? (
           <div className="flex flex-col items-center justify-center py-10">
-            <BiLoaderAlt className="animate-spin text-primary text-4xl mb-2" />
-            <div className="text-gray-500">로딩 중...</div>
+            <PageLoadingSpinner />
           </div>
         ) : groups.length === 0 ? (
           <div className="text-center py-10 text-gray-500">
