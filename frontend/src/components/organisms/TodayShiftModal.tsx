@@ -655,16 +655,24 @@ const TodayShiftModal = ({
 
   if (isMobile) {
     return (
-      <div
-        className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50 p-[1rem]"
-        onClick={(e) => {
-          if (e.target === e.currentTarget && onClose) {
-            onClose();
-          }
-        }}
-      >
-        {modalContent}
-      </div>
+      <>
+        <div
+          className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50 p-[1rem]"
+          onClick={(e) => {
+            if (e.target === e.currentTarget && onClose) {
+              onClose();
+            }
+          }}
+        >
+          {modalContent}
+        </div>
+        <ShiftColorPickerModal
+          open={isColorModalOpen}
+          onClose={() => setIsColorModalOpen(false)}
+          dutyColors={dutyColors}
+          onChange={setDutyColors}
+        />
+      </>
     );
   }
 
