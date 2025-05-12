@@ -6,7 +6,6 @@ import {
   useRef,
 } from 'react';
 import { toast } from 'react-toastify';
-
 import { ApprovalBtn } from '@/components/atoms/ApprovalBtn';
 import { DutyBadgeKor } from '@/components/atoms/DutyBadgeKor';
 import { requestService, WardRequest } from '@/services/requestService.ts';
@@ -36,11 +35,44 @@ const ReqAdminTable = forwardRef<ReqAdminTableRef, ReqAdminTableProps>(
     const memoModalRef = useRef<HTMLDivElement>(null);
     const setRequestCount = useRequestCountStore((state) => state.setCount);
 
+    // Add date state
+    const [selectedDate, setSelectedDate] = useState(() => {
+      const now = new Date();
+      return {
+        year: now.getFullYear(),
+        month: now.getMonth() + 1,
+      };
+    });
+
+    // Add date navigation functions
+    const handlePrevMonth = () => {
+      setSelectedDate((prev) => {
+        const newMonth = prev.month - 1;
+        if (newMonth < 1) {
+          return { year: prev.year - 1, month: 12 };
+        }
+        return { ...prev, month: newMonth };
+      });
+    };
+
+    const handleNextMonth = () => {
+      setSelectedDate((prev) => {
+        const newMonth = prev.month + 1;
+        if (newMonth > 12) {
+          return { year: prev.year + 1, month: 1 };
+        }
+        return { ...prev, month: newMonth };
+      });
+    };
+
     // 요청 목록 조회
     const fetchRequests = async () => {
       useLoadingStore.getState().setLoading(true);
       try {
-        const data = await requestService.getWardRequests();
+        const data = await requestService.getWardRequests(
+          selectedDate.year,
+          selectedDate.month
+        );
         setRequests(data);
         // HOLD 상태의 요청만 카운트
         const pendingCount = data.filter(
@@ -120,7 +152,7 @@ const ReqAdminTable = forwardRef<ReqAdminTableRef, ReqAdminTableProps>(
       } else {
         fetchRequests();
       }
-    }, [propRequests]);
+    }, [propRequests, selectedDate.year, selectedDate.month]);
 
     // 검색 필터링
     const filteredRequests = requests
@@ -186,36 +218,58 @@ const ReqAdminTable = forwardRef<ReqAdminTableRef, ReqAdminTableProps>(
     return (
       <div className="w-full">
         <div className="bg-white rounded-[1.154375rem] p-4 sm:p-6">
-          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between mb-[1rem] px-[0.5rem]">
-            <div className="w-full flex justify-between items-center mb-[0.5rem] lg:mb-0">
-              <h2 className="text-base lg:text-[1.125rem] font-semibold">
+          <div className="flex flex-col lg:flex-row items-center justify-between mb-[1rem] px-[0.5rem]">
+            <div className="flex items-center justify-between w-full">
+              <h2 className="text-base lg:text-[1.125rem] font-semibold whitespace-nowrap">
                 요청 내역
               </h2>
-              {/* <h2 className="text-lg font-semibold">요청 내역</h2> */}
-            </div>
 
-            {/* 검색창과 데스크톱용 정렬/필터 */}
-            <div className="flex flex-row gap-[0.25rem] lg:gap-[0.5rem] w-full lg:w-auto items-center">
-              {/* 검색창 */}
-              {/* <div className="w-[140px] lg:w-[260px]">
-							<SmallSearchInput
-								id="search-nurse"
-								name="search-nurse"
-								placeholder="이름으로 검색하기"
-								value={searchTerm}
-								onChange={(e) => setSearchTerm(e.target.value)}
-							/>
-						</div> */}
-              {/* 모바일 정렬/필터 버튼 */}
-              {/* <div className="flex lg:hidden gap-1 ml-auto">
-							<SortButton label="정렬" />
-							<FilterButton label="필터" />
-						</div> */}
-              {/* 데스크톱 정렬/필터 버튼 */}
-              {/* <div className="hidden lg:flex gap-2 flex-shrink-0">
-							<SortButton label="정렬" />
-							<FilterButton label="필터" />
-						</div> */}
+              {/* 월 이동 컨트롤 */}
+              <div className="flex-1 flex items-center justify-center">
+                <div className="flex items-center gap-2 sm:gap-4">
+                  <button
+                    onClick={handlePrevMonth}
+                    className="p-1.5 hover:bg-gray-100 rounded-full transition-colors"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-4 w-4 sm:h-5 sm:w-5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M15 19l-7-7 7-7"
+                      />
+                    </svg>
+                  </button>
+                  <div className="text-sm sm:text-base lg:text-lg font-medium whitespace-nowrap">
+                    {selectedDate.year}년 {selectedDate.month}월
+                  </div>
+                  <button
+                    onClick={handleNextMonth}
+                    className="p-1.5 hover:bg-gray-100 rounded-full transition-colors"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-4 w-4 sm:h-5 sm:w-5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 5l7 7-7 7"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
 

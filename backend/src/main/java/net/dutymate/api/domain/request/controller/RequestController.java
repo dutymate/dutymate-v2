@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import net.dutymate.api.domain.member.Member;
@@ -47,8 +48,9 @@ public class RequestController {
 	}
 
 	@GetMapping("/ward/request")
-	public ResponseEntity<List<WardRequestResponseDto>> readWardRequest(@Auth Member member) {
-		List<WardRequestResponseDto> wardRequests = requestService.readWardRequest(member);
+	public ResponseEntity<List<WardRequestResponseDto>> readWardRequest(@Auth Member member,
+		@RequestParam int year, @RequestParam int month) {
+		List<WardRequestResponseDto> wardRequests = requestService.readWardRequest(member, year, month);
 		return ResponseEntity.ok(wardRequests);
 	}
 

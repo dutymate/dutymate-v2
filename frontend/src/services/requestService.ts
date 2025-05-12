@@ -45,9 +45,13 @@ export const requestService = {
    * 현재 요청 상태에 따라 승인/거절/대기 데이터를 반환
    * @returns 병동의 모든 근무 요청 내역
    */
-  getWardRequests: () => {
+  getWardRequests: (year?: number, month?: number) => {
+    const params = new URLSearchParams();
+    if (year) params.append('year', year.toString());
+    if (month) params.append('month', month.toString());
+
     return axiosInstance
-      .get('/ward/request')
+      .get(`/ward/request?${params.toString()}`)
       .then((response) => {
         return response.data;
       })

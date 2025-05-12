@@ -53,12 +53,12 @@ public class RequestService {
 	}
 
 	@Transactional
-	public List<WardRequestResponseDto> readWardRequest(Member member) {
+	public List<WardRequestResponseDto> readWardRequest(Member member, int year, int month) {
 		if (!String.valueOf(member.getRole()).equals("HN")) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "관리자만 접근할 수 있는 요청입니다.");
 		}
 		Ward myWard = member.getWardMember().getWard();
-		return requestRepository.findAllWardRequests(myWard)
+		return requestRepository.findAllWardRequestsByYearMonth(myWard, year, month)
 			.stream()
 			.map(WardRequestResponseDto::of)
 			.toList();
