@@ -18,12 +18,12 @@ const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
   open,
   onClose,
   inviteLink,
-  groupName,
+  // groupName,
 }) => {
   const inviteUrl = inviteLink;
   const [showModal, setShowModal] = useState(false);
   const [modalMessage, setModalMessage] = useState('');
-  const [kakaoInitialized, setKakaoInitialized] = useState(false);
+  // const [kakaoInitialized, setKakaoInitialized] = useState(false);
 
   useEffect(() => {
     // 카카오 SDK 초기화
@@ -33,7 +33,7 @@ const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
     script.onload = () => {
       if (window.Kakao && !window.Kakao.isInitialized()) {
         window.Kakao.init(import.meta.env.VITE_KAKAO_JAVASCRIPT_KEY);
-        setKakaoInitialized(true);
+        // setKakaoInitialized(true);
       }
     };
     document.body.appendChild(script);
@@ -54,45 +54,45 @@ const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
     }
   };
 
-  const handleKakaoShare = () => {
-    if (!window.Kakao || !kakaoInitialized) {
-      setModalMessage(
-        '카카오톡 공유 기능을 초기화하는 중입니다. 잠시 후 다시 시도해주세요.'
-      );
-      setShowModal(true);
-      return;
-    }
+  // const handleKakaoShare = () => {
+  //   if (!window.Kakao || !kakaoInitialized) {
+  //     setModalMessage(
+  //       '카카오톡 공유 기능을 초기화하는 중입니다. 잠시 후 다시 시도해주세요.',
+  //     );
+  //     setShowModal(true);
+  //     return;
+  //   }
 
-    const baseUrl = import.meta.env.VITE_BASE_URL;
-    const imageUrl = `${baseUrl}/images/og-image.png`; // OpenGraph 이미지 경로
+  //   const baseUrl = import.meta.env.VITE_BASE_URL;
+  //   const imageUrl = `${baseUrl}/images/og-image.png`; // OpenGraph 이미지 경로
 
-    window.Kakao.Share.sendDefault({
-      objectType: 'feed',
-      content: {
-        title: `${groupName} 그룹 초대`,
-        description: 'DutyMate에서 함께 근무표를 관리하고 일정을 공유해보세요!',
-        imageUrl: imageUrl,
-        link: {
-          mobileWebUrl: inviteUrl,
-          webUrl: inviteUrl,
-        },
-      },
-      social: {
-        likeCount: 0,
-        commentCount: 0,
-        sharedCount: 0,
-      },
-      buttons: [
-        {
-          title: '그룹 참여하기',
-          link: {
-            mobileWebUrl: inviteUrl,
-            webUrl: inviteUrl,
-          },
-        },
-      ],
-    });
-  };
+  //   window.Kakao.Share.sendDefault({
+  //     objectType: 'feed',
+  //     content: {
+  //       title: `${groupName} 그룹 초대`,
+  //       description: 'DutyMate에서 함께 근무표를 관리하고 일정을 공유해보세요!',
+  //       imageUrl: imageUrl,
+  //       link: {
+  //         mobileWebUrl: inviteUrl,
+  //         webUrl: inviteUrl,
+  //       },
+  //     },
+  //     social: {
+  //       likeCount: 0,
+  //       commentCount: 0,
+  //       sharedCount: 0,
+  //     },
+  //     buttons: [
+  //       {
+  //         title: '그룹 참여하기',
+  //         link: {
+  //           mobileWebUrl: inviteUrl,
+  //           webUrl: inviteUrl,
+  //         },
+  //       },
+  //     ],
+  //   });
+  // };
 
   const handleOutsideClick = () => {
     onClose();
@@ -124,7 +124,7 @@ const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
               <Icon name="copy" size={20} className="text-white" />
               <span>링크 복사하기</span>
             </button>
-            <button
+            {/* <button
               className="w-full bg-[#FEE500] text-[#3C1E1E] text-base font-bold py-2 rounded-xl shadow transition flex items-center justify-center gap-2"
               onClick={handleKakaoShare}
             >
@@ -134,7 +134,7 @@ const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
                 className="w-[0.875rem] h-[0.875rem] sm:w-[1rem] sm:h-[1rem]"
               />
               <span>카카오톡으로 공유하기</span>
-            </button>
+            </button> */}
           </div>
         </div>
       </div>

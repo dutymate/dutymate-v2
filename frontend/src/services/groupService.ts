@@ -218,6 +218,25 @@ export const updateGroupRandomImage = async (groupId: number) => {
   }
 };
 
+// 그룹 약속 날짜 정하기
+export const getGroupMeetingDate = async (
+  groupId: number,
+  data: { groupMemberIds: number[] }
+) => {
+  try {
+    const response = await axiosInstance.post(
+      `/group/${groupId}/meeting-date`,
+      data
+    );
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw error.response?.data;
+    }
+    throw error;
+  }
+};
+
 export const groupService = {
   getAllGroups,
   getGroup,
@@ -230,4 +249,5 @@ export const groupService = {
   getAllGroupMembers,
   removeGroupMember,
   updateGroupRandomImage,
+  getGroupMeetingDate,
 };

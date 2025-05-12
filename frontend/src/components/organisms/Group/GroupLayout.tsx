@@ -57,7 +57,7 @@ export default function GroupLayout({
             </p>
           </div>
         </div>
-        {children}
+        <div className="w-full max-w-[758px] pt-2">{children}</div>
       </div>
     </div>
   );

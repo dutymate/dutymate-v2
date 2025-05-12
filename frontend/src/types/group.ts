@@ -48,3 +48,13 @@ export interface DayInfo {
   isNextMonth?: boolean;
   duties: DutyInfo[];
 }
+
+export interface RecommendedDate {
+  date: string;
+  score: number;
+  memberList: {
+    memberId: number;
+    name: string;
+    duty: string;
+  }[];
+}
