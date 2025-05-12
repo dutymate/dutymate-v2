@@ -171,11 +171,9 @@ const UnreflectedRequestsModal: React.FC<UnreflectedRequestsModalProps> = ({
 
       await Promise.all(rejectPromises);
 
-      toast.update(loadingToast, {
-        render: '반영되지 않은 요청이 거절 처리되었습니다.',
-        type: 'success',
-        isLoading: false,
-      });
+      // 로딩 토스트를 닫고 새로운 성공 토스트를 표시
+      toast.dismiss(loadingToast);
+      toast.success('반영되지 않은 요청이 거절 처리되었습니다.');
 
       onClose();
     } catch (error) {

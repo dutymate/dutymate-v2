@@ -797,26 +797,17 @@ const ShiftAdminTable = memo(
           response.unreflectedRequests?.length > 0
         ) {
           setUnreflectedRequests(response.unreflectedRequests);
-          toast.update(loadingToast, {
-            render: '자동생성 완료, 일부 요청은 반영되지 않았습니다.',
-            type: 'warning',
-            isLoading: false,
-          });
+          toast.dismiss(loadingToast);
+          toast.warning('일부 요청은 여전히 반영되지 않았습니다.');
+          // 모달을 닫지 않고 계속 표시
           setIsUnreflectedRequestsModalOpen(true);
         } else {
           // 성공 알림
-          toast.update(loadingToast, {
-            render: '자동생성에 성공했습니다',
-            type: 'success',
-            isLoading: false,
-          });
+          toast.dismiss(loadingToast);
+          toast.success('선택한 요청이 모두 반영되었습니다.');
+          // 모든 요청이 반영된 경우에만 모달 닫기
+          setIsUnreflectedRequestsModalOpen(false);
         }
-
-        // 로딩 토스트 닫기
-        toast.dismiss(loadingToast);
-
-        // 성공 알림 새로 띄우기
-        toast.success('자동생성에 성공했습니다');
 
         // 자동 생성 횟수 감소
         setAutoGenCnt((prev) => prev - 1);
@@ -877,19 +868,13 @@ const ShiftAdminTable = memo(
           response.unreflectedRequests?.length > 0
         ) {
           setUnreflectedRequests(response.unreflectedRequests);
-          toast.update(loadingToast, {
-            render: '자동생성 완료, 일부 요청은 반영되지 않았습니다.',
-            type: 'warning',
-            isLoading: false,
-          });
+          toast.dismiss(loadingToast);
+          toast.warning('자동생성 완료, 일부 요청은 반영되지 않았습니다.');
           setIsUnreflectedRequestsModalOpen(true);
         } else {
           // 성공 알림
-          toast.update(loadingToast, {
-            render: '자동생성에 성공했습니다',
-            type: 'success',
-            isLoading: false,
-          });
+          toast.dismiss(loadingToast);
+          toast.success('자동생성에 성공했습니다');
         }
 
         // 자동 생성 횟수 감소
@@ -1248,20 +1233,14 @@ const ShiftAdminTable = memo(
         ) {
           // 새로운 요청 리스트로 업데이트
           setUnreflectedRequests(response.unreflectedRequests);
-          toast.update(loadingToast, {
-            render: '일부 요청은 여전히 반영되지 않았습니다.',
-            type: 'warning',
-            isLoading: false,
-          });
+          toast.dismiss(loadingToast);
+          toast.warning('일부 요청은 여전히 반영되지 않았습니다.');
           // 모달을 닫지 않고 계속 표시
           setIsUnreflectedRequestsModalOpen(true);
         } else {
           // 모든 요청이 반영된 경우
-          toast.update(loadingToast, {
-            render: '선택한 요청이 모두 반영되었습니다.',
-            type: 'success',
-            isLoading: false,
-          });
+          toast.dismiss(loadingToast);
+          toast.success('선택한 요청이 모두 반영되었습니다.');
           // 모든 요청이 반영된 경우에만 모달 닫기
           setIsUnreflectedRequestsModalOpen(false);
         }
