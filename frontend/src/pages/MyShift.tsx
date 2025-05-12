@@ -97,7 +97,6 @@ const MyShift = () => {
         [dateKey]: schedules,
       }));
     } catch (error) {
-      console.error('Failed to fetch schedules:', error);
       const dateKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
       setSchedulesByDate((prev) => ({
         ...prev,
@@ -120,7 +119,6 @@ const MyShift = () => {
         useLoadingStore.getState().setLoading(false);
       } catch (error) {
         useLoadingStore.getState().setLoading(false);
-        console.error('Failed to fetch duty data:', error);
         navigate('/error');
       }
     };
@@ -188,9 +186,7 @@ const MyShift = () => {
     try {
       const data = await dutyService.getMyDuty(year, month);
       setMyDutyData(data);
-    } catch (error) {
-      console.error('Failed to fetch duty data:', error);
-    }
+    } catch (error) {}
   };
 
   // 월 전체 일정(메모) 한 번에 불러오는 함수 추가
@@ -218,7 +214,6 @@ const MyShift = () => {
         return newState;
       });
     } catch (error) {
-      console.error('Failed to fetch all schedules for month:', error);
       toast.error('일정을 불러오는데 실패했습니다.');
     }
   };

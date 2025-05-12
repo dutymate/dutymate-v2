@@ -70,7 +70,6 @@ export const fetchSchedules = async (date: Date): Promise<ScheduleType[]> => {
       throw new Error('Invalid response format');
     }
   } catch (error) {
-    console.error('Failed to fetch schedules:', error);
     return [];
   }
 };

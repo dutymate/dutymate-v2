@@ -73,9 +73,7 @@ const MyShiftCalendar = ({
     try {
       await onMonthChange?.(newDate.getFullYear(), newDate.getMonth() + 1);
       setCurrentDate(newDate);
-    } catch (error) {
-      console.error('Failed to fetch duty data:', error);
-    }
+    } catch (error) {}
   };
 
   const handleNextMonth = async () => {
@@ -86,9 +84,7 @@ const MyShiftCalendar = ({
     try {
       await onMonthChange?.(newDate.getFullYear(), newDate.getMonth() + 1);
       setCurrentDate(newDate);
-    } catch (error) {
-      console.error('Failed to fetch duty data:', error);
-    }
+    } catch (error) {}
   };
 
   // 실제 근무 데이터로부터 듀티 가져오기

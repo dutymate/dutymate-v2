@@ -244,7 +244,6 @@ const ScheduleEditModal = ({
 
       // date 파라미터를 파싱하여 사용
       if (!date || !date.includes('-')) {
-        console.warn('유효하지 않은 날짜 형식:', date);
         // 오류 처리: 현재 날짜 사용
         const now = new Date();
         return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}T${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}:00`;
@@ -252,13 +251,9 @@ const ScheduleEditModal = ({
 
       // 여기서는 이미 YYYY-MM-DD 형식의 date 문자열을 직접 사용
       // 시간대 변환 이슈 없이 전달받은 날짜 그대로 사용
-      console.log(
-        `시간 변환: ${date}T${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}:00`
-      );
 
       return `${date}T${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}:00`;
     } catch (error) {
-      console.error('시간 변환 오류:', error, { timeStr, date });
       // 오류 발생 시 기본값 반환
       const now = new Date();
       return now.toISOString().slice(0, 19);
@@ -324,14 +319,12 @@ const ScheduleEditModal = ({
       }
     } catch (e) {
       alert('일정 저장에 실패했습니다.');
-      console.error('일정 저장 실패:', e);
     }
   };
 
   //삭제 처리
   const handleDelete = async () => {
     if (!initialData?.calendarId) {
-      console.log('initialData.calendarId가 없습니다');
       return;
     }
     try {
@@ -345,7 +338,6 @@ const ScheduleEditModal = ({
       onDelete?.(Number(initialData.calendarId));
     } catch (e) {
       alert('일정 삭제에 실패했습니다.');
-      console.error('일정 삭제 실패:', e);
     }
   };
 

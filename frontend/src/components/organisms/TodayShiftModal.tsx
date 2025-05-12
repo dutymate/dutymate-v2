@@ -123,9 +123,7 @@ const TodayShiftModal = ({
       setSelectedSchedule(detail);
       setScheduleModalMode('view');
       setIsScheduleModalOpen(true);
-    } catch (error) {
-      console.error('일정 상세 조회 실패:', error);
-    }
+    } catch (error) {}
   };
 
   const handleDelete = async (calendarId: number) => {
@@ -147,7 +145,6 @@ const TodayShiftModal = ({
       // 월 전체 일정 새로고침
       await fetchAllSchedulesForMonth(date.getFullYear(), date.getMonth() + 1);
     } catch (error) {
-      console.error('일정 삭제 실패:', error);
       alert('일정 삭제에 실패했습니다.');
     }
   };
@@ -159,12 +156,6 @@ const TodayShiftModal = ({
 
       // 날짜를 YYYY-MM-DD 형식으로 변환 (시간대 이슈 없이)
       const formattedDate = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}`;
-
-      console.log('생성 중인 날짜 정보:', {
-        originalDate: date,
-        selectedDateObj: selectedDate,
-        formattedDate: formattedDate,
-      });
 
       const req: CalendarCreateRequest = {
         title: data.title || '',
@@ -179,8 +170,6 @@ const TodayShiftModal = ({
               endTime: data.endTime ?? '',
             }),
       };
-
-      console.log('Sending create request with data:', req);
 
       // 모달 먼저 닫기 (사용자 경험 향상)
       setIsScheduleModalOpen(false);
@@ -208,7 +197,6 @@ const TodayShiftModal = ({
         selectedDate.getMonth() + 1
       );
     } catch (error) {
-      console.error('Failed to save schedule:', error);
       alert('일정 저장에 실패했습니다.');
     }
   };
@@ -233,12 +221,6 @@ const TodayShiftModal = ({
       // getDate()는 해당 날짜의 일(day)을 반환 (시간대 조정 없이)
       const formattedDate = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}`;
 
-      console.log('편집 중인 날짜 정보:', {
-        originalDate: date,
-        selectedDateObj: selectedDate,
-        formattedDate: formattedDate,
-      });
-
       // API 호출을 통한 서버 데이터 업데이트
       const editData: CalendarCreateRequest = {
         title: data.title || '',
@@ -254,8 +236,6 @@ const TodayShiftModal = ({
             }),
       };
 
-      console.log('Sending update request with data:', editData);
-
       // 모달 먼저 닫기 (사용자 경험 향상)
       setIsScheduleModalOpen(false);
       setSelectedSchedule(null);
@@ -269,7 +249,6 @@ const TodayShiftModal = ({
         selectedDate.getMonth() + 1
       );
     } catch (error) {
-      console.error('일정 수정 실패:', error);
       alert('일정 수정에 실패했습니다.');
     }
   };
