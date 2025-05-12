@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { useForm, Controller, SubmitHandler } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
+import Cookies from 'js-cookie';
 import {
   FaCheck,
   FaStar,
@@ -12,6 +13,11 @@ import {
 } from 'react-icons/fa';
 import { HiX } from 'react-icons/hi';
 import useUserAuthStore from '@/stores/userAuthStore';
+
+// 설문 관련 상수 정의
+const SURVEY_COOKIE_NAME = 'dutyMateSurveySubmitted';
+const SURVEY_COOKIE_EXPIRY_DAYS = 7;
+const SURVEY_CLOSE_DELAY_MS = 5000; // 5초
 
 // 설문조사 스키마 정의
 const surveySchema = yup.object({
@@ -166,12 +172,6 @@ const SurveyModal = ({ isOpen, onClose }: SurveyModalProps) => {
     // 제출 프로세스 시작 표시
     isSubmittingRef.current = true;
 
-    // 제출 시간 기록
-    const submissionData = {
-      ...data,
-      submissionDate: new Date().toISOString(),
-    };
-
     try {
       // Google 스프레드시트로 데이터 전송
       await sendToGoogleSheet(data);
@@ -179,34 +179,34 @@ const SurveyModal = ({ isOpen, onClose }: SurveyModalProps) => {
       // 제출 성공 후 상태 업데이트
       setIsSubmitted(true);
 
-      // 데이터 제출이 성공한 후에 로컬 스토리지에 설문 완료 정보 저장
-      localStorage.setItem('survey_completed', 'true');
-      localStorage.setItem('survey_completed_date', Date.now().toString());
-      localStorage.setItem('survey_data', JSON.stringify(submissionData));
+      // 쿠키 설정 - SURVEY_COOKIE_EXPIRY_DAYS일 동안 설문 표시하지 않음
+      Cookies.set(SURVEY_COOKIE_NAME, 'true', {
+        expires: SURVEY_COOKIE_EXPIRY_DAYS,
+      });
 
-      // 5초 후 모달 닫기
+      // SURVEY_CLOSE_DELAY_MS 후 모달 닫기
       setTimeout(() => {
         onClose();
         // 다음 모달 열림을 위해 상태 초기화
         setCurrentStep('satisfaction');
-      }, 5000);
+      }, SURVEY_CLOSE_DELAY_MS);
     } catch (error) {
       console.error('설문 제출 중 오류 발생:', error);
 
       // 오류 발생 시에도 제출되었다고 표시 (UX 목적)
       setIsSubmitted(true);
 
-      // 오류 발생 시에도 로컬 저장소에 설문 완료 정보 저장
-      localStorage.setItem('survey_data', JSON.stringify(submissionData));
-      localStorage.setItem('survey_completed', 'true');
-      localStorage.setItem('survey_completed_date', Date.now().toString());
+      // 오류 발생 시에도 쿠키 설정
+      Cookies.set(SURVEY_COOKIE_NAME, 'true', {
+        expires: SURVEY_COOKIE_EXPIRY_DAYS,
+      });
 
-      // 5초 후 모달 닫기
+      // SURVEY_CLOSE_DELAY_MS 후 모달 닫기
       setTimeout(() => {
         onClose();
         // 다음 모달 열림을 위해 상태 초기화
         setCurrentStep('satisfaction');
-      }, 5000);
+      }, SURVEY_CLOSE_DELAY_MS);
     } finally {
       setIsSubmitting(false);
       // 제출 프로세스 완료 표시
@@ -246,8 +246,13 @@ const SurveyModal = ({ isOpen, onClose }: SurveyModalProps) => {
       formData += `&TeamSize=${encodeURIComponent(data.teamSize)}`;
     }
 
-    // 타임스탬프 추가
-    formData += `&SubmissionDate=${encodeURIComponent(new Date().toISOString())}`;
+    // 한국 시간(KST)으로 타임스탬프 추가
+    const now = new Date();
+    const koreaTime = new Date(now.getTime() + 9 * 60 * 60 * 1000); // UTC+9 시간 조정
+    const koreaTimeString = koreaTime.toISOString().replace('Z', '+09:00'); // ISO 형식에 KST 표시
+
+    formData += `&SubmissionDate=${encodeURIComponent(koreaTimeString)}`;
+    formData += `&SubmissionDateLocal=${encodeURIComponent(now.toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' }))}`;
 
     // 로그인한 사용자 정보 추가
     if (isAuthenticated && userInfo) {
@@ -281,7 +286,10 @@ const SurveyModal = ({ isOpen, onClose }: SurveyModalProps) => {
     if (isSubmittingRef.current || isSubmitted) {
       return false;
     }
-    return localStorage.getItem('survey_completed') === 'true';
+
+    // 쿠키를 확인하여 설문 제출 여부 확인
+    const surveySubmittedCookie = Cookies.get(SURVEY_COOKIE_NAME);
+    return surveySubmittedCookie === 'true';
   };
 
   // 모달이 열릴 때 설문 제출 여부 확인 및 현재 세션 체크
@@ -313,10 +321,12 @@ const SurveyModal = ({ isOpen, onClose }: SurveyModalProps) => {
           <FaCheck className="text-green-500 text-xl" />
         </div>
         <h2 className="text-xl font-semibold mb-2 text-gray-800">
-          의견을 보내주셔서 감사해요
+          멋진 의견 감사합니다! 🎉
         </h2>
         <p className="text-gray-500 mb-6 text-sm">
-          더 나은 서비스를 위해 소중히 반영하겠습니다
+          소중한 피드백 덕분에 더 나은 서비스로 발전할 수 있어요.
+          <br />
+          여러분의 의견이 듀티메이트의 미래를 만듭니다!
         </p>
         <button
           onClick={onClose}
@@ -336,9 +346,13 @@ const SurveyModal = ({ isOpen, onClose }: SurveyModalProps) => {
           <FaCheck className="text-green-500 text-xl" />
         </div>
         <h2 className="text-xl font-semibold mb-2 text-gray-800">
-          이미 설문에 참여했어요
+          이미 참여해주셨네요! 👍
         </h2>
-        <p className="text-gray-500 mb-6 text-sm">소중한 의견 감사합니다</p>
+        <p className="text-gray-500 mb-6 text-sm">
+          이미 소중한 의견을 보내주셨어요.
+          <br />
+          열정적인 참여에 감사드립니다!
+        </p>
         <button
           onClick={onClose}
           className="w-full py-3 bg-gray-900 text-white rounded-xl font-medium transition-all hover:bg-gray-800"
@@ -348,6 +362,42 @@ const SurveyModal = ({ isOpen, onClose }: SurveyModalProps) => {
       </div>
     </div>
   );
+
+  // 모달 헤더 제목과 설명
+  const getStepHeaderContent = (step: StepType) => {
+    switch (step) {
+      case 'satisfaction':
+        return {
+          title: '안녕하세요! 듀티메이트 팀입니다 👋',
+          description: '여러분의 의견은 서비스 개선에 큰 도움이 됩니다 💖',
+          badge: '2분이면 완료돼요!',
+        };
+      case 'favoriteFeatures':
+        return {
+          title: '마음에 드는 기능',
+          description: '어떤 기능이 특별히 도움이 되셨나요? 💫',
+        };
+      case 'recommendation':
+        return {
+          title: '추천 의향',
+          description: '듀티메이트를 동료에게 소개해주실래요? 🤝',
+        };
+      case 'feedback':
+        return {
+          title: '개선 의견',
+          description: '더 나은 듀티메이트를 위한 아이디어를 들려주세요! 💡',
+        };
+      case 'userInfo':
+        return {
+          title: '사용자 정보 (선택)',
+          description: '더 맞춤화된 서비스를 위한 정보입니다 (모두 선택사항)',
+        };
+      default:
+        return { title: '', description: '' };
+    }
+  };
+
+  const headerContent = getStepHeaderContent(currentStep);
 
   // 완료 버튼을 표시할지 다음 버튼을 표시할지 결정
   const isLastStep = currentStep === 'userInfo';
@@ -372,17 +422,24 @@ const SurveyModal = ({ isOpen, onClose }: SurveyModalProps) => {
         </button>
 
         {/* 헤더 */}
-        <div className="mb-3">
+        <div className="mb-4">
           <p className="text-xs text-gray-400 mb-2">
             {currentStepIndex() + 1}/{totalSteps} 설문조사
           </p>
+
+          {/* 첫 화면에만 표시되는 배지 */}
+          {headerContent.badge && (
+            <div className="inline-block bg-blue-50 text-blue-600 px-3 py-1 rounded-full text-xs mb-2">
+              {headerContent.badge}
+            </div>
+          )}
+
           <h2 className="text-xl font-bold text-gray-800">
-            {currentStep === 'satisfaction' && '만족도 평가'}
-            {currentStep === 'favoriteFeatures' && '마음에 드는 기능'}
-            {currentStep === 'recommendation' && '추천 의향'}
-            {currentStep === 'feedback' && '개선 의견'}
-            {currentStep === 'userInfo' && '사용자 정보 (선택)'}
+            {headerContent.title}
           </h2>
+          <p className="text-sm text-gray-600 mt-1">
+            {headerContent.description}
+          </p>
         </div>
 
         {/* 프로그레스 바 */}
@@ -401,27 +458,36 @@ const SurveyModal = ({ isOpen, onClose }: SurveyModalProps) => {
           {/* 1. 자동생성된 근무표 만족도 - 별점 UI */}
           {currentStep === 'satisfaction' && (
             <div className="min-h-[200px] flex flex-col items-center">
-              <p className="text-gray-700 text-center mb-10 max-w-[300px]">
+              <p className="text-gray-700 text-center mb-6 text-sm">
                 자동생성된 근무표에 얼마나 만족하시나요?
               </p>
-              <div className="flex justify-center items-center">
+
+              <div className="flex justify-center items-center mb-6">
                 <Controller
                   name="satisfaction"
                   control={control}
                   render={({ field }) => (
-                    <div className="flex items-center space-x-3">
+                    <div className="flex items-center space-x-4">
                       {[1, 2, 3, 4, 5].map((rating) => (
                         <button
                           key={rating}
                           type="button"
                           onClick={() => field.onChange(rating)}
-                          className="focus:outline-none transition-all duration-200 hover:scale-110"
+                          className="focus:outline-none transition-all duration-200 hover:scale-125 relative group"
                         >
                           {rating <= field.value ? (
-                            <FaStar className="text-yellow-400 text-3xl" />
+                            <FaStar className="text-yellow-400 text-4xl" />
                           ) : (
-                            <FaRegStar className="text-gray-200 text-3xl" />
+                            <FaRegStar className="text-gray-200 text-4xl hover:text-yellow-200" />
                           )}
+                          {/* 호버 시 작은 라벨 표시 */}
+                          <span className="absolute -bottom-7 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                            {rating === 1 && '매우 불만족'}
+                            {rating === 2 && '불만족'}
+                            {rating === 3 && '보통'}
+                            {rating === 4 && '만족'}
+                            {rating === 5 && '매우 만족'}
+                          </span>
                         </button>
                       ))}
                     </div>
@@ -430,8 +496,8 @@ const SurveyModal = ({ isOpen, onClose }: SurveyModalProps) => {
               </div>
 
               {watchSatisfaction > 0 && (
-                <div className="mt-8 text-center">
-                  <span className="bg-gray-50 py-1.5 px-4 rounded-full text-sm font-medium text-gray-700">
+                <div className="text-center mt-2">
+                  <span className="bg-duty-night-bg py-1.5 px-4 rounded-full text-sm font-medium text-duty-night">
                     {watchSatisfaction === 1 && '매우 불만족'}
                     {watchSatisfaction === 2 && '불만족'}
                     {watchSatisfaction === 3 && '보통'}
@@ -785,7 +851,7 @@ const SurveyModal = ({ isOpen, onClose }: SurveyModalProps) => {
                     제출 중...
                   </>
                 ) : (
-                  '제출하기'
+                  '소중한 의견 보내기 ✨'
                 )
               ) : (
                 <>
