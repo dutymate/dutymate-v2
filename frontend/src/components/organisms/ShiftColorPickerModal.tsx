@@ -1,16 +1,9 @@
 import { useState, useEffect } from 'react';
 import { HexColorPicker } from 'react-colorful';
+import { DutyBadgeKor } from '@/components/atoms/DutyBadgeKor'; // Updated import
 
 const dutyTypes = ['day', 'off', 'evening', 'night', 'mid'] as const;
 type DutyType = (typeof dutyTypes)[number];
-
-const badgeLabels: Record<DutyType, string> = {
-  day: '데이',
-  evening: '이브닝',
-  night: '나이트',
-  off: '오프',
-  mid: '미드',
-};
 
 interface ShiftColorPickerModalProps {
   open: boolean;
@@ -84,7 +77,8 @@ const ShiftColorPickerModal = ({
                   setActiveTab('bg');
                 }}
               >
-                {badgeLabels[type]}
+                <DutyBadgeKor type={type} size="xxs" />{' '}
+                {/* Updated component */}
               </span>
             ))}
           </div>
