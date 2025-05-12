@@ -13,6 +13,13 @@ import {
   CalendarCreateRequest,
 } from '@/services/calendarService';
 import type { ScheduleType } from '@/services/calendarService';
+import { toast } from 'react-toastify';
+// import CustomButton from '@/components/atoms/CustomButton';
+// import EnterWardForm from './EnterWardForm';
+// import WaitingForApproval from './WaitingForApproval';
+import JoinWardGuideModal from './JoinWardGuideModal';
+import { wardService } from '@/services/wardService';
+import { useUserAuthStore } from '@/stores/userAuthStore';
 const weekDays = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'] as const;
 type WeekDay = (typeof weekDays)[number];
 
@@ -88,6 +95,8 @@ const TodayShiftModal = ({
   const [selectedSchedule, setSelectedSchedule] = useState<ScheduleType | null>(
     null
   );
+  const [isEnteringWard, setIsEnteringWard] = useState(false);
+  const { userInfo, setUserInfo } = useUserAuthStore();
   const dateKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
   const schedules = schedulesByDate[dateKey] || [];
   const [isColorModalOpen, setIsColorModalOpen] = useState(false);
@@ -307,6 +316,37 @@ const TodayShiftModal = ({
     return timeStr;
   }
 
+  const handleEnterWard = async (wardCode: string) => {
+    try {
+      // 1. 병동 코드 확인
+      await wardService.checkWardCode(wardCode);
+
+      // 2. 병동 입장 대기 성공 시 사용자 정보 업데이트
+      setUserInfo({
+        ...userInfo!,
+        existMyWard: false,
+        sentWardCode: true,
+      });
+
+      // 3. 성공 메시지 표시
+      toast.success('병동 입장 요청이 완료되었습니다.');
+    } catch (error: any) {
+      if (error instanceof Error) {
+        if (error.message === '서버 연결 실패') {
+          toast.error('잠시 후 다시 시도해주세요');
+          return;
+        }
+        if (error.message === 'UNAUTHORIZED') {
+          return;
+        }
+      }
+      if (error?.response?.status === 400) {
+        toast.error(error.response.data.message);
+        return;
+      }
+    }
+  };
+
   const modalContent = (
     <div
       className={`bg-white rounded-[1rem] p-[1rem] shadow-sm ${
@@ -381,48 +421,59 @@ const TodayShiftModal = ({
       <div className="flex-1 flex flex-col min-h-0">
         {activeTab === 'status' ? (
           <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar">
-            <div className="space-y-[0.0625rem] lg:space-y-[0.125rem]">
-              {dutyData?.otherShifts
-                ?.sort((a, b) => {
-                  const dutyOrder = {
-                    D: 0, // day
-                    E: 1, // evening
-                    N: 2, // night
-                    O: 3, // off
-                    X: 4, // 근무 없음
-                    M: 5, // mid
-                  };
-                  return dutyOrder[a.shift] - dutyOrder[b.shift];
-                })
-                .map((nurse, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between py-[0.0625rem] lg:py-[0.125rem]"
-                  >
-                    <div className="flex items-center gap-[0.25rem] lg:gap-[0.5rem] flex-1 min-w-0">
-                      <span
-                        className="text-base-foreground w-[6rem] truncate text-[0.875rem]"
-                        title={nurse.name}
-                      >
-                        {nurse.name}
-                      </span>
-                      <span className="text-base-foreground text-center flex-1 text-[0.875rem] whitespace-nowrap">
-                        {nurse.grade}년차
-                      </span>
-                    </div>
-                    {nurse.shift !== 'X' ? (
-                      <div>
-                        <DutyBadgeKor
-                          type={convertDutyType(nurse.shift)}
-                          size="xxs"
-                        />
+            {!dutyData?.otherShifts ? (
+              <JoinWardGuideModal
+                isEnteringWard={isEnteringWard}
+                setIsEnteringWard={setIsEnteringWard}
+                userInfo={userInfo}
+                onSubmit={handleEnterWard}
+                removeRadius={true}
+                removeShadow={true}
+              />
+            ) : (
+              <div className="space-y-[0.0625rem] lg:space-y-[0.125rem]">
+                {dutyData.otherShifts
+                  ?.sort((a, b) => {
+                    const dutyOrder = {
+                      D: 0, // day
+                      E: 1, // evening
+                      N: 2, // night
+                      O: 3, // off
+                      X: 4, // 근무 없음
+                      M: 5, // mid
+                    };
+                    return dutyOrder[a.shift] - dutyOrder[b.shift];
+                  })
+                  .map((nurse, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between py-[0.0625rem] lg:py-[0.125rem]"
+                    >
+                      <div className="flex items-center gap-[0.25rem] lg:gap-[0.5rem] flex-1 min-w-0">
+                        <span
+                          className="text-base-foreground w-[6rem] truncate text-[0.875rem]"
+                          title={nurse.name}
+                        >
+                          {nurse.name}
+                        </span>
+                        <span className="text-base-foreground text-center flex-1 text-[0.875rem] whitespace-nowrap">
+                          {nurse.grade}년차
+                        </span>
                       </div>
-                    ) : (
-                      <div className="w-[4.0625rem] h-[1.875rem]" />
-                    )}
-                  </div>
-                ))}
-            </div>
+                      {nurse.shift !== 'X' ? (
+                        <div>
+                          <DutyBadgeKor
+                            type={convertDutyType(nurse.shift)}
+                            size="xxs"
+                          />
+                        </div>
+                      ) : (
+                        <div className="w-[4.0625rem] h-[1.875rem]" />
+                      )}
+                    </div>
+                  ))}
+              </div>
+            )}
           </div>
         ) : (
           <>

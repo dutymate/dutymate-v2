@@ -311,7 +311,7 @@ const MyShiftCalendar = ({
                   }`}
                 >
                   {/* 날짜 표시 영역 */}
-                  <div className="relative flex flex-row items-center">
+                  <div className="relative flex flex-row items-center mb-1">
                     <span
                       className={`w-6 h-6 lg:w-8 lg:h-8 flex items-center justify-center ${isTodayDate ? 'bg-primary' : ''} ${getDateStyle(day, isTodayDate)} rounded-full text-xs lg:text-sm`}
                     >
@@ -324,9 +324,9 @@ const MyShiftCalendar = ({
                     )}
                   </div>
 
-                  {/* 일정 동그라미 영역 - 제한된 공간 */}
+                  {/* 일정 동그라미 영역 - 높이 조정 */}
                   <div
-                    className={`mt-1 ${isMobile ? 'h-3' : 'h-6'} overflow-hidden`}
+                    className={`flex-1 ${isMobile ? 'min-h-[1.5rem]' : 'min-h-[2.5rem]'}`}
                   >
                     <div className="flex flex-wrap gap-[1px] lg:gap-1">
                       {schedules
@@ -335,7 +335,7 @@ const MyShiftCalendar = ({
                           <span
                             key={schedule.calendarId || `temp-${index}`}
                             className={`inline-block rounded-full ${colorClassMap[schedule.color] || 'bg-gray-300'} ${
-                              isMobile ? 'w-1 h-1' : 'w-3 h-3'
+                              isMobile ? 'w-1 h-1' : 'w-2 h-2'
                             }`}
                             title={schedule.title}
                           />
@@ -347,9 +347,6 @@ const MyShiftCalendar = ({
                       )}
                     </div>
                   </div>
-
-                  {/* 하단 여백 유지를 위한 빈 공간 */}
-                  <div className="flex-grow"></div>
 
                   {/* DutyBadgeKor */}
                   {dutyBadge && (

@@ -55,10 +55,10 @@ const WaitingForApproval = () => {
           {/* 아이콘 섹션 */}
           <div>
             <div className="relative">
-              <div className="bg-purple-50 rounded-xl p-6 mb-4 text-center w-full sm:w-auto">
+              <div className="bg-primary-10 rounded-xl p-6 mb-4 text-center w-full sm:w-auto">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className="h-12 w-12 text-purple-600"
+                  className="h-12 w-12 text-primary-dark"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -76,7 +76,7 @@ const WaitingForApproval = () => {
 
           {/* 컨텐츠 섹션 */}
           <div className="w-full text-center">
-            <h2 className="text-xl sm:text-3xl font-bold text-purple-800 mb-3">
+            <h2 className="text-xl sm:text-3xl font-bold text-primary-dark mb-3">
               병동 입장 대기 중입니다
             </h2>
             <p className="text-gray-600 mb-6 text-base sm:text-lg leading-relaxed">

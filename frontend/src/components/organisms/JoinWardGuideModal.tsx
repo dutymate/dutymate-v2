@@ -13,6 +13,8 @@ interface JoinWardGuideModalProps {
   setIsEnteringWard: (value: boolean) => void;
   userInfo: UserInfo | null;
   onSubmit: (wardCode: string) => Promise<void>;
+  removeRadius?: boolean;
+  removeShadow?: boolean;
 }
 
 const JoinWardGuideModal = ({
@@ -20,10 +22,14 @@ const JoinWardGuideModal = ({
   setIsEnteringWard,
   userInfo,
   onSubmit,
+  removeRadius = false,
+  removeShadow = false,
 }: JoinWardGuideModalProps) => {
   if (isEnteringWard) {
     return (
-      <div className="bg-white rounded-[0.92375rem] shadow-[0_0_15px_rgba(0,0,0,0.1)] p-4 sm:p-6">
+      <div
+        className={`bg-white ${removeRadius ? '' : 'rounded-[0.92375rem]'} ${removeShadow ? '' : 'shadow-[0_0_15px_rgba(0,0,0,0.1)]'} p-4 sm:p-6`}
+      >
         <div className="w-full max-w-3xl mx-auto">
           <div className="flex flex-col items-center justify-center">
             {userInfo?.sentWardCode ? (
@@ -34,14 +40,13 @@ const JoinWardGuideModal = ({
                   <h2 className="text-xl font-bold text-primary mt-1">
                     병동 입장하기
                   </h2>
-                  <p className="text-gray-600 text-sm sm:text-sm mt-3 mb-1 leading-relaxed">
-                    관리자로부터 받은 6자리{' '}
+                  <p className="text-gray-600 text-sm sm:text-base mt-3 -mb-3 leading-[1.7] sm:leading-relaxed tracking-tight break-keep text-center">
                     <span className="text-primary-dark font-semibold">
                       병동 코드
                     </span>
-                    를 입력해주세요.
-                    <br className="hidden sm:block" />
-                    코드는 병동 관리자에게 문의하실 수 있습니다.
+                    는 관리자에게 전달받은 6자리 숫자입니다. 입력하시면 병동
+                    입장을 요청할 수 있어요. <br className="hidden sm:block" />
+                    코드가 없다면 관리자에게 문의해주세요.
                   </p>
                 </div>
 
@@ -62,7 +67,9 @@ const JoinWardGuideModal = ({
   }
 
   return (
-    <div className="bg-white rounded-[0.92375rem] shadow-[0_0_15px_rgba(0,0,0,0.1)] p-4 sm:p-6">
+    <div
+      className={`bg-white ${removeRadius ? '' : 'rounded-[0.92375rem]'} ${removeShadow ? '' : 'shadow-[0_0_15px_rgba(0,0,0,0.1)]'} p-4 sm:p-6`}
+    >
       <div className="w-full max-w-3xl mx-auto">
         <div className="flex flex-col items-center gap-4">
           {/* 아이콘 섹션 */}
