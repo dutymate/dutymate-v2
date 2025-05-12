@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef } from "react";
-import { BackHandler, SafeAreaView, StyleSheet } from "react-native";
+import { BackHandler, View, SafeAreaView } from "react-native";
 import { WebView } from "react-native-webview";
 
 import Constants from "expo-constants";
@@ -38,22 +38,17 @@ export const WebViewContainer = () => {
 	}, [handleAndroidBackPress]);
 
 	return (
-		<SafeAreaView style={styles.safeAreaView}>
-			<WebView
-				ref={webViewRef}
-				source={{ uri }}
-				userAgent={customUserAgent}
-				sharedCookiesEnabled={true}
-				onContentProcessDidTerminate={() => webViewRef.current?.reload()}
-				allowsBackForwardNavigationGestures
-			/>
-		</SafeAreaView>
+		<View className={"flex-1 bg-base-muted-30"}>
+			<SafeAreaView className={"flex-1"}>
+				<WebView
+					ref={webViewRef}
+					source={{ uri }}
+					userAgent={customUserAgent}
+					sharedCookiesEnabled={true}
+					onContentProcessDidTerminate={() => webViewRef.current?.reload()}
+					allowsBackForwardNavigationGestures
+				/>
+			</SafeAreaView>
+		</View>
 	);
 };
-
-const styles = StyleSheet.create({
-	safeAreaView: {
-		flex: 1,
-		marginTop: Constants.statusBarHeight,
-	},
-});
