@@ -1,5 +1,5 @@
 import { AxiosError } from 'axios';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { IoMdMenu } from 'react-icons/io';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
@@ -14,12 +14,37 @@ import Sidebar from '@/components/organisms/WSidebar';
 import { SEO } from '@/components/SEO';
 import { ApiErrorResponse, profileService } from '@/services/profileService';
 import useUserAuthStore from '@/stores/userAuthStore';
+import userService from '@/services/userService';
 
 const Mypage = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const { userInfo } = useUserAuthStore();
+  const { userInfo, setUserInfo } = useUserAuthStore();
   const navigate = useNavigate();
   const userAuthStore = useUserAuthStore();
+
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      try {
+        // 병동 소속 여부 최신 상태 확인 (API 호출)
+        const isExistMyWard = await userService.existWardStatus();
+        const isWaiting = await userService.enterWaitingStatus();
+
+        if (!userInfo) {
+          return;
+        }
+
+        // userInfo 최신화
+        setUserInfo({
+          ...userInfo,
+          existMyWard: isExistMyWard,
+          sentWardCode: isWaiting,
+        });
+      } catch {
+        navigate('/error');
+      }
+    };
+    fetchUserInfo();
+  }, []);
 
   const handleLogoutButton = async () => {
     try {

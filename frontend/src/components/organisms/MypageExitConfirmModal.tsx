@@ -5,7 +5,7 @@ interface MypageExitConfirmModalProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: () => void;
-  exitRequestType: 'WARD' | 'WITHDRAWAL' | null;
+  exitRequestType: 'CREATE-WARD' | 'WARD' | 'WITHDRAWAL' | null;
   hasPendingNurses: boolean;
 }
 
@@ -24,6 +24,25 @@ const MypageExitConfirmModal = ({
 
   const getModalContent = (exitType: typeof exitRequestType) => {
     switch (exitType) {
+      case 'CREATE-WARD':
+        return {
+          title: '병동을 생성해요',
+          message: (
+            <>
+              병동을 생성하면{' '}
+              <span className="text-duty-night font-bold">
+                기존 작성한 근무표 데이터가 삭제
+              </span>
+              됩니다.
+              <br />
+              계속 진행하시겠습니까?
+            </>
+          ),
+          cancelText: '취소',
+          confirmText: '병동 생성하기',
+          confirmColor: 'night',
+          confirmStyle: 'bg-night',
+        };
       case 'WARD':
         if (hasPendingNurses && userInfo?.role === 'HN') {
           return {

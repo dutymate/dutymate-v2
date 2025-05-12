@@ -6,7 +6,7 @@ interface UserInfo {
   token: string;
   memberId: number;
   name: string;
-  role: string;
+  role: string | null;
   provider: string;
   profileImg: string | null;
   existAdditionalInfo: boolean;

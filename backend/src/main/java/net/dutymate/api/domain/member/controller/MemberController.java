@@ -22,6 +22,7 @@ import net.dutymate.api.domain.member.dto.AdditionalInfoRequestDto;
 import net.dutymate.api.domain.member.dto.AdditionalInfoResponseDto;
 import net.dutymate.api.domain.member.dto.CheckNicknameRequestDto;
 import net.dutymate.api.domain.member.dto.CheckPasswordDto;
+import net.dutymate.api.domain.member.dto.EditRoleRequestDto;
 import net.dutymate.api.domain.member.dto.LoginRequestDto;
 import net.dutymate.api.domain.member.dto.LoginResponseDto;
 import net.dutymate.api.domain.member.dto.MypageEditRequestDto;
@@ -205,6 +206,12 @@ public class MemberController {
 	@DeleteMapping("/cancel-enter")
 	public ResponseEntity<?> cancelEnterWaiting(@Auth Member member) {
 		memberService.deleteEnteringWardWaiting(member);
+		return ResponseEntity.ok().build();
+	}
+
+	@PutMapping("/role")
+	public ResponseEntity<?> updateRole(@Auth Member member, @RequestBody EditRoleRequestDto editRoleRequestDto) {
+		memberService.updateRole(member, editRoleRequestDto);
 		return ResponseEntity.ok().build();
 	}
 }

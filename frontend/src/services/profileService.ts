@@ -20,6 +20,10 @@ export interface ProfileUpdateRequest {
   grade: number;
 }
 
+export interface EditRoleRequest {
+  role: 'RN' | 'HN' | null;
+}
+
 export interface ApiErrorResponse {
   message: string;
   timestamp: string;
@@ -124,6 +128,24 @@ export const profileService = {
       }
       throw error;
     });
+  },
+
+  // role 수정하기
+  editRole: async (
+    data: EditRoleRequest,
+    success: () => void,
+    fail: (error: ApiErrorResponse) => void
+  ) => {
+    try {
+      await axiosInstance.put(`/member/role`, data);
+      success();
+    } catch (error) {
+      console.error('Error occurred:', error);
+      if (axios.isAxiosError(error)) {
+        fail(error.response?.data);
+      }
+      throw error;
+    }
   },
 
   // 병동 나가기

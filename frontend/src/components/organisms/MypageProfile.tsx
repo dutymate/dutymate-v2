@@ -22,14 +22,14 @@ const MypageProfile = () => {
     uploadProfileImage,
     deleteProfileImage,
   } = useProfileStore();
-  const { userInfo } = useUserAuthStore();
+  const { userInfo, setUserInfo } = useUserAuthStore();
   const [isAvailable, setIsAvailable] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
   const [isMypageExitConfirmModalOpen, setMypageExitConfirmModalOpen] =
     useState(false);
   const [exitRequestType, setExitRequestType] = useState<
-    'WARD' | 'WITHDRAWAL' | null
+    'CREATE-WARD' | 'WARD' | 'WITHDRAWAL' | null
   >(null);
   const [hasPendingNurses, setHasPendingNurses] = useState(false);
   const [formData, setFormData] = useState({
@@ -277,7 +277,9 @@ const MypageProfile = () => {
     }
   };
 
-  const handleOpenModal = async (type: 'WARD' | 'WITHDRAWAL') => {
+  const handleOpenModal = async (
+    type: 'CREATE-WARD' | 'WARD' | 'WITHDRAWAL'
+  ) => {
     if (type === 'WARD' && userInfo?.role === 'HN') {
       try {
         const nurses = await wardService.getNurseWaitList();
@@ -293,10 +295,61 @@ const MypageProfile = () => {
     setMypageExitConfirmModalOpen(true);
   };
 
+  const handleCreateWard = () => {
+    profileService.editRole(
+      { role: 'HN' },
+      () => {
+        if (!userInfo) {
+          return;
+        }
+
+        // userInfo 최신화
+        setUserInfo({
+          ...userInfo,
+          role: 'HN',
+          existMyWard: false,
+          sentWardCode: false,
+        });
+
+        navigate('/create-ward');
+      },
+      (error: ApiErrorResponse) => {
+        toast.error(error.message);
+      }
+    );
+  };
+
   const handleExitButton = () => {
     profileService.exitWard(
       () => {
-        navigate('/extra-info');
+        if (userInfo?.role === 'RN') {
+          if (!userInfo) {
+            return;
+          }
+
+          // userInfo 최신화
+          setUserInfo({
+            ...userInfo,
+            existMyWard: false,
+            sentWardCode: false,
+          });
+
+          navigate('/my-shift');
+        } else {
+          if (!userInfo) {
+            return;
+          }
+
+          // userInfo 최신화
+          setUserInfo({
+            ...userInfo,
+            role: null,
+            existMyWard: false,
+            sentWardCode: false,
+          });
+
+          navigate('/extra-info');
+        }
       },
       (error: ApiErrorResponse) => {
         toast.error(error.message);
@@ -513,28 +566,55 @@ const MypageProfile = () => {
           계정 관리
         </h2>
         <div className="space-y-4">
-          {/* 병동 나가기 */}
-          <div className="space-y-2">
-            <h3 className="text-base font-semibold text-gray-800">
-              병동 나가기
-            </h3>
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-              <p className="text-sm text-gray-600 md:max-w-[80%]">
-                현재 병동을 나가면 해당 병동의 모든 데이터에 접근할 수 없게
-                됩니다. 다른 병동으로 이동하시려면 먼저 현재 병동을 나가야
-                합니다.
-              </p>
-              <Button
-                type="button"
-                size="sm"
-                color="night"
-                className="w-full md:w-[8rem] h-[2.25rem] mt-2 md:mt-0"
-                onClick={() => handleOpenModal('WARD')}
-              >
-                병동 나가기
-              </Button>
+          {/* 병동 생성하기 (RN 병동X) */}
+          {!userInfo?.existMyWard && (
+            <div className="space-y-2">
+              <h3 className="text-base font-semibold text-gray-800">
+                병동 생성하기
+              </h3>
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+                <p className="text-sm text-gray-600 md:max-w-[80%]">
+                  새로운 병동을 생성하게 되면 기존에 작성했던 근무표 데이터에
+                  접근할 수 없게 됩니다. 병동을 생성하면 병동 단위의 근무표를
+                  생성하고 관리할 수 있습니다.
+                </p>
+                <Button
+                  type="button"
+                  size="sm"
+                  color="night"
+                  className="w-full md:w-[8rem] h-[2.25rem] mt-2 md:mt-0"
+                  onClick={() => handleOpenModal('CREATE-WARD')}
+                >
+                  병동 생성하기
+                </Button>
+              </div>
             </div>
-          </div>
+          )}
+
+          {/* 병동 나가기 (RN 병동O, HN) */}
+          {userInfo?.existMyWard && (
+            <div className="space-y-2">
+              <h3 className="text-base font-semibold text-gray-800">
+                병동 나가기
+              </h3>
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+                <p className="text-sm text-gray-600 md:max-w-[80%]">
+                  현재 병동을 나가면 해당 병동의 모든 데이터에 접근할 수 없게
+                  됩니다. 다른 병동으로 이동하시려면 먼저 현재 병동을 나가야
+                  합니다.
+                </p>
+                <Button
+                  type="button"
+                  size="sm"
+                  color="night"
+                  className="w-full md:w-[8rem] h-[2.25rem] mt-2 md:mt-0"
+                  onClick={() => handleOpenModal('WARD')}
+                >
+                  병동 나가기
+                </Button>
+              </div>
+            </div>
+          )}
 
           {/* 회원 탈퇴 */}
           <div className="space-y-2 pt-3 border-t">
@@ -562,7 +642,11 @@ const MypageProfile = () => {
         isOpen={isMypageExitConfirmModalOpen}
         onClose={() => setMypageExitConfirmModalOpen(false)}
         onConfirm={
-          exitRequestType === 'WARD' ? handleExitButton : handleWithdrawal
+          exitRequestType == 'CREATE-WARD'
+            ? handleCreateWard
+            : exitRequestType == 'WARD'
+              ? handleExitButton
+              : handleWithdrawal
         }
         exitRequestType={exitRequestType}
         hasPendingNurses={hasPendingNurses}

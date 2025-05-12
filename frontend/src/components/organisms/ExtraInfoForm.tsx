@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Button } from '@/components/atoms/Button';
 import { Select } from '@/components/atoms/Input';
 import ToggleButton from '@/components/atoms/ToggleButton';
+import useUserAuthStore from '@/stores/userAuthStore';
 
 interface FormData {
   grade: number;
@@ -101,6 +102,8 @@ const ExtraInfoForm = ({ initialData, onSubmit }: ExtraInfoFormProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [careerError, setCareerError] = useState<string>('');
 
+  const { userInfo, setUserInfo } = useUserAuthStore();
+
   const careerOptions = Array.from({ length: 40 }, (_, i) => ({
     value: String(i + 1),
     label: `${i + 1}년차`,
@@ -132,6 +135,17 @@ const ExtraInfoForm = ({ initialData, onSubmit }: ExtraInfoFormProps) => {
         setCareerError('연차를 선택해주세요.');
         return;
       }
+
+      if (!userInfo) {
+        return;
+      }
+
+      // userInfo 최신화
+      setUserInfo({
+        ...userInfo,
+        role: formState.role,
+      });
+
       await onSubmit(formState);
     } finally {
       setIsLoading(false);

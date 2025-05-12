@@ -40,13 +40,14 @@ export function GoogleRedirect() {
         });
         toast.success('정상적으로 로그인되었습니다.');
 
+        // 로그인 후 이동 로직
         if (!existAdditionalInfo) {
           navigate('/extra-info');
         } else if (!existMyWard) {
           if (role === 'HN') {
             navigate('/create-ward');
           } else {
-            navigate('/enter-ward');
+            navigate('/my-shift');
           }
         } else {
           if (role === 'HN') {

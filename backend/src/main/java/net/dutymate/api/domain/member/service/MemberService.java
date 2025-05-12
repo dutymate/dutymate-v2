@@ -31,6 +31,7 @@ import net.dutymate.api.domain.member.Provider;
 import net.dutymate.api.domain.member.dto.AdditionalInfoRequestDto;
 import net.dutymate.api.domain.member.dto.AdditionalInfoResponseDto;
 import net.dutymate.api.domain.member.dto.CheckPasswordDto;
+import net.dutymate.api.domain.member.dto.EditRoleRequestDto;
 import net.dutymate.api.domain.member.dto.GoogleTokenResponseDto;
 import net.dutymate.api.domain.member.dto.GoogleUserResponseDto;
 import net.dutymate.api.domain.member.dto.KakaoTokenResponseDto;
@@ -504,7 +505,7 @@ public class MemberService {
 		if (member.getRole() == Role.RN) {
 			ward.removeWardMember(wardMember);
 			deleteWardMemberInMongo(member, ward); // mongodb에서 삭제
-			member.updateRole(null);
+			// member.updateRole(null);
 			member.clearEnterDate();
 			return;
 		}
@@ -887,5 +888,11 @@ public class MemberService {
 		} else {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "병동 입장이 거절된 상태입니다.");
 		}
+	}
+
+	@Transactional
+	public void updateRole(Member member, EditRoleRequestDto editRoleRequestDto) {
+		member.setRole(editRoleRequestDto.getRole());
+		memberRepository.save(member);
 	}
 }

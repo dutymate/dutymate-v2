@@ -58,6 +58,7 @@ public class Member {
 	@Enumerated(EnumType.STRING)
 	private Gender gender;
 
+	@Setter
 	@Enumerated(EnumType.STRING)
 	private Role role;
 
