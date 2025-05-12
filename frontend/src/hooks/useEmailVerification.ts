@@ -3,7 +3,7 @@ import { toast } from 'react-toastify';
 
 import userService from '@/services/userService';
 
-export const useEmailVerification = (mode: 'login' | 'signup') => {
+export const useEmailVerification = (mode: 'login' | 'signup' | 'reset') => {
   const [email, setEmail] = useState('');
   const [authCode, setAuthCode] = useState('');
   const [authCodeSent, setAuthCodeSent] = useState(false);

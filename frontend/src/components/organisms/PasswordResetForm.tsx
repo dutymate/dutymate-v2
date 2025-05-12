@@ -1,14 +1,18 @@
 import axios from 'axios';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
-import { EmailInput, PasswordInput } from '@/components/atoms/Input';
+import {
+  AuthCodeInput,
+  EmailInput,
+  PasswordInput,
+} from '@/components/atoms/Input';
+import { useEmailVerification } from '@/hooks/useEmailVerification';
 import userService from '@/services/userService';
 
 interface ResetPasswordData {
   email: string;
-  code: string;
   password: string;
   passwordConfirm: string;
 }
@@ -21,30 +25,33 @@ const validatePassword = (password: string) =>
 
 const PasswordResetForm = () => {
   const navigate = useNavigate();
+
   const [resetData, setResetData] = useState<ResetPasswordData>({
     email: '',
-    code: '',
     password: '',
     passwordConfirm: '',
   });
 
   const [error, setError] = useState<{
     email?: string;
-    code?: string;
     password?: string;
     passwordConfirm?: string;
   }>({});
 
-  // 이메일 인증 관련 상태
-  const [authCodeSent, setAuthCodeSent] = useState(false);
-  const [isVerified, setIsVerified] = useState(false);
-  const [isSending, setIsSending] = useState(false);
-  const [isVerifying, setIsVerifying] = useState(false);
-  const [timer, setTimer] = useState(300); // 5분 타이머
-  const [timerActive, setTimerActive] = useState(false);
-  const [authCodeStatus, setAuthCodeStatus] = useState<
-    'idle' | 'success' | 'error'
-  >('idle');
+  const {
+    setEmail,
+    authCode,
+    setAuthCode,
+    authCodeSent,
+    authCodeStatus,
+    isVerified,
+    timer,
+    emailError,
+    isSending,
+    sendCode,
+    verifyCode,
+    resetVerification,
+  } = useEmailVerification('reset');
 
   const handleResetChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -52,10 +59,9 @@ const PasswordResetForm = () => {
 
     let errorMessage = '';
     if (name === 'email') {
+      setEmail(value);
       if (!validateEmail(value.trim()))
         errorMessage = '올바른 이메일 형식이 아닙니다.';
-    } else if (name === 'code') {
-      if (value.trim().length !== 6) errorMessage = '인증 코드는 6자리입니다.';
     } else if (name === 'password') {
       if (!validatePassword(value.trim()))
         errorMessage = '8자 이상, 숫자 및 특수문자를 포함해야 합니다.';
@@ -75,71 +81,6 @@ const PasswordResetForm = () => {
     setError((prevError) => ({ ...prevError, [name]: errorMessage }));
   };
 
-  // 인증 코드 발송 함수
-  const handleSendCode = async () => {
-    if (!validateEmail(resetData.email.trim())) {
-      setError((prev) => ({
-        ...prev,
-        email: '올바른 이메일 형식이 아닙니다.',
-      }));
-      return;
-    }
-
-    try {
-      setIsSending(true);
-      await userService.requestPasswordReset(resetData.email.trim());
-
-      setAuthCodeSent(true);
-      setTimerActive(true);
-      setTimer(300); // 5분 타이머 리셋
-      toast.success('인증 코드가 발송되었습니다.');
-    } catch (error: any) {
-      const errorMessage = error.message || '인증 코드 발송에 실패했습니다.';
-      toast.error(errorMessage);
-      setError((prev) => ({ ...prev, email: errorMessage }));
-    } finally {
-      setIsSending(false);
-    }
-  };
-
-  // 인증 코드 확인 함수
-  const handleVerifyCode = async () => {
-    if (resetData.code.length !== 6) {
-      setError((prev) => ({ ...prev, code: '인증 코드는 6자리입니다.' }));
-      return;
-    }
-
-    try {
-      setIsVerifying(true);
-      await userService.verifyEmailCode({
-        email: resetData.email.trim(),
-        code: resetData.code.trim(),
-      });
-
-      setIsVerified(true);
-      setTimerActive(false);
-      setAuthCodeStatus('success');
-      toast.success('인증되었습니다.');
-    } catch (error: any) {
-      if (axios.isAxiosError(error)) {
-        setAuthCodeStatus('error');
-        toast.error(
-          error.response?.data?.message || '인증 코드 확인에 실패했습니다.'
-        );
-        setError((prev) => ({
-          ...prev,
-          code: '인증 코드가 일치하지 않습니다.',
-        }));
-      } else {
-        setAuthCodeStatus('error');
-        toast.error('인증 코드 확인에 실패했습니다.');
-      }
-    } finally {
-      setIsVerifying(false);
-    }
-  };
-
-  // 비밀번호 재설정 함수
   const handleResetSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     let isValid = true;
@@ -200,32 +141,13 @@ const PasswordResetForm = () => {
     }
   };
 
-  // 타이머 효과
   useEffect(() => {
-    let intervalId: NodeJS.Timeout;
-
-    if (timerActive && timer > 0) {
-      intervalId = setInterval(() => {
-        setTimer((prevTimer) => prevTimer - 1);
-      }, 1000);
-    } else if (timer === 0 && timerActive) {
-      setAuthCodeSent(false);
-      setTimerActive(false);
-      setResetData((prev) => ({ ...prev, code: '' }));
+    if (timer === 0 && authCodeSent && !isVerified) {
+      resetVerification();
+      setResetData((prev) => ({ ...prev, email: '' }));
       toast.error('인증 시간이 만료되었습니다. 다시 시도해주세요.');
     }
-
-    return () => {
-      if (intervalId) clearInterval(intervalId);
-    };
-  }, [timer, timerActive]);
-
-  // 타이머 포맷팅 함수
-  const formatTime = (seconds: number) => {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
-  };
+  }, [timer, authCodeSent]);
 
   return (
     <div className="bg-white rounded-[0.925rem] shadow-[0_0_0.9375rem_rgba(0,0,0,0.1)] w-[20rem] px-[2rem] py-[2rem] sm:w-[23rem] sm:px-[2.5rem] sm:py-[2.5rem] lg:w-[26rem] lg:px-[3rem] lg:py-[3rem]">
@@ -236,91 +158,53 @@ const PasswordResetForm = () => {
         <div className="space-y-[0.25rem] sm:space-y-[0.5rem]">
           <EmailInput
             id="reset-email"
-            label=""
             name="email"
             value={resetData.email}
-            onChange={handleResetChange}
-            error={error.email}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              handleResetChange(e);
+            }}
+            error={emailError || error.email}
             placeholder="이메일"
             disabled={authCodeSent || isVerified}
           />
 
-          {!authCodeSent && !isVerified && (
+          {!authCodeSent && (
             <button
               type="button"
               className="w-full px-[0.75rem] py-[0.6rem] sm:py-[0.5rem] text-[0.75rem] sm:text-[0.875rem] bg-primary-20 text-primary-dark rounded"
-              onClick={handleSendCode}
-              disabled={isSending || !resetData.email || !!error.email}
+              onClick={sendCode}
+              disabled={isSending}
             >
               {isSending ? '발송 중...' : '인증번호 발송'}
             </button>
           )}
 
-          {authCodeSent && !isVerified && (
-            <div className="space-y-[0.25rem]">
-              <div className="relative">
-                <input
-                  id="reset-code"
-                  type="text"
-                  name="code"
-                  value={resetData.code}
-                  onChange={handleResetChange}
-                  className={`w-full p-[0.6rem] sm:p-[0.5rem] text-[0.75rem] sm:text-[0.875rem] border rounded-md ${
-                    error.code || authCodeStatus === 'error'
-                      ? 'border-red-500'
-                      : authCodeStatus === 'success'
-                        ? 'border-green-500'
-                        : 'border-gray-300'
-                  }`}
-                  placeholder="인증번호 6자리"
-                  maxLength={6}
-                  disabled={isVerified}
-                />
-                {timerActive && (
-                  <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[0.75rem] text-primary-dark">
-                    {formatTime(timer)}
-                  </span>
-                )}
-              </div>
-
-              {error.code && (
-                <p className="text-red-500 text-[0.675rem] sm:text-[0.75rem]">
-                  {error.code}
-                </p>
-              )}
-
-              {authCodeStatus === 'error' && !error.code && (
-                <p className="text-red-500 text-[0.675rem] sm:text-[0.75rem]">
-                  인증 코드가 일치하지 않습니다.
-                </p>
-              )}
-
-              {authCodeStatus === 'success' && (
-                <p className="text-green-500 text-[0.675rem] sm:text-[0.75rem]">
-                  인증되었습니다.
-                </p>
-              )}
-
-              <div className="flex items-center space-x-2">
-                <button
-                  type="button"
-                  className="w-full px-[0.75rem] py-[0.6rem] sm:py-[0.5rem] text-[0.75rem] sm:text-[0.875rem] bg-primary-20 text-primary-dark rounded"
-                  onClick={handleVerifyCode}
-                  disabled={
-                    isVerifying || resetData.code.length !== 6 || isVerified
-                  }
-                >
-                  {isVerifying ? '확인 중...' : '인증 확인'}
-                </button>
-              </div>
-            </div>
+          {authCodeSent && (
+            <AuthCodeInput
+              id="reset-authcode"
+              name="authCode"
+              value={authCode}
+              onChange={(e) => setAuthCode(e.target.value)}
+              timer={timer}
+              onVerifyClick={verifyCode}
+              isVerified={isVerified}
+              status={authCodeStatus}
+              error={
+                authCodeStatus === 'error'
+                  ? '인증 코드가 일치하지 않습니다.'
+                  : undefined
+              }
+              successText={
+                authCodeStatus === 'success' ? '인증되었습니다.' : undefined
+              }
+            />
           )}
 
           {isVerified && (
-            <div>
+            <>
               <PasswordInput
                 id="reset-password"
-                label=""
                 name="password"
                 value={resetData.password}
                 onChange={handleResetChange}
@@ -329,14 +213,13 @@ const PasswordResetForm = () => {
               />
               <PasswordInput
                 id="reset-password-confirm"
-                label=""
                 name="passwordConfirm"
                 value={resetData.passwordConfirm}
                 onChange={handleResetChange}
                 error={error.passwordConfirm}
                 placeholder="새 비밀번호 확인"
               />
-            </div>
+            </>
           )}
         </div>
 
