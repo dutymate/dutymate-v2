@@ -1,4 +1,6 @@
-import { Text, View } from "react-native";
+import { Text } from "react-native";
+
+import { Layout } from "@/components/layout/Layout";
 
 /**
  * LandingScreen의 props 타입을 정의합니다.
@@ -14,8 +16,8 @@ interface LandingScreenProps {
  */
 export const LandingScreen = ({ navigation }: LandingScreenProps) => {
 	return (
-		<View className={"flex-1 justify-center items-center"}>
+		<Layout className={"justify-center items-center"}>
 			<Text onPress={() => navigation.navigate("WebView")}>Hello World</Text>
-		</View>
+		</Layout>
 	);
 };

@@ -1,8 +1,10 @@
+import Constants from "expo-constants";
+
 import React, { useCallback, useEffect, useRef } from "react";
-import { BackHandler, View, SafeAreaView } from "react-native";
+import { BackHandler, SafeAreaView } from "react-native";
 import { WebView } from "react-native-webview";
 
-import Constants from "expo-constants";
+import { Layout } from "@/components/layout/Layout";
 
 /**
  * WebViewScreen은 Expo WebView를 사용하여 웹 페이지를 표시합니다.
@@ -38,7 +40,7 @@ export const WebViewScreen = () => {
 	}, [handleAndroidBackPress]);
 
 	return (
-		<View className={"flex-1 bg-base-muted-30"}>
+		<Layout backgroundColor={"bg-base-muted-30"}>
 			<SafeAreaView className={"flex-1"}>
 				<WebView
 					ref={webViewRef}
@@ -49,6 +51,6 @@ export const WebViewScreen = () => {
 					allowsBackForwardNavigationGestures
 				/>
 			</SafeAreaView>
-		</View>
+		</Layout>
 	);
 };
