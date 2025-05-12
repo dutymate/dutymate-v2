@@ -32,8 +32,8 @@ public class CalendarController {
 
 	@GetMapping
 	public ResponseEntity<?> getCalendarsByDate(@Auth Member member, @RequestParam LocalDate date) {
-		List<CalendarResponseDto> calendarResponsDtos = calendarService.getCalendarsByDate(member, date);
-		return ResponseEntity.ok(calendarResponsDtos);
+		List<CalendarResponseDto> calendarResponseDtos = calendarService.getCalendarsByDate(member, date);
+		return ResponseEntity.ok(calendarResponseDtos);
 	}
 
 	@GetMapping("/{calendarId}")

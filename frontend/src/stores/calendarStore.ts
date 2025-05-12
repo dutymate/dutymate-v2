@@ -9,8 +9,9 @@ type CalendarState = {
 export type ScheduleType = {
   calendarId: number;
   title: string;
-  startTime: string;
-  endTime: string;
+  date?: string;
+  startTime?: string;
+  endTime?: string;
   color: string;
   place: string;
   isAllDay: boolean;

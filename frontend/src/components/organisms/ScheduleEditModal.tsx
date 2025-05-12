@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Map, MapMarker } from 'react-kakao-maps-sdk';
 import { deleteCalendar as deleteCalendarService } from '@/services/calendarService';
 import type { ScheduleType } from '@/services/calendarService';
+import type { CalendarCreateRequest } from '@/services/calendarService';
 
 interface ScheduleEditModalProps {
   mode: 'create' | 'view' | 'edit';
@@ -16,12 +17,13 @@ interface ScheduleEditModalProps {
   };
   onClose: () => void;
   onSave?: (data: Omit<any, 'calendarId'>) => void;
-  onDelete?: () => void;
-  onEdit?: () => void;
+  onDelete?: (calendarId: number) => void;
+  onEdit?: (data: Omit<any, 'calendarId'>) => void;
   currentScheduleCount?: number;
   setSchedulesByDate: React.Dispatch<
     React.SetStateAction<Record<string, ScheduleType[]>>
   >;
+  date: string;
 }
 
 interface Marker {
@@ -32,22 +34,24 @@ interface Marker {
   content: string;
 }
 
+const MAX_SCHEDULES_PER_DAY = 10;
+
 const ScheduleEditModal = ({
   mode = 'create',
   initialData = {
     title: '',
     startTime: '오전 09:00',
     endTime: '오전 10:00',
-    color: 'blue',
+    color: 'FF43F3',
     place: '',
     isAllDay: false,
   },
   onClose = () => {},
   onSave = () => {},
-  // onDelete = () => {},
+  onDelete = () => {},
   onEdit = () => {},
   currentScheduleCount = 0,
-  setSchedulesByDate,
+  date,
 }: ScheduleEditModalProps) => {
   const [title, setTitle] = useState(initialData?.title || '');
   const [startTime, setStartTime] = useState(
@@ -56,7 +60,7 @@ const ScheduleEditModal = ({
   const [endTime, setEndTime] = useState(
     toDisplayTime(initialData?.endTime || '오전 10:00')
   );
-  const [color, setColor] = useState(initialData?.color || 'blue');
+  const [color, setColor] = useState(initialData?.color || 'FF43F3');
   const [place, setPlace] = useState(initialData?.place || '');
   const [activeTimePicker, setActiveTimePicker] = useState<
     null | 'start' | 'end'
@@ -117,34 +121,14 @@ const ScheduleEditModal = ({
 
   // 색상 옵션 정의 - 더 다양하고 현대적인 색상으로 업데이트
   const colorOptions = [
-    { name: '블루', value: 'blue', bg: 'bg-blue-500', dot: 'bg-blue-500' },
-    {
-      name: '퍼플',
-      value: 'purple',
-      bg: 'bg-purple-500',
-      dot: 'bg-purple-500',
-    },
-    { name: '그린', value: 'green', bg: 'bg-green-500', dot: 'bg-green-500' },
-    { name: '핑크', value: 'pink', bg: 'bg-pink-500', dot: 'bg-pink-500' },
-    { name: '레드', value: 'red', bg: 'bg-red-500', dot: 'bg-red-500' },
-    {
-      name: '옐로우',
-      value: 'yellow',
-      bg: 'bg-yellow-400',
-      dot: 'bg-yellow-400',
-    },
-    {
-      name: '토마토',
-      value: 'tomato',
-      bg: 'bg-orange-500',
-      dot: 'bg-orange-500',
-    },
-    {
-      name: '인디고',
-      value: 'indigo',
-      bg: 'bg-indigo-500',
-      dot: 'bg-indigo-500',
-    },
+    { name: '핑크', value: 'FF43F3', bg: 'bg-pink-400' },
+    { name: '회색', value: '777777', bg: 'bg-gray-400' },
+    { name: '블루', value: '3B82F6', bg: 'bg-blue-500' },
+    { name: '퍼플', value: '8B5CF6', bg: 'bg-purple-500' },
+    { name: '그린', value: '22C55E', bg: 'bg-green-500' },
+    { name: '레드', value: 'EF4444', bg: 'bg-red-500' },
+    { name: '옐로우', value: 'FACC15', bg: 'bg-yellow-400' },
+    { name: '오렌지', value: 'FB923C', bg: 'bg-orange-400' },
   ];
 
   const isView = mode === 'view';
@@ -250,35 +234,98 @@ const ScheduleEditModal = ({
 
   // 시간 문자열을 ISO 8601 형식으로 변환하는 함수 (백엔드 전송용)
   const convertToISOFormat = (timeStr: string) => {
-    const [period, hm] = timeStr.split(' ');
-    let [hour, minute] = hm.split(':').map(Number);
+    try {
+      // 시간 파싱
+      const [period, hm] = timeStr.split(' ');
+      let [hour, minute] = hm.split(':').map(Number);
 
-    if (period === '오후' && hour !== 12) hour += 12;
-    if (period === '오전' && hour === 12) hour = 0;
+      if (period === '오후' && hour !== 12) hour += 12;
+      if (period === '오전' && hour === 12) hour = 0;
 
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, '0');
-    const day = String(today.getDate()).padStart(2, '0');
+      // date 파라미터를 파싱하여 사용
+      if (!date || !date.includes('-')) {
+        console.warn('유효하지 않은 날짜 형식:', date);
+        // 오류 처리: 현재 날짜 사용
+        const now = new Date();
+        return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}T${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}:00`;
+      }
 
-    return `${year}-${month}-${day}T${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}:00`;
+      // 여기서는 이미 YYYY-MM-DD 형식의 date 문자열을 직접 사용
+      // 시간대 변환 이슈 없이 전달받은 날짜 그대로 사용
+      console.log(
+        `시간 변환: ${date}T${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}:00`
+      );
+
+      return `${date}T${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}:00`;
+    } catch (error) {
+      console.error('시간 변환 오류:', error, { timeStr, date });
+      // 오류 발생 시 기본값 반환
+      const now = new Date();
+      return now.toISOString().slice(0, 19);
+    }
   };
 
+  // 저장 버튼 활성화 조건
+  const isSaveDisabled =
+    !title.trim() ||
+    !color.trim() ||
+    (isAllDay === false && (!startTime || !endTime));
+
   // 저장 처리
-  const MAX_SCHEDULES_PER_DAY = 10;
-  const handleSave = () => {
+  const handleSave = async () => {
     if (mode === 'create' && currentScheduleCount >= MAX_SCHEDULES_PER_DAY) {
       alert('하루에 최대 10개의 메모만 추가할 수 있습니다.');
       return;
     }
-    onSave?.({
-      title,
-      startTime: convertToISOFormat(startTime),
-      endTime: convertToISOFormat(endTime),
-      color,
-      place,
-      isAllDay,
-    });
+
+    try {
+      if (mode === 'edit' && initialData?.calendarId) {
+        // Edit mode
+        const editData = {
+          title,
+          date,
+          place: place.trim() || '',
+          color,
+          isAllDay,
+          ...(isAllDay
+            ? {}
+            : {
+                startTime: convertToISOFormat(startTime),
+                endTime: convertToISOFormat(endTime),
+              }),
+        };
+
+        // 먼저 모달 닫고 (UI 반응성 향상)
+        onClose();
+
+        // 그 다음 parent에 수정 요청
+        onEdit?.(editData);
+      } else {
+        // Create mode
+        const req: CalendarCreateRequest = {
+          title,
+          date,
+          place: place.trim() || '',
+          color,
+          isAllDay,
+          ...(isAllDay
+            ? {}
+            : {
+                startTime: convertToISOFormat(startTime),
+                endTime: convertToISOFormat(endTime),
+              }),
+        };
+
+        // 먼저 모달 닫고
+        onClose();
+
+        // 그 다음 parent에 저장 요청
+        onSave?.(req);
+      }
+    } catch (e) {
+      alert('일정 저장에 실패했습니다.');
+      console.error('일정 저장 실패:', e);
+    }
   };
 
   //삭제 처리
@@ -288,34 +335,17 @@ const ScheduleEditModal = ({
       return;
     }
     try {
-      await deleteCalendarService(Number(initialData.calendarId));
-      const date = new Date(initialData.startTime);
-      const dateKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-
-      // 해당 날짜의 일정을 모두 제거하고 다시 가져오기
-      setSchedulesByDate((prev) => {
-        const newSchedules = { ...prev };
-        delete newSchedules[dateKey];
-        return newSchedules;
-      });
-
-      // 일정 목록 다시 가져오기
-      try {
-        const response = await fetch(`/api/calendar?date=${dateKey}`);
-        const data = await response.json();
-        if (data.success) {
-          setSchedulesByDate((prev) => ({
-            ...prev,
-            [dateKey]: data.data,
-          }));
-        }
-      } catch (error) {
-        console.error('Failed to fetch updated schedules:', error);
-      }
-
+      // 먼저 모달 닫기 (UI 반응성 향상)
       onClose();
+
+      // 서버 API 호출
+      await deleteCalendarService(Number(initialData.calendarId));
+
+      // 부모 컴포넌트의 onDelete 함수 호출
+      onDelete?.(Number(initialData.calendarId));
     } catch (e) {
       alert('일정 삭제에 실패했습니다.');
+      console.error('일정 삭제 실패:', e);
     }
   };
 
@@ -382,6 +412,7 @@ const ScheduleEditModal = ({
                 onChange={(e) => setTitle(e.target.value)}
                 readOnly={!isEditable}
                 tabIndex={isEditable ? 0 : -1}
+                maxLength={30}
               />
             </div>
 
@@ -490,7 +521,7 @@ const ScheduleEditModal = ({
               ) : (
                 <div className="flex items-center">
                   <span
-                    className={`w-4 h-4 sm:w-5 sm:h-5 rounded-full ${colorOptions.find((c) => c.value === color)?.dot || 'bg-blue-500'} mr-2`}
+                    className={`w-4 h-4 sm:w-5 sm:h-5 rounded-full ${colorOptions.find((c) => c.value === color)?.bg || 'bg-blue-500'} mr-2`}
                   ></span>
                   <span className="text-sm">
                     {colorOptions.find((c) => c.value === color)?.name ||
@@ -503,7 +534,10 @@ const ScheduleEditModal = ({
             {/* 장소 */}
             <div>
               <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
-                장소
+                장소{' '}
+                <span className="text-gray-400 text-xs font-normal">
+                  (선택)
+                </span>
               </label>
               <div className="space-y-2">
                 {isEditable && (
@@ -528,9 +562,10 @@ const ScheduleEditModal = ({
                   <input
                     type="text"
                     className="w-full px-2 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm"
-                    placeholder="장소를 직접 입력하세요"
+                    placeholder="장소를 직접 입력하세요 (선택사항)"
                     value={place}
                     onChange={(e) => setPlace(e.target.value)}
+                    maxLength={255}
                   />
                 ) : (
                   <div
@@ -546,7 +581,7 @@ const ScheduleEditModal = ({
                     <input
                       type="text"
                       className={`w-full text-sm ${isEditable ? 'focus:outline-none' : 'bg-gray-50 pointer-events-none select-none'}`}
-                      placeholder="장소를 입력하세요"
+                      placeholder="장소를 입력하세요 (선택사항)"
                       value={place}
                       onChange={(e) => {
                         setPlace(e.target.value);
@@ -557,6 +592,7 @@ const ScheduleEditModal = ({
                       tabIndex={isEditable ? 0 : -1}
                       onFocus={() => isEditable && setIsPlaceSearchOpen(true)}
                       onKeyDown={handleKeyDown}
+                      maxLength={255}
                     />
                   </div>
                 )}
@@ -614,7 +650,10 @@ const ScheduleEditModal = ({
               <button
                 className="w-full py-1.5 sm:py-2 rounded-lg font-bold text-sm sm:text-base bg-white border border-primary text-primary shadow-sm hover:bg-primary hover:text-white transition-colors"
                 onClick={handleSave}
-                disabled={currentScheduleCount >= MAX_SCHEDULES_PER_DAY}
+                disabled={
+                  isSaveDisabled ||
+                  currentScheduleCount >= MAX_SCHEDULES_PER_DAY
+                }
                 style={
                   currentScheduleCount >= MAX_SCHEDULES_PER_DAY
                     ? { opacity: 0.5, cursor: 'not-allowed' }
@@ -636,7 +675,23 @@ const ScheduleEditModal = ({
               <>
                 <button
                   className="w-full py-1.5 sm:py-2 rounded-lg font-bold text-sm sm:text-base bg-white border border-primary text-primary shadow-sm hover:bg-primary hover:text-white transition-colors"
-                  onClick={onEdit}
+                  onClick={() => {
+                    // view 모드에서 edit 모드로 전환
+                    const newMode = 'edit' as const;
+                    // 컴포넌트를 다시 렌더링하기 위해 모드를 직접 변경할 수 없으므로
+                    // TodayShiftModal에서 모드를 변경하도록 변경된 모드와 현재 데이터를 함께 전달
+                    onEdit?.({
+                      mode: newMode,
+                      title: title,
+                      startTime: startTime,
+                      endTime: endTime,
+                      color: color,
+                      place: place,
+                      isAllDay: isAllDay,
+                      date: date,
+                      calendarId: initialData?.calendarId,
+                    });
+                  }}
                 >
                   수정
                 </button>

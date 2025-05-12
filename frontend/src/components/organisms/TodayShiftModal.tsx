@@ -6,7 +6,12 @@ import { useState } from 'react';
 import ScheduleEditModal from '@/components/organisms/ScheduleEditModal';
 import ShiftColorPickerModal from '@/components/organisms/ShiftColorPickerModal';
 // 상수를 컴포넌트 외부로 이동
-import { createCalendar, deleteCalendar } from '@/services/calendarService';
+import {
+  getCalendarById,
+  updateCalendar,
+  createCalendar,
+  CalendarCreateRequest,
+} from '@/services/calendarService';
 import type { ScheduleType } from '@/services/calendarService';
 const weekDays = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'] as const;
 type WeekDay = (typeof weekDays)[number];
@@ -45,17 +50,18 @@ interface TodayShiftModalProps {
   onTabChange: (tab: 'status' | 'calendar') => void;
   selectedDutyType: 'day' | 'off' | 'evening' | 'night' | 'mid';
   onDutyTypeChange: (type: 'day' | 'off' | 'evening' | 'night' | 'mid') => void;
+  fetchAllSchedulesForMonth: (year: number, month: number) => Promise<void>;
 }
 
 const colorClassMap: Record<string, string> = {
-  blue: 'bg-blue-500',
-  purple: 'bg-purple-500',
-  green: 'bg-green-500',
-  pink: 'bg-pink-500',
-  red: 'bg-red-500',
-  yellow: 'bg-yellow-400',
-  tomato: 'bg-orange-500',
-  indigo: 'bg-indigo-500',
+  FF43F3: 'bg-pink-400',
+  '777777': 'bg-gray-400',
+  '3B82F6': 'bg-blue-500',
+  '8B5CF6': 'bg-purple-500',
+  '22C55E': 'bg-green-500',
+  EF4444: 'bg-red-500',
+  FACC15: 'bg-yellow-400',
+  FB923C: 'bg-orange-400',
 };
 
 const TodayShiftModal = ({
@@ -71,6 +77,7 @@ const TodayShiftModal = ({
   onTabChange,
   selectedDutyType,
   onDutyTypeChange,
+  fetchAllSchedulesForMonth,
 }: TodayShiftModalProps) => {
   if (!date) return null;
 
@@ -109,73 +116,163 @@ const TodayShiftModal = ({
     setIsScheduleModalOpen(true);
   };
 
-  const handleScheduleClick = (schedule: ScheduleType) => {
-    setScheduleModalMode('view');
-    setSelectedSchedule(schedule);
-    setIsScheduleModalOpen(true);
+  const handleScheduleClick = async (calendarId: number) => {
+    try {
+      const response = await getCalendarById(calendarId);
+      const detail = response.data;
+      setSelectedSchedule(detail);
+      setScheduleModalMode('view');
+      setIsScheduleModalOpen(true);
+    } catch (error) {
+      console.error('일정 상세 조회 실패:', error);
+    }
   };
 
-  const handleDelete = async () => {
-    if (!selectedSchedule?.calendarId) {
-      console.log('삭제할 schedule이 없습니다:', selectedSchedule);
-      return;
-    }
+  const handleDelete = async (calendarId: number) => {
     try {
-      console.log('삭제 시도 calendarId:', selectedSchedule.calendarId);
-      await deleteCalendar(Number(selectedSchedule.calendarId));
-
-      // 삭제 후 데이터 다시 가져오기
-      const date = new Date(selectedSchedule.startTime);
+      // schedulesByDate 상태 직접 업데이트
       const dateKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+      setSchedulesByDate((prev) => ({
+        ...prev,
+        [dateKey]:
+          prev[dateKey]?.filter(
+            (schedule) => schedule.calendarId !== calendarId
+          ) || [],
+      }));
 
-      // 해당 날짜의 일정을 모두 제거하고 다시 가져오기
-      setSchedulesByDate((prev) => {
-        const newSchedules = { ...prev };
-        delete newSchedules[dateKey];
-        return newSchedules;
-      });
-
-      // 일정 목록 다시 가져오기
-      try {
-        const response = await fetch(`/api/calendar?date=${dateKey}`);
-        const data = await response.json();
-        if (data.success) {
-          setSchedulesByDate((prev) => ({
-            ...prev,
-            [dateKey]: data.data,
-          }));
-        }
-      } catch (error) {
-        console.error('Failed to fetch updated schedules:', error);
-      }
-
+      // 선택된 일정 초기화 및 모달 닫기
+      setSelectedSchedule(null);
       setIsScheduleModalOpen(false);
-      onClose?.();
-    } catch (e) {
+
+      // 월 전체 일정 새로고침
+      await fetchAllSchedulesForMonth(date.getFullYear(), date.getMonth() + 1);
+    } catch (error) {
+      console.error('일정 삭제 실패:', error);
       alert('일정 삭제에 실패했습니다.');
     }
   };
 
   const handleSave = async (data: Omit<ScheduleType, 'calendarId'>) => {
     try {
-      const response = await createCalendar(data);
-      // API 응답에서 생성된 일정 데이터를 받아옵니다
-      const newSchedule = response.data;
+      // 선택된 날짜가 JavaScript Date 객체이므로 제대로 형식화
+      const selectedDate = new Date(date as Date);
 
-      // schedulesByDate 상태를 업데이트합니다
+      // 날짜를 YYYY-MM-DD 형식으로 변환 (시간대 이슈 없이)
+      const formattedDate = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}`;
+
+      console.log('생성 중인 날짜 정보:', {
+        originalDate: date,
+        selectedDateObj: selectedDate,
+        formattedDate: formattedDate,
+      });
+
+      const req: CalendarCreateRequest = {
+        title: data.title || '',
+        date: formattedDate, // 명시적으로 형식화된 날짜 사용
+        place: data.place || '',
+        color: data.color || '',
+        isAllDay: !!data.isAllDay,
+        ...(data.isAllDay
+          ? {}
+          : {
+              startTime: data.startTime ?? '',
+              endTime: data.endTime ?? '',
+            }),
+      };
+
+      console.log('Sending create request with data:', req);
+
+      // 모달 먼저 닫기 (사용자 경험 향상)
+      setIsScheduleModalOpen(false);
+
+      // API 호출
+      const response = await createCalendar(req);
+      const newCalendarId = response.data.calendarId;
+
+      // 새로 생성된 일정 UI에 즉시 추가
+      const dateKey = `${formattedDate}`;
+      const newSchedule: ScheduleType = {
+        calendarId: newCalendarId,
+        ...data,
+        date: formattedDate,
+      };
+
       setSchedulesByDate((prev) => ({
         ...prev,
         [dateKey]: [...(prev[dateKey] || []), newSchedule],
       }));
 
-      setIsScheduleModalOpen(false);
+      // 바로 UI 업데이트를 위한 새로고침
+      await fetchAllSchedulesForMonth(
+        selectedDate.getFullYear(),
+        selectedDate.getMonth() + 1
+      );
     } catch (error) {
       console.error('Failed to save schedule:', error);
       alert('일정 저장에 실패했습니다.');
     }
   };
 
-  const handleEdit = () => setScheduleModalMode('edit');
+  const handleEdit = async (data: any) => {
+    // 모드 전환 처리 - 수정 버튼 클릭 시
+    if (data.mode === 'edit') {
+      // 모드만 변경하고 반환
+      setScheduleModalMode('edit');
+      return;
+    }
+
+    // 실제 수정 처리 - 저장 버튼 클릭 시
+    if (!selectedSchedule?.calendarId) return;
+
+    try {
+      // 선택된 날짜가 JavaScript Date 객체이므로 제대로 형식화
+      // 이때 날짜가 하루 이전으로 변경되는 문제 해결 (시간대 이슈)
+      const selectedDate = new Date(date as Date);
+
+      // 날짜를 YYYY-MM-DD 형식으로 변환
+      // getDate()는 해당 날짜의 일(day)을 반환 (시간대 조정 없이)
+      const formattedDate = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}`;
+
+      console.log('편집 중인 날짜 정보:', {
+        originalDate: date,
+        selectedDateObj: selectedDate,
+        formattedDate: formattedDate,
+      });
+
+      // API 호출을 통한 서버 데이터 업데이트
+      const editData: CalendarCreateRequest = {
+        title: data.title || '',
+        date: formattedDate, // 명시적으로 형식화된 날짜 사용
+        place: data.place || '',
+        color: data.color || '',
+        isAllDay: !!data.isAllDay,
+        ...(data.isAllDay
+          ? {}
+          : {
+              startTime: data.startTime ?? '',
+              endTime: data.endTime ?? '',
+            }),
+      };
+
+      console.log('Sending update request with data:', editData);
+
+      // 모달 먼저 닫기 (사용자 경험 향상)
+      setIsScheduleModalOpen(false);
+      setSelectedSchedule(null);
+
+      // API 호출
+      await updateCalendar(selectedSchedule.calendarId, editData);
+
+      // 바로 UI 업데이트를 위한 새로고침
+      await fetchAllSchedulesForMonth(
+        selectedDate.getFullYear(),
+        selectedDate.getMonth() + 1
+      );
+    } catch (error) {
+      console.error('일정 수정 실패:', error);
+      alert('일정 수정에 실패했습니다.');
+    }
+  };
 
   function parseTimeString(timeStr: string) {
     if (!timeStr) return 0;
@@ -196,7 +293,8 @@ const TodayShiftModal = ({
   const sortedSchedules = [
     ...schedules.filter((s) => s.isAllDay),
     ...[...schedules.filter((s) => !s.isAllDay)].sort(
-      (a, b) => parseTimeString(a.startTime) - parseTimeString(b.startTime)
+      (a, b) =>
+        parseTimeString(a.startTime ?? '') - parseTimeString(b.startTime ?? '')
     ),
   ];
 
@@ -234,23 +332,23 @@ const TodayShiftModal = ({
     <div
       className={`bg-white rounded-[1rem] p-[1rem] shadow-sm ${
         isMobile
-          ? 'w-full max-w-[25rem] h-[28rem] py-6'
+          ? 'w-full max-w-[25rem] h-auto max-h-[90vh] py-5 overflow-auto'
           : 'w-full h-full min-h-[37.5rem]'
       } flex flex-col relative`}
     >
       {isMobile && (
         <button
           onClick={onClose}
-          className="absolute top-[1rem] right-[1rem] z-20"
+          className="absolute top-[0.75rem] right-[0.75rem] z-20"
         >
-          <IoMdClose className="w-6 h-6 text-gray-600" />
+          <IoMdClose className="w-5 h-5 text-gray-600" />
         </button>
       )}
 
       {/* 탭 UI */}
-      <div className="flex w-full mb-4 rounded-full overflow-hidden bg-white border border-gray-200 shrink-0">
+      <div className="flex w-full mb-3 rounded-full overflow-hidden bg-white border border-gray-200 shrink-0">
         <button
-          className={`flex-1 py-2 text-center font-semibold transition-colors ${
+          className={`flex-1 py-1.5 text-center font-semibold transition-colors ${
             activeTab === 'status'
               ? 'bg-white text-primary border-b-2 border-primary'
               : 'bg-white text-gray-400'
@@ -260,7 +358,7 @@ const TodayShiftModal = ({
           전체 근무 현황
         </button>
         <button
-          className={`flex-1 py-2 text-center font-semibold transition-colors ${
+          className={`flex-1 py-1.5 text-center font-semibold transition-colors ${
             activeTab === 'calendar'
               ? 'bg-white text-primary border-b-2 border-primary'
               : 'bg-white text-gray-400'
@@ -435,44 +533,70 @@ const TodayShiftModal = ({
             </div>
             {/* 일정 리스트 */}
             <div
-              className={`flex flex-col gap-2 flex-1 overflow-y-auto mb-2 ${isMobile ? 'max-h-[10rem]' : 'max-h-[28rem]'}`}
+              className={`flex flex-col gap-1.5 flex-1 overflow-y-auto mb-2 ${isMobile ? 'max-h-[12rem]' : 'max-h-[25rem]'}`}
             >
               {sortedSchedules.map((schedule) => (
                 <div
-                  key={schedule.calendarId}
-                  className="flex items-start gap-2 cursor-pointer"
-                  onClick={() => handleScheduleClick(schedule)}
+                  key={schedule.calendarId || Math.random()}
+                  className="flex items-start gap-1.5 cursor-pointer rounded-lg p-0.5 hover:bg-gray-50"
+                  onClick={() =>
+                    schedule.calendarId &&
+                    handleScheduleClick(schedule.calendarId)
+                  }
+                  style={
+                    !schedule.calendarId
+                      ? { opacity: 0.5, pointerEvents: 'none' }
+                      : {}
+                  }
                 >
                   {/* 색상 동그라미 */}
                   <span
-                    className={`w-3 h-3 rounded-full mt-2 ${colorClassMap[schedule.color] || 'bg-gray-300'}`}
+                    className={`${isMobile ? 'w-2.5 h-2.5 mt-1.5' : 'w-3 h-3 mt-2'} rounded-full flex-shrink-0 ${colorClassMap[schedule.color] || 'bg-gray-300'}`}
                   />
                   {/* 시간 or 종일 */}
                   <div
-                    className="relative min-w-[3.5rem] flex flex-col items-end justify-center"
-                    style={{ height: '2.25rem' }}
+                    className={`relative min-w-[3rem] ${isMobile ? 'min-w-[2.8rem]' : 'min-w-[3.5rem]'} flex flex-col items-end justify-center flex-shrink-0`}
+                    style={{ height: isMobile ? '1.8rem' : '2.25rem' }}
                   >
                     {schedule.isAllDay ? (
-                      <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-2.5 text-xs text-primary font-bold">
+                      <span
+                        className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-2.5 ${isMobile ? 'text-[10px]' : 'text-xs'} text-primary font-bold`}
+                      >
                         종일
                       </span>
                     ) : (
                       <>
-                        <span className="text-xs text-gray-500">
-                          {formatTimeForDisplay(schedule.startTime)}
+                        <span
+                          className={`${isMobile ? 'text-[10px]' : 'text-xs'} text-gray-500`}
+                        >
+                          {formatTimeForDisplay(schedule.startTime ?? '')}
                         </span>
-                        <span className="text-xs text-gray-400">
-                          {formatTimeForDisplay(schedule.endTime)}
+                        <span
+                          className={`${isMobile ? 'text-[10px]' : 'text-xs'} text-gray-400`}
+                        >
+                          {formatTimeForDisplay(schedule.endTime ?? '')}
                         </span>
                       </>
                     )}
                   </div>
                   {/* 제목 */}
-                  <div className="flex-1 bg-gray-50 rounded-lg px-2 py-1 text-sm font-medium">
-                    {schedule.title}
+                  <div
+                    className={`flex-1 bg-gray-50 rounded-lg px-2 py-1 ${isMobile ? 'text-xs' : 'text-sm'} font-medium min-w-0`}
+                  >
+                    <div className="truncate">{schedule.title}</div>
+                    {isMobile && schedule.place && (
+                      <div className="text-[10px] text-gray-500 truncate">
+                        {schedule.place}
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
+              {sortedSchedules.length === 0 && (
+                <div className="flex items-center justify-center h-20 text-gray-400 text-sm">
+                  등록된 일정이 없습니다
+                </div>
+              )}
             </div>
             {/* +버튼, 근무 색상 변경 버튼 */}
             <div
@@ -504,16 +628,26 @@ const TodayShiftModal = ({
       {isScheduleModalOpen && (
         <ScheduleEditModal
           mode={scheduleModalMode}
-          initialData={selectedSchedule ?? undefined}
+          initialData={
+            selectedSchedule
+              ? {
+                  ...selectedSchedule,
+                  startTime: selectedSchedule.startTime ?? '',
+                  endTime: selectedSchedule.endTime ?? '',
+                }
+              : undefined
+          }
           onClose={() => setIsScheduleModalOpen(false)}
           onSave={handleSave}
           onEdit={handleEdit}
-          onDelete={() => {
-            console.log('삭제 버튼 클릭됨 (모달 내부)');
-            handleDelete();
-          }}
+          onDelete={handleDelete}
           currentScheduleCount={schedules.length}
           setSchedulesByDate={setSchedulesByDate}
+          date={
+            date
+              ? date.toISOString().slice(0, 10)
+              : new Date().toISOString().slice(0, 10)
+          }
         />
       )}
     </div>

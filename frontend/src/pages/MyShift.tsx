@@ -15,6 +15,7 @@ import { useLoadingStore } from '@/stores/loadingStore';
 import useUserAuthStore from '@/stores/userAuthStore';
 import KakaoPlaceModal from '@/components/organisms/KakaoPlaceModal';
 import type { ScheduleType } from '@/services/calendarService';
+import { fetchSchedules as fetchSchedulesFromService } from '@/services/calendarService';
 
 // Duty 타입 변환 유틸리티 함수
 const convertDutyType = (
@@ -32,14 +33,14 @@ const convertDutyType = (
 
 // 일정 색상 클래스 매핑
 const colorClassMap: Record<string, string> = {
-  blue: 'bg-blue-500',
-  purple: 'bg-purple-500',
-  green: 'bg-green-500',
-  pink: 'bg-pink-500',
-  red: 'bg-red-500',
-  yellow: 'bg-yellow-400',
-  tomato: 'bg-orange-500',
-  indigo: 'bg-indigo-500',
+  FF43F3: 'bg-pink-400',
+  '777777': 'bg-gray-400',
+  '3B82F6': 'bg-blue-500',
+  '8B5CF6': 'bg-purple-500',
+  '22C55E': 'bg-green-500',
+  EF4444: 'bg-red-500',
+  FACC15: 'bg-yellow-400',
+  FB923C: 'bg-orange-400',
 };
 
 // 일정 타입 정의 부분 삭제
@@ -86,45 +87,22 @@ const MyShift = () => {
     'day' | 'off' | 'evening' | 'night' | 'mid'
   >('day');
 
-  // 캘린더 데이터 가져오기 함수 추가
+  // 캘린더 데이터 가져오기 함수 수정
   const fetchSchedules = async (date: Date) => {
     try {
       const dateKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-      const response = await fetch(`/api/calendar?date=${dateKey}`, {
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include', // 쿠키 포함
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const contentType = response.headers.get('content-type');
-      if (!contentType || !contentType.includes('application/json')) {
-        throw new TypeError('Response was not JSON');
-      }
-
-      const data = await response.json();
-      if (data.success) {
-        setSchedulesByDate((prev) => ({
-          ...prev,
-          [dateKey]: data.data,
-        }));
-      } else {
-        throw new Error(data.message || 'Failed to fetch schedules');
-      }
+      const schedules = await fetchSchedulesFromService(date);
+      setSchedulesByDate((prev) => ({
+        ...prev,
+        [dateKey]: schedules,
+      }));
     } catch (error) {
       console.error('Failed to fetch schedules:', error);
-      // 에러 발생 시 해당 날짜의 일정을 빈 배열로 설정
       const dateKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
       setSchedulesByDate((prev) => ({
         ...prev,
         [dateKey]: [],
       }));
-      toast.error('일정을 불러오는데 실패했습니다.');
     }
   };
 
@@ -148,6 +126,37 @@ const MyShift = () => {
     };
     fetchMyDuty();
   }, [navigate]);
+
+  // myDutyData가 바뀔 때마다(즉, 월이 바뀔 때마다) 모든 날짜의 메모를 미리 불러오기
+  useEffect(() => {
+    if (!myDutyData) return;
+    const { year, month } = myDutyData;
+    const daysInMonth = new Date(year, month, 0).getDate();
+
+    // 모든 날짜의 fetch를 병렬로 실행 후, 한 번에 상태 업데이트
+    const fetchAllSchedules = async () => {
+      const results = await Promise.all(
+        Array.from({ length: daysInMonth }, (_, i) => {
+          const day = i + 1;
+          const date = new Date(year, month - 1, day);
+          const dateKey = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+          return fetchSchedulesFromService(date).then((schedules) => ({
+            dateKey,
+            schedules,
+          }));
+        })
+      );
+      // 한 번에 상태 업데이트
+      setSchedulesByDate((prev) => {
+        const newState = { ...prev };
+        results.forEach(({ dateKey, schedules }) => {
+          newState[dateKey] = schedules;
+        });
+        return newState;
+      });
+    };
+    fetchAllSchedules();
+  }, [myDutyData]);
 
   // 날짜 선택 시 해당 날짜의 근무 데이터 로딩
   const handleDateSelect = async (date: Date) => {
@@ -181,6 +190,36 @@ const MyShift = () => {
       setMyDutyData(data);
     } catch (error) {
       console.error('Failed to fetch duty data:', error);
+    }
+  };
+
+  // 월 전체 일정(메모) 한 번에 불러오는 함수 추가
+  const fetchAllSchedulesForMonth = async (year: number, month: number) => {
+    try {
+      const daysInMonth = new Date(year, month, 0).getDate();
+      const results = await Promise.all(
+        Array.from({ length: daysInMonth }, (_, i) => {
+          const day = i + 1;
+          const date = new Date(year, month - 1, day);
+          const dateKey = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+          return fetchSchedulesFromService(date).then((schedules) => ({
+            dateKey,
+            schedules,
+          }));
+        })
+      );
+
+      // 한 번에 상태 업데이트
+      setSchedulesByDate((prev) => {
+        const newState = { ...prev };
+        results.forEach(({ dateKey, schedules }) => {
+          newState[dateKey] = schedules;
+        });
+        return newState;
+      });
+    } catch (error) {
+      console.error('Failed to fetch all schedules for month:', error);
+      toast.error('일정을 불러오는데 실패했습니다.');
     }
   };
 
@@ -270,6 +309,7 @@ const MyShift = () => {
                       onTabChange={setActiveTab}
                       selectedDutyType={selectedDutyType}
                       onDutyTypeChange={setSelectedDutyType}
+                      fetchAllSchedulesForMonth={fetchAllSchedulesForMonth}
                     />
                   </div>
                   {/* 모바일 버전 */}
@@ -288,6 +328,7 @@ const MyShift = () => {
                       onTabChange={setActiveTab}
                       selectedDutyType={selectedDutyType}
                       onDutyTypeChange={setSelectedDutyType}
+                      fetchAllSchedulesForMonth={fetchAllSchedulesForMonth}
                     />
                   </div>
                 </>
