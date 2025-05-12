@@ -18,7 +18,7 @@ locals {
       http_method = "DELETE",
       endpoint    = "https://api.${var.domain_name}/api/member/demo"
     },
-    update_news = {
+    refresh_news = {
       name        = "refresh-news",
       schedule    = "cron(0 21,5,12 * * ? *)",
       http_method = "PUT",
