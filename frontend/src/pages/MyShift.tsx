@@ -270,10 +270,8 @@ const MyShift = () => {
           <div className="block lg:flex lg:gap-[2rem] mt-6">
             {/* 캘린더와 모달을 감싸는 컨테이너 */}
             <div className="calendar-modal-container flex flex-col lg:flex-row w-full gap-4">
-              {/* 캘린더 영역 - 모달이 없으면 100%, 있으면 65% */}
-              <div
-                className={`relative ${selectedDate && dayDutyData ? 'lg:w-[65%]' : 'lg:w-full'}`}
-              >
+              {/* 캘린더 영역 - 모달 영역과 함께 고정 비율 유지 */}
+              <div className="relative lg:flex-1">
                 <MyShiftCalendar
                   onDateSelect={handleDateSelect}
                   selectedDate={selectedDate}
@@ -285,49 +283,49 @@ const MyShift = () => {
                 />
               </div>
 
-              {/* 모달 영역 - 35% */}
-              {selectedDate && dayDutyData && (
-                <>
-                  {/* 데스크톱 버전 */}
-                  <div className="hidden lg:block lg:w-[35%]">
-                    <TodayShiftModal
-                      date={selectedDate}
-                      duty={selectedDuty}
-                      dutyData={dayDutyData}
-                      isMobile={false}
-                      onClose={() => setSelectedDate(null)}
-                      onDateChange={(newDate) => handleDateSelect(newDate)}
-                      schedulesByDate={schedulesByDate}
-                      setSchedulesByDate={setSchedulesByDate}
-                      loading={loading}
-                      activeTab={activeTab}
-                      onTabChange={setActiveTab}
-                      selectedDutyType={selectedDutyType}
-                      onDutyTypeChange={setSelectedDutyType}
-                      fetchAllSchedulesForMonth={fetchAllSchedulesForMonth}
-                    />
-                  </div>
-                  {/* 모바일 버전 */}
-                  <div className="lg:hidden">
-                    <TodayShiftModal
-                      date={selectedDate}
-                      duty={selectedDuty}
-                      dutyData={dayDutyData}
-                      isMobile={true}
-                      onClose={() => setSelectedDate(null)}
-                      onDateChange={(newDate) => handleDateSelect(newDate)}
-                      schedulesByDate={schedulesByDate}
-                      setSchedulesByDate={setSchedulesByDate}
-                      loading={loading}
-                      activeTab={activeTab}
-                      onTabChange={setActiveTab}
-                      selectedDutyType={selectedDutyType}
-                      onDutyTypeChange={setSelectedDutyType}
-                      fetchAllSchedulesForMonth={fetchAllSchedulesForMonth}
-                    />
-                  </div>
-                </>
-              )}
+              {/* ✅ 모달 영역: 항상 자리 차지하되 조건부 렌더링 */}
+              <div className="hidden lg:block lg:w-[24.5rem]">
+                {selectedDate && dayDutyData ? (
+                  <TodayShiftModal
+                    date={selectedDate}
+                    duty={selectedDuty}
+                    dutyData={dayDutyData}
+                    isMobile={false}
+                    onClose={() => setSelectedDate(null)}
+                    onDateChange={(newDate) => handleDateSelect(newDate)}
+                    schedulesByDate={schedulesByDate}
+                    setSchedulesByDate={setSchedulesByDate}
+                    loading={loading}
+                    activeTab={activeTab}
+                    onTabChange={setActiveTab}
+                    selectedDutyType={selectedDutyType}
+                    onDutyTypeChange={setSelectedDutyType}
+                    fetchAllSchedulesForMonth={fetchAllSchedulesForMonth}
+                  />
+                ) : null}
+              </div>
+
+              {/* ✅ 모바일 모달 */}
+              <div className="lg:hidden">
+                {selectedDate && dayDutyData ? (
+                  <TodayShiftModal
+                    date={selectedDate}
+                    duty={selectedDuty}
+                    dutyData={dayDutyData}
+                    isMobile={true}
+                    onClose={() => setSelectedDate(null)}
+                    onDateChange={(newDate) => handleDateSelect(newDate)}
+                    schedulesByDate={schedulesByDate}
+                    setSchedulesByDate={setSchedulesByDate}
+                    loading={loading}
+                    activeTab={activeTab}
+                    onTabChange={setActiveTab}
+                    selectedDutyType={selectedDutyType}
+                    onDutyTypeChange={setSelectedDutyType}
+                    fetchAllSchedulesForMonth={fetchAllSchedulesForMonth}
+                  />
+                ) : null}
+              </div>
             </div>
           </div>
         </div>
