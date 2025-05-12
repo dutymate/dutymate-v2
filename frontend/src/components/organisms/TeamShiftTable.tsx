@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
 
 import { Button } from '@/components/atoms/Button';
-import CustomButton from '@/components/atoms/CustomButton';
 import DutyBadgeEng from '@/components/atoms/DutyBadgeEng';
 import { Tooltip } from '@/components/atoms/Tooltip';
 import ReqShiftModal from '@/components/organisms/ReqShiftModal';
@@ -19,9 +18,8 @@ import {
   isHoliday,
 } from '@/utils/dateUtils';
 import userService from '@/services/userService';
-import WaitingForApproval from './WaitingForApproval';
-import EnterWardForm from './EnterWardForm';
 import { wardService } from '@/services/wardService';
+import JoinWardGuideModal from './JoinWardGuideModal';
 
 interface WardDuty {
   id: string;
@@ -118,6 +116,25 @@ const TeamShiftTable = () => {
     fetchWardDuty();
   }, [currentDate, fetchHolidays]);
 
+  const handleDownloadWardSchedule = async () => {
+    if (!tableRef.current) return;
+
+    try {
+      const tableElement = tableRef.current.querySelector(
+        '.duty-table-content'
+      );
+      if (!tableElement) return;
+
+      await TeamShiftTableDownload({
+        year: wardDuty?.year || 0,
+        month: wardDuty?.month || 0,
+        tableElement: tableElement as HTMLElement,
+      });
+    } catch (error) {
+      toast.error('근무표 다운로드에 실패했습니다.');
+    }
+  };
+
   if (isLoading) {
     return <div>로딩 중...</div>;
   }
@@ -137,7 +154,6 @@ const TeamShiftTable = () => {
       // 3. 성공 메시지 표시
       toast.success('병동 입장 요청이 완료되었습니다.');
     } catch (error: any) {
-      console.error('병동 입장 실패:', error);
       if (error instanceof Error) {
         if (error.message === '서버 연결 실패') {
           toast.error('잠시 후 다시 시도해주세요');
@@ -155,219 +171,36 @@ const TeamShiftTable = () => {
     }
   };
 
+  const isWeekendDay = (year: number, month: number, day: number) => {
+    return isWeekend(year, month, day) || isHoliday(year, month, day);
+  };
+
   if (isEnteringWard) {
     return (
-      <div className="bg-white rounded-[0.92375rem] shadow-[0_0_15px_rgba(0,0,0,0.1)] p-4 sm:p-6">
-        <div className="w-full max-w-3xl mx-auto">
-          <div className="flex flex-col items-center justify-center">
-            {userInfo?.sentWardCode ? (
-              <WaitingForApproval />
-            ) : (
-              <div className="w-full max-w-[20rem] mx-auto flex flex-col items-center justify-center">
-                <div className="text-center mb-4">
-                  <h2 className="text-xl font-bold text-primary mt-1">
-                    병동 입장하기
-                  </h2>
-                  <p className="text-gray-600 text-sm sm:text-ㅡㅇ mt-3 mb-1">
-                    관리자로부터 받은 6자리{' '}
-                    <span className="text-primary-dark font-semibold">
-                      병동 코드
-                    </span>
-                    를 입력해주세요.
-                    <br />
-                    코드는 병동 관리자에게 문의하실 수 있습니다.
-                  </p>
-                </div>
-
-                <div className="bg-white rounded-lg p-3 shadow-sm w-full">
-                  <div className="p-2">
-                    <EnterWardForm
-                      onSubmit={handleEnterWard}
-                      onCancel={() => setIsEnteringWard(false)}
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
+      <JoinWardGuideModal
+        isEnteringWard={isEnteringWard}
+        setIsEnteringWard={setIsEnteringWard}
+        userInfo={userInfo}
+        onSubmit={handleEnterWard}
+      />
     );
   }
 
   if (!wardDuty) {
     return (
-      <div className="bg-white rounded-[0.92375rem] shadow-[0_0_15px_rgba(0,0,0,0.1)] p-4 sm:p-6">
-        <div className="w-full max-w-3xl mx-auto">
-          <div className="flex flex-col items-center gap-4">
-            {/* 아이콘 섹션 */}
-            <div>
-              <div className="relative">
-                <div className="w-16 h-16 bg-primary-10 rounded-full flex items-center justify-center">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-8 w-8 text-primary-dark"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-                    />
-                  </svg>
-                  <div className="absolute -top-1 -right-1 bg-primary-dark rounded-full w-5 h-5 flex items-center justify-center animate-pulse">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-3 w-3 text-white"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 4v16m8-8H4"
-                      />
-                    </svg>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* 컨텐츠 섹션 */}
-            <div className="w-full text-center">
-              <h2 className="text-lg sm:text-2xl font-bold text-black mb-2">
-                함께하는 근무가 더 즐겁습니다!
-              </h2>
-              <p className="text-gray-600 mb-3 text-sm sm:text-base leading-relaxed">
-                병동에 입장하여 동료들과 함께
-                <br />
-                <span className="text-primary-dark font-semibold">
-                  듀티메이트
-                </span>
-                의 모든 기능을 활용해보세요.
-                <br />
-                근무 교대와 일정 관리가 훨씬 쉬워집니다.
-              </p>
-
-              <div className="bg-primary-10 rounded-lg p-4 mb-4 text-left">
-                <p className="text-sm sm:text-base font-semibold text-black mb-3 text-center">
-                  병동 입장 시 이용 가능한 기능
-                </p>
-                <ul className="space-y-2 text-sm text-gray-700">
-                  <li className="flex items-center">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-4 w-4 text-primary-dark mr-2 flex-shrink-0"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
-                    팀원 전체 근무표 한눈에 확인
-                  </li>
-                  <li className="flex items-center">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-4 w-4 text-primary-dark mr-2 flex-shrink-0"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
-                    근무 교대 요청 및 관리 간편화
-                  </li>
-                  <li className="flex items-center">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-4 w-4 text-primary-dark mr-2 flex-shrink-0"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
-                    근무표 자동 다운로드 및 공유
-                  </li>
-                </ul>
-              </div>
-
-              <div className="flex gap-2 w-full">
-                <CustomButton
-                  className="flex-1 flex items-center justify-center text-sm sm:text-base rounded-lg hover:from-primary-dark hover:to-primary-dark transition-all bg-gradient-to-r from-primary-dark to-primary-dark text-white font-semibold"
-                  style={{ minHeight: '2.75rem' }}
-                  onClick={() => setIsEnteringWard(true)}
-                >
-                  병동 입장하기
-                </CustomButton>
-                <CustomButton
-                  className="flex-1 flex items-center justify-center text-sm sm:text-base rounded-lg transition-all bg-primary-10 text-primary-dark font-semibold hover:bg-primary-20"
-                  style={{ minHeight: '2.75rem' }}
-                  onClick={() => toast.info('친구 초대 기능 준비 중입니다.')}
-                >
-                  친구 초대하기
-                </CustomButton>
-              </div>
-
-              <p className="text-xs text-gray-400 mt-3">
-                이미 병동 코드가 있으신가요?{' '}
-                <span
-                  onClick={() => setIsEnteringWard(true)}
-                  className="text-primary-dark hover:underline cursor-pointer"
-                >
-                  입장하기
-                </span>
-                를 클릭하세요.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
+      <JoinWardGuideModal
+        isEnteringWard={isEnteringWard}
+        setIsEnteringWard={setIsEnteringWard}
+        userInfo={userInfo}
+        onSubmit={handleEnterWard}
+      />
     );
   }
-  // 해당 월의 실제 일수 계산
-  const daysInMonth = getDaysInMonth(wardDuty.year, wardDuty.month);
-  const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
 
-  // 주말 체크 함수
-  const isWeekendDay = (year: number, month: number, day: number) => {
-    return isWeekend(year, month, day);
-  };
-
-  // 근무표 다운로드 기능
-  const handleDownloadWardSchedule = async () => {
-    if (!wardDuty || !tableRef.current) return;
-
-    const tableElement = tableRef.current.querySelector('.duty-table-content');
-    if (!tableElement) return;
-
-    await TeamShiftTableDownload({
-      year: wardDuty.year,
-      month: wardDuty.month,
-      tableElement: tableElement as HTMLElement,
-    });
-  };
+  const days: number[] = Array.from(
+    { length: getDaysInMonth(wardDuty.year, wardDuty.month) },
+    (_, i) => i + 1
+  );
 
   return (
     <div
