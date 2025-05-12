@@ -1,5 +1,5 @@
 import { Icon } from '@/components/atoms/Icon';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 declare global {
   interface Window {
@@ -18,30 +18,30 @@ const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
   open,
   onClose,
   inviteLink,
-  // groupName,
+  groupName,
 }) => {
   const inviteUrl = inviteLink;
   const [showModal, setShowModal] = useState(false);
   const [modalMessage, setModalMessage] = useState('');
-  // const [kakaoInitialized, setKakaoInitialized] = useState(false);
+  const [kakaoInitialized, setKakaoInitialized] = useState(false);
 
-  // useEffect(() => {
-  //   // 카카오 SDK 초기화
-  //   const script = document.createElement('script');
-  //   script.src = 'https://t1.kakaocdn.net/kakao_js_sdk/2.6.0/kakao.min.js';
-  //   script.async = true;
-  //   script.onload = () => {
-  //     if (window.Kakao && !window.Kakao.isInitialized()) {
-  //       window.Kakao.init(import.meta.env.VITE_KAKAO_JAVASCRIPT_KEY);
-  //       setKakaoInitialized(true);
-  //     }
-  //   };
-  //   document.body.appendChild(script);
+  useEffect(() => {
+    // 카카오 SDK 초기화
+    const script = document.createElement('script');
+    script.src = 'https://t1.kakaocdn.net/kakao_js_sdk/2.6.0/kakao.min.js';
+    script.async = true;
+    script.onload = () => {
+      if (window.Kakao && !window.Kakao.isInitialized()) {
+        window.Kakao.init(import.meta.env.VITE_KAKAO_JAVASCRIPT_KEY);
+        setKakaoInitialized(true);
+      }
+    };
+    document.body.appendChild(script);
 
-  //   return () => {
-  //     document.body.removeChild(script);
-  //   };
-  // }, []);
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
 
   const handleCopy = async () => {
     try {
@@ -54,37 +54,45 @@ const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
     }
   };
 
-  // const handleKakaoShare = () => {
-  //   if (!window.Kakao || !kakaoInitialized) {
-  //     setModalMessage(
-  //       '카카오톡 공유 기능을 초기화하는 중입니다. 잠시 후 다시 시도해주세요.'
-  //     );
-  //     setShowModal(true);
-  //     return;
-  //   }
+  const handleKakaoShare = () => {
+    if (!window.Kakao || !kakaoInitialized) {
+      setModalMessage(
+        '카카오톡 공유 기능을 초기화하는 중입니다. 잠시 후 다시 시도해주세요.'
+      );
+      setShowModal(true);
+      return;
+    }
 
-  //   window.Kakao.Share.sendDefault({
-  //     objectType: 'feed',
-  //     content: {
-  //       title: `${groupName} 그룹 초대`,
-  //       description: '그룹에 참여하여 함께 근무표를 공유해보세요!',
-  //       imageUrl: 'https://dutymate.com/images/logo.png', // 서비스 로고 이미지 URL로 변경하세요
-  //       link: {
-  //         // mobileWebUrl: inviteUrl,
-  //         webUrl: inviteUrl,
-  //       },
-  //     },
-  //     buttons: [
-  //       {
-  //         title: '그룹 참여하기',
-  //         link: {
-  //           // mobileWebUrl: inviteUrl,
-  //           webUrl: inviteUrl,
-  //         },
-  //       },
-  //     ],
-  //   });
-  // };
+    const baseUrl = import.meta.env.VITE_BASE_URL;
+    const imageUrl = `${baseUrl}/images/og-image.png`; // OpenGraph 이미지 경로
+
+    window.Kakao.Share.sendDefault({
+      objectType: 'feed',
+      content: {
+        title: `${groupName} 그룹 초대`,
+        description: 'DutyMate에서 함께 근무표를 관리하고 일정을 공유해보세요!',
+        imageUrl: imageUrl,
+        link: {
+          mobileWebUrl: inviteUrl,
+          webUrl: inviteUrl,
+        },
+      },
+      social: {
+        likeCount: 0,
+        commentCount: 0,
+        sharedCount: 0,
+      },
+      buttons: [
+        {
+          title: '그룹 참여하기',
+          link: {
+            mobileWebUrl: inviteUrl,
+            webUrl: inviteUrl,
+          },
+        },
+      ],
+    });
+  };
 
   const handleOutsideClick = () => {
     onClose();
@@ -116,12 +124,17 @@ const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
               <Icon name="copy" size={20} className="text-white" />
               <span>링크 복사하기</span>
             </button>
-            {/* <button
-              className="w-full bg-[#FEE500] text-[#3C1E1E] text-base font-bold py-2 rounded-xl shadow transition flex items-center justify-center"
+            <button
+              className="w-full bg-[#FEE500] text-[#3C1E1E] text-base font-bold py-2 rounded-xl shadow transition flex items-center justify-center gap-2"
               onClick={handleKakaoShare}
             >
-              <SiKakaotalk className="mr-2" /> 카카오톡으로 공유하기
-            </button> */}
+              <img
+                src="/images/kakao_logo.png"
+                alt="카카오 아이콘"
+                className="w-[0.875rem] h-[0.875rem] sm:w-[1rem] sm:h-[1rem]"
+              />
+              <span>카카오톡으로 공유하기</span>
+            </button>
           </div>
         </div>
       </div>

@@ -95,8 +95,7 @@ public class GroupController {
 
 	@PostMapping("/invite/{inviteToken}/join")
 	public ResponseEntity<?> joinGroupInvite(@Auth Member member, @PathVariable String inviteToken) {
-		groupService.acceptInviteToken(member, inviteToken);
-		return ResponseEntity.ok().build();
+		return ResponseEntity.ok(groupService.acceptInviteToken(member, inviteToken));
 	}
 
 	@PostMapping("/{groupId}/meeting-date")

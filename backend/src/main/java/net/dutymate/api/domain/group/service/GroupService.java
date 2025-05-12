@@ -29,6 +29,7 @@ import net.dutymate.api.domain.group.dto.GroupCreateRequestDto;
 import net.dutymate.api.domain.group.dto.GroupDetailResponseDto;
 import net.dutymate.api.domain.group.dto.GroupImgResponseDto;
 import net.dutymate.api.domain.group.dto.GroupInviteResponseDto;
+import net.dutymate.api.domain.group.dto.GroupInviteSuccessResponseDto;
 import net.dutymate.api.domain.group.dto.GroupListResponseDto;
 import net.dutymate.api.domain.group.dto.GroupMeetingRequestDto;
 import net.dutymate.api.domain.group.dto.GroupMeetingResponseDto;
@@ -330,7 +331,7 @@ public class GroupService {
 
 	// 초대 링크 클릭 시 -> 그룹 멤버로 초대하기
 	@Transactional
-	public void acceptInviteToken(Member member, String inviteToken) {
+	public GroupInviteSuccessResponseDto acceptInviteToken(Member member, String inviteToken) {
 
 		// 1. 유효한 링크인지 확인
 		String groupIdStr = redisTemplate.opsForValue().get("invite:" + inviteToken);
@@ -354,6 +355,8 @@ public class GroupService {
 
 		group.addGroupMember(groupMember);
 		groupMemberRepository.save(groupMember);
+
+		return GroupInviteSuccessResponseDto.of(group);
 	}
 
 	@Transactional
