@@ -107,7 +107,9 @@ const MyShiftCalendar = ({
       // 이전 달의 마지막 주
       const prevShiftsLength = dutyData.prevShifts.length;
       const index = prevShiftsLength - (prevMonthLastDate - day + 1);
-      shift = dutyData.prevShifts[index];
+      if (index >= 0 && index < prevShiftsLength) {
+        shift = dutyData.prevShifts[index];
+      }
     } else if (targetMonth > currentMonth) {
       // 다음 달의 첫 주
       // day가 1부터 시작하므로 인덱스 조정이 필요 없음
@@ -260,12 +262,22 @@ const MyShiftCalendar = ({
               const dutyBadge = duty ? (
                 <DutyBadgeKor type={duty} size="xs" />
               ) : null;
+
+              // 요일 및 공휴일 확인
+              const dayOfWeek = getDayOfWeek(prevYear, prevMonth, day);
+              const isHolidayDate = isHoliday(prevYear, prevMonth, day);
+
+              // 텍스트 색상 결정
+              let textColor = 'text-base-muted';
+              if (isHolidayDate || dayOfWeek === 0) textColor = 'text-red-500';
+              else if (dayOfWeek === 6) textColor = 'text-blue-500';
+
               return (
                 <div
                   key={`prev-${day}`}
                   className={`${isMobile ? 'min-h-[5rem]' : 'min-h-[7.5rem]'} p-2 lg:p-3 relative bg-gray-50 cursor-not-allowed flex flex-col justify-between`}
                 >
-                  <span className="text-base-muted text-xs lg:text-sm">
+                  <span className={`${textColor} text-xs lg:text-sm`}>
                     {day}
                   </span>
                   {dutyBadge && (
@@ -370,12 +382,22 @@ const MyShiftCalendar = ({
               const dutyBadge = duty ? (
                 <DutyBadgeKor type={duty} size="xs" />
               ) : null;
+
+              // 요일 및 공휴일 확인
+              const dayOfWeek = getDayOfWeek(nextYear, nextMonth, day);
+              const isHolidayDate = isHoliday(nextYear, nextMonth, day);
+
+              // 텍스트 색상 결정
+              let textColor = 'text-base-muted';
+              if (isHolidayDate || dayOfWeek === 0) textColor = 'text-red-500';
+              else if (dayOfWeek === 6) textColor = 'text-blue-500';
+
               return (
                 <div
                   key={`next-${day}`}
                   className={`${isMobile ? 'min-h-[5rem]' : 'min-h-[7.5rem]'} p-2 lg:p-3 relative bg-gray-50 cursor-not-allowed flex flex-col justify-between`}
                 >
-                  <span className="text-base-muted text-xs lg:text-sm">
+                  <span className={`${textColor} text-xs lg:text-sm`}>
                     {day}
                   </span>
                   {dutyBadge && (

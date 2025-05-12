@@ -479,7 +479,7 @@ const TodayShiftModal = ({
           <>
             {/* 근무 종류 뱃지: 모바일은 한 줄, 네모 작게 / 웹은 기존대로 */}
             <div
-              className={`w-full ${isMobile ? 'mb-2 p-1 rounded-lg' : 'mb-3 p-3 rounded-xl'} bg-gray-100 flex ${isMobile ? 'flex-row justify-center gap-1' : 'flex-col items-center justify-center'} shrink-0`}
+              className={`w-full ${isMobile ? 'mb-2 p-1 rounded-lg' : 'mb-3 p-3 rounded-xl'} bg-white border-2 border-primary-40 flex ${isMobile ? 'flex-row justify-center gap-1' : 'flex-col items-center justify-center'} shrink-0`}
             >
               {isMobile ? (
                 <div className="flex flex-row flex-wrap justify-center gap-1 w-full">
