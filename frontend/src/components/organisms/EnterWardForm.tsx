@@ -1,18 +1,17 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 
 import { Button } from '@/components/atoms/Button';
 import { WardCodeInput } from '@/components/atoms/WardCodeInput';
 
 interface EnterWardFormProps {
   onSubmit: (wardCode: string) => Promise<void>;
+  onCancel: () => void;
 }
 
-const EnterWardForm = ({ onSubmit }: EnterWardFormProps) => {
+const EnterWardForm = ({ onSubmit, onCancel }: EnterWardFormProps) => {
   const [wardCode, setWardCode] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const navigate = useNavigate();
 
   const validateWardCode = (code: string) => {
     if (!code) {
@@ -117,7 +116,7 @@ const EnterWardForm = ({ onSubmit }: EnterWardFormProps) => {
           color="muted"
           size="md"
           fullWidth
-          onClick={() => navigate('/extra-info')}
+          onClick={onCancel}
           className="text-[0.75rem] lg:text-[0.875rem] h-[2.5rem]"
         >
           <span className="text-[0.75rem] lg:text-[0.875rem]">뒤로가기</span>

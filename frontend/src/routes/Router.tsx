@@ -5,7 +5,6 @@ import Community from '@/pages/Community';
 import CommunityDetailPage from '@/pages/CommunityDetailPage';
 import CommunityWritePage from '@/pages/CommunityWritePage';
 import CreateWard from '@/pages/CreateWard';
-import EnterWard from '@/pages/EnterWard';
 import Error from '@/pages/Error';
 import ExtraInfo from '@/pages/ExtraInfo';
 import Game from '@/pages/Game';
@@ -83,10 +82,6 @@ const Router = () => {
       <Route
         path="/create-ward"
         element={<ProtectedRoute element={<CreateWard />} />}
-      />
-      <Route
-        path="/enter-ward"
-        element={<ProtectedRoute element={<EnterWard />} />}
       />
       <Route
         path="/extra-info"

@@ -856,7 +856,7 @@ public class MemberService {
 	}
 
 	// 입장 대기 중인 상태 조회하기
-	public boolean getEnterWatingStatus(Member member) {
+	public boolean getEnterWaitingStatus(Member member) {
 		Member enterWaitingMember = memberRepository.findById(member.getMemberId())
 			.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "회원을 찾을 수 없습니다."));
 		return enterWaitingRepository.existsByMember(enterWaitingMember);

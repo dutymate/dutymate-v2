@@ -17,6 +17,10 @@ import {
   isWeekend,
   isHoliday,
 } from '@/utils/dateUtils';
+import userService from '@/services/userService';
+import WaitingForApproval from './WaitingForApproval';
+import EnterWardForm from './EnterWardForm';
+import { wardService } from '@/services/wardService';
 
 interface WardDuty {
   id: string;
@@ -35,6 +39,7 @@ const TeamShiftTable = () => {
   const [wardDuty, setWardDuty] = useState<WardDuty | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isReqModalOpen, setIsReqModalOpen] = useState(false);
+  const [isEnteringWard, setIsEnteringWard] = useState(false);
   const [currentDate, setCurrentDate] = useState(() => {
     const now = new Date();
     return {
@@ -43,7 +48,7 @@ const TeamShiftTable = () => {
     };
   });
   const tableRef = useRef<HTMLDivElement>(null);
-  const { userInfo } = useUserAuthStore();
+  const { userInfo, setUserInfo } = useUserAuthStore();
   const fetchHolidays = useHolidayStore((state) => state.fetchHolidays);
 
   const handlePrevMonth = () => {
@@ -70,13 +75,33 @@ const TeamShiftTable = () => {
     const fetchWardDuty = async () => {
       useLoadingStore.getState().setLoading(true);
       try {
-        const data = await dutyService.getWardDuty(
-          currentDate.year,
-          currentDate.month
-        );
-        setWardDuty(data);
-        // 공휴일 데이터도 함께 불러오기
-        await fetchHolidays(currentDate.year, currentDate.month);
+        // 병동 소속 여부 최신 상태 확인 (API 호출)
+        const isExistMyWard = await userService.existWardStatus();
+        const isWaiting = await userService.enterWaitingStatus();
+
+        // 최신 사용자 정보 사용 (userInfo가 최신 상태)
+        if (!userInfo) {
+          useLoadingStore.getState().setLoading(false);
+          return;
+        }
+
+        // userInfo 최신화
+        setUserInfo({
+          ...userInfo,
+          existMyWard: isExistMyWard,
+          sentWardCode: isWaiting,
+        });
+
+        if (userInfo.existMyWard) {
+          const data = await dutyService.getWardDuty(
+            currentDate.year,
+            currentDate.month
+          );
+          setWardDuty(data);
+
+          // 공휴일 데이터도 함께 불러오기
+          await fetchHolidays(currentDate.year, currentDate.month);
+        }
       } catch (error) {
         if (error instanceof Error) {
           toast.error(error.message);
@@ -96,7 +121,91 @@ const TeamShiftTable = () => {
     return <div>로딩 중...</div>;
   }
 
-  if (!wardDuty) return null;
+  const handleEnterWard = async (wardCode: string) => {
+    try {
+      // 1. 병동 코드 확인
+      await wardService.checkWardCode(wardCode);
+
+      // 2. 병동 입장 대기 성공 시 사용자 정보 업데이트
+      setUserInfo({
+        ...userInfo!,
+        existMyWard: false,
+        sentWardCode: true,
+      });
+
+      // 3. 성공 메시지 표시
+      toast.success('병동 입장 요청이 완료되었습니다.');
+    } catch (error: any) {
+      console.error('병동 입장 실패:', error);
+      if (error instanceof Error) {
+        if (error.message === '서버 연결 실패') {
+          toast.error('잠시 후 다시 시도해주세요');
+          return;
+        }
+        if (error.message === 'UNAUTHORIZED') {
+          return;
+        }
+      }
+      if (error?.response?.status === 400) {
+        toast.error(error.response.data.message);
+        return;
+      }
+      // 그 외의 모든 에러는 에러 페이지로 이동
+    }
+  };
+
+  if (isEnteringWard) {
+    return (
+      <div className="flex flex-col items-center justify-center text-center bg-white rounded-[0.92375rem] shadow-[0_0_15px_rgba(0,0,0,0.1)] p-4 sm:p-6">
+        {userInfo?.sentWardCode ? (
+          <>
+            <p className="mt-[0.9rem] mb-[1rem]"></p>
+            <WaitingForApproval />
+          </>
+        ) : (
+          <>
+            <p className="text-primary-dark font-semibold text-[1rem] mt-[0.9rem] mb-[1rem]">
+              입장을 위해 전달 받은 병동 코드를 입력해주세요.
+            </p>
+            <EnterWardForm
+              onSubmit={handleEnterWard}
+              onCancel={() => setIsEnteringWard(false)}
+            />
+          </>
+        )}
+      </div>
+    );
+  }
+
+  if (!wardDuty) {
+    return (
+      <div className="flex flex-col items-center justify-center text-center bg-white rounded-[0.92375rem] shadow-[0_0_15px_rgba(0,0,0,0.1)] p-4 sm:p-6">
+        <h2 className="text-lg font-semibold mb-2">
+          아직 병동에 입장하지 않으셨나요?
+        </h2>
+        <p className="text-sm text-gray-600 mb-4">
+          더 많은 서비스를 즐기기 위해 동료들과 함께 <br />
+          듀티메이트 서비스를 이용해 보세요
+        </p>
+        <div className="flex gap-2 w-full max-w-xs">
+          <Button
+            className="flex-1 bg-green-500 hover:bg-green-600 text-white text-sm"
+            onClick={() => setIsEnteringWard(true)}
+          >
+            병동 입장하기
+          </Button>
+          <Button
+            className="flex-1 bg-purple-500 hover:bg-purple-600 text-white text-sm"
+            onClick={() => {
+              // 친구 초대 로직으로 이동
+            }}
+          >
+            친구 초대하기
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   // 해당 월의 실제 일수 계산
   const daysInMonth = getDaysInMonth(wardDuty.year, wardDuty.month);

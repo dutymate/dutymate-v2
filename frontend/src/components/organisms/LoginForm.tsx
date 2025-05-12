@@ -111,7 +111,7 @@ const LoginForm = ({ onRequireVerification }: LoginFormProps) => {
         if (role === 'HN') {
           navigate('/create-ward');
         } else {
-          navigate('/enter-ward');
+          navigate('/my-shift');
         }
       } else {
         if (role === 'HN') {

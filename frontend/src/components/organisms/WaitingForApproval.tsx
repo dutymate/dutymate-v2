@@ -1,9 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 
-import {
-  CancelEnterWardButton,
-  EnterWardLogoutButton,
-} from '@/components/atoms/Button';
+import { CancelEnterWardButton } from '@/components/atoms/Button';
 import useUserAuthStore from '@/stores/userAuthStore';
 import userService from '@/services/userService';
 import { toast } from 'react-toastify';
@@ -12,11 +9,6 @@ const WaitingForApproval = () => {
   const navigate = useNavigate();
   const userAuthStore = useUserAuthStore();
   const userInfo = useUserAuthStore.getState().userInfo;
-
-  const handleLogoutButton = () => {
-    useUserAuthStore.getState().logout();
-    navigate('/login');
-  };
 
   const handleCancelEnterWardButton = async () => {
     try {
@@ -33,9 +25,6 @@ const WaitingForApproval = () => {
 
       // 사용자에게 알림
       toast.success('병동 입장 요청이 취소되었습니다.');
-
-      // 페이지 새로고침 (또는 리다이렉트)
-      navigate('/enter-ward');
     } catch (error: any) {
       console.error('입장 취소 실패:', error);
 
@@ -45,6 +34,15 @@ const WaitingForApproval = () => {
         error.message.includes('이미 병동에 입장한 상태입니다')
       ) {
         toast.info('이미 병동에 입장되어 있습니다. 병동 화면으로 이동합니다.');
+        // userInfo가 있는 경우에만 상태 업데이트
+        if (userInfo) {
+          userAuthStore.setUserInfo({
+            ...userInfo,
+            existMyWard: true,
+            sentWardCode: false,
+          });
+        }
+
         // 병동 화면으로 이동
         navigate('/my-shift');
       } else if (
@@ -59,12 +57,10 @@ const WaitingForApproval = () => {
         if (userInfo) {
           userAuthStore.setUserInfo({
             ...userInfo,
+            existMyWard: false,
             sentWardCode: false,
           });
         }
-
-        // 입장 코드 입력 화면으로 이동
-        navigate('/enter-ward');
       } else {
         // 기타 오류는 그대로 표시
         toast.error(error.message || '입장 취소 중 오류가 발생했습니다.');
@@ -83,7 +79,6 @@ const WaitingForApproval = () => {
           병동 관리자에게 문의해주세요!
         </p>
         <div className="w-full mt-0 lg:mt-0  flex flex-col gap-[0.5rem]">
-          <EnterWardLogoutButton onClick={handleLogoutButton} />
           <CancelEnterWardButton onClick={handleCancelEnterWardButton} />
         </div>
       </div>

@@ -203,7 +203,7 @@ public class MemberController {
 
 	@GetMapping("/enter-waiting-status")
 	public ResponseEntity<Boolean> enterWaitingStatus(@Auth Member member) {
-		boolean isWaiting = memberService.getEnterWatingStatus(member);
+		boolean isWaiting = memberService.getEnterWaitingStatus(member);
 		return ResponseEntity.ok(isWaiting);
 	}
 

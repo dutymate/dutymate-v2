@@ -60,7 +60,7 @@ const ExtraInfo = () => {
           navigate('/create-ward');
         } else if (response && response.role === 'RN') {
           // console.log("평간호사로 병동 입장 페이지로 이동");
-          navigate('/enter-ward');
+          navigate('/my-shift');
         } else {
           console.error('Invalid role in response:', response);
           toast.error('역할 정보가 올바르지 않습니다.');

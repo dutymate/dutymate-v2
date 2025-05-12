@@ -213,27 +213,6 @@ export const ConnectButton = ({
   );
 };
 
-// 병동 입장 대기 시, 로그인 하러가기 버튼
-export const EnterWardLogoutButton = ({
-  onClick,
-  className,
-}: {
-  onClick: () => void;
-  className?: string;
-}) => {
-  return (
-    <Button
-      onClick={onClick}
-      color="primary"
-      fullWidth={true}
-      size="md"
-      className={`text-[0.75rem] lg:text-[0.875rem] h-[2.5rem] ${className}`}
-    >
-      <span className="text-[0.75rem] lg:text-[0.875rem]">로그인 하러가기</span>
-    </Button>
-  );
-};
-
 // 병동 입장 취소 버튼
 export const CancelEnterWardButton = ({
   onClick,
