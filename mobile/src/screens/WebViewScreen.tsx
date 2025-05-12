@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { BackHandler, SafeAreaView, StyleSheet } from "react-native";
 import { WebView } from "react-native-webview";
 
-import { Layout } from "@/components/layout/Layout";
+import { Layout } from "@/layout/Layout";
 
 /**
  * WebViewScreenProps는 WebViewScreen 컴포넌트의 props 타입을 정의합니다.

@@ -1,5 +1,5 @@
-import { Layout } from "@/components/layout/Layout";
 import { StyledText } from "@/components/styled/StyledText";
+import { Layout } from "@/layout/Layout";
 
 /**
  * LandingScreen의 props 타입을 정의합니다.
