@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
@@ -203,7 +203,7 @@ const LoginForm = ({ onRequireVerification }: LoginFormProps) => {
           </button>
         </div>
       </form>
-      <div className="text-center mt-[1rem] space-y-[0.5rem] text-[0.75rem] sm:text-[0.875rem]">
+      <div className="text-center mt-[1rem] space-y-[0.5rem]">
         <div>
           <span className="text-gray-600">계정이 없으신가요? </span>
           <Link to="/sign-up" className="text-primary-dark hover:underline">
