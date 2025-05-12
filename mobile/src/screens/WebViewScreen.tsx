@@ -1,13 +1,13 @@
 import Constants from "expo-constants";
 
 import React, { useCallback, useEffect, useRef } from "react";
-import { BackHandler, SafeAreaView } from "react-native";
+import { BackHandler, SafeAreaView, StyleSheet } from "react-native";
 import { WebView } from "react-native-webview";
 
 import { Layout } from "@/components/layout/Layout";
 
 /**
- * WebViewScreen은 Expo WebView를 사용하여 웹 페이지를 표시합니다.
+ * WebViewScreen은 WebView를 사용하여 웹 페이지를 표시합니다.
  */
 export const WebViewScreen = () => {
 	const webViewRef = useRef<WebView>(null);
@@ -41,7 +41,7 @@ export const WebViewScreen = () => {
 
 	return (
 		<Layout backgroundColor={"bg-base-muted-30"}>
-			<SafeAreaView className={"flex-1"}>
+			<SafeAreaView className={"flex-1"} style={styles.safeAreaView}>
 				<WebView
 					ref={webViewRef}
 					source={{ uri }}
@@ -54,3 +54,9 @@ export const WebViewScreen = () => {
 		</Layout>
 	);
 };
+
+const styles = StyleSheet.create({
+	safeAreaView: {
+		marginTop: Constants.statusBarHeight,
+	},
+});
