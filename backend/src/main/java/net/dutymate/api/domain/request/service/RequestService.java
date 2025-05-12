@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import net.dutymate.api.domain.autoschedule.Shift;
+import net.dutymate.api.domain.common.utils.YearMonth;
 import net.dutymate.api.domain.member.Member;
 import net.dutymate.api.domain.member.repository.MemberRepository;
 import net.dutymate.api.domain.request.Request;
@@ -21,7 +22,6 @@ import net.dutymate.api.domain.request.dto.WardRequestResponseDto;
 import net.dutymate.api.domain.request.repository.RequestRepository;
 import net.dutymate.api.domain.ward.Ward;
 import net.dutymate.api.domain.wardmember.Role;
-import net.dutymate.api.domain.wardmember.repository.WardMemberRepository;
 import net.dutymate.api.domain.wardschedules.util.ShiftUtil;
 
 import lombok.RequiredArgsConstructor;
@@ -53,10 +53,25 @@ public class RequestService {
 	}
 
 	@Transactional
-	public List<WardRequestResponseDto> readWardRequest(Member member, int year, int month) {
+	public List<WardRequestResponseDto> readWardRequest(Member member) {
 		if (!String.valueOf(member.getRole()).equals("HN")) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "관리자만 접근할 수 있는 요청입니다.");
 		}
+
+		Ward myWard = member.getWardMember().getWard();
+		return requestRepository.findAllWardRequests(myWard)
+			.stream()
+			.map(WardRequestResponseDto::of)
+			.toList();
+	}
+
+	@Transactional
+	public List<WardRequestResponseDto> readWardRequestByDate(Member member, YearMonth yearMonth) {
+		if (!String.valueOf(member.getRole()).equals("HN")) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "관리자만 접근할 수 있는 요청입니다.");
+		}
+		int year = yearMonth.year();
+		int month = yearMonth.month();
 		Ward myWard = member.getWardMember().getWard();
 		return requestRepository.findAllWardRequestsByYearMonth(myWard, year, month)
 			.stream()

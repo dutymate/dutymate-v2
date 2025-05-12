@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import net.dutymate.api.domain.common.utils.YearMonth;
 import net.dutymate.api.domain.member.Member;
 import net.dutymate.api.domain.request.dto.EditRequestStatusRequestDto;
 import net.dutymate.api.domain.request.dto.MyRequestResponseDto;
@@ -48,9 +49,16 @@ public class RequestController {
 	}
 
 	@GetMapping("/ward/request")
-	public ResponseEntity<List<WardRequestResponseDto>> readWardRequest(@Auth Member member,
-		@RequestParam int year, @RequestParam int month) {
-		List<WardRequestResponseDto> wardRequests = requestService.readWardRequest(member, year, month);
+	public ResponseEntity<List<WardRequestResponseDto>> readWardRequest(@Auth Member member) {
+		List<WardRequestResponseDto> wardRequests = requestService.readWardRequest(member);
+		return ResponseEntity.ok(wardRequests);
+	}
+
+	@GetMapping("/ward/request/date")
+	public ResponseEntity<List<WardRequestResponseDto>> readWardRequestByDate(@Auth Member member,
+		@RequestParam Integer year, @RequestParam Integer month) {
+		List<WardRequestResponseDto> wardRequests = requestService.readWardRequestByDate(member,
+			new YearMonth(year, month));
 		return ResponseEntity.ok(wardRequests);
 	}
 

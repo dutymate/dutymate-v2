@@ -69,7 +69,7 @@ const ReqAdminTable = forwardRef<ReqAdminTableRef, ReqAdminTableProps>(
     const fetchRequests = async () => {
       useLoadingStore.getState().setLoading(true);
       try {
-        const data = await requestService.getWardRequests(
+        const data = await requestService.getWardRequestsByDate(
           selectedDate.year,
           selectedDate.month
         );

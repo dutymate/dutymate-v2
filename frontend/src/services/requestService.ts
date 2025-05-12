@@ -45,13 +45,36 @@ export const requestService = {
    * 현재 요청 상태에 따라 승인/거절/대기 데이터를 반환
    * @returns 병동의 모든 근무 요청 내역
    */
-  getWardRequests: (year?: number, month?: number) => {
+  getWardRequests: async () => {
+    try {
+      const response = await axiosInstance.get('/ward/request');
+      return response.data;
+    } catch (error: any) {
+      if (error.code === 'ERR_NETWORK') {
+        throw new Error('서버 연결 실패');
+      }
+      if (error.response) {
+        switch (error.response.status) {
+          case 401:
+            window.location.href = '/login';
+            break;
+          default:
+            console.error('Error occurred:', error);
+            window.location.href = '/error';
+            break;
+        }
+      }
+      throw error;
+    }
+  },
+
+  getWardRequestsByDate: (year?: number, month?: number) => {
     const params = new URLSearchParams();
     if (year) params.append('year', year.toString());
     if (month) params.append('month', month.toString());
 
     return axiosInstance
-      .get(`/ward/request?${params.toString()}`)
+      .get(`/ward/request/date?${params.toString()}`)
       .then((response) => {
         return response.data;
       })
