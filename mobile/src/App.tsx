@@ -1,3 +1,4 @@
+import { useFonts } from "expo-font";
 import { StatusBar } from "expo-status-bar";
 
 import { useEffect } from "react";
@@ -19,6 +20,10 @@ const navigationRef = createNavigationContainerRef();
  * 이 컴포넌트는 React Navigation을 사용하여 앱의 내비게이션을 설정합니다.
  */
 export default function App() {
+	const [fontsLoaded] = useFonts({
+		PretendardVariable: require("../assets/fonts/PretendardVariable.ttf"),
+	});
+
 	/**
 	 * 컴포넌트 마운트 시 뒤로가기 리스너를 등록하고, 언마운트 시 해제합니다.
 	 */
@@ -35,6 +40,10 @@ export default function App() {
 		);
 		return () => backHandler.remove();
 	}, []);
+
+	if (!fontsLoaded) {
+		return null;
+	}
 
 	return (
 		<>
