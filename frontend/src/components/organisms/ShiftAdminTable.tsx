@@ -2,17 +2,11 @@ import { useCallback, useEffect, useMemo, useRef, useState, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { debounce } from 'lodash';
-import { toPng } from 'html-to-image';
-import * as XLSX from 'xlsx';
 
-import { Button } from '@/components/atoms/Button';
 import DutyBadgeEng from '@/components/atoms/DutyBadgeEng';
 import FaultLayer from '@/components/atoms/FaultLayer';
-import { Icon } from '@/components/atoms/Icon';
-import KeyboardGuide from '@/components/atoms/KeyboardGuide';
 import { ProgressChecker } from '@/components/atoms/ProgressChecker';
 import RequestStatusLayer from '@/components/atoms/RequestStatusLayer';
-import { Tooltip } from '@/components/atoms/Tooltip';
 import AutoGenCountModal from '@/components/organisms/AutoGenCountModal';
 import AutoGenerateConfirmModal from '@/components/organisms/AutoGenerateConfirmModal';
 import DemoSignupModal from '@/components/organisms/DemoSignupModal';
@@ -44,12 +38,20 @@ import { useApplyAcceptedRequestsDemoOnly } from '@/hooks/useApplyAcceptedReques
 import useWardStore from '@/stores/wardStore';
 
 import {
-  getDefaultOffDays,
   getMaxAllowedMonth,
   isSaturday,
   isSunday,
   isHoliday,
 } from '@/utils/dateUtils';
+
+// useShiftExport 훅 추가
+import { useShiftExport } from '@/hooks/useShiftExport';
+
+// ShiftTableControls 컴포넌트 추가
+import {
+  MobileShiftControls,
+  DesktopShiftControls,
+} from '@/components/molecules/ShiftTableControls';
 
 // 근무표 관리자 테이블의 props 인터페이스
 interface ShiftAdminTableProps {
@@ -200,7 +202,6 @@ const ShiftAdminTable = memo(
       useState(false);
     const [isLoading] = useState(false);
     const [isWeb, setIsWeb] = useState(false);
-    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [wardRules, setWardRules] = useState<WardRule | null>(null);
     const [isFromAutoGenerate, setIsFromAutoGenerate] = useState(false);
     const [isRequestCheckModalOpen, setIsRequestCheckModalOpen] =
@@ -923,37 +924,15 @@ const ShiftAdminTable = memo(
       executeAutoGenerate();
     };
 
-    // 근무표 다운로드 기능
+    // 근무표 다운로드 기능 대체
     const handleDownloadWardSchedule = async () => {
       const tableElement = document.querySelector('.duty-table-content');
-      if (!tableElement) return;
+      exportToImage(tableElement as HTMLElement, selectedCell, setSelectedCell);
+    };
 
-      const tempSelectedCell = selectedCell;
-      setSelectedCell(null);
-
-      try {
-        const dataUrl = await toPng(tableElement as HTMLElement, {
-          quality: 1.0,
-          pixelRatio: 2,
-          width: tableElement.scrollWidth + 14.5,
-          height: tableElement.scrollHeight + 5,
-          backgroundColor: '#FFFFFF',
-          style: {
-            borderCollapse: 'collapse',
-          },
-        });
-
-        const link = document.createElement('a');
-        link.download = `듀티표_${year}년_${month}월.png`;
-        link.href = dataUrl;
-        link.click();
-
-        toast.success('듀티표가 다운로드되었습니다.');
-      } catch (error) {
-        console.error('Download error:', error);
-        toast.error('듀티표 다운로드에 실패했습니다.');
-      }
-      setSelectedCell(tempSelectedCell);
+    // 엑셀 다운로드 함수 대체
+    const handleExportToExcel = () => {
+      exportToExcel(dutyData, duties, nurseDutyCounts, daysInMonth);
     };
 
     // URL 쿼리 파라미터로부터 초기 데이터 로드
@@ -971,8 +950,6 @@ const ShiftAdminTable = memo(
     }, []); // 컴포넌트 마운트 시 한 번만 실행
 
     const [isNurseCountModalOpen, setIsNurseCountModalOpen] = useState(false);
-    const [showWebDownloadDropdown, setShowWebDownloadDropdown] =
-      useState(false);
 
     useEffect(() => {
       const checkIsWeb = () => {
@@ -986,47 +963,6 @@ const ShiftAdminTable = memo(
         window.removeEventListener('resize', checkIsWeb);
       };
     }, []);
-
-    // 엑셀 다운로드 함수
-    const handleExportToExcel = () => {
-      // 데이터 변환: 테이블 데이터를 배열 형태로 정리
-      const tableData = [];
-
-      // 첫 번째 행: 컬럼 제목 추가
-      const headerRow = [
-        '이름',
-        '이전 근무',
-        ...Array.from({ length: daysInMonth }, (_, i) => `${i + 1}일`),
-        'D',
-        'E',
-        'N',
-        'O',
-        'M',
-      ];
-      tableData.push(headerRow);
-
-      // 데이터 행 추가
-      dutyData.forEach((nurse, i) => {
-        const rowData = [
-          nurse.name, // 간호사 이름
-          nurse.prevShifts, // 이전 근무
-          ...duties[i], // 근무 정보
-          nurseDutyCounts[i]?.D || 0,
-          nurseDutyCounts[i]?.E || 0,
-          nurseDutyCounts[i]?.N || 0,
-          nurseDutyCounts[i]?.O || 0,
-        ];
-        tableData.push(rowData);
-      });
-
-      // 워크북 생성 및 시트 추가
-      const ws = XLSX.utils.aoa_to_sheet(tableData);
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, '근무표');
-
-      // 엑셀 파일 저장 및 다운로드
-      XLSX.writeFile(wb, `근무표_${year}년_${month}월.xlsx`);
-    };
 
     useEffect(() => {
       const fetchShiftRules = async () => {
@@ -1255,6 +1191,12 @@ const ShiftAdminTable = memo(
       }
     };
 
+    // 내보내기 훅 사용
+    const { isExporting, exportToImage, exportToExcel } = useShiftExport(
+      year,
+      month
+    );
+
     return (
       <div>
         {/* 간호사 부족 알림 배너 */}
@@ -1265,108 +1207,21 @@ const ShiftAdminTable = memo(
 
         {/* 모바일 뷰 */}
         <div className="xl:hidden">
-          {/* 상단 컨트롤 영역 */}
-          <div className="bg-white rounded-xl py-2 px-3 mb-2 flex items-center justify-between">
-            {/* 왼쪽: 월 선택 및 기본 OFF */}
-            <div className="flex items-center gap-2">
-              <Icon
-                name="left"
-                size={16}
-                className="cursor-pointer text-gray-600"
-                onClick={handlePrevMonth}
-              />
-              <span className="text-base font-medium">{month}월</span>
-              <Icon
-                name="right"
-                size={16}
-                className="cursor-pointer text-gray-600"
-                onClick={handleNextMonth}
-              />
-              <div className="flex items-center gap-1 ml-2 text-xs">
-                <span className="text-gray-400">기본 OFF</span>
-                <span className="font-bold text-black">
-                  {getDefaultOffDays(year, month)}
-                </span>
-                <span>일</span>
-              </div>
-            </div>
-
-            {/* 오른쪽: 드롭다운 메뉴 */}
-            <div className="relative">
-              <button
-                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                className="p-2 hover:bg-gray-100 rounded-full"
-              >
-                <Icon name="more" size={20} className="text-gray-600" />
-              </button>
-
-              {/* 드롭다운 메뉴와 오버레이 */}
-              {isDropdownOpen && (
-                <>
-                  {/* 오버레이 - 외부 클릭 시 닫힘 */}
-                  <div
-                    className="fixed inset-0 z-40"
-                    onClick={() => setIsDropdownOpen(false)}
-                  />
-
-                  {/* 드롭다운 메뉴 */}
-                  <div className="absolute right-0 top-full mt-1 bg-white rounded-lg shadow-lg z-50 min-w-[8rem] py-1">
-                    <button
-                      onClick={() => {
-                        setIsDropdownOpen(false);
-                        handleResetDuty();
-                      }}
-                      className="w-full px-3 py-2 text-sm text-left text-gray-700 hover:bg-gray-100 flex items-center gap-2"
-                    >
-                      <Icon name="reset" size={16} />
-                      <span>초기화</span>
-                    </button>
-                    <button
-                      ref={ruleButtonRef}
-                      onClick={() => {
-                        setIsDropdownOpen(false);
-                        handleRuleButtonClick();
-                      }}
-                      className="w-full px-3 py-2 text-sm text-left text-gray-700 hover:bg-gray-100 flex items-center gap-2"
-                    >
-                      <Icon name="rule" size={16} />
-                      <span>규칙 설정</span>
-                    </button>
-                    <button
-                      onClick={() => {
-                        setIsDropdownOpen(false);
-                        handleAutoCreate();
-                      }}
-                      className="w-full px-3 py-2 text-sm text-left text-gray-700 hover:bg-gray-100 flex items-center gap-2"
-                    >
-                      <Icon name="auto" size={16} />
-                      <span>자동 생성</span>
-                    </button>
-                    <button
-                      onClick={() => {
-                        setIsDropdownOpen(false);
-                        handleDownloadWardSchedule();
-                      }}
-                      className={`w-full px-3 py-2 text-sm text-left ${userInfo?.isDemo ? 'text-gray-400 cursor-not-allowed' : 'text-gray-700 hover:bg-gray-100'}`}
-                      disabled={userInfo?.isDemo}
-                    >
-                      이미지 다운로드
-                    </button>
-                    <button
-                      onClick={() => {
-                        setIsDropdownOpen(false);
-                        handleExportToExcel();
-                      }}
-                      className={`w-full px-3 py-2 text-sm text-left ${userInfo?.isDemo ? 'text-gray-400 cursor-not-allowed' : 'text-gray-700 hover:bg-gray-100'}`}
-                      disabled={userInfo?.isDemo}
-                    >
-                      엑셀로 다운로드
-                    </button>
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
+          {/* 상단 컨트롤 영역 - MobileShiftControls 컴포넌트로 대체 */}
+          <MobileShiftControls
+            year={year}
+            month={month}
+            autoGenCnt={autoGenCnt}
+            isExporting={isExporting}
+            isAllCellsEmpty={isAllCellsEmpty}
+            onPrevMonth={handlePrevMonth}
+            onNextMonth={handleNextMonth}
+            onReset={handleResetDuty}
+            onRuleClick={handleRuleButtonClick}
+            onAutoCreate={handleAutoCreate}
+            onDownloadImage={handleDownloadWardSchedule}
+            onDownloadExcel={handleExportToExcel}
+          />
 
           {/* 기존 테이블 영역 - onClick 핸들러 제거 */}
           <div className="overflow-x-auto bg-white rounded-xl p-[0.5rem] shadow-[0_0.25rem_0.75rem_rgba(0,0,0,0.1)]">
@@ -1650,174 +1505,21 @@ const ShiftAdminTable = memo(
             className="bg-white rounded-[0.92375rem] shadow-[0_0_0.9375rem_rgba(0,0,0,0.1)] p-[1.5rem]"
             ref={tableRef}
           >
-            {/* 상단 컨트롤 영역 */}
-            <div className="bg-white rounded-xl py-[0.5rem] px-[0.5rem] mb-[0.1875rem]">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <div className="flex ml-[0.75rem] items-center gap-[0.75rem]">
-                    <Icon
-                      name="left"
-                      size={16}
-                      className="cursor-pointer text-gray-600 hover:text-gray-800"
-                      onClick={handlePrevMonth}
-                    />
-                    <span className="text-lg font-medium">{month}월</span>
-                    <Icon
-                      name="right"
-                      size={16}
-                      className="cursor-pointer text-gray-600 hover:text-gray-800"
-                      onClick={handleNextMonth}
-                    />
-                    <div className="flex items-center gap-2 ml-1">
-                      <span className="text-[11px] sm:text-xs text-gray-400">
-                        기본 OFF
-                      </span>
-                      <span className="text-[12px] sm:text-sm font-bold text-black">
-                        {getDefaultOffDays(year, month)}
-                      </span>
-                      <span className="text-foreground">일</span>
-                    </div>
-                    <div>
-                      <button
-                        className={`flex items-center gap-1 text-gray-400 hover:text-gray-600 px-2 py-1 rounded-md ${
-                          isAllCellsEmpty
-                            ? 'opacity-50 cursor-not-allowed hover:bg-transparent hover:text-gray-400'
-                            : 'hover:bg-gray-100'
-                        }`}
-                        onClick={handleResetDuty}
-                      >
-                        <Icon name="reset" size={16} />
-                        <span className="text-sm whitespace-nowrap">
-                          초기화
-                        </span>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-                {/* 버튼 영역 */}
-                <div className="flex gap-1 sm:gap-2 items-center">
-                  <div className="flex items-center gap-2 relative group">
-                    <Button
-                      text-size="md"
-                      size="register"
-                      color="off"
-                      className="py-0.5 px-1.5 sm:py-1 sm:px-2"
-                    >
-                      <div className="flex items-center gap-1 relative group">
-                        <span>키보드 가이드</span>
-                      </div>
-                    </Button>
-
-                    {/* 호버 시 나타나는 가이드 */}
-                    <div className="absolute z-50 invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-200 top-full left-0 mt-2">
-                      <KeyboardGuide />
-                    </div>
-                  </div>
-                  <div className="h-6 w-[1px] bg-gray-200 mx-1" />
-                  <Button
-                    ref={ruleButtonRef}
-                    size="register"
-                    color="primary"
-                    className="py-0.5 px-1.5 sm:py-1 sm:px-2"
-                    onClick={() => handleRuleButtonClick()}
-                  >
-                    규칙 설정
-                  </Button>
-                  <div className="flex items-center gap-1">
-                    <Button
-                      text-size="md"
-                      size="register"
-                      color="evening"
-                      className="py-0.5 px-1.5 sm:py-1 sm:px-2 flex items-center gap-2 group"
-                      onClick={handleAutoCreate}
-                    >
-                      자동 생성
-                      <Tooltip
-                        content={
-                          <div className="text-left space-y-1.5">
-                            <p>
-                              근무표는 다음 조건들을 고려하여 자동으로
-                              생성됩니다:
-                            </p>
-                            <ul className="list-disc pl-4 space-y-1">
-                              <li>주중/주말별 필요 최소 인원</li>
-                              <li>근무표 규칙</li>
-                              <li>개인별 근무 요청</li>
-                              <li>평일 데이, 나이트 전담 근무</li>
-                              <li>간호사 간 균등한 근무 배분</li>
-                              <li>지난 달 말일 근무 고려</li>
-                            </ul>
-                            <p className="mt-2 text-gray-300">
-                              *숙련도 반영은은 개발 중입니다.
-                              <br />* 커스텀 규칙 생성 기능은 개발 중입니다.
-                              <br />
-                              *완성도 100%일 시 새로운 근무표가 생성되지 않을 수
-                              있습니다.
-                              <br />
-                              *변경이 필요한 칸을 X로 눌러 자동생성을 재실행하는
-                              것을 추천드립니다.
-                            </p>
-                          </div>
-                        }
-                        className="ml-1"
-                        width="w-96"
-                        icon={{
-                          name: 'alert',
-                          size: 16,
-                          className:
-                            'text-duty-evening group-hover:text-white transition-colors cursor-help',
-                        }}
-                      />
-                    </Button>
-                  </div>
-                  <div className="relative">
-                    <Button
-                      text-size="md"
-                      size="register"
-                      color="off"
-                      className={`py-0.5 px-1.5 sm:py-1 sm:px-2 ${userInfo?.isDemo ? 'opacity-50 cursor-not-allowed' : ''}`}
-                      onClick={() =>
-                        !userInfo?.isDemo &&
-                        setShowWebDownloadDropdown((prev) => !prev)
-                      }
-                    >
-                      <div className="flex items-center gap-1">
-                        다운로드
-                        {userInfo?.isDemo && (
-                          <Tooltip
-                            content="로그인 후 이용해주세요"
-                            className="ml-1"
-                            width="w-40"
-                          />
-                        )}
-                      </div>
-                    </Button>
-                    {showWebDownloadDropdown && !userInfo?.isDemo && (
-                      <div className="absolute right-0 top-full mt-1 bg-white rounded-lg shadow-lg z-50 min-w-[8rem] py-1">
-                        <button
-                          onClick={() => {
-                            setShowWebDownloadDropdown(false);
-                            handleDownloadWardSchedule();
-                          }}
-                          className="w-full px-3 py-2 text-sm text-left text-gray-700 hover:bg-gray-100"
-                        >
-                          이미지로 다운로드
-                        </button>
-                        <button
-                          onClick={() => {
-                            setShowWebDownloadDropdown(false);
-                            handleExportToExcel();
-                          }}
-                          className="w-full px-3 py-2 text-sm text-left text-gray-700 hover:bg-gray-100"
-                        >
-                          엑셀로 다운로드
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
+            {/* 상단 컨트롤 영역 - DesktopShiftControls 컴포넌트로 대체 */}
+            <DesktopShiftControls
+              year={year}
+              month={month}
+              autoGenCnt={autoGenCnt}
+              isExporting={isExporting}
+              isAllCellsEmpty={isAllCellsEmpty}
+              onPrevMonth={handlePrevMonth}
+              onNextMonth={handleNextMonth}
+              onReset={handleResetDuty}
+              onRuleClick={handleRuleButtonClick}
+              onAutoCreate={handleAutoCreate}
+              onDownloadImage={handleDownloadWardSchedule}
+              onDownloadExcel={handleExportToExcel}
+            />
 
             {/* 근무표, 통계, 완성도를 하나의 상자로 통합 */}
             <div className="bg-white rounded-xl p-[0.5rem] shadow-[0_0.25rem_0.75rem_rgba(0,0,0,0.1)]">
