@@ -5,9 +5,9 @@ import { WebView } from "react-native-webview";
 import Constants from "expo-constants";
 
 /**
- * WebViewContainer 컴포넌트는 Expo WebView를 사용하여 웹 페이지를 표시합니다.
+ * WebViewScreen은 Expo WebView를 사용하여 웹 페이지를 표시합니다.
  */
-export const WebViewContainer = () => {
+export const WebViewScreen = () => {
 	const webViewRef = useRef<WebView>(null);
 	const uri = Constants.expoConfig?.extra?.url ?? "http://localhost:5173";
 	const customUserAgent = "customUserAgent";
