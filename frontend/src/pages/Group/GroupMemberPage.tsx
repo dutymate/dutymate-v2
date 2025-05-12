@@ -255,39 +255,48 @@ const GroupMemberPage = () => {
           </div>
 
           <div className="bg-white rounded-xl p-4 shadow border">
-            <div className="flex font-semibold text-gray-500 mb-3 justify-center text-center">
-              <div className="w-1/3">이름</div>
-              <div className="w-1/3">가입 날짜</div>
-              <div className="w-1/3"></div>
-            </div>
-            {members.map((m) => (
-              <div key={m.memberId} className="flex items-center mb-2">
-                <div className="w-1/3 flex items-center md:pl-[1.5rem]">
-                  {m.isLeader ? (
-                    <span className="flex items-center bg-yellow-100 text-yellow-700 font-bold px-3 py-1 rounded-lg text-sm">
-                      <FaCrown className="mr-1 text-yellow-400" /> {m.name}
-                    </span>
-                  ) : (
-                    <span className="bg-gray-100 text-gray-700 px-3 py-1 rounded-lg text-sm">
-                      {m.name}
-                    </span>
-                  )}
-                </div>
-                <div className="w-1/3 text-center text-gray-500 text-sm">
-                  {m.createdAt}
-                </div>
-                <div className="w-1/3 flex justify-end md:pr-[1.5rem]">
-                  {!m.isLeader && (
-                    <button
-                      className="text-gray-500 text-sm hover:text-red-500"
-                      onClick={() => handleKick(m.memberId)}
-                    >
-                      내보내기
-                    </button>
-                  )}
-                </div>
-              </div>
-            ))}
+            <table className="w-full">
+              <thead>
+                <tr className="text-gray-500 font-semibold">
+                  <th className="w-1/3 pb-3">이름</th>
+                  <th className="w-1/3 pb-3">가입 날짜</th>
+                  <th className="w-1/3 pb-3"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {members.map((m) => (
+                  <tr key={m.memberId} className="text-center">
+                    <td className="py-2">
+                      <div className="flex justify-center">
+                        {m.isLeader ? (
+                          <span className="flex items-center bg-yellow-100 text-yellow-700 font-bold px-3 py-1 rounded-lg text-sm">
+                            <FaCrown className="mr-1 text-yellow-400" />{' '}
+                            {m.name}
+                          </span>
+                        ) : (
+                          <span className="bg-gray-100 text-gray-700 px-3 py-1 rounded-lg text-sm">
+                            {m.name}
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="text-gray-500 text-sm py-2">
+                      {m.createdAt}
+                    </td>
+                    <td className="py-2">
+                      {!m.isLeader && (
+                        <button
+                          className="text-gray-500 text-sm hover:text-red-500"
+                          onClick={() => handleKick(m.memberId)}
+                        >
+                          내보내기
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
 
           <button
