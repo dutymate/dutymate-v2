@@ -37,16 +37,12 @@ echo "✅ TypeScript 타입 체크 성공"
 echo "🔧 코드 포맷팅 및 빌드 중..."
 npm run check:all
 
-FORMAT_RESULT=$?
-if [ $FORMAT_RESULT -ne 0 ]; then
+CHECK_RESULT=$?
+if [ $CHECK_RESULT -ne 0 ]; then
   echo "❌ 코드 포맷팅 또는 빌드에 실패했습니다. 커밋이 중단됩니다."
   cd "$CURRENT_DIR" || exit 1
   exit 1
 fi
-
-# 포맷팅으로 변경된 파일들을 다시 스테이징
-echo "🔄 포맷팅으로 변경된 파일들을 커밋에 추가합니다."
-git diff --name-only | xargs -I{} git add "$PROJECT_ROOT/{}"
 
 echo "✅ 모든 검사 성공! 커밋을 진행합니다."
 cd "$CURRENT_DIR" || exit 1
