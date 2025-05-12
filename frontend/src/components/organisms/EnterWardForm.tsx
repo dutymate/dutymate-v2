@@ -59,12 +59,7 @@ const EnterWardForm = ({ onSubmit, onCancel }: EnterWardFormProps) => {
   };
 
   return (
-    <div className="bg-white rounded-[0.925rem] shadow-[0_0_0.9375rem_rgba(0,0,0,0.1)] px-[1.5em] py-[1.5rem] w-[20rem] sm:w-[25rem] sm:px-[2rem] sm:py-[2rem] lg:px-[3rem] lg:py-[3rem]">
-      <div className="relative flex items-center mb-[2rem]">
-        <div className="flex-1 flex justify-center">
-          <h2 className="text-[1.5rem] font-bold text-center">병동 입장하기</h2>
-        </div>
-      </div>
+    <div className="w-full">
       <form onSubmit={handleSubmit} className="flex flex-col gap-[1.5rem]">
         <div className="flex flex-col gap-[0.5rem]">
           <div className="relative">
@@ -109,19 +104,19 @@ const EnterWardForm = ({ onSubmit, onCancel }: EnterWardFormProps) => {
             )}
           </Button>
         </div>
+        <div className="mt-[0.25rem] sm:mt-[0.5rem]">
+          <Button
+            type="button"
+            color="muted"
+            size="md"
+            fullWidth
+            onClick={onCancel}
+            className="text-[0.75rem] lg:text-[0.875rem] h-[2.5rem]"
+          >
+            <span className="text-[0.75rem] lg:text-[0.875rem]">뒤로가기</span>
+          </Button>
+        </div>
       </form>
-      <div className="mt-[0.25rem] sm:mt-[0.5rem]">
-        <Button
-          type="button"
-          color="muted"
-          size="md"
-          fullWidth
-          onClick={onCancel}
-          className="text-[0.75rem] lg:text-[0.875rem] h-[2.5rem]"
-        >
-          <span className="text-[0.75rem] lg:text-[0.875rem]">뒤로가기</span>
-        </Button>
-      </div>
     </div>
   );
 };

@@ -12,7 +12,8 @@ import useUserAuthStore from '@/stores/userAuthStore';
 const TeamShift = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { userInfo } = useUserAuthStore();
-  const isDemo = userInfo?.isDemo;
+  const isDemo = userInfo?.isDemo ?? false;
+
   return (
     <>
       <SEO
@@ -22,17 +23,14 @@ const TeamShift = () => {
       <div className="w-full min-h-screen flex flex-row bg-[#F4F4F4]">
         {/* 데스크톱 Sidebar */}
         <div className="hidden lg:block w-[14.875rem] shrink-0">
-          <Sidebar
-            userType={userInfo?.role as 'HN' | 'RN'}
-            isDemo={isDemo ?? false}
-          />
+          <Sidebar userType={userInfo?.role as 'HN' | 'RN'} isDemo={isDemo} />
         </div>
         {/* 모바일 Sidebar */}
         <MSidebar
           userType={userInfo?.role as 'HN' | 'RN'}
           isOpen={isSidebarOpen}
           onClose={() => setIsSidebarOpen(false)}
-          isDemo={isDemo ?? false}
+          isDemo={isDemo}
         />
         {/* 메인 컨텐츠 영역 */}
         <div className="flex-1 min-w-0 px-4 lg:px-8 py-6">
@@ -60,7 +58,7 @@ const TeamShift = () => {
               subtitle="우리 병동의 전체 듀티표를 확인해보세요"
             />
           </div>
-          <div className="mt-6">
+          <div className="mt-6 flex-1 min-h-[calc(100vh-12rem)]">
             <TeamShiftTable />
           </div>
         </div>
