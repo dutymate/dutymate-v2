@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useForm, Controller, SubmitHandler } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -11,6 +11,7 @@ import {
   FaChevronLeft,
 } from 'react-icons/fa';
 import { HiX } from 'react-icons/hi';
+import useUserAuthStore from '@/stores/userAuthStore';
 
 // 설문조사 스키마 정의
 const surveySchema = yup.object({
@@ -66,8 +67,12 @@ type StepType =
   | 'userInfo';
 
 const SurveyModal = ({ isOpen, onClose }: SurveyModalProps) => {
+  const { isAuthenticated, userInfo } = useUserAuthStore();
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [currentStep, setCurrentStep] = useState<StepType>('satisfaction');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  // 제출 프로세스 중인지 추적하는 ref
+  const isSubmittingRef = useRef(false);
 
   const {
     register,
@@ -157,6 +162,10 @@ const SurveyModal = ({ isOpen, onClose }: SurveyModalProps) => {
   };
 
   const onSubmit: SubmitHandler<SurveyFormInputs> = async (data) => {
+    setIsSubmitting(true);
+    // 제출 프로세스 시작 표시
+    isSubmittingRef.current = true;
+
     // 제출 시간 기록
     const submissionData = {
       ...data,
@@ -164,12 +173,16 @@ const SurveyModal = ({ isOpen, onClose }: SurveyModalProps) => {
     };
 
     try {
-      // 설문 완료 상태 저장
+      // Google 스프레드시트로 데이터 전송
+      await sendToGoogleSheet(data);
+
+      // 제출 성공 후 상태 업데이트
+      setIsSubmitted(true);
+
+      // 데이터 제출이 성공한 후에 로컬 스토리지에 설문 완료 정보 저장
       localStorage.setItem('survey_completed', 'true');
       localStorage.setItem('survey_completed_date', Date.now().toString());
       localStorage.setItem('survey_data', JSON.stringify(submissionData));
-
-      setIsSubmitted(true);
 
       // 5초 후 모달 닫기
       setTimeout(() => {
@@ -178,12 +191,15 @@ const SurveyModal = ({ isOpen, onClose }: SurveyModalProps) => {
         setCurrentStep('satisfaction');
       }, 5000);
     } catch (error) {
-      // 오류 발생 시에도 로컬 저장소에는 저장
+      console.error('설문 제출 중 오류 발생:', error);
+
+      // 오류 발생 시에도 제출되었다고 표시 (UX 목적)
+      setIsSubmitted(true);
+
+      // 오류 발생 시에도 로컬 저장소에 설문 완료 정보 저장
       localStorage.setItem('survey_data', JSON.stringify(submissionData));
       localStorage.setItem('survey_completed', 'true');
       localStorage.setItem('survey_completed_date', Date.now().toString());
-
-      setIsSubmitted(true);
 
       // 5초 후 모달 닫기
       setTimeout(() => {
@@ -191,13 +207,90 @@ const SurveyModal = ({ isOpen, onClose }: SurveyModalProps) => {
         // 다음 모달 열림을 위해 상태 초기화
         setCurrentStep('satisfaction');
       }, 5000);
+    } finally {
+      setIsSubmitting(false);
+      // 제출 프로세스 완료 표시
+      isSubmittingRef.current = false;
     }
+  };
+
+  // 구글 스프레드시트로 데이터 전송하는 함수
+  const sendToGoogleSheet = async (data: SurveyFormInputs) => {
+    // Google 스프레드시트 스크립트 URL
+    const url =
+      'https://script.google.com/macros/s/AKfycbz4qUS98ZI3b8L6HPUyHLGFnUWVwlic8RYvYsFaMi7WTvmnsTIjYFXqtUEk2BA68oNaGw/exec';
+
+    // 폼 데이터 생성
+    let formData = '';
+
+    // 설문 응답 데이터 추가
+    formData += `Satisfaction=${encodeURIComponent(data.satisfaction.toString())}`;
+    formData += `&FavoriteFeatures=${encodeURIComponent(data.favoriteFeatures.join(', '))}`;
+    if (data.customFeature) {
+      formData += `&CustomFeature=${encodeURIComponent(data.customFeature)}`;
+    }
+    formData += `&Recommendation=${encodeURIComponent(data.recommendation.toString())}`;
+    if (data.feedback) {
+      formData += `&Feedback=${encodeURIComponent(data.feedback)}`;
+    }
+    if (data.position) {
+      formData += `&Position=${encodeURIComponent(data.position)}`;
+    }
+    if (data.experience) {
+      formData += `&Experience=${encodeURIComponent(data.experience)}`;
+    }
+    if (data.wardSize) {
+      formData += `&WardSize=${encodeURIComponent(data.wardSize)}`;
+    }
+    if (data.teamSize) {
+      formData += `&TeamSize=${encodeURIComponent(data.teamSize)}`;
+    }
+
+    // 타임스탬프 추가
+    formData += `&SubmissionDate=${encodeURIComponent(new Date().toISOString())}`;
+
+    // 로그인한 사용자 정보 추가
+    if (isAuthenticated && userInfo) {
+      formData += `&UserName=${encodeURIComponent(userInfo.name)}`;
+      formData += `&MemberId=${encodeURIComponent(userInfo.memberId.toString())}`;
+      formData += `&UserRole=${encodeURIComponent(userInfo.role)}`;
+      if (userInfo.provider) {
+        formData += `&Provider=${encodeURIComponent(userInfo.provider)}`;
+      }
+    }
+
+    // 데이터 전송
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error('데이터 전송 중 오류가 발생했습니다.');
+    }
+
+    return await response.text();
   };
 
   // 이미 설문에 응답했는지 확인
   const checkIfAlreadySubmitted = () => {
+    // 현재 제출 프로세스 중이면 이미 제출된 것으로 간주하지 않음
+    if (isSubmittingRef.current || isSubmitted) {
+      return false;
+    }
     return localStorage.getItem('survey_completed') === 'true';
   };
+
+  // 모달이 열릴 때 설문 제출 여부 확인 및 현재 세션 체크
+  useEffect(() => {
+    if (isOpen && isSubmitted) {
+      // 같은 세션에서 제출한 경우, 감사합니다 모달 표시
+      setIsSubmitted(true);
+    }
+  }, [isOpen, isSubmitted]);
 
   // 모달이 닫힐 때 실행되는 핸들러
   useEffect(() => {
@@ -212,30 +305,8 @@ const SurveyModal = ({ isOpen, onClose }: SurveyModalProps) => {
 
   if (!isOpen) return null;
 
-  // 이미 제출한 경우
-  const alreadySubmittedContent =
-    checkIfAlreadySubmitted() && !isSubmitted ? (
-      <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm">
-        <div className="bg-white rounded-2xl shadow-xl p-7 w-[85%] md:w-[380px] text-center">
-          <div className="bg-green-50 rounded-full h-14 w-14 flex items-center justify-center mx-auto mb-5">
-            <FaCheck className="text-green-500 text-xl" />
-          </div>
-          <h2 className="text-xl font-semibold mb-2 text-gray-800">
-            이미 설문에 참여했어요
-          </h2>
-          <p className="text-gray-500 mb-6 text-sm">소중한 의견 감사합니다</p>
-          <button
-            onClick={onClose}
-            className="w-full py-3 bg-gray-900 text-white rounded-xl font-medium transition-all hover:bg-gray-800"
-          >
-            확인
-          </button>
-        </div>
-      </div>
-    ) : null;
-
   // 제출 완료 화면
-  const submittedContent = isSubmitted ? (
+  const submittedContent = (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm">
       <div className="bg-white rounded-2xl shadow-xl p-7 w-[85%] md:w-[380px] text-center">
         <div className="bg-green-50 rounded-full h-14 w-14 flex items-center justify-center mx-auto mb-5">
@@ -255,7 +326,28 @@ const SurveyModal = ({ isOpen, onClose }: SurveyModalProps) => {
         </button>
       </div>
     </div>
-  ) : null;
+  );
+
+  // 이미 제출한 경우
+  const alreadySubmittedContent = (
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm">
+      <div className="bg-white rounded-2xl shadow-xl p-7 w-[85%] md:w-[380px] text-center">
+        <div className="bg-green-50 rounded-full h-14 w-14 flex items-center justify-center mx-auto mb-5">
+          <FaCheck className="text-green-500 text-xl" />
+        </div>
+        <h2 className="text-xl font-semibold mb-2 text-gray-800">
+          이미 설문에 참여했어요
+        </h2>
+        <p className="text-gray-500 mb-6 text-sm">소중한 의견 감사합니다</p>
+        <button
+          onClick={onClose}
+          className="w-full py-3 bg-gray-900 text-white rounded-xl font-medium transition-all hover:bg-gray-800"
+        >
+          확인
+        </button>
+      </div>
+    </div>
+  );
 
   // 완료 버튼을 표시할지 다음 버튼을 표시할지 결정
   const isLastStep = currentStep === 'userInfo';
@@ -650,7 +742,8 @@ const SurveyModal = ({ isOpen, onClose }: SurveyModalProps) => {
               <button
                 type="button"
                 onClick={goToPrevStep}
-                className="text-gray-600 text-sm font-medium flex items-center transition-colors hover:text-gray-800"
+                disabled={isSubmitting}
+                className="text-gray-600 text-sm font-medium flex items-center transition-colors hover:text-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <FaChevronLeft className="text-xs mr-1.5" /> 이전
               </button>
@@ -659,15 +752,46 @@ const SurveyModal = ({ isOpen, onClose }: SurveyModalProps) => {
             <button
               type="button"
               onClick={goToNextStep}
-              disabled={!canProceedToNext}
+              disabled={!canProceedToNext || isSubmitting}
               className={`px-5 py-3 rounded-xl font-medium text-sm transition-all flex items-center ${
-                canProceedToNext
+                canProceedToNext && !isSubmitting
                   ? 'bg-duty-night text-white hover:bg-duty-night-dark shadow-sm'
                   : 'bg-gray-200 text-gray-400 cursor-not-allowed'
               }`}
             >
-              {isLastStep ? '제출하기' : '다음'}
-              {!isLastStep && <FaChevronRight className="text-xs ml-1.5" />}
+              {isLastStep ? (
+                isSubmitting ? (
+                  <>
+                    <svg
+                      className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
+                    </svg>
+                    제출 중...
+                  </>
+                ) : (
+                  '제출하기'
+                )
+              ) : (
+                <>
+                  다음 <FaChevronRight className="text-xs ml-1.5" />
+                </>
+              )}
             </button>
           </div>
         </form>
@@ -678,14 +802,17 @@ const SurveyModal = ({ isOpen, onClose }: SurveyModalProps) => {
   // createPortal을 사용하여 모달을 body에 직접 렌더링
   return (
     <>
-      {checkIfAlreadySubmitted() &&
-        !isSubmitted &&
-        createPortal(alreadySubmittedContent, document.body)}
-
+      {/* 제출 완료 모달이 가장 우선순위가 높음 */}
       {isSubmitted && createPortal(submittedContent, document.body)}
 
-      {!checkIfAlreadySubmitted() &&
-        !isSubmitted &&
+      {/* 이미 제출한 경우 & 현재 제출한 것이 아닐 때 */}
+      {!isSubmitted &&
+        checkIfAlreadySubmitted() &&
+        createPortal(alreadySubmittedContent, document.body)}
+
+      {/* 첫 설문 작성 중인 경우 */}
+      {!isSubmitted &&
+        !checkIfAlreadySubmitted() &&
         createPortal(modalContent, document.body)}
     </>
   );

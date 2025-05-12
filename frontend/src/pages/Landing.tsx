@@ -190,7 +190,7 @@ const Landing = () => {
             <span className="text-[1rem]">시작하기</span>
           </Button>
 
-          <div className="w-full max-w-[23.2rem] mt-4 pt-4 border-t border-gray-200">
+          <div className="w-full max-w-[23.2rem] mt-4 pt-4">
             <p className="text-center text-gray-600">
               사용법이 궁금하다면?{' '}
               <span
