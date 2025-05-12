@@ -50,7 +50,8 @@ public class WardMemberService {
 			nurseInfoRequestDto.getShift(),
 			nurseInfoRequestDto.getSkillLevel(),
 			nurseInfoRequestDto.getMemo(),
-			nurseInfoRequestDto.getRole()
+			nurseInfoRequestDto.getRole(),
+			nurseInfoRequestDto.getWorkIntensity()
 		);
 	}
 

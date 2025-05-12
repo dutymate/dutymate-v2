@@ -70,10 +70,14 @@ public class WardMember {
 	@Enumerated(EnumType.STRING)
 	private SkillLevel skillLevel;
 
+	@Enumerated(EnumType.STRING)
+	private WorkIntensity workIntensity;
+
 	@Column(columnDefinition = "tinyint(1)", nullable = false)
 	private Boolean isSynced;
 
-	public void updateWardMemberInfo(String shiftType, String skillLevel, String memo, String role) {
+	public void updateWardMemberInfo(String shiftType, String skillLevel, String memo, String role,
+		String workIntensity) {
 		if (shiftType != null && !shiftType.isEmpty()) {
 			this.shiftType = ShiftType.valueOf(shiftType);
 		}
@@ -85,6 +89,9 @@ public class WardMember {
 		}
 		if (role != null && !role.isEmpty()) {
 			this.member.updateRole(Role.valueOf(role));
+		}
+		if (workIntensity != null && !workIntensity.isEmpty()) {
+			this.workIntensity = WorkIntensity.valueOf(workIntensity);
 		}
 	}
 
@@ -105,6 +112,9 @@ public class WardMember {
 			} else {
 				this.shiftType = ShiftType.ALL;
 			}
+		}
+		if (this.workIntensity == null) {
+			this.workIntensity = WorkIntensity.MEDIUM;
 		}
 	}
 }

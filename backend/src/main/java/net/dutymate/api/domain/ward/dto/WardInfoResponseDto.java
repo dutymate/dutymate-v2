@@ -9,6 +9,7 @@ import net.dutymate.api.domain.wardmember.Role;
 import net.dutymate.api.domain.wardmember.ShiftType;
 import net.dutymate.api.domain.wardmember.SkillLevel;
 import net.dutymate.api.domain.wardmember.WardMember;
+import net.dutymate.api.domain.wardmember.WorkIntensity;
 
 import lombok.Builder;
 import lombok.Data;
@@ -54,6 +55,7 @@ public class WardInfoResponseDto {
 		private String memo;
 		private Boolean isSynced;
 		private String profileImg;
+		private WorkIntensity workIntensity;
 
 		public static Nurse of(WardMember wardMember) {
 			Member member = wardMember.getMember();
@@ -68,6 +70,7 @@ public class WardInfoResponseDto {
 				.memo(wardMember.getMemo())
 				.isSynced(wardMember.getIsSynced())
 				.profileImg(member.getProfileImg())
+				.workIntensity(wardMember.getWorkIntensity())
 				.build();
 		}
 	}
