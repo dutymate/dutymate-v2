@@ -380,8 +380,15 @@ public class WardScheduleService {
 		Member member, final Integer year, final Integer month, final Integer date) {
 
 		// 병동멤버와 병동 불러오기
-		WardMember wardMember = Optional.ofNullable(member.getWardMember())
-			.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "병동에 속해있지 않은 회원입니다."));
+		WardMember wardMember = member.getWardMember();
+
+		// 병동 미가입 평간호사는 본인의 근무만 개인 듀티에서 구한 후 종료한다.
+		if (wardMember == null) {
+			MemberSchedule memberSchedule = getOrCreateMemberSchedule(member.getMemberId(), new YearMonth(year, month));
+			char myShift = memberSchedule.getShifts().charAt(date - 1);
+			return TodayDutyResponseDto.of(myShift, null);
+		}
+
 		Ward ward = wardMember.getWard();
 
 		// 해당 월의 근무표 불러오기
