@@ -15,14 +15,13 @@ import org.springframework.web.server.ResponseStatusException;
 
 import net.dutymate.api.domain.autoschedule.dto.AutoScheduleNurseCountResponseDto;
 import net.dutymate.api.domain.autoschedule.dto.AutoScheduleResponseDto;
-import net.dutymate.api.domain.autoschedule.dto.ReAutoScheduleRequestDto;
+import net.dutymate.api.domain.autoschedule.util.FixScheduleGenerator;
 import net.dutymate.api.domain.autoschedule.util.NurseScheduler;
 import net.dutymate.api.domain.common.utils.YearMonth;
 import net.dutymate.api.domain.member.Member;
 import net.dutymate.api.domain.request.Request;
 import net.dutymate.api.domain.request.RequestStatus;
 import net.dutymate.api.domain.request.repository.RequestRepository;
-import net.dutymate.api.domain.request.util.UpdateRequestStatuses;
 import net.dutymate.api.domain.rule.Rule;
 import net.dutymate.api.domain.wardmember.ShiftType;
 import net.dutymate.api.domain.wardmember.WardMember;
@@ -42,6 +41,7 @@ public class AutoScheduleService {
 	private final RequestRepository requestRepository;
 
 	private final NurseScheduler nurseScheduler;
+	private final FixScheduleGenerator fixScheduleGenerator;
 
 	@Transactional
 	public ResponseEntity<?> generateAutoSchedule(YearMonth yearMonth, Member member, boolean force,
@@ -113,22 +113,43 @@ public class AutoScheduleService {
 
 		Map<Integer, Integer> dailyNightCount = new HashMap<>();
 		List<WardSchedule.NurseShift> newNightNurseShifts = new ArrayList<>();
+		Map<Long, String> prevSchedulesMap = nurseScheduler.getPreviousMonthSchedules(prevNurseShifts);
+
 		if (!nightWardMembers.isEmpty()) {
 			for (int rotation = 0; rotation < nightWardMembers.size(); rotation++) {
 				WardMember wm = nightWardMembers.get(rotation);
-				newNightNurseShifts.add(WardSchedule.NurseShift.builder()
+				String prevShifts = prevSchedulesMap.get(wm.getMember().getMemberId());
+
+				//기존 generateNightSchedule 사용
+				String shifts;
+				if (prevShifts == null || prevShifts.isEmpty() || "XXXX".equals(prevShifts)) {
+					shifts = fixScheduleGenerator.generateNightSchedule(
+						yearMonth.daysInMonth(),
+						rotation,
+						nightWardMembers.size(),
+						dailyNightCount
+					);
+				} else {
+					// 유효한 이전 달 패턴이 있는 경우 연속성을 고려한 메서드 사용
+					shifts = fixScheduleGenerator.generateContinuousNightSchedule(
+						yearMonth.daysInMonth(),
+						prevShifts,
+						dailyNightCount
+					);
+				}
+
+				WardSchedule.NurseShift newNurseShift = WardSchedule.NurseShift.builder()
 					.memberId(wm.getMember().getMemberId())
-					.shifts(
-						nurseScheduler.generateNightSchedule(yearMonth.daysInMonth(), rotation, nightWardMembers.size(),
-							dailyNightCount))
-					.build());
+					.shifts(shifts)
+					.build();
+
+				newNightNurseShifts.add(newNurseShift);
 			}
 		}
 
 		WardSchedule updateWardSchedule = nurseScheduler.generateSchedule(wardSchedule, rule, wardMembers,
 			prevNurseShifts, yearMonth, memberId,
 			acceptedRequests, dailyNightCount, reinforcementRequestIds);
-
 
 		List<WardSchedule.NurseShift> updatedShifts = new ArrayList<>(updateWardSchedule.getDuties()
 			.get(updateWardSchedule.getNowIdx())
@@ -137,7 +158,7 @@ public class AutoScheduleService {
 		for (WardMember wm : midWardMembers) {
 			WardSchedule.NurseShift newNurseShift = WardSchedule.NurseShift.builder()
 				.memberId(wm.getMember().getMemberId())
-				.shifts(nurseScheduler.midShiftBuilder(yearMonth))
+				.shifts(fixScheduleGenerator.midShiftBuilder(yearMonth))
 				.build();
 
 			updatedShifts.add(newNurseShift);
@@ -173,11 +194,9 @@ public class AutoScheduleService {
 
 		member.updateAutoGenCnt(-1);
 
-
 		Set<Long> previouslyAcceptedRequestIds = acceptedRequests.stream()
 			.map(Request::getRequestId)
 			.collect(Collectors.toSet());
-
 
 		List<Request> allRequests = requestRepository.findAllWardRequestsByYearMonth(member.getWardMember().getWard(),
 			yearMonth.year(),
@@ -215,7 +234,6 @@ public class AutoScheduleService {
 					.requestMemo(req.getMemo())
 					.build())
 				.toList();
-
 
 		AutoScheduleResponseDto responseDto = AutoScheduleResponseDto.builder()
 			.message("자동 생성 완료")

@@ -89,7 +89,7 @@ public class NurseScheduler {
 		return applyFinalSchedule(wardSchedule, bestSolution, currentMemberId);
 	}
 
-	private Map<Long, String> getPreviousMonthSchedules(List<WardSchedule.NurseShift> prevNurseShifts) {
+	public Map<Long, String> getPreviousMonthSchedules(List<WardSchedule.NurseShift> prevNurseShifts) {
 		Map<Long, String> prevMonthSchedules = new HashMap<>();
 		if (prevNurseShifts != null) {
 			for (WardSchedule.NurseShift shift : prevNurseShifts) {
@@ -936,51 +936,6 @@ public class NurseScheduler {
 			}
 		}
 		return violations;
-	}
-
-	public String generateNightSchedule(int daysInMonth, int rotation, int totalNurses,
-		Map<Integer, Integer> dailyNightCount) {
-		StringBuilder schedule = new StringBuilder();
-
-		// 6일 패턴 (NNNOOO)을 기준으로 rotation 값 적용
-		int startDay = rotation * 3 % 6;
-
-		for (int day = 0; day < daysInMonth; day++) {
-			int patternDay = (day + startDay) % 6;
-			char shift = patternDay < 3 ? 'N' : 'O';
-			schedule.append(shift);
-
-			// Map 업데이트
-			if (shift == 'N') {
-				dailyNightCount.merge(day + 1, 1, Integer::sum);
-			}
-		}
-
-		return schedule.toString();
-	}
-
-	public String headShiftBuilder(YearMonth yearMonth) {
-
-		StringBuilder schedule = new StringBuilder();
-		int daysInMonth = yearMonth.daysInMonth();
-
-		for (int day = 1; day <= daysInMonth; day++) {
-			schedule.append(yearMonth.isWeekend(day) ? 'O' : 'D');
-		}
-
-		return schedule.toString();
-	}
-
-	public String midShiftBuilder(YearMonth yearMonth) {
-
-		StringBuilder schedule = new StringBuilder();
-		int daysInMonth = yearMonth.daysInMonth();
-
-		for (int day = 1; day <= daysInMonth; day++) {
-			schedule.append(yearMonth.isWeekend(day) ? 'O' : 'M');
-		}
-
-		return schedule.toString();
 	}
 
 	@Getter
