@@ -76,7 +76,7 @@ const WaitingForApproval = () => {
 
           {/* 컨텐츠 섹션 */}
           <div className="w-full text-center">
-            <h2 className="text-xl sm:text-3xl font-bold text-primary-dark mb-3">
+            <h2 className="text-xl sm:text-2xl font-bold text-primary-dark mb-3">
               병동 입장 대기 중입니다
             </h2>
             <p className="text-gray-600 mb-6 text-base sm:text-lg leading-relaxed">
