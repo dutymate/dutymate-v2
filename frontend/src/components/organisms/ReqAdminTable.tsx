@@ -109,9 +109,20 @@ const ReqAdminTable = forwardRef<ReqAdminTableRef, ReqAdminTableProps>(
     }, [propRequests]);
 
     // 검색 필터링
-    const filteredRequests = requests.filter((request) =>
-      request.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredRequests = requests
+      .filter((request) =>
+        request.name.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+      .sort((a, b) => {
+        // HOLD 상태를 우선 정렬
+        if (a.status === 'HOLD' && b.status !== 'HOLD') return -1;
+        if (a.status !== 'HOLD' && b.status === 'HOLD') return 1;
+
+        // HOLD 상태가 아닌 경우 createdAt으로 정렬 (최신순)
+        return (
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+      });
 
     if (isLoading) {
       return <div>Loading...</div>;

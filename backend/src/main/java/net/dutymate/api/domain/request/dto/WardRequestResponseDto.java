@@ -1,6 +1,7 @@
 package net.dutymate.api.domain.request.dto;
 
 import java.sql.Date;
+import java.sql.Timestamp;
 
 import net.dutymate.api.domain.request.Request;
 
@@ -18,6 +19,7 @@ public class WardRequestResponseDto {
 	private String shift;
 	private String memo;
 	private String status;
+	private Timestamp createdAt;
 
 	public static WardRequestResponseDto of(Request request) {
 		return WardRequestResponseDto.builder()
@@ -28,6 +30,7 @@ public class WardRequestResponseDto {
 			.shift(String.valueOf(request.getRequestShift()))
 			.memo(request.getMemo())
 			.status(String.valueOf(request.getStatus()))
+			.createdAt(request.getCreatedAt())
 			.build();
 	}
 }

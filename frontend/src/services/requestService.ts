@@ -9,6 +9,7 @@ export interface WardRequest {
   shift: 'D' | 'E' | 'N' | 'O';
   memo: string;
   status: 'ACCEPTED' | 'DENIED' | 'HOLD';
+  createdAt: string;
 }
 
 export interface MyRequest {

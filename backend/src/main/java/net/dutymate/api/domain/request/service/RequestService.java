@@ -33,7 +33,6 @@ public class RequestService {
 	private final RequestRepository requestRepository;
 	private final MemberRepository memberRepository;
 	private final ShiftUtil shiftUtil;
-	private final WardMemberRepository wardMemberRepository;
 
 	@Transactional
 	public void createRequest(RequestCreateDto requestCreateDto, Member member) {

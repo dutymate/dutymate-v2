@@ -2,6 +2,7 @@ package net.dutymate.api.domain.request.dto;
 
 import java.sql.Date;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Size;
 
 public record RequestCreateByAdminDto(Long memberId, Date date, String shift,

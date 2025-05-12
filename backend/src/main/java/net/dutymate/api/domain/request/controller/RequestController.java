@@ -71,7 +71,7 @@ public class RequestController {
 
 	@PostMapping("/request/admin")
 	public ResponseEntity<?> createRequestAdmin(@Auth Member member,
-		@RequestBody RequestCreateByAdminDto requestCreateByAdminDto) {
+		@Valid @RequestBody RequestCreateByAdminDto requestCreateByAdminDto) {
 
 		requestService.createRequestByAdmin(member, requestCreateByAdminDto);
 
