@@ -24,6 +24,8 @@ import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.server.ResponseStatusException;
 
+import net.dutymate.api.domain.color.Color;
+import net.dutymate.api.domain.color.repository.ColorRepository;
 import net.dutymate.api.domain.common.utils.YearMonth;
 import net.dutymate.api.domain.member.Gender;
 import net.dutymate.api.domain.member.Member;
@@ -99,6 +101,7 @@ public class MemberService {
 	private final RedisTemplate<String, String> redisTemplate;
 	private final RequestRepository requestRepository;
 	private final MemberScheduleRepository memberScheduleRepository;
+	private final ColorRepository colorRepository;
 
 	@Value("${kakao.client.id}")
 	private String kakaoClientId;
@@ -152,6 +155,7 @@ public class MemberService {
 		Member newMember = signUpRequestDto.toMember(addBasicProfileImgUrl());
 		newMember.setAutoGenCnt(DEFAULT_AUTO_GEN_CNT);
 		memberRepository.save(newMember);
+
 		return login(signUpRequestDto.toLoginRequestDto());
 	}
 
@@ -164,7 +168,7 @@ public class MemberService {
 		}
 	}
 
-	@Transactional(readOnly = true)
+	@Transactional
 	public LoginResponseDto login(LoginRequestDto loginRequestDto) {
 		// 이메일이 @dutymate.demo로 끝나는지 확인
 		if (loginRequestDto.getEmail().toLowerCase().endsWith(MemberService.DEMO_EMAIL_SUFFIX)) {
@@ -186,6 +190,13 @@ public class MemberService {
 		// 이메일 인증 확인
 		if (!member.getIsVerified()) {
 			throw new EmailNotVerifiedException("이메일 인증을 진행해주세요.", member.getMemberId());
+		}
+
+		// Color 테이블에 아직 값이 없으면 기본 컬러값 저장
+		if (!colorRepository.existsByMember(member)) {
+			Color defaultColor = Color.of(member);
+			member.setColor(defaultColor);
+			colorRepository.save(defaultColor);
 		}
 
 		// memberId로 AccessToken 생성
@@ -213,6 +224,13 @@ public class MemberService {
 
 		// 만약 다른 경로(일반 이메일, GOOGLE) 회원가입한 이력이 있는 경우 예외 처리
 		checkAnotherSocialLogin(member, Provider.KAKAO);
+
+		// Color 테이블에 아직 값이 없으면 기본 컬러값 저장
+		if (!colorRepository.existsByMember(member)) {
+			Color defaultColor = Color.of(member);
+			member.setColor(defaultColor);
+			colorRepository.save(defaultColor);
+		}
 
 		// memberId로 AccessToken 생성
 		String accessToken = jwtUtil.createToken(member.getMemberId());
@@ -242,6 +260,13 @@ public class MemberService {
 
 		// memberId로 AccessToken 생성
 		String accessToken = jwtUtil.createToken(member.getMemberId());
+
+		// Color 테이블에 아직 값이 없으면 기본 컬러값 저장
+		if (!colorRepository.existsByMember(member)) {
+			Color defaultColor = Color.of(member);
+			member.setColor(defaultColor);
+			colorRepository.save(defaultColor);
+		}
 
 		boolean existAdditionalInfo =
 			member.getGrade() != null && member.getGender() != null && member.getRole() != null;
@@ -563,19 +588,20 @@ public class MemberService {
 	// 회원 탈퇴하기
 	@Transactional
 	public void deleteMember(Member member) {
-
-		Ward ward = member.getWardMember().getWard();
-
 		// RN이면 바로 회원 탈퇴 가능
 		if (member.getRole() == Role.RN) {
-			ward.removeWardMember(member.getWardMember());
+			if (member.getWardMember() != null) {
+				Ward ward = member.getWardMember().getWard();
+				deleteWardMemberInMongo(member, ward); // mongodb에서 삭제
+				ward.removeWardMember(member.getWardMember());
+			}
 			memberRepository.delete(member);
-			deleteWardMemberInMongo(member, ward); // mongodb에서 삭제
 			memberScheduleRepository.deleteByMemberId(member.getMemberId());
 			return;
 		}
 
 		if (member.getRole() == Role.HN) {
+			Ward ward = member.getWardMember().getWard();
 			List<WardMember> wardMemberList = wardMemberRepository.findAllByWard(ward);
 
 			if (wardMemberList.size() > 1) {
@@ -773,6 +799,11 @@ public class MemberService {
 		// 레디스에 demo 계정 memberId 삽입
 		String key = DEMO_MEMBER_PREFIX + newMember.getMemberId();
 		redisTemplate.opsForValue().set(key, "demo", demoExpiration, TimeUnit.MILLISECONDS);
+
+		// Color 테이블에 아직 값이 없으면 기본 컬러값 저장
+		Color defaultColor = Color.of(newMember);
+		newMember.setColor(defaultColor);
+		colorRepository.save(defaultColor);
 
 		return LoginResponseDto.of(newMember, accessToken, true, true, true, true);
 	}

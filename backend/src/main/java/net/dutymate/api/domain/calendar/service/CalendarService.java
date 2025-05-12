@@ -10,9 +10,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import net.dutymate.api.domain.calendar.Calendar;
 import net.dutymate.api.domain.calendar.dto.CalendarRequestDto;
 import net.dutymate.api.domain.calendar.dto.CalendarResponseDto;
-import net.dutymate.api.domain.calendar.entity.Calendar;
 import net.dutymate.api.domain.calendar.repository.CalendarRepository;
 import net.dutymate.api.domain.member.Member;
 

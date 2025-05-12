@@ -1,5 +1,6 @@
 package net.dutymate.api.domain.member.dto;
 
+import net.dutymate.api.domain.color.dto.ColorDto;
 import net.dutymate.api.domain.member.Member;
 import net.dutymate.api.domain.member.Provider;
 import net.dutymate.api.domain.wardmember.Role;
@@ -21,6 +22,7 @@ public class LoginResponseDto {
 	private boolean existMyWard;
 	private boolean sentWardCode;
 	private Boolean isDemo;
+	private ColorDto color;
 
 	// Member Entity -> LoginResponseDto
 	public static LoginResponseDto of(Member member, String token, boolean existAdditionalInfo, boolean existMyWard,
@@ -36,6 +38,7 @@ public class LoginResponseDto {
 			.existMyWard(existMyWard)
 			.sentWardCode(sentWardCode)
 			.isDemo(isDemo)
+			.color(ColorDto.of(member.getColor()))
 			.build();
 	}
 }

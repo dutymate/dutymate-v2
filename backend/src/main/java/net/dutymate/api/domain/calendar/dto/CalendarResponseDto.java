@@ -2,7 +2,7 @@ package net.dutymate.api.domain.calendar.dto;
 
 import java.time.LocalDateTime;
 
-import net.dutymate.api.domain.calendar.entity.Calendar;
+import net.dutymate.api.domain.calendar.Calendar;
 
 import lombok.Builder;
 import lombok.Data;

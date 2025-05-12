@@ -3,7 +3,7 @@ package net.dutymate.api.domain.calendar.dto;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-import net.dutymate.api.domain.calendar.entity.Calendar;
+import net.dutymate.api.domain.calendar.Calendar;
 import net.dutymate.api.domain.member.Member;
 
 import jakarta.validation.constraints.Size;
