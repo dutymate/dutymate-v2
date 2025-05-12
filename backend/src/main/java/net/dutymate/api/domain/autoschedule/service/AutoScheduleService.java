@@ -25,6 +25,7 @@ import net.dutymate.api.domain.request.repository.RequestRepository;
 import net.dutymate.api.domain.rule.Rule;
 import net.dutymate.api.domain.wardmember.ShiftType;
 import net.dutymate.api.domain.wardmember.WardMember;
+import net.dutymate.api.domain.wardmember.WorkIntensity;
 import net.dutymate.api.domain.wardmember.repository.WardMemberRepository;
 import net.dutymate.api.domain.wardschedules.collections.WardSchedule;
 import net.dutymate.api.domain.wardschedules.repository.WardScheduleRepository;
@@ -146,10 +147,19 @@ public class AutoScheduleService {
 				newNightNurseShifts.add(newNurseShift);
 			}
 		}
+		Map<Long, WorkIntensity> workIntensities = wardMembers.stream()
+			.collect(Collectors.toMap(
+				wm -> wm.getMember().getMemberId(),
+				WardMember::getWorkIntensity,
+				(a, b) -> a // 중복 키가 있을 경우 첫 번째 값 유지
+			));
 
-		WardSchedule updateWardSchedule = nurseScheduler.generateSchedule(wardSchedule, rule, wardMembers,
+		WardSchedule updateWardSchedule = nurseScheduler.generateSchedule(
+			wardSchedule, rule, wardMembers,
 			prevNurseShifts, yearMonth, memberId,
-			acceptedRequests, dailyNightCount, reinforcementRequestIds);
+			acceptedRequests, dailyNightCount,
+			reinforcementRequestIds, workIntensities // 워크 인텐시티 추가
+		);
 
 		List<WardSchedule.NurseShift> updatedShifts = new ArrayList<>(updateWardSchedule.getDuties()
 			.get(updateWardSchedule.getNowIdx())

@@ -16,6 +16,7 @@ import net.dutymate.api.domain.common.utils.YearMonth;
 import net.dutymate.api.domain.request.Request;
 import net.dutymate.api.domain.rule.Rule;
 import net.dutymate.api.domain.wardmember.WardMember;
+import net.dutymate.api.domain.wardmember.WorkIntensity;
 import net.dutymate.api.domain.wardschedules.collections.WardSchedule;
 
 import lombok.Builder;
@@ -38,10 +39,13 @@ public class NurseScheduler {
 		Long currentMemberId,
 		List<Request> requests,
 		Map<Integer, Integer> dailyNightCnt,
-		List<Long> reinforcementRequestIds) {
+		List<Long> reinforcementRequestIds,
+		Map<Long, WorkIntensity> workIntensities) {
 		Map<Long, String> prevMonthSchedules = getPreviousMonthSchedules(prevNurseShifts);
-		Solution currentSolution = createInitialSolution(wardSchedule, rule, wardMembers, yearMonth, dailyNightCnt,
-			prevMonthSchedules);
+		Solution currentSolution = createInitialSolutionWithWorkIntensity(
+			wardSchedule, rule, wardMembers, yearMonth, dailyNightCnt,
+			prevMonthSchedules, workIntensities
+		);
 		Solution bestSolution = currentSolution.copy();
 
 		List<Long> safeReinforcementIds = reinforcementRequestIds != null
@@ -57,13 +61,15 @@ public class NurseScheduler {
 				.build())
 			.toList();
 
-		double currentScore = evaluateSolution(currentSolution, rule, prevMonthSchedules, shiftRequests);
+		double currentScore = evaluateSolution(currentSolution, rule, prevMonthSchedules, shiftRequests,
+			workIntensities);
 		double bestScore = currentScore;
 		double temperature = INITIAL_TEMPERATURE;
 		int noImprovementCount = 0;
 		for (int iteration = 0; iteration < MAX_ITERATIONS; iteration++) {
 			Solution neighborSolution = generateNeighborSolution(currentSolution, prevMonthSchedules);
-			double neighborScore = evaluateSolution(neighborSolution, rule, prevMonthSchedules, shiftRequests);
+			double neighborScore = evaluateSolution(neighborSolution, rule, prevMonthSchedules, shiftRequests,
+				workIntensities);
 
 			if (acceptSolution(currentScore, neighborScore, temperature)) {
 				currentSolution = neighborSolution;
@@ -89,6 +95,58 @@ public class NurseScheduler {
 		return applyFinalSchedule(wardSchedule, bestSolution, currentMemberId);
 	}
 
+	private Solution createInitialSolutionWithWorkIntensity(
+		WardSchedule wardSchedule,
+		Rule rule,
+		List<WardMember> wardMembers,
+		YearMonth yearMonth,
+		Map<Integer, Integer> dailyNightCnt,
+		Map<Long, String> prevMonthSchedules,
+		Map<Long, WorkIntensity> workIntensities) {
+
+		Map<Long, String> existingSchedules = getExistingSchedules(wardSchedule);
+		Map<Integer, Solution.DailyRequirement> requirements = calculateDailyRequirements(rule, yearMonth,
+			dailyNightCnt);
+
+		// 간호사 초기화 (모두 오프로 시작)
+		List<Solution.Nurse> nurses = initializeNurses(wardMembers, existingSchedules, yearMonth.daysInMonth());
+
+		// 이전 달 마지막 근무와의 연속성 고려
+		considerPreviousMonthContinuity(nurses, prevMonthSchedules, rule);
+
+		// 나머지 날짜에 대한 근무 배정 (워크 인텐시티 고려)
+		for (int day = 1; day <= yearMonth.daysInMonth(); day++) {
+			if (hasNoAssignmentsForDay(nurses, day)) {
+				assignShiftsForDay(nurses, day, requirements.get(day), workIntensities);
+			}
+		}
+
+		return Solution.builder()
+			.daysInMonth(yearMonth.daysInMonth())
+			.nurses(nurses)
+			.dailyRequirements(requirements)
+			.build();
+	}
+
+	private void sortNursesByWorkIntensity(List<Solution.Nurse> nurses, Map<Long, WorkIntensity> workIntensities) {
+		nurses.sort((n1, n2) -> {
+			WorkIntensity i1 = workIntensities.getOrDefault(n1.getId(), WorkIntensity.MEDIUM);
+			WorkIntensity i2 = workIntensities.getOrDefault(n2.getId(), WorkIntensity.MEDIUM);
+
+			// HIGH가 우선, LOW가 나중
+			if (i1 == WorkIntensity.HIGH && i2 != WorkIntensity.HIGH)
+				return -1;
+			if (i1 != WorkIntensity.HIGH && i2 == WorkIntensity.HIGH)
+				return 1;
+			if (i1 == WorkIntensity.MEDIUM && i2 == WorkIntensity.LOW)
+				return -1;
+			if (i1 == WorkIntensity.LOW && i2 == WorkIntensity.MEDIUM)
+				return 1;
+
+			return 0;
+		});
+	}
+
 	public Map<Long, String> getPreviousMonthSchedules(List<WardSchedule.NurseShift> prevNurseShifts) {
 		Map<Long, String> prevMonthSchedules = new HashMap<>();
 		if (prevNurseShifts != null) {
@@ -103,35 +161,146 @@ public class NurseScheduler {
 		return prevMonthSchedules;
 	}
 
-	private Solution createInitialSolution(WardSchedule wardSchedule,
-		Rule rule,
-		List<WardMember> wardMembers,
-		YearMonth yearMonth,
-		Map<Integer, Integer> dailyNightCnt,
-		Map<Long, String> prevMonthSchedules) {  // 이전 달 스케줄 매개변수 추가
+	// private Solution createInitialSolution(WardSchedule wardSchedule,
+	// 	Rule rule,
+	// 	List<WardMember> wardMembers,
+	// 	YearMonth yearMonth,
+	// 	Map<Integer, Integer> dailyNightCnt,
+	// 	Map<Long, String> prevMonthSchedules) {
+	//
+	// 	Map<Long, String> existingSchedules = getExistingSchedules(wardSchedule);
+	// 	Map<Integer, Solution.DailyRequirement> requirements = calculateDailyRequirements(rule, yearMonth,
+	// 		dailyNightCnt);
+	//
+	// 	// 워크 인텐시티에 따른 휴일 조정
+	// 	Map<Long, Integer> adjustedOffDays = calculateAdjustedOffDays(wardMembers, yearMonth);
+	//
+	// 	// 간호사 초기화 (휴일 배분 고려)
+	// 	List<Solution.Nurse> nurses = initializeNursesWithWorkIntensity(
+	// 		wardMembers,
+	// 		existingSchedules,
+	// 		yearMonth.daysInMonth(),
+	// 		adjustedOffDays
+	// 	);
+	//
+	// 	// 이전 달 마지막 근무와의 연속성 고려
+	// 	considerPreviousMonthContinuity(nurses, prevMonthSchedules, rule);
+	//
+	// 	// 나머지 날짜에 대한 근무 배정
+	// 	for (int day = 1; day <= yearMonth.daysInMonth(); day++) {
+	// 		if (hasNoAssignmentsForDay(nurses, day)) {
+	// 			assignShiftsForDay(nurses, day, requirements.get(day));
+	// 		}
+	// 	}
+	//
+	// 	return Solution.builder()
+	// 		.daysInMonth(yearMonth.daysInMonth())
+	// 		.nurses(nurses)
+	// 		.dailyRequirements(requirements)
+	// 		.build();
+	// }
 
-		Map<Long, String> existingSchedules = getExistingSchedules(wardSchedule);
-		Map<Integer, Solution.DailyRequirement> requirements = calculateDailyRequirements(rule, yearMonth,
-			dailyNightCnt);
+	/**
+	 * 워크 인텐시티에 따라 휴일 배분을 조정합니다.
+	 */
+	private void adjustOffDaysBasedOnWorkIntensity(
+		List<Solution.Nurse> nurses,
+		Map<Long, Integer> adjustedOffDays,
+		int daysInMonth) {
 
-		// 간호사 초기화
-		List<Solution.Nurse> nurses = initializeNurses(wardMembers, existingSchedules, yearMonth.daysInMonth());
+		for (Solution.Nurse nurse : nurses) {
+			int targetOffDays = adjustedOffDays.getOrDefault(nurse.getId(), daysInMonth / 4);
+			int currentOffDays = countOffDays(nurse.getShifts());
 
-		// 이전 달 마지막 근무와의 연속성 고려
-		considerPreviousMonthContinuity(nurses, prevMonthSchedules, rule);
+			if (currentOffDays == targetOffDays) {
+				continue; // 이미 목표와 일치하면 조정 불필요
+			}
 
-		// 나머지 날짜에 대한 근무 배정
-		for (int day = 1; day <= yearMonth.daysInMonth(); day++) {
-			if (hasNoAssignmentsForDay(nurses, day)) {
-				assignShiftsForDay(nurses, day, requirements.get(day));
+			if (currentOffDays < targetOffDays) {
+				// 휴일 추가 필요
+				addOffDays(nurse, targetOffDays - currentOffDays);
+			} else {
+				// 휴일 감소 필요
+				removeOffDays(nurse, currentOffDays - targetOffDays);
+			}
+		}
+	}
+
+	/**
+	 * 현재 휴일(O) 일수를 계산합니다.
+	 */
+	private int countOffDays(char[] shifts) {
+		int count = 0;
+		for (char shift : shifts) {
+			if (shift == 'O') {
+				count++;
+			}
+		}
+		return count;
+	}
+
+	/**
+	 * 간호사의 스케줄에 휴일을 추가합니다.
+	 */
+	private void addOffDays(Solution.Nurse nurse, int daysToAdd) {
+		// 우선순위: 연속 근무일을 피하고, 주중에 우선 배치
+		List<Integer> eligibleDays = new ArrayList<>();
+		char[] shifts = nurse.getShifts();
+
+		// 먼저 연속 근무일 찾기
+		for (int i = 1; i < shifts.length - 1; i++) {
+			if (shifts[i] != 'O' && shifts[i - 1] != 'O' && shifts[i + 1] != 'O') {
+				eligibleDays.add(i);
 			}
 		}
 
-		return Solution.builder()
-			.daysInMonth(yearMonth.daysInMonth())
-			.nurses(nurses)
-			.dailyRequirements(requirements)
-			.build();
+		// 연속 근무일이 충분하지 않으면 일반 근무일도 고려
+		if (eligibleDays.size() < daysToAdd) {
+			for (int i = 0; i < shifts.length; i++) {
+				if (shifts[i] != 'O' && !eligibleDays.contains(i)) {
+					eligibleDays.add(i);
+				}
+			}
+		}
+
+		// 랜덤으로 휴일 추가
+		Collections.shuffle(eligibleDays);
+		for (int i = 0; i < Math.min(daysToAdd, eligibleDays.size()); i++) {
+			int dayIndex = eligibleDays.get(i);
+			nurse.setShift(dayIndex + 1, 'O');
+		}
+	}
+
+	/**
+	 * 간호사의 스케줄에서 휴일을 제거합니다.
+	 */
+	private void removeOffDays(Solution.Nurse nurse, int daysToRemove) {
+		// 우선순위: 연속 휴일을 피하고, 주말보다 주중 휴일 우선 제거
+		List<Integer> eligibleDays = new ArrayList<>();
+		char[] shifts = nurse.getShifts();
+
+		// 먼저 연속 휴일 찾기
+		for (int i = 1; i < shifts.length - 1; i++) {
+			if (shifts[i] == 'O' && shifts[i - 1] == 'O' && shifts[i + 1] == 'O') {
+				eligibleDays.add(i);
+			}
+		}
+
+		// 연속 휴일이 충분하지 않으면 일반 휴일도 고려
+		if (eligibleDays.size() < daysToRemove) {
+			for (int i = 0; i < shifts.length; i++) {
+				if (shifts[i] == 'O' && !eligibleDays.contains(i)) {
+					eligibleDays.add(i);
+				}
+			}
+		}
+
+		// 랜덤으로 휴일 제거 (D로 변경)
+		Collections.shuffle(eligibleDays);
+		for (int i = 0; i < Math.min(daysToRemove, eligibleDays.size()); i++) {
+			int dayIndex = eligibleDays.get(i);
+			nurse.setShift(dayIndex + 1, 'D'); // 일반적으로 주간 근무로 대체
+		}
 	}
 
 	private void considerPreviousMonthContinuity(List<Solution.Nurse> nurses,
@@ -228,16 +397,44 @@ public class NurseScheduler {
 			.collect(Collectors.toList());
 	}
 
-	private void assignShiftsForDay(List<Solution.Nurse> nurses, int day, Solution.DailyRequirement requirement) {
+	private void assignShiftsForDay(List<Solution.Nurse> nurses, int day, Solution.DailyRequirement requirement,
+		Map<Long, WorkIntensity> workIntensities) {
+		// 일별 필요 인원 수 체크
+		Map<Character, Integer> currentAssignments = countShiftsForDay(nurses, day);
+
+		int remainingDayNurses = Math.max(0, requirement.getDayNurses() - currentAssignments.getOrDefault('D', 0));
+		int remainingEveningNurses = Math.max(0,
+			requirement.getEveningNurses() - currentAssignments.getOrDefault('E', 0));
+		int remainingNightNurses = Math.max(0, requirement.getNightNurses() - currentAssignments.getOrDefault('N', 0));
+
+		// 사용 가능한 간호사 목록 가져오기
 		List<Solution.Nurse> availableNurses = getAvailableNursesForDay(nurses, day);
 
-		// 우선순위 순서대로 근무 배정: 야간 -> 주간 -> 저녁
-		assignSpecificShift(availableNurses, day, 'N', requirement.getNightNurses());
-		assignSpecificShift(availableNurses, day, 'D', requirement.getDayNurses());
-		assignSpecificShift(availableNurses, day, 'E', requirement.getEveningNurses());
+		// 근무 강도에 따라 간호사 정렬 (HIGH 강도가 먼저 배정받음)
+		sortNursesByWorkIntensity(availableNurses, workIntensities);
+
+		// 필요한 인원만 배정
+		if (remainingNightNurses > 0) {
+			assignSpecificShift(availableNurses, day, 'N', remainingNightNurses);
+		}
+
+		if (remainingDayNurses > 0) {
+			assignSpecificShift(availableNurses, day, 'D', remainingDayNurses);
+		}
+
+		if (remainingEveningNurses > 0) {
+			assignSpecificShift(availableNurses, day, 'E', remainingEveningNurses);
+		}
+
+		// 남은 간호사들은 자동으로 오프(O)로 유지됨
 	}
 
 	private void assignSpecificShift(List<Solution.Nurse> availableNurses, int day, char shiftType, int required) {
+		// 필요한 인원 수가 0이면 배정하지 않음
+		if (required <= 0 || availableNurses.isEmpty()) {
+			return;
+		}
+
 		if (shiftType == 'N') {
 			assignNightShifts(availableNurses, day, required);
 		} else {
@@ -327,7 +524,7 @@ public class NurseScheduler {
 	}
 
 	private double evaluateSolution(Solution solution, Rule rule, Map<Long, String> prevMonthSchedules,
-		List<ShiftRequest> requests) {
+		List<ShiftRequest> requests, Map<Long, WorkIntensity> workIntensities) {
 		double score = 0;
 
 		// 강한 제약 조건
@@ -341,6 +538,8 @@ public class NurseScheduler {
 		score += evaluateNodPatterns(solution, prevMonthSchedules) * 5000;
 		score += evaluateShiftPatterns(solution) * 2500;
 		score += evaluateWorkloadBalance(solution) * 1000;
+
+		score += evaluateWorkIntensityBalance(solution, workIntensities) * 1000;
 
 		return score;
 	}
@@ -370,6 +569,65 @@ public class NurseScheduler {
 					}
 				}
 			}
+		}
+
+		return violations;
+	}
+
+	/**
+	 * 워크 인텐시티에 따른 휴일 배분 적절성을 평가합니다.
+	 */
+	private double evaluateWorkIntensityBalance(Solution solution, Map<Long, WorkIntensity> workIntensities) {
+		double violations = 0;
+		int daysInMonth = solution.getDaysInMonth();
+
+		// 전체 근무 배정 현황 계산
+		Map<Long, Map<Character, Integer>> nurseShiftCounts = new HashMap<>();
+
+		for (Solution.Nurse nurse : solution.getNurses()) {
+			Map<Character, Integer> counts = new HashMap<>();
+			for (char shift : nurse.getShifts()) {
+				counts.merge(shift, 1, Integer::sum);
+			}
+			nurseShiftCounts.put(nurse.getId(), counts);
+		}
+
+		// 각 근무 유형별 평균 근무 일수 계산
+		Map<Character, Double> avgShiftCounts = new HashMap<>();
+		for (char shiftType : new char[] {'D', 'E', 'N'}) {
+			double sum = nurseShiftCounts.values().stream()
+				.mapToInt(counts -> counts.getOrDefault(shiftType, 0))
+				.sum();
+			avgShiftCounts.put(shiftType, sum / nurseShiftCounts.size());
+		}
+
+		// 워크 인텐시티에 따른 평가
+		for (Solution.Nurse nurse : solution.getNurses()) {
+			WorkIntensity intensity = workIntensities.getOrDefault(nurse.getId(), WorkIntensity.MEDIUM);
+			Map<Character, Integer> counts = nurseShiftCounts.get(nurse.getId());
+
+			// 근무 일수 비율 계산 (D + E + N)
+			int workDays = counts.getOrDefault('D', 0) + counts.getOrDefault('E', 0) + counts.getOrDefault('N', 0);
+			double workRatio = (double)workDays / daysInMonth;
+
+			// 각 근무 강도별 목표 근무 비율
+			double targetRatio;
+			switch (intensity) {
+				case HIGH:
+					targetRatio = 0.7; // 70% 근무 (HIGH는 더 많이 근무)
+					break;
+				case LOW:
+					targetRatio = 0.5; // 50% 근무 (LOW는 덜 근무)
+					break;
+				case MEDIUM:
+				default:
+					targetRatio = 0.6; // 60% 근무 (중간 정도 근무)
+					break;
+			}
+
+			// 목표 비율과의 차이에 따른 페널티
+			double diff = Math.abs(workRatio - targetRatio);
+			violations += diff * 100; // 비율 차이에 가중치
 		}
 
 		return violations;
