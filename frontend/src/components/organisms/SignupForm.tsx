@@ -199,26 +199,24 @@ const SignupForm = () => {
             </button>
           )}
           {authCodeSent && (
-            <div className="flex items-center space-x-2">
-              <AuthCodeInput
-                id="signup-authcode"
-                name="authCode"
-                value={authCode}
-                onChange={(e) => setAuthCode(e.target.value)}
-                timer={timer}
-                onVerifyClick={verifyCode}
-                isVerified={isVerified}
-                status={authCodeStatus}
-                error={
-                  authCodeStatus === 'error'
-                    ? '인증 코드가 일치하지 않습니다.'
-                    : undefined
-                }
-                successText={
-                  authCodeStatus === 'success' ? '인증되었습니다.' : undefined
-                }
-              />
-            </div>
+            <AuthCodeInput
+              id="signup-authcode"
+              name="authCode"
+              value={authCode}
+              onChange={(e) => setAuthCode(e.target.value)}
+              timer={timer}
+              onVerifyClick={verifyCode}
+              isVerified={isVerified}
+              status={authCodeStatus}
+              error={
+                authCodeStatus === 'error'
+                  ? '인증 코드가 일치하지 않습니다.'
+                  : undefined
+              }
+              successText={
+                authCodeStatus === 'success' ? '인증되었습니다.' : undefined
+              }
+            />
           )}
           {isVerified && (
             <div>
