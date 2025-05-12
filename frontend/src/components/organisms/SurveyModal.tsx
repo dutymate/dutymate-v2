@@ -157,8 +157,6 @@ const SurveyModal = ({ isOpen, onClose }: SurveyModalProps) => {
   };
 
   const onSubmit: SubmitHandler<SurveyFormInputs> = async (data) => {
-    console.log('설문조사 제출 데이터:', data);
-
     // 제출 시간 기록
     const submissionData = {
       ...data,
@@ -180,8 +178,6 @@ const SurveyModal = ({ isOpen, onClose }: SurveyModalProps) => {
         setCurrentStep('satisfaction');
       }, 5000);
     } catch (error) {
-      console.error('설문 제출 중 오류 발생:', error);
-
       // 오류 발생 시에도 로컬 저장소에는 저장
       localStorage.setItem('survey_data', JSON.stringify(submissionData));
       localStorage.setItem('survey_completed', 'true');
