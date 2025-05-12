@@ -146,7 +146,7 @@ const GroupMemberPage = () => {
     groupDescription: string;
     groupImg: string | null;
   }) => {
-    console.log(data);
+    data;
     if (!groupInfo) return;
 
     try {

@@ -12,6 +12,8 @@ export interface Group {
     prevShifts: string;
     nextShifts: string;
   };
+  prevShifts?: ShiftDay[];
+  nextShifts?: ShiftDay[];
 }
 
 export interface GroupMember {

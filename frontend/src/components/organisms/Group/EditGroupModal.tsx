@@ -81,7 +81,6 @@ const EditGroupModal: React.FC<EditGroupModalProps> = ({
   };
 
   const handleRandomImage = async () => {
-    console.log(initialData?.groupId);
     try {
       if (initialData?.groupId) {
         const response = await groupService.updateGroupRandomImage(
@@ -118,7 +117,11 @@ const EditGroupModal: React.FC<EditGroupModalProps> = ({
       <div
         className={`
           relative bg-white rounded-t-2xl lg:rounded-2xl shadow-xl w-full
-          ${isMobile ? 'max-w-full pb-4 pt-2 px-4 animate-slideup' : 'max-w-sm p-5'}
+          ${
+            isMobile
+              ? 'max-w-full pb-4 pt-2 px-4 animate-slideup'
+              : 'max-w-sm p-5'
+          }
           flex flex-col items-center
           z-10
         `}

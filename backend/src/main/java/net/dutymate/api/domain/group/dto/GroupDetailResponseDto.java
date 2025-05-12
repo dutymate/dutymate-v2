@@ -14,14 +14,18 @@ public class GroupDetailResponseDto {
 	private Long groupId;
 	private String groupName;
 	private String groupDescription;
+	private List<ShiftDto> prevShifts;
 	private List<ShiftDto> shifts;
+	private List<ShiftDto> nextShifts;
 
-	public static GroupDetailResponseDto of(NurseGroup group, List<ShiftDto> shiftDtoList) {
+	public static GroupDetailResponseDto of(NurseGroup group,List<ShiftDto> prevShiftList, List<ShiftDto> currShiftDtoList, List<ShiftDto> nextShiftList) {
 		return GroupDetailResponseDto.builder()
 			.groupId(group.getGroupId())
 			.groupName(group.getGroupName())
 			.groupDescription(group.getGroupDescription())
-			.shifts(shiftDtoList)
+			.prevShifts(prevShiftList)
+			.shifts(currShiftDtoList)
+			.nextShifts(nextShiftList)
 			.build();
 	}
 

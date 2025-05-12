@@ -54,7 +54,7 @@ const GroupDetailPage = () => {
         Number(groupId),
         year,
         month,
-        orderBy
+        orderBy,
       );
 
       // 그룹 설정
@@ -113,7 +113,7 @@ const GroupDetailPage = () => {
   const handlePrevMonth = () => {
     // 이전 달로 변경
     setCurrentMonth(
-      new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1)
+      new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1),
     );
     // 정렬 기준 이름순으로 초기화
     setSortByName(true);
@@ -123,7 +123,7 @@ const GroupDetailPage = () => {
   const handleNextMonth = () => {
     // 다음 달로 변경
     setCurrentMonth(
-      new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1)
+      new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1),
     );
     // 정렬 기준 이름순으로 초기화
     setSortByName(true);
@@ -153,15 +153,64 @@ const GroupDetailPage = () => {
     // 이전 달의 마지막 날짜
     const lastDayPrevMonth = new Date(year, month, 0).getDate();
 
+    // 모든 shifts를 날짜별로 맵핑하여 빠르게 조회할 수 있도록 함
+    const shiftsMap = new Map();
+
+    // 현재 달 데이터 맵핑
+    if (group.shifts && Array.isArray(group.shifts)) {
+      group.shifts.forEach((shift) => {
+        shiftsMap.set(shift.date, shift);
+      });
+    }
+
+    // 이전 달 데이터 맵핑 (있는 경우)
+    if (group.prevShifts && Array.isArray(group.prevShifts)) {
+      group.prevShifts.forEach((shift) => {
+        shiftsMap.set(shift.date, shift);
+      });
+    }
+
+    // 다음 달 데이터 맵핑 (있는 경우)
+    if (group.nextShifts && Array.isArray(group.nextShifts)) {
+      group.nextShifts.forEach((shift) => {
+        shiftsMap.set(shift.date, shift);
+      });
+    }
+
     const data: DayInfo[] = [];
 
     // 이전 달의 날짜 추가
     for (let i = 0; i < firstDayOfMonth; i++) {
       const day = lastDayPrevMonth - firstDayOfMonth + i + 1;
+
+      // 이전 달의 년도와 월 계산
+      const prevMonth = month === 0 ? 11 : month - 1;
+      const prevYear = month === 0 ? year - 1 : year;
+
+      const prevMonthDateStr = `${prevYear}-${String(prevMonth + 1).padStart(
+        2,
+        '0',
+      )}-${String(day).padStart(2, '0')}`;
+
+      // 이전 달 데이터 찾기
+      const prevMonthShift = shiftsMap.get(prevMonthDateStr);
+
+      const duties = prevMonthShift
+        ? prevMonthShift.memberList.map((member: any) => ({
+            member: {
+              memberId: member.memberId,
+              name: member.name,
+              duty: member.duty,
+            },
+            duty: member.duty,
+          }))
+        : [];
+
       data.push({
         date: day,
+        dateStr: prevMonthDateStr,
         isPrevMonth: true,
-        duties: [], // 이전 달은 빈 배열로 설정
+        duties: duties,
       });
     }
 
@@ -169,13 +218,14 @@ const GroupDetailPage = () => {
     for (let i = 1; i <= daysInMonth; i++) {
       const currentDate = `${year}-${String(month + 1).padStart(
         2,
-        '0'
+        '0',
       )}-${String(i).padStart(2, '0')}`;
-      const dayShift = group.shifts.find((shift) => shift.date === currentDate);
+
+      const dayShift = shiftsMap.get(currentDate);
 
       if (dayShift) {
         // 해당 날짜의 멤버 리스트를 백엔드에서 받은 그대로 사용
-        const duties = dayShift.memberList.map((member) => ({
+        const duties = dayShift.memberList.map((member: any) => ({
           member: {
             memberId: member.memberId,
             name: member.name,
@@ -205,10 +255,34 @@ const GroupDetailPage = () => {
     const remainingDays = 7 - (data.length % 7);
     if (remainingDays < 7) {
       for (let i = 1; i <= remainingDays; i++) {
+        // 다음 달의 년도와 월 계산
+        const nextMonth = month === 11 ? 0 : month + 1;
+        const nextYear = month === 11 ? year + 1 : year;
+
+        const nextMonthDateStr = `${nextYear}-${String(nextMonth + 1).padStart(
+          2,
+          '0',
+        )}-${String(i).padStart(2, '0')}`;
+
+        // 다음 달 데이터 찾기
+        const nextMonthShift = shiftsMap.get(nextMonthDateStr);
+
+        const duties = nextMonthShift
+          ? nextMonthShift.memberList.map((member: any) => ({
+              member: {
+                memberId: member.memberId,
+                name: member.name,
+                duty: member.duty,
+              },
+              duty: member.duty,
+            }))
+          : [];
+
         data.push({
           date: i,
+          dateStr: nextMonthDateStr,
           isNextMonth: true,
-          duties: [], // 다음 달은 빈 배열로 설정
+          duties: duties,
         });
       }
     }
@@ -390,10 +464,10 @@ const GroupDetailPage = () => {
                             day.isPrevMonth || day.isNextMonth
                               ? 'text-gray-400 bg-gray-50'
                               : dayIndex === 0
-                                ? 'text-red-500'
-                                : dayIndex === 6
-                                  ? 'text-purple-500'
-                                  : 'text-gray-700'
+                              ? 'text-red-500'
+                              : dayIndex === 6
+                              ? 'text-purple-500'
+                              : 'text-gray-700'
                           } ${
                             isMobile ? 'min-w-[70px] p-1' : 'min-w-[90px] p-2'
                           }`}
