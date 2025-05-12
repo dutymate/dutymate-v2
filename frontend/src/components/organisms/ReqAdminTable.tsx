@@ -1,4 +1,10 @@
-import { forwardRef, useEffect, useState, useImperativeHandle } from 'react';
+import {
+  forwardRef,
+  useEffect,
+  useState,
+  useImperativeHandle,
+  useRef,
+} from 'react';
 import { toast } from 'react-toastify';
 
 import { ApprovalBtn } from '@/components/atoms/ApprovalBtn';
@@ -6,6 +12,7 @@ import { DutyBadgeKor } from '@/components/atoms/DutyBadgeKor';
 import { requestService, WardRequest } from '@/services/requestService.ts';
 import { useLoadingStore } from '@/stores/loadingStore';
 import { useRequestCountStore } from '@/stores/requestCountStore';
+import { Icon } from '@/components/atoms/Icon';
 
 interface ReqAdminTableProps {
   requests?: WardRequest[];
@@ -20,6 +27,13 @@ const ReqAdminTable = forwardRef<ReqAdminTableRef, ReqAdminTableProps>(
     const [requests, setRequests] = useState<WardRequest[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [searchTerm] = useState('');
+    const [viewingMemo, setViewingMemo] = useState<{
+      id: number;
+      memo: string;
+    } | null>(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 10;
+    const memoModalRef = useRef<HTMLDivElement>(null);
     const setRequestCount = useRequestCountStore((state) => state.setCount);
 
     // 요청 목록 조회
@@ -124,6 +138,47 @@ const ReqAdminTable = forwardRef<ReqAdminTableRef, ReqAdminTableProps>(
         );
       });
 
+    // 페이지네이션 계산
+    const totalPages = Math.ceil(filteredRequests.length / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const currentRequests = filteredRequests.slice(startIndex, endIndex);
+
+    // 페이지 변경 핸들러
+    const handlePageChange = (page: number) => {
+      setCurrentPage(page);
+    };
+
+    const showMemoModal = (id: number, memo: string, e: React.MouseEvent) => {
+      e.stopPropagation();
+      if (!memo) return;
+      setViewingMemo({ id, memo });
+    };
+
+    const closeMemoModal = () => {
+      setViewingMemo(null);
+    };
+
+    // 모달 외부 클릭 감지
+    useEffect(() => {
+      const handleClickOutside = (event: MouseEvent) => {
+        if (
+          memoModalRef.current &&
+          !memoModalRef.current.contains(event.target as Node)
+        ) {
+          closeMemoModal();
+        }
+      };
+
+      if (viewingMemo) {
+        document.addEventListener('mousedown', handleClickOutside);
+      }
+
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }, [viewingMemo]);
+
     if (isLoading) {
       return <div>Loading...</div>;
     }
@@ -170,30 +225,45 @@ const ReqAdminTable = forwardRef<ReqAdminTableRef, ReqAdminTableProps>(
               {/* 헤더 */}
               <thead>
                 <tr>
-                  <th className="bg-base-muted-30 first:rounded-l-xl w-[5rem] lg:w-[7.5rem] p-[0.5rem] text-left whitespace-nowrap">
-                    <div className="flex justify-center translate-x-[2rem] lg:translate-x-0">
-                      <span className="text-[0.75rem] lg:text-[0.875rem] text-gray-600 font-medium mr-[2rem]">
+                  {/* 모바일: 이름+날짜 통합 헤더 */}
+                  <th className="bg-base-muted-30 first:rounded-l-xl md:hidden w-[8rem] lg:w-[11.25rem] p-[0.5rem] text-left">
+                    <div className="flex justify-center">
+                      <span className="text-[0.75rem] lg:text-[0.875rem] text-gray-600 font-medium">
                         이름
                       </span>
                     </div>
                   </th>
-                  <th className="bg-base-muted-30 w-[4rem] lg:w-[5.625rem] p-[0.5rem] whitespace-nowrap">
+                  {/* 데스크톱: 이름 헤더 */}
+                  <th className="bg-base-muted-30 first:rounded-l-xl hidden md:table-cell w-[5rem] lg:w-[7.5rem] p-[0.5rem] text-left">
+                    <div className="flex justify-center">
+                      <span className="text-[0.75rem] lg:text-[0.875rem] text-gray-600 font-medium">
+                        이름
+                      </span>
+                    </div>
+                  </th>
+                  {/* 데스크톱: 날짜 헤더 */}
+                  <th className="bg-base-muted-30 hidden md:table-cell w-[4rem] lg:w-[5.625rem] p-[0.5rem]">
                     <span className="text-[0.75rem] lg:text-[0.875rem] text-gray-600 font-medium text-center block">
                       날짜
                     </span>
                   </th>
-                  <th className="bg-base-muted-30 w-[3.5rem] lg:w-[4.125rem] p-[0.5rem] whitespace-nowrap">
+                  <th className="bg-base-muted-30 w-[3.5rem] lg:w-[4.125rem] p-[0.5rem]">
                     <span className="text-[0.75rem] lg:text-[0.875rem] text-gray-600 font-medium text-center block">
                       근무
                     </span>
                   </th>
-                  <th className="bg-base-muted-30 hidden md:table-cell w-[8rem] lg:w-[11.25rem] p-[0.5rem] whitespace-nowrap">
+                  <th className="bg-base-muted-30 hidden md:table-cell w-[12rem] lg:w-[11.25rem] p-[0.5rem]">
                     <span className="text-[0.75rem] lg:text-[0.875rem] text-gray-600 font-medium text-center block">
-                      요청 내용
+                      내용
                     </span>
                   </th>
-                  <th className="bg-base-muted-30 rounded-r-xl w-auto lg:w-[11.25rem] p-[0.5rem] whitespace-nowrap">
-                    <div className="flex justify-center translate-x-[0.1rem] lg:translate-x-[4rem]">
+                  <th className="bg-base-muted-30 md:hidden w-[8rem] lg:w-[16rem] p-[0.5rem]">
+                    <span className="text-[0.75rem] lg:text-[0.875rem] text-gray-600 font-medium text-center block">
+                      내용
+                    </span>
+                  </th>
+                  <th className="bg-base-muted-30 rounded-r-xl w-auto lg:w-[11.25rem] p-[0.5rem]">
+                    <div className="flex justify-center">
                       <span className="text-[0.75rem] lg:text-[0.875rem] text-gray-600 font-medium">
                         상태
                       </span>
@@ -204,28 +274,40 @@ const ReqAdminTable = forwardRef<ReqAdminTableRef, ReqAdminTableProps>(
 
               {/* 요청 목록 본문 */}
               <tbody>
-                {filteredRequests.length === 0 ? (
+                {currentRequests.length === 0 ? (
                   <tr>
-                    <td colSpan={5}>
+                    <td colSpan={6}>
                       <div className="flex items-center justify-center h-[25rem] text-gray-500">
                         요청 내역이 없습니다.
                       </div>
                     </td>
                   </tr>
                 ) : (
-                  filteredRequests.map((request) => (
+                  currentRequests.map((request) => (
                     <tr
                       key={request.requestId}
                       className="border-b border-gray-100"
                     >
-                      <td className="w-[5rem] lg:w-[7.5rem] p-[0.5rem]">
-                        <div className="flex items-center justify-start pl-[0.5rem]">
-                          <span className="font-medium truncate ml-[0.25rem] lg:ml-[0.5rem] text-[0.75rem] lg:text-[1rem] whitespace-nowrap">
+                      {/* 모바일: 이름과 날짜 합쳐서 표시 */}
+                      <td className="md:hidden w-[8rem] lg:w-[11.25rem] p-[0.5rem]">
+                        <div className="flex flex-col items-center">
+                          <span className="font-medium truncate text-[0.75rem] lg:text-[1rem] whitespace-nowrap">
+                            {request.name}
+                          </span>
+                          <span className="text-gray-500 text-[0.75rem] lg:text-[0.875rem]">
+                            {request.date.split('-').slice(1).join('-')}
+                          </span>
+                        </div>
+                      </td>
+                      {/* 데스크톱: 이름과 날짜 분리해서 표시 */}
+                      <td className="hidden md:table-cell w-[5rem] lg:w-[7.5rem] p-[0.5rem]">
+                        <div className="flex items-center justify-center">
+                          <span className="font-medium truncate text-[0.75rem] lg:text-[1rem] whitespace-nowrap">
                             {request.name}
                           </span>
                         </div>
                       </td>
-                      <td className="w-[4rem] lg:w-[5.625rem] p-[0.5rem]">
+                      <td className="hidden md:table-cell w-[4rem] lg:w-[5.625rem] p-[0.5rem]">
                         <div className="text-gray-600 text-[0.75rem] lg:text-[0.875rem] text-center whitespace-nowrap">
                           {request.date}
                         </div>
@@ -246,13 +328,34 @@ const ReqAdminTable = forwardRef<ReqAdminTableRef, ReqAdminTableProps>(
                           />
                         </div>
                       </td>
-                      <td className="hidden md:table-cell w-[8rem] lg:w-[11.25rem] p-[0.5rem]">
-                        <div className="truncate text-gray-600 text-[0.75rem] lg:text-[0.875rem] text-center whitespace-nowrap">
+                      <td className="hidden md:table-cell w-[12rem] lg:w-[11.25rem] p-[0.5rem]">
+                        <div className="truncate text-gray-600 text-[0.75rem] lg:text-[0.875rem] text-center whitespace-nowrap overflow-hidden text-ellipsis">
                           {request.memo}
                         </div>
                       </td>
+                      <td className="md:hidden w-[8rem] lg:w-[16rem] p-[0.5rem]">
+                        {request.memo ? (
+                          <button
+                            className="text-xs text-gray-500 hover:text-primary flex items-center justify-center w-full whitespace-nowrap"
+                            onClick={(e) =>
+                              showMemoModal(request.requestId, request.memo, e)
+                            }
+                          >
+                            <Icon
+                              name="message"
+                              size={12}
+                              className="mr-0.5 flex-shrink-0"
+                            />
+                            <span className="underline truncate">사유</span>
+                          </button>
+                        ) : (
+                          <span className="text-xs text-gray-400 text-center block">
+                            -
+                          </span>
+                        )}
+                      </td>
                       <td className="w-auto lg:w-[11.25rem] p-[0.5rem]">
-                        <div className="flex justify-end items-center h-full whitespace-nowrap">
+                        <div className="flex justify-center items-center h-full whitespace-nowrap">
                           <div className="scale-[0.65] lg:scale-90 transform-gpu">
                             <ApprovalBtn
                               onApprove={() =>
@@ -287,7 +390,77 @@ const ReqAdminTable = forwardRef<ReqAdminTableRef, ReqAdminTableProps>(
               </tbody>
             </table>
           </div>
+
+          {/* 페이지네이션 */}
+          {totalPages > 1 && (
+            <div className="flex justify-center items-center gap-2 mt-4">
+              <button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className={`px-3 py-1 rounded-md text-sm ${
+                  currentPage === 1
+                    ? 'text-gray-400 cursor-not-allowed'
+                    : 'text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                이전
+              </button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                (page) => (
+                  <button
+                    key={page}
+                    onClick={() => handlePageChange(page)}
+                    className={`w-8 h-8 rounded-md text-sm ${
+                      currentPage === page
+                        ? 'bg-primary text-white'
+                        : 'text-gray-600 hover:bg-gray-100'
+                    }`}
+                  >
+                    {page}
+                  </button>
+                )
+              )}
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className={`px-3 py-1 rounded-md text-sm ${
+                  currentPage === totalPages
+                    ? 'text-gray-400 cursor-not-allowed'
+                    : 'text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                다음
+              </button>
+            </div>
+          )}
         </div>
+
+        {/* 메모 모달 */}
+        {viewingMemo && (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center">
+            <div
+              className="absolute inset-0 bg-black bg-opacity-30"
+              onClick={closeMemoModal}
+            ></div>
+            <div
+              ref={memoModalRef}
+              className="bg-white rounded-lg shadow-lg p-3 max-w-[75%] sm:max-w-xs w-full z-[70] relative mx-3"
+            >
+              <div className="flex justify-between items-center mb-2">
+                <h3 className="text-sm font-medium">사유</h3>
+                <button
+                  onClick={closeMemoModal}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <Icon name="close" size={16} />
+                </button>
+              </div>
+              <p className="text-sm text-gray-700 break-words">
+                {viewingMemo.memo}
+              </p>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
