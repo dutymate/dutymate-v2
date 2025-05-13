@@ -1,8 +1,16 @@
-import { Platform, StyleSheet } from "react-native";
+import Constants from "expo-constants";
+
+import { Dimensions, Linking, Platform, StyleSheet, View } from "react-native";
 
 import { Button } from "@/components/button/Button";
 import { StyledText } from "@/components/custom/StyledText";
 import { Layout } from "@/layout/Layout";
+
+import Logo from "assets/images/text-logo.svg";
+
+const screenWidth = Dimensions.get("window").width;
+const logoWidth = screenWidth * 0.6;
+const logoHeight = logoWidth * 0.5;
 
 /**
  * LandingScreen의 props 타입을 정의합니다.
@@ -17,23 +25,98 @@ interface LandingScreenProps {
  * @param navigation
  */
 export const LandingScreen = ({ navigation }: LandingScreenProps) => {
+	/**
+	 * handleGoToTutorial 함수는 튜토리얼으로 이동하는 함수입니다.
+	 */
+	const handleGoToTutorial = async () => {
+		try {
+			const tutorialUrl = Constants.expoConfig?.extra?.tutorialUrl;
+			await Linking.openURL(tutorialUrl);
+		} catch (error) {
+			// TODO: Error 페이지 구현
+			// navigation.navigate("Error");
+		}
+	};
+
+	/**
+	 * handleGoToYoutube 함수는 소개영상으로 이동하는 함수입니다.
+	 */
+	const handleGoToYoutube = async () => {
+		try {
+			const youtubeUrl = Constants.expoConfig?.extra?.youtubeUrl;
+			await Linking.openURL(youtubeUrl);
+		} catch (error) {
+			// TODO: Error 페이지 구현
+			// navigation.navigate("Error");
+		}
+	};
+
 	return (
-		<Layout className={"justify-center items-center"}>
-			<Button
-				color="tertiary"
-				size="lg"
-				width="long"
-				onPress={() => navigation.navigate("WebView")}
-				className="h-[3.5rem] sm:h-[3rem] bg-primary hover:bg-primary-dark text-white w-full max-w-[23.2rem] mt-1"
-				style={styles.shadowMd}
+		<Layout>
+			<View
+				className={
+					"flex-1 flex flex-col items-center justify-center p-[1rem] py-[0.75rem]"
+				}
 			>
-				<StyledText className="text-[1rem]">시작하기</StyledText>
-			</Button>
+				<Logo width={logoWidth} height={logoHeight} />
+				<View className={"mb-[1.5rem]"}>
+					<StyledText className={"text-center"} style={styles.h1}>
+						"듀티표의 마침표, 듀티메이트."
+					</StyledText>
+					<StyledText
+						className={"text-center text-[1.125rem] text-gray-600 mb-[0.5rem]"}
+					>
+						간호사 업무의 효율성과 공정성을 높이는
+					</StyledText>
+					<StyledText
+						className={"text-center text-[1.125rem] text-gray-600 mb-[0.5rem]"}
+					>
+						근무표 자동 생성 서비스.
+					</StyledText>
+				</View>
+				<Button
+					color="tertiary"
+					size="lg"
+					width="long"
+					onPress={() => navigation.navigate("WebView")}
+					className="h-[3.5rem] sm:h-[3rem] bg-primary hover:bg-primary-dark text-white w-full max-w-[23.2rem] mt-1 mb-1.5"
+					style={styles.shadowMd}
+				>
+					<StyledText className="text-[1.25rem] text-white">
+						시작하기
+					</StyledText>
+				</Button>
+				<View className={"w-full max-w-[23.2rem] mt-4 pt-4"}>
+					<StyledText
+						className={"text-center text-[1.125rem] text-gray-600 mb-[0.5rem]"}
+					>
+						사용법이 궁금하다면?{" "}
+						<StyledText
+							className={"text-primary-dark font-semibold"}
+							onPress={handleGoToTutorial}
+						>
+							튜토리얼
+						</StyledText>
+						{" | "}
+						<StyledText
+							className={"text-primary-dark font-semibold"}
+							onPress={handleGoToYoutube}
+						>
+							소개영상
+						</StyledText>
+					</StyledText>
+				</View>
+			</View>
 		</Layout>
 	);
 };
 
 const styles = StyleSheet.create({
+	h1: {
+		fontSize: 20,
+		fontWeight: 900,
+		marginBottom: 16,
+	},
 	shadowMd: {
 		...Platform.select({
 			ios: {
