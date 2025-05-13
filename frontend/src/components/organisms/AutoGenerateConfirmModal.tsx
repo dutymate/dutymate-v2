@@ -375,7 +375,7 @@ const AutoGenerateConfirmModal = ({
             <div className="flex justify-end gap-[0.25rem] mt-[1rem]">
               <Button
                 size="xs"
-                color="muted"
+                color="off"
                 onClick={handleOpenRuleEditModal}
                 id="edit-rule-button"
               >

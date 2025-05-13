@@ -34,6 +34,7 @@ const ReqAdminTable = forwardRef<ReqAdminTableRef, ReqAdminTableProps>(
     const itemsPerPage = 10;
     const memoModalRef = useRef<HTMLDivElement>(null);
     const setRequestCount = useRequestCountStore((state) => state.setCount);
+    const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
     // Add date state
     const [selectedDate, setSelectedDate] = useState(() => {
@@ -86,6 +87,15 @@ const ReqAdminTable = forwardRef<ReqAdminTableRef, ReqAdminTableProps>(
         setIsLoading(false);
       }
     };
+
+    useEffect(() => {
+      const handleResize = () => {
+        setIsMobile(window.innerWidth < 768);
+      };
+
+      window.addEventListener('resize', handleResize);
+      return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     // ref를 통해 fetchRequests 함수 노출
     useImperativeHandle(ref, () => ({
@@ -218,10 +228,10 @@ const ReqAdminTable = forwardRef<ReqAdminTableRef, ReqAdminTableProps>(
     return (
       <div className="w-full">
         <div className="bg-white rounded-[1.154375rem] p-1 sm:p-6">
+          <h2 className="text-base lg:text-[1.125rem] font-semibold whitespace-nowrap">
+            요청 내역
+          </h2>
           <div className="flex flex-col lg:flex-row items-center justify-between mb-[1rem] px-[0.5rem]">
-            <h2 className="text-base lg:text-[1.125rem] font-semibold whitespace-nowrap">
-              요청 내역
-            </h2>
             <div className="flex items-center justify-between w-full">
               {/* 월 이동 컨트롤 */}
               <div className="flex-1 flex items-center justify-center">
@@ -273,13 +283,13 @@ const ReqAdminTable = forwardRef<ReqAdminTableRef, ReqAdminTableProps>(
           </div>
 
           {/* 요청 목록 */}
-          <div className="overflow-x-auto lg:overflow-x-hidden">
+          <div className="overflow-x-auto">
             <table className="w-full min-w-[20rem] md:min-w-[40rem] lg:min-w-0 lg:w-full table-fixed">
               {/* 헤더 */}
               <thead>
                 <tr>
                   {/* 모바일: 이름+날짜 통합 헤더 */}
-                  <th className="bg-base-muted-30 first:rounded-l-xl md:hidden w-[4rem] lg:w-[11.25rem] p-[0.25rem] text-left">
+                  <th className="bg-base-muted-30 rounded-l-xl md:hidden w-[4rem] lg:w-[11.25rem] p-[0.25rem] text-left">
                     <div className="flex justify-center">
                       <span className="text-[0.75rem] lg:text-[0.875rem] text-gray-600 font-medium">
                         이름
@@ -287,7 +297,7 @@ const ReqAdminTable = forwardRef<ReqAdminTableRef, ReqAdminTableProps>(
                     </div>
                   </th>
                   {/* 데스크톱: 이름 헤더 */}
-                  <th className="bg-base-muted-30 first:rounded-l-xl hidden md:table-cell w-[5rem] lg:w-[7.5rem] p-[0.5rem] text-left">
+                  <th className="bg-base-muted-30 rounded-l-xl hidden md:table-cell w-[5rem] lg:w-[7.5rem] p-[0.5rem] text-left">
                     <div className="flex justify-center">
                       <span className="text-[0.75rem] lg:text-[0.875rem] text-gray-600 font-medium">
                         이름
@@ -329,7 +339,7 @@ const ReqAdminTable = forwardRef<ReqAdminTableRef, ReqAdminTableProps>(
               <tbody>
                 {currentRequests.length === 0 ? (
                   <tr>
-                    <td colSpan={6}>
+                    <td colSpan={isMobile ? 4 : 5}>
                       <div className="flex items-center justify-center h-[25rem] text-gray-500">
                         요청 내역이 없습니다.
                       </div>

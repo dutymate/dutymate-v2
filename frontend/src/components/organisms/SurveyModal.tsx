@@ -811,7 +811,7 @@ const SurveyModal = ({ isOpen, onClose }: SurveyModalProps) => {
 
                 <div>
                   <label className="block text-xs text-gray-500 mb-1.5 ml-1">
-                    병동 규모
+                    병원 규모
                   </label>
                   <div className="relative">
                     <select
