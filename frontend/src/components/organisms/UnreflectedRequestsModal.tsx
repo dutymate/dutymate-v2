@@ -11,6 +11,14 @@ import PaymentModal from '@/components/organisms/PaymentModal';
 import DemoSignupModal from '@/components/organisms/DemoSignupModal';
 import { useNavigate } from 'react-router-dom';
 
+// GA4 타입 선언 (전역 Window 타입에 gtag 추가)
+declare global {
+  interface Window {
+    dataLayer: any[];
+    gtag?: (...args: any[]) => void;
+  }
+}
+
 interface UnreflectedRequestsModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -40,6 +48,21 @@ const UnreflectedRequestsModal: React.FC<UnreflectedRequestsModalProps> = ({
   const { userInfo } = useUserAuthStore();
   const isDemo = userInfo?.isDemo;
   const navigate = useNavigate();
+  const [isMobile, setIsMobile] = useState(false);
+
+  // 모바일 여부 확인
+  useEffect(() => {
+    const checkIsMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkIsMobile();
+    window.addEventListener('resize', checkIsMobile);
+
+    return () => {
+      window.removeEventListener('resize', checkIsMobile);
+    };
+  }, []);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -47,6 +70,20 @@ const UnreflectedRequestsModal: React.FC<UnreflectedRequestsModalProps> = ({
   };
 
   const handleCheckboxChange = (index: number) => {
+    // GTM 이벤트 트래킹
+    if (typeof window !== 'undefined' && 'dataLayer' in window) {
+      window.dataLayer.push({
+        event: 'checkbox_click',
+        event_category: 'request_management',
+        event_action: 'click',
+        event_label: 'select_request',
+        event_id: `select-request-checkbox`,
+        view_type: isMobile ? 'mobile' : 'desktop',
+        request_index: index,
+        is_selected: !selectedRequests[index],
+      });
+    }
+
     setSelectedRequests((prev) => ({
       ...prev,
       [index]: !prev[index],
@@ -57,6 +94,21 @@ const UnreflectedRequestsModal: React.FC<UnreflectedRequestsModalProps> = ({
     const allSelected = unreflectedRequests.every(
       (_, index) => selectedRequests[index]
     );
+
+    // GTM 이벤트 트래킹
+    if (typeof window !== 'undefined' && 'dataLayer' in window) {
+      window.dataLayer.push({
+        event: 'checkbox_click',
+        event_category: 'request_management',
+        event_action: 'click',
+        event_label: allSelected
+          ? 'deselect_all_requests'
+          : 'select_all_requests',
+        event_id: `select-all-checkbox`,
+        view_type: isMobile ? 'mobile' : 'desktop',
+        total_requests: unreflectedRequests.length,
+      });
+    }
 
     if (allSelected) {
       // 모두 선택되어 있으면 모두 해제
@@ -93,6 +145,32 @@ const UnreflectedRequestsModal: React.FC<UnreflectedRequestsModalProps> = ({
     }
 
     try {
+      // GTM 이벤트 트래킹
+      if (typeof window !== 'undefined' && 'dataLayer' in window) {
+        const selectedCount =
+          Object.values(selectedRequests).filter(Boolean).length;
+        window.dataLayer.push({
+          event: 'button_click',
+          event_category: 'request_management',
+          event_action: 'click',
+          event_label: 'regenerate_with_priority',
+          event_id: `regenerate-button`,
+          view_type: isMobile ? 'mobile' : 'desktop',
+          selected_count: selectedCount,
+          remaining_count: autoGenCnt,
+        });
+
+        // GA4 직접 이벤트 전송 (gtag 함수 사용)
+        if (typeof window.gtag === 'function') {
+          window.gtag('event', 'regenerate_with_priority', {
+            action_category: 'request_management',
+            view_type: isMobile ? 'mobile' : 'desktop',
+            selected_count: selectedCount,
+            remaining_count: autoGenCnt,
+          });
+        }
+      }
+
       // DEMO: autogenCnt 0 & demo 계정이면 회원가입 유도 모달
       if (autoGenCnt <= 0 && isDemo) {
         setIsDemoSignupModalOpen(true);
@@ -147,14 +225,62 @@ const UnreflectedRequestsModal: React.FC<UnreflectedRequestsModalProps> = ({
   const showMemoModal = (id: number, memo: string, e: React.MouseEvent) => {
     e.stopPropagation();
     if (!memo) return;
+
+    // GTM 이벤트 트래킹
+    if (typeof window !== 'undefined' && 'dataLayer' in window) {
+      window.dataLayer.push({
+        event: 'button_click',
+        event_category: 'request_management',
+        event_action: 'click',
+        event_label: 'show_memo',
+        event_id: `view-memo-button`,
+        view_type: isMobile ? 'mobile' : 'desktop',
+        request_index: id,
+      });
+    }
+
     setViewingMemo({ id, memo });
   };
 
   const closeMemoModal = () => {
+    // GTM 이벤트 트래킹
+    if (typeof window !== 'undefined' && 'dataLayer' in window) {
+      window.dataLayer.push({
+        event: 'button_click',
+        event_category: 'modal',
+        event_action: 'close',
+        event_label: 'memo_modal',
+        event_id: `close-memo-button`,
+        view_type: isMobile ? 'mobile' : 'desktop',
+      });
+    }
+
     setViewingMemo(null);
   };
 
   const handleComplete = async () => {
+    // GTM 이벤트 트래킹
+    if (typeof window !== 'undefined' && 'dataLayer' in window) {
+      window.dataLayer.push({
+        event: 'button_click',
+        event_category: 'request_management',
+        event_action: 'click',
+        event_label: 'complete_requests',
+        event_id: `complete-button`,
+        view_type: isMobile ? 'mobile' : 'desktop',
+        total_unreflected: unreflectedRequests.length,
+      });
+
+      // GA4 직접 이벤트 전송 (gtag 함수 사용)
+      if (typeof window.gtag === 'function') {
+        window.gtag('event', 'complete_requests', {
+          action_category: 'request_management',
+          view_type: isMobile ? 'mobile' : 'desktop',
+          total_unreflected: unreflectedRequests.length,
+        });
+      }
+    }
+
     try {
       setIsRejecting(true);
       const loadingToast = toast.loading(
@@ -182,6 +308,31 @@ const UnreflectedRequestsModal: React.FC<UnreflectedRequestsModalProps> = ({
     } finally {
       setIsRejecting(false);
     }
+  };
+
+  const handleCloseModal = () => {
+    // GTM 이벤트 트래킹
+    if (typeof window !== 'undefined' && 'dataLayer' in window) {
+      window.dataLayer.push({
+        event: 'button_click',
+        event_category: 'modal',
+        event_action: 'close',
+        event_label: 'unreflected_requests_modal',
+        event_id: `close-modal-button`,
+        view_type: isMobile ? 'mobile' : 'desktop',
+      });
+
+      // GA4 직접 이벤트 전송 (gtag 함수 사용)
+      if (typeof window.gtag === 'function') {
+        window.gtag('event', 'close_modal', {
+          action_category: 'modal',
+          modal_type: 'unreflected_requests',
+          view_type: isMobile ? 'mobile' : 'desktop',
+        });
+      }
+    }
+
+    onClose();
   };
 
   // 모달 외부 클릭 감지
@@ -218,7 +369,7 @@ const UnreflectedRequestsModal: React.FC<UnreflectedRequestsModalProps> = ({
       className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
       onClick={(e) => {
         if (e.target === e.currentTarget) {
-          onClose();
+          handleCloseModal();
         }
       }}
     >
@@ -232,8 +383,9 @@ const UnreflectedRequestsModal: React.FC<UnreflectedRequestsModalProps> = ({
             반려된 근무 요청
           </h2>
           <button
-            onClick={onClose}
+            onClick={handleCloseModal}
             className="text-primary hover:text-primary/80"
+            id="close-modal-button"
           >
             <span className="text-lg">×</span>
           </button>
@@ -275,6 +427,7 @@ const UnreflectedRequestsModal: React.FC<UnreflectedRequestsModalProps> = ({
                           className="h-3.5 w-3.5 text-primary rounded border-gray-300 focus:ring-primary"
                           checked={isAllSelected}
                           onChange={handleSelectAll}
+                          id="select-all-checkbox"
                         />
                       </div>
                     </th>
@@ -306,6 +459,7 @@ const UnreflectedRequestsModal: React.FC<UnreflectedRequestsModalProps> = ({
                             className="h-3.5 w-3.5 text-primary rounded border-gray-300 focus:ring-primary"
                             checked={!!selectedRequests[index]}
                             onChange={() => handleCheckboxChange(index)}
+                            id={`select-request-checkbox-${index}`}
                           />
                         </div>
                       </td>
@@ -328,6 +482,7 @@ const UnreflectedRequestsModal: React.FC<UnreflectedRequestsModalProps> = ({
                             onClick={(e) =>
                               showMemoModal(index, request.requestMemo, e)
                             }
+                            id={`view-memo-button-${index}`}
                           >
                             <Icon name="message" size={12} className="mr-0.5" />
                             <span className="underline">요청 사유</span>
@@ -423,6 +578,7 @@ const UnreflectedRequestsModal: React.FC<UnreflectedRequestsModalProps> = ({
                 className={
                   selectedCount === 0 ? 'opacity-50 cursor-not-allowed' : ''
                 }
+                id="regenerate-button"
               >
                 {isRegenerating ? (
                   <div className="flex items-center">
@@ -438,6 +594,7 @@ const UnreflectedRequestsModal: React.FC<UnreflectedRequestsModalProps> = ({
                 color="off"
                 onClick={handleComplete}
                 disabled={isRejecting}
+                id="complete-button"
               >
                 완료
               </Button>
@@ -461,6 +618,7 @@ const UnreflectedRequestsModal: React.FC<UnreflectedRequestsModalProps> = ({
                 <button
                   onClick={closeMemoModal}
                   className="text-gray-500 hover:text-gray-700"
+                  id="close-memo-button"
                 >
                   <Icon name="close" size={16} />
                 </button>

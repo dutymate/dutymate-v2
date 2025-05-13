@@ -14,6 +14,14 @@ import {
 import { HiX } from 'react-icons/hi';
 import useUserAuthStore from '@/stores/userAuthStore';
 
+// GA4 타입 선언 (전역 Window 타입에 gtag 추가)
+declare global {
+  interface Window {
+    dataLayer: any[];
+    gtag?: (...args: any[]) => void;
+  }
+}
+
 // 설문 관련 상수 정의
 const SURVEY_COOKIE_NAME = 'dutyMateSurveySubmitted';
 const SURVEY_COOKIE_EXPIRY_DAYS = 7;
@@ -79,6 +87,21 @@ const SurveyModal = ({ isOpen, onClose }: SurveyModalProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   // 제출 프로세스 중인지 추적하는 ref
   const isSubmittingRef = useRef(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // 모바일 여부 확인
+  useEffect(() => {
+    const checkIsMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkIsMobile();
+    window.addEventListener('resize', checkIsMobile);
+
+    return () => {
+      window.removeEventListener('resize', checkIsMobile);
+    };
+  }, []);
 
   const {
     register,
@@ -171,6 +194,26 @@ const SurveyModal = ({ isOpen, onClose }: SurveyModalProps) => {
     setIsSubmitting(true);
     // 제출 프로세스 시작 표시
     isSubmittingRef.current = true;
+
+    // GTM 이벤트 트래킹
+    if (typeof window !== 'undefined' && 'dataLayer' in window) {
+      window.dataLayer.push({
+        event: 'button_click',
+        event_category: 'survey',
+        event_action: 'submit',
+        event_label: 'survey_submission',
+        event_id: `submit-survey-button`,
+        view_type: isMobile ? 'mobile' : 'desktop',
+      });
+
+      // GA4 직접 이벤트 전송 (gtag 함수 사용)
+      if (typeof window.gtag === 'function') {
+        window.gtag('event', 'survey_submit', {
+          action_category: 'survey',
+          view_type: isMobile ? 'mobile' : 'desktop',
+        });
+      }
+    }
 
     try {
       // Google 스프레드시트로 데이터 전송
@@ -411,12 +454,38 @@ const SurveyModal = ({ isOpen, onClose }: SurveyModalProps) => {
     currentStep === 'feedback' ||
     currentStep === 'userInfo';
 
+  const handleCloseModal = () => {
+    // GTM 이벤트 트래킹
+    if (typeof window !== 'undefined' && 'dataLayer' in window) {
+      window.dataLayer.push({
+        event: 'button_click',
+        event_category: 'modal',
+        event_action: 'close',
+        event_label: 'survey_modal',
+        event_id: `close-survey-button`,
+        view_type: isMobile ? 'mobile' : 'desktop',
+      });
+
+      // GA4 직접 이벤트 전송 (gtag 함수 사용)
+      if (typeof window.gtag === 'function') {
+        window.gtag('event', 'close_modal', {
+          action_category: 'modal',
+          modal_type: 'survey',
+          view_type: isMobile ? 'mobile' : 'desktop',
+        });
+      }
+    }
+
+    onClose();
+  };
+
   const modalContent = (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm overflow-y-auto py-4">
       <div className="relative bg-white rounded-2xl shadow-xl p-6 w-[90%] md:w-[420px] max-w-full">
         <button
-          onClick={onClose}
+          onClick={handleCloseModal}
           className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 transition-colors bg-gray-100 rounded-full p-1.5"
+          id="close-survey-button"
         >
           <HiX className="w-4 h-4" />
         </button>
@@ -824,6 +893,7 @@ const SurveyModal = ({ isOpen, onClose }: SurveyModalProps) => {
                   ? 'bg-duty-night text-white hover:bg-duty-night-dark shadow-sm'
                   : 'bg-gray-200 text-gray-400 cursor-not-allowed'
               }`}
+              id={isLastStep ? 'submit-survey-button' : 'next-step-button'}
             >
               {isLastStep ? (
                 isSubmitting ? (

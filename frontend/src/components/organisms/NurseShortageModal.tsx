@@ -3,6 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/atoms/Button';
 import { Icon } from '@/components/atoms/Icon';
 
+// GA4 타입 선언 (전역 Window 타입에 gtag 추가)
+declare global {
+  interface Window {
+    dataLayer: any[];
+    gtag?: (...args: any[]) => void;
+  }
+}
+
 interface NurseShortageModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -29,9 +37,24 @@ const NurseShortageModal: React.FC<NurseShortageModalProps> = ({
   const [addedNurses, setAddedNurses] = useState(0);
   const [uiMode, setUiMode] = useState<'shortage' | 'complete'>('shortage');
   const [isAddingNurses, setIsAddingNurses] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   // 모달이 처음 열릴 때만 초기화하도록 플래그 사용
   const initializedRef = useRef(false);
+
+  // 모바일 여부 확인
+  useEffect(() => {
+    const checkIsMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkIsMobile();
+    window.addEventListener('resize', checkIsMobile);
+
+    return () => {
+      window.removeEventListener('resize', checkIsMobile);
+    };
+  }, []);
 
   useEffect(() => {
     if (isOpen && !initializedRef.current) {
@@ -61,12 +84,54 @@ const NurseShortageModal: React.FC<NurseShortageModalProps> = ({
   }, [isOpen, addedNurses, internalNeededCount]);
 
   const handleAddNurse = () => {
+    // GTM 이벤트 트래킹
+    if (typeof window !== 'undefined' && 'dataLayer' in window) {
+      window.dataLayer.push({
+        event: 'button_click',
+        event_category: 'nurse_management',
+        event_action: 'click',
+        event_label: 'goto_ward_admin',
+        event_id: `goto-ward-admin-button`,
+        view_type: isMobile ? 'mobile' : 'desktop',
+      });
+
+      // GA4 직접 이벤트 전송 (gtag 함수 사용)
+      if (typeof window.gtag === 'function') {
+        window.gtag('event', 'goto_ward_admin_click', {
+          action_category: 'nurse_management',
+          view_type: isMobile ? 'mobile' : 'desktop',
+        });
+      }
+    }
+
     onClose();
     navigate('/ward-admin');
   };
 
   const handleAddTemporary = async () => {
     if (tempNurseCount <= 0 || isAddingNurses) return;
+
+    // GTM 이벤트 트래킹
+    if (typeof window !== 'undefined' && 'dataLayer' in window) {
+      window.dataLayer.push({
+        event: 'button_click',
+        event_category: 'nurse_management',
+        event_action: 'click',
+        event_label: 'add_temp_nurse',
+        event_id: `add-temp-nurse-button`,
+        view_type: isMobile ? 'mobile' : 'desktop',
+        nurse_count: tempNurseCount,
+      });
+
+      // GA4 직접 이벤트 전송 (gtag 함수 사용)
+      if (typeof window.gtag === 'function') {
+        window.gtag('event', 'add_temp_nurse_click', {
+          action_category: 'nurse_management',
+          view_type: isMobile ? 'mobile' : 'desktop',
+          nurse_count: tempNurseCount,
+        });
+      }
+    }
 
     // 로딩 상태 설정
     setIsAddingNurses(true);
@@ -98,7 +163,101 @@ const NurseShortageModal: React.FC<NurseShortageModalProps> = ({
   };
 
   const handleAutoGenerate = () => {
+    // GTM 이벤트 트래킹
+    if (typeof window !== 'undefined' && 'dataLayer' in window) {
+      window.dataLayer.push({
+        event: 'button_click',
+        event_category: 'auto_generate',
+        event_action: 'click',
+        event_label: 'start_auto_generate',
+        event_id: `start-auto-generate-button`,
+        view_type: isMobile ? 'mobile' : 'desktop',
+      });
+
+      // GA4 직접 이벤트 전송 (gtag 함수 사용)
+      if (typeof window.gtag === 'function') {
+        window.gtag('event', 'start_auto_generate_click', {
+          action_category: 'auto_generate',
+          view_type: isMobile ? 'mobile' : 'desktop',
+        });
+      }
+    }
+
     executeAutoGenerate();
+    onClose();
+  };
+
+  const handleForceGenerate = async () => {
+    // GTM 이벤트 트래킹
+    if (typeof window !== 'undefined' && 'dataLayer' in window) {
+      window.dataLayer.push({
+        event: 'button_click',
+        event_category: 'auto_generate',
+        event_action: 'click',
+        event_label: 'force_generate',
+        event_id: `force-generate-button`,
+        view_type: isMobile ? 'mobile' : 'desktop',
+      });
+
+      // GA4 직접 이벤트 전송 (gtag 함수 사용)
+      if (typeof window.gtag === 'function') {
+        window.gtag('event', 'force_generate_click', {
+          action_category: 'auto_generate',
+          view_type: isMobile ? 'mobile' : 'desktop',
+        });
+      }
+    }
+
+    await onForceGenerate();
+  };
+
+  const handleDecreaseTempNurse = () => {
+    // GTM 이벤트 트래킹
+    if (typeof window !== 'undefined' && 'dataLayer' in window) {
+      window.dataLayer.push({
+        event: 'button_click',
+        event_category: 'nurse_management',
+        event_action: 'click',
+        event_label: 'decrease_temp_nurse',
+        event_id: `decrease-temp-nurse-button`,
+        view_type: isMobile ? 'mobile' : 'desktop',
+        current_count: tempNurseCount,
+      });
+    }
+
+    setTempNurseCount(Math.max(0, tempNurseCount - 1));
+  };
+
+  const handleIncreaseTempNurse = () => {
+    // GTM 이벤트 트래킹
+    if (typeof window !== 'undefined' && 'dataLayer' in window) {
+      window.dataLayer.push({
+        event: 'button_click',
+        event_category: 'nurse_management',
+        event_action: 'click',
+        event_label: 'increase_temp_nurse',
+        event_id: `increase-temp-nurse-button`,
+        view_type: isMobile ? 'mobile' : 'desktop',
+        current_count: tempNurseCount,
+      });
+    }
+
+    setTempNurseCount(Math.min(remainingNeeded, tempNurseCount + 1));
+  };
+
+  const handleCloseModal = () => {
+    // GTM 이벤트 트래킹
+    if (typeof window !== 'undefined' && 'dataLayer' in window) {
+      window.dataLayer.push({
+        event: 'button_click',
+        event_category: 'modal',
+        event_action: 'close',
+        event_label: 'nurse_shortage_modal',
+        event_id: `close-modal-button`,
+        view_type: isMobile ? 'mobile' : 'desktop',
+      });
+    }
+
     onClose();
   };
 
@@ -115,8 +274,9 @@ const NurseShortageModal: React.FC<NurseShortageModalProps> = ({
             {isShortageMode ? '간호사 인원이 부족해요' : '자동생성 준비 완료!'}
           </h2>
           <button
-            onClick={onClose}
+            onClick={handleCloseModal}
             className="text-primary hover:text-primary/80"
+            id="close-modal-button"
           >
             <Icon name="close" size={20} />
           </button>
@@ -152,11 +312,10 @@ const NurseShortageModal: React.FC<NurseShortageModalProps> = ({
               <h3 className="text-sm font-medium mb-3">임시 간호사 추가</h3>
               <div className="flex items-center justify-center gap-4 mb-2">
                 <button
-                  onClick={() =>
-                    setTempNurseCount(Math.max(0, tempNurseCount - 1))
-                  }
+                  onClick={handleDecreaseTempNurse}
                   className="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-600 hover:bg-gray-100 text-lg font-medium"
                   disabled={isAddingNurses}
+                  id="decrease-temp-nurse-button"
                 >
                   -
                 </button>
@@ -164,13 +323,10 @@ const NurseShortageModal: React.FC<NurseShortageModalProps> = ({
                   {tempNurseCount}
                 </span>
                 <button
-                  onClick={() =>
-                    setTempNurseCount(
-                      Math.min(remainingNeeded, tempNurseCount + 1)
-                    )
-                  }
+                  onClick={handleIncreaseTempNurse}
                   className="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-600 hover:bg-gray-100 text-lg font-medium"
                   disabled={tempNurseCount >= remainingNeeded || isAddingNurses}
+                  id="increase-temp-nurse-button"
                 >
                   +
                 </button>
@@ -212,6 +368,7 @@ const NurseShortageModal: React.FC<NurseShortageModalProps> = ({
                 onClick={handleAddTemporary}
                 disabled={tempNurseCount <= 0 || isAddingNurses}
                 className="!w-full"
+                id="add-temp-nurse-button"
               >
                 {isAddingNurses
                   ? '추가 중...'
@@ -223,6 +380,7 @@ const NurseShortageModal: React.FC<NurseShortageModalProps> = ({
                 color="primary"
                 onClick={handleAutoGenerate}
                 className="!w-full"
+                id="start-auto-generate-button"
               >
                 생성하기
               </Button>
@@ -234,6 +392,7 @@ const NurseShortageModal: React.FC<NurseShortageModalProps> = ({
                 onClick={handleAddNurse}
                 className={!isShortageMode ? '!w-full' : 'flex-1'}
                 disabled={isAddingNurses}
+                id="goto-ward-admin-button"
               >
                 병동 관리로 이동
               </Button>
@@ -241,9 +400,10 @@ const NurseShortageModal: React.FC<NurseShortageModalProps> = ({
                 <Button
                   size="sm"
                   color="evening"
-                  onClick={onForceGenerate}
+                  onClick={handleForceGenerate}
                   className="flex-1"
                   disabled={isAddingNurses}
+                  id="force-generate-button"
                 >
                   그대로 생성하기
                 </Button>

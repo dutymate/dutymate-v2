@@ -1,8 +1,16 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 import { Button } from '@/components/atoms/Button';
 import RuleEditModal from '@/components/organisms/RuleEditModal';
 import { WardRule } from '@/services/ruleService';
+
+// GA4 타입 선언 (전역 Window 타입에 gtag 추가)
+declare global {
+  interface Window {
+    dataLayer: any[];
+    gtag?: (...args: any[]) => void;
+  }
+}
 
 interface AutoGenerateConfirmModalProps {
   isOpen: boolean;
@@ -48,6 +56,23 @@ const AutoGenerateConfirmModal = ({
   wardRules,
   autoGenCnt,
 }: AutoGenerateConfirmModalProps) => {
+  // 모바일 여부 상태 추가
+  const [isMobile, setIsMobile] = useState(false);
+
+  // 모바일 여부 확인
+  useEffect(() => {
+    const checkIsMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkIsMobile();
+    window.addEventListener('resize', checkIsMobile);
+
+    return () => {
+      window.removeEventListener('resize', checkIsMobile);
+    };
+  }, []);
+
   // 열려있지 않거나 규칙이 없는 경우 렌더링하지 않음
   if (!isOpen) {
     return null;
@@ -74,12 +99,121 @@ const AutoGenerateConfirmModal = ({
 
   // 규칙 수정 모달 열기
   const handleOpenRuleEditModal = () => {
+    // GTM 이벤트 트래킹
+    if (typeof window !== 'undefined' && 'dataLayer' in window) {
+      window.dataLayer.push({
+        event: 'button_click',
+        event_category: 'rule_management',
+        event_action: 'click',
+        event_label: 'open_rule_edit',
+        event_id: `edit-rule-button`,
+        view_type: isMobile ? 'mobile' : 'desktop',
+      });
+
+      // GA4 직접 이벤트 전송 (gtag 함수 사용)
+      if (typeof window.gtag === 'function') {
+        window.gtag('event', 'open_rule_edit', {
+          action_category: 'rule_management',
+          view_type: isMobile ? 'mobile' : 'desktop',
+        });
+      }
+    }
+
     setIsRuleEditModalOpen(true);
   };
+
   // 규칙 수정 완료 처리
   const handleRuleUpdateFromAutoGenerate = (newRules: WardRule) => {
+    // GTM 이벤트 트래킹
+    if (typeof window !== 'undefined' && 'dataLayer' in window) {
+      window.dataLayer.push({
+        event: 'rule_update',
+        event_category: 'rule_management',
+        event_action: 'update',
+        event_label: 'rule_updated',
+        event_id: `rule-update`,
+        view_type: isMobile ? 'mobile' : 'desktop',
+      });
+    }
+
     setUpdatedRules(newRules);
     setIsRuleEditModalOpen(false);
+  };
+
+  // 확인 완료 버튼 클릭 처리
+  const handleConfirm = () => {
+    // GTM 이벤트 트래킹
+    if (typeof window !== 'undefined' && 'dataLayer' in window) {
+      window.dataLayer.push({
+        event: 'button_click',
+        event_category: 'auto_generate',
+        event_action: 'click',
+        event_label: 'confirm_rules',
+        event_id: `confirm-rules-button`,
+        view_type: isMobile ? 'mobile' : 'desktop',
+      });
+
+      // GA4 직접 이벤트 전송 (gtag 함수 사용)
+      if (typeof window.gtag === 'function') {
+        window.gtag('event', 'confirm_rules', {
+          action_category: 'auto_generate',
+          view_type: isMobile ? 'mobile' : 'desktop',
+        });
+      }
+    }
+
+    onConfirm();
+  };
+
+  // 모달 닫기 처리
+  const handleClose = () => {
+    // GTM 이벤트 트래킹
+    if (typeof window !== 'undefined' && 'dataLayer' in window) {
+      window.dataLayer.push({
+        event: 'button_click',
+        event_category: 'modal',
+        event_action: 'close',
+        event_label: 'auto_generate_confirm_modal',
+        event_id: `close-button`,
+        view_type: isMobile ? 'mobile' : 'desktop',
+      });
+
+      // GA4 직접 이벤트 전송 (gtag 함수 사용)
+      if (typeof window.gtag === 'function') {
+        window.gtag('event', 'close_modal', {
+          action_category: 'modal',
+          modal_type: 'auto_generate_confirm',
+          view_type: isMobile ? 'mobile' : 'desktop',
+        });
+      }
+    }
+
+    onClose();
+  };
+
+  // 전담 근무 배정하기 버튼 클릭 처리
+  const handleAssignDedicated = () => {
+    // GTM 이벤트 트래킹
+    if (typeof window !== 'undefined' && 'dataLayer' in window) {
+      window.dataLayer.push({
+        event: 'button_click',
+        event_category: 'ward_management',
+        event_action: 'click',
+        event_label: 'assign_dedicated',
+        event_id: `assign-dedicated-button`,
+        view_type: isMobile ? 'mobile' : 'desktop',
+      });
+
+      // GA4 직접 이벤트 전송 (gtag 함수 사용)
+      if (typeof window.gtag === 'function') {
+        window.gtag('event', 'assign_dedicated', {
+          action_category: 'ward_management',
+          view_type: isMobile ? 'mobile' : 'desktop',
+        });
+      }
+    }
+
+    window.location.href = '/ward-admin';
   };
 
   return (
@@ -88,7 +222,7 @@ const AutoGenerateConfirmModal = ({
         className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
         onClick={(e) => {
           if (e.target === e.currentTarget) {
-            onClose();
+            handleClose();
           }
         }}
       >
@@ -102,8 +236,9 @@ const AutoGenerateConfirmModal = ({
               병동 듀티 규칙 확인
             </h2>
             <button
-              onClick={onClose}
+              onClick={handleClose}
               className="text-primary hover:text-primary/80"
+              id="close-button"
             >
               <span className="text-lg">×</span>
             </button>
@@ -179,8 +314,9 @@ const AutoGenerateConfirmModal = ({
               <div className="flex items-center justify-end py-[0.5rem] border-b">
                 <div className="relative group">
                   <button
-                    onClick={() => (window.location.href = '/ward-admin')}
+                    onClick={handleAssignDedicated}
                     className="px-3 py-1 text-xs bg-primary text-white rounded-md hover:bg-primary-dark transition-colors"
+                    id="assign-dedicated-button"
                   >
                     전담 근무 배정하기
                   </button>
@@ -238,10 +374,20 @@ const AutoGenerateConfirmModal = ({
 
             {/* 버튼 영역 */}
             <div className="flex justify-end gap-[0.25rem] mt-[1rem]">
-              <Button size="xs" color="muted" onClick={handleOpenRuleEditModal}>
+              <Button
+                size="xs"
+                color="muted"
+                onClick={handleOpenRuleEditModal}
+                id="edit-rule-button"
+              >
                 수정하기
               </Button>
-              <Button size="xs" color="primary" onClick={onConfirm}>
+              <Button
+                size="xs"
+                color="primary"
+                onClick={handleConfirm}
+                id="confirm-rules-button"
+              >
                 확인 완료
               </Button>
             </div>

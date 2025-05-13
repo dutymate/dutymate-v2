@@ -25,6 +25,7 @@ interface ButtonProps {
   disabled?: boolean;
   className?: string;
   type?: 'button' | 'submit' | 'reset';
+  id?: string;
 }
 
 const sizeStyles: Record<ButtonSize, string> = {
@@ -138,6 +139,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       disabled,
       className,
       type = 'button',
+      id,
     },
     ref
   ) => {
@@ -147,6 +149,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         type={type}
         onClick={onClick}
         disabled={disabled}
+        id={id}
         className={`
         ${sizeStyles[size]} 
         ${fullWidth ? 'w-full' : widthStyles[width][size]}

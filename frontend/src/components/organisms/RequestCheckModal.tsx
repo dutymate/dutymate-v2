@@ -6,6 +6,14 @@ import ReqAdminTable from '@/components/organisms/ReqAdminTable';
 import { requestService, WardRequest } from '@/services/requestService';
 import { useRequestCountStore } from '@/stores/requestCountStore';
 
+// GA4 타입 선언 (전역 Window 타입에 gtag 추가)
+declare global {
+  interface Window {
+    dataLayer: any[];
+    gtag?: (...args: any[]) => void;
+  }
+}
+
 interface RequestCheckModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -20,8 +28,23 @@ const RequestCheckModal = ({
   const [requests, setRequests] = useState<WardRequest[]>([]);
   const [allRequests, setAllRequests] = useState<WardRequest[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
   const requestCount = useRequestCountStore((state) => state.count);
   const modalRef = useRef<HTMLDivElement>(null);
+
+  // 모바일 여부 확인
+  useEffect(() => {
+    const checkIsMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkIsMobile();
+    window.addEventListener('resize', checkIsMobile);
+
+    return () => {
+      window.removeEventListener('resize', checkIsMobile);
+    };
+  }, []);
 
   // 외부 클릭 감지
   useEffect(() => {
@@ -30,7 +53,7 @@ const RequestCheckModal = ({
         modalRef.current &&
         !modalRef.current.contains(event.target as Node)
       ) {
-        onClose();
+        handleClose();
       }
     };
 
@@ -63,6 +86,59 @@ const RequestCheckModal = ({
     }
   }, [isOpen]);
 
+  const handleClose = () => {
+    // GTM 이벤트 트래킹
+    if (typeof window !== 'undefined' && 'dataLayer' in window) {
+      window.dataLayer.push({
+        event: 'button_click',
+        event_category: 'modal',
+        event_action: 'close',
+        event_label: 'request_check_modal',
+        event_id: `close-modal-button`,
+        view_type: isMobile ? 'mobile' : 'desktop',
+      });
+
+      // GA4 직접 이벤트 전송 (gtag 함수 사용)
+      if (typeof window.gtag === 'function') {
+        window.gtag('event', 'close_modal', {
+          action_category: 'modal',
+          modal_type: 'request_check',
+          view_type: isMobile ? 'mobile' : 'desktop',
+        });
+      }
+    }
+
+    onClose();
+  };
+
+  const handleStartAutoGenerate = () => {
+    // GTM 이벤트 트래킹
+    if (typeof window !== 'undefined' && 'dataLayer' in window) {
+      window.dataLayer.push({
+        event: 'button_click',
+        event_category: 'auto_generate',
+        event_action: 'click',
+        event_label: 'start_auto_generate_from_request',
+        event_id: `start-auto-generate-button`,
+        view_type: isMobile ? 'mobile' : 'desktop',
+        pending_requests: requestCount,
+      });
+
+      // GA4 직접 이벤트 전송 (gtag 함수 사용)
+      if (typeof window.gtag === 'function') {
+        window.gtag('event', 'start_auto_generate', {
+          action_category: 'auto_generate',
+          from_request_modal: true,
+          view_type: isMobile ? 'mobile' : 'desktop',
+          pending_requests: requestCount,
+        });
+      }
+    }
+
+    onAutoGenerate();
+    handleClose();
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -70,7 +146,7 @@ const RequestCheckModal = ({
       className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-25"
       onClick={(e) => {
         if (e.target === e.currentTarget) {
-          onClose();
+          handleClose();
         }
       }}
     >
@@ -86,8 +162,9 @@ const RequestCheckModal = ({
             요청 확인 및 자동 생성
           </h2>
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="text-primary hover:text-primary/80"
+            id="close-modal-button"
           >
             <IoMdClose className="w-5 h-5" />
           </button>
@@ -124,14 +201,12 @@ const RequestCheckModal = ({
               {/* 항상 버튼 표시 (requestCount에 따라 활성화/비활성화) */}
               <div className="flex justify-end mt-[0rem] mb-[1rem]">
                 <Button
-                  onClick={() => {
-                    onAutoGenerate();
-                    onClose();
-                  }}
+                  onClick={handleStartAutoGenerate}
                   size="md"
                   color="primary"
                   disabled={requestCount > 0}
-                  className="w-[12rem]"
+                  className="!h-[2.5rem]"
+                  id="start-auto-generate-button"
                 >
                   자동 생성 시작
                 </Button>

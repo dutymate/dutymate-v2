@@ -1,6 +1,15 @@
 import { useNavigate } from 'react-router-dom';
 import { Icon } from '@/components/atoms/Icon';
 import { Button } from '@/components/atoms/Button';
+import { useEffect, useState } from 'react';
+
+// GA4 타입 선언 (전역 Window 타입에 gtag 추가)
+declare global {
+  interface Window {
+    dataLayer: any[];
+    gtag?: (...args: any[]) => void;
+  }
+}
 
 interface NurseShortageAlertProps {
   shortage: number;
@@ -12,6 +21,69 @@ const NurseShortageAlert = ({
   onRuleButtonClick,
 }: NurseShortageAlertProps) => {
   const navigate = useNavigate();
+  const [isMobile, setIsMobile] = useState(false);
+
+  // 모바일 여부 확인
+  useEffect(() => {
+    const checkIsMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkIsMobile();
+    window.addEventListener('resize', checkIsMobile);
+
+    return () => {
+      window.removeEventListener('resize', checkIsMobile);
+    };
+  }, []);
+
+  const handleAddNurse = () => {
+    // GTM 이벤트 트래킹
+    if (typeof window !== 'undefined' && 'dataLayer' in window) {
+      window.dataLayer.push({
+        event: 'button_click',
+        event_category: 'nurse_management',
+        event_action: 'click',
+        event_label: 'add_nurse',
+        event_id: `add-nurse-button`,
+        view_type: isMobile ? 'mobile' : 'desktop',
+      });
+
+      // GA4 직접 이벤트 전송 (gtag 함수 사용)
+      if (typeof window.gtag === 'function') {
+        window.gtag('event', 'add_nurse_click', {
+          action_category: 'nurse_management',
+          view_type: isMobile ? 'mobile' : 'desktop',
+        });
+      }
+    }
+
+    navigate('/ward-admin');
+  };
+
+  const handleRuleEdit = () => {
+    // GTM 이벤트 트래킹
+    if (typeof window !== 'undefined' && 'dataLayer' in window) {
+      window.dataLayer.push({
+        event: 'button_click',
+        event_category: 'rule_management',
+        event_action: 'click',
+        event_label: 'edit_rule',
+        event_id: `edit-rule-button`,
+        view_type: isMobile ? 'mobile' : 'desktop',
+      });
+
+      // GA4 직접 이벤트 전송 (gtag 함수 사용)
+      if (typeof window.gtag === 'function') {
+        window.gtag('event', 'edit_rule_click', {
+          action_category: 'rule_management',
+          view_type: isMobile ? 'mobile' : 'desktop',
+        });
+      }
+    }
+
+    onRuleButtonClick();
+  };
 
   if (shortage <= 0) return null;
 
@@ -35,11 +107,19 @@ const NurseShortageAlert = ({
               <Button
                 size="sm"
                 color="evening"
-                onClick={() => navigate('/ward-admin')}
+                onClick={handleAddNurse}
+                className="add-nurse-button-desktop"
+                id="add-nurse-button"
               >
                 간호사 추가
               </Button>
-              <Button size="sm" color="primary" onClick={onRuleButtonClick}>
+              <Button
+                size="sm"
+                color="primary"
+                onClick={handleRuleEdit}
+                className="edit-rule-button-desktop"
+                id="edit-rule-button"
+              >
                 규칙 수정
               </Button>
             </div>
@@ -65,16 +145,18 @@ const NurseShortageAlert = ({
             <Button
               size="sm"
               color="evening"
-              onClick={() => navigate('/ward-admin')}
+              onClick={handleAddNurse}
               className="flex-1"
+              id="add-nurse-button"
             >
               간호사 추가
             </Button>
             <Button
               size="sm"
               color="primary"
-              onClick={onRuleButtonClick}
+              onClick={handleRuleEdit}
               className="flex-1"
+              id="edit-rule-button"
             >
               규칙 수정
             </Button>
