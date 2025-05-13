@@ -51,7 +51,7 @@ export const WebViewScreen = ({ navigation }: WebViewScreenProps) => {
 	}, [handleAndroidBackPress]);
 
 	return (
-		<Layout backgroundColor={"bg-base-muted-30"}>
+		<Layout isWebView>
 			<SafeAreaView className={"flex-1"} style={styles.safeAreaView}>
 				<WebView
 					ref={webViewRef}
