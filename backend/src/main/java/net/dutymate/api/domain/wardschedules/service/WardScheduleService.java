@@ -455,6 +455,27 @@ public class WardScheduleService {
 				wm -> wm
 			));
 
+		// 탈퇴 회원 처리: 누락된 memberId에 대해 더미 WardMember 생성
+		for (Long memberId : memberIds) {
+			if (!wardMemberMap.containsKey(memberId)) {
+				// 더미 Member 생성
+				Member deletedMember = Member.builder()
+					.memberId(memberId)
+					.name("(탈퇴회원)")
+					.role(Role.RN)
+					.grade(1)
+					.build();
+
+				// 더미 WardMember 생성
+				WardMember dummyWardMember = WardMember.builder()
+					.member(deletedMember)
+					.shiftType(ShiftType.ALL)
+					.build();
+
+				wardMemberMap.put(memberId, dummyWardMember);
+			}
+		}
+
 		// 5. NurseShift를 AllNurseShift로 변환하고 정렬
 		List<AllWardDutyResponseDto.AllNurseShift> nurseShiftList = latestSchedule.getDuty().stream()
 			.map(nurseShift -> {
