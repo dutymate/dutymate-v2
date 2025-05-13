@@ -268,16 +268,16 @@ const SurveyModal = ({ isOpen, onClose }: SurveyModalProps) => {
 
     // 설문 응답 데이터 추가
     formData += `Satisfaction=${encodeURIComponent(
-      data.satisfaction.toString(),
+      data.satisfaction.toString()
     )}`;
     formData += `&FavoriteFeatures=${encodeURIComponent(
-      data.favoriteFeatures.join(', '),
+      data.favoriteFeatures.join(', ')
     )}`;
     if (data.customFeature) {
       formData += `&CustomFeature=${encodeURIComponent(data.customFeature)}`;
     }
     formData += `&Recommendation=${encodeURIComponent(
-      data.recommendation.toString(),
+      data.recommendation.toString()
     )}`;
     if (data.feedback) {
       formData += `&Feedback=${encodeURIComponent(data.feedback)}`;
@@ -302,7 +302,7 @@ const SurveyModal = ({ isOpen, onClose }: SurveyModalProps) => {
 
     formData += `&SubmissionDate=${encodeURIComponent(koreaTimeString)}`;
     formData += `&SubmissionDateLocal=${encodeURIComponent(
-      now.toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' }),
+      now.toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })
     )}`;
 
     // 로그인한 사용자 정보 추가
@@ -310,7 +310,7 @@ const SurveyModal = ({ isOpen, onClose }: SurveyModalProps) => {
       formData += `&UserName=${encodeURIComponent(userInfo.name)}`;
 
       formData += `&MemberId=${encodeURIComponent(
-        userInfo.memberId.toString(),
+        userInfo.memberId.toString()
       )}`;
 
       formData += `&UserRole=${encodeURIComponent(userInfo.role || '')}`;
@@ -703,8 +703,8 @@ const SurveyModal = ({ isOpen, onClose }: SurveyModalProps) => {
                                 field.value === value
                                   ? 'bg-duty-night text-white'
                                   : field.value > 0
-                                  ? 'bg-white border-2 border-gray-200'
-                                  : 'bg-white border-2 border-gray-200'
+                                    ? 'bg-white border-2 border-gray-200'
+                                    : 'bg-white border-2 border-gray-200'
                               }`}
                             >
                               {value}

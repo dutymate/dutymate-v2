@@ -101,13 +101,13 @@ const TodayShiftModal = ({
     'create' | 'view' | 'edit'
   >('create');
   const [selectedSchedule, setSelectedSchedule] = useState<ScheduleType | null>(
-    null,
+    null
   );
   const [isEnteringWard, setIsEnteringWard] = useState(false);
   const { userInfo, setUserInfo } = useUserAuthStore();
   const dateKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
     2,
-    '0',
+    '0'
   )}-${String(date.getDate()).padStart(2, '0')}`;
   const schedules = schedulesByDate[dateKey] || [];
   const [isColorModalOpen, setIsColorModalOpen] = useState(false);
@@ -161,13 +161,13 @@ const TodayShiftModal = ({
     try {
       // schedulesByDate 상태 직접 업데이트
       const dateKey = `${date.getFullYear()}-${String(
-        date.getMonth() + 1,
+        date.getMonth() + 1
       ).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
       setSchedulesByDate((prev) => ({
         ...prev,
         [dateKey]:
           prev[dateKey]?.filter(
-            (schedule) => schedule.calendarId !== calendarId,
+            (schedule) => schedule.calendarId !== calendarId
           ) || [],
       }));
 
@@ -189,7 +189,7 @@ const TodayShiftModal = ({
 
       // 날짜를 YYYY-MM-DD 형식으로 변환 (시간대 이슈 없이)
       const formattedDate = `${selectedDate.getFullYear()}-${String(
-        selectedDate.getMonth() + 1,
+        selectedDate.getMonth() + 1
       ).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}`;
 
       const req: CalendarCreateRequest = {
@@ -229,7 +229,7 @@ const TodayShiftModal = ({
       // 바로 UI 업데이트를 위한 새로고침
       await fetchAllSchedulesForMonth(
         selectedDate.getFullYear(),
-        selectedDate.getMonth() + 1,
+        selectedDate.getMonth() + 1
       );
     } catch (error) {
       alert('일정 저장에 실패했습니다.');
@@ -255,7 +255,7 @@ const TodayShiftModal = ({
       // 날짜를 YYYY-MM-DD 형식으로 변환
       // getDate()는 해당 날짜의 일(day)을 반환 (시간대 조정 없이)
       const formattedDate = `${selectedDate.getFullYear()}-${String(
-        selectedDate.getMonth() + 1,
+        selectedDate.getMonth() + 1
       ).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}`;
 
       // API 호출을 통한 서버 데이터 업데이트
@@ -283,7 +283,7 @@ const TodayShiftModal = ({
       // 바로 UI 업데이트를 위한 새로고침
       await fetchAllSchedulesForMonth(
         selectedDate.getFullYear(),
-        selectedDate.getMonth() + 1,
+        selectedDate.getMonth() + 1
       );
     } catch (error) {
       alert('일정 수정에 실패했습니다.');
@@ -310,7 +310,7 @@ const TodayShiftModal = ({
     ...schedules.filter((s) => s.isAllDay),
     ...[...schedules.filter((s) => !s.isAllDay)].sort(
       (a, b) =>
-        parseTimeString(a.startTime ?? '') - parseTimeString(b.startTime ?? ''),
+        parseTimeString(a.startTime ?? '') - parseTimeString(b.startTime ?? '')
     ),
   ];
 
@@ -379,7 +379,7 @@ const TodayShiftModal = ({
 
   // 듀티 버튼 클릭 처리 함수
   const handleDutyBadgeClick = async (
-    type: 'day' | 'evening' | 'night' | 'off' | 'mid',
+    type: 'day' | 'evening' | 'night' | 'off' | 'mid'
   ) => {
     if (!date || !userInfo) return;
 
@@ -612,7 +612,7 @@ const TodayShiftModal = ({
               <div
                 className={`w-full ${
                   isMobile ? 'mb-2 p-1 rounded-lg' : 'mb-3 p-3 rounded-xl'
-                } bg-white border-2 border-primary-40 flex ${
+                } bg-white flex ${
                   isMobile
                     ? 'flex-row justify-center gap-1'
                     : 'flex-col items-center justify-center'
@@ -625,7 +625,10 @@ const TodayShiftModal = ({
                         <button
                           key={type}
                           type="button"
-                          onClick={() => onDutyTypeChange(type)}
+                          onClick={() => {
+                            onDutyTypeChange(type);
+                            handleDutyBadgeClick(type);
+                          }}
                           className={`rounded-lg focus:outline-none transition-all border-1 px-0.5 py-0.5 ${
                             selectedDutyType === type
                               ? 'ring-2'
@@ -647,7 +650,7 @@ const TodayShiftModal = ({
                             textColor={localDutyColors[type].text}
                           />
                         </button>
-                      ),
+                      )
                     )}
                   </div>
                 ) : (
@@ -657,7 +660,10 @@ const TodayShiftModal = ({
                         <button
                           key={type}
                           type="button"
-                          onClick={() => onDutyTypeChange(type)}
+                          onClick={() => {
+                            onDutyTypeChange(type);
+                            handleDutyBadgeClick(type);
+                          }}
                           className={`rounded-lg focus:outline-none transition-all border-1 px-0.5 py-0.5 ${
                             selectedDutyType === type
                               ? 'ring-2'
@@ -686,7 +692,10 @@ const TodayShiftModal = ({
                         <button
                           key={type}
                           type="button"
-                          onClick={() => onDutyTypeChange(type)}
+                          onClick={() => {
+                            onDutyTypeChange(type);
+                            handleDutyBadgeClick(type);
+                          }}
                           className={`rounded-lg focus:outline-none transition-all border-1 px-0.5 py-0.5 ${
                             selectedDutyType === type
                               ? 'ring-2'

@@ -84,7 +84,7 @@ const MyShift = () => {
   const fetchSchedules = async (date: Date) => {
     try {
       const dateKey = `${date.getFullYear()}-${String(
-        date.getMonth() + 1,
+        date.getMonth() + 1
       ).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
       const schedules = await fetchSchedulesFromService(date);
       setSchedulesByDate((prev) => ({
@@ -93,7 +93,7 @@ const MyShift = () => {
       }));
     } catch (error) {
       const dateKey = `${date.getFullYear()}-${String(
-        date.getMonth() + 1,
+        date.getMonth() + 1
       ).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
       setSchedulesByDate((prev) => ({
         ...prev,
@@ -110,7 +110,7 @@ const MyShift = () => {
         const today = new Date();
         const data = await dutyService.getMyDuty(
           today.getFullYear(),
-          today.getMonth() + 1,
+          today.getMonth() + 1
         );
         setMyDutyData(data);
         useLoadingStore.getState().setLoading(false);
@@ -135,13 +135,13 @@ const MyShift = () => {
           const day = i + 1;
           const date = new Date(year, month - 1, day);
           const dateKey = `${year}-${String(month).padStart(2, '0')}-${String(
-            day,
+            day
           ).padStart(2, '0')}`;
           return fetchSchedulesFromService(date).then((schedules) => ({
             dateKey,
             schedules,
           }));
-        }),
+        })
       );
       // 한 번에 상태 업데이트
       setSchedulesByDate((prev) => {
@@ -162,7 +162,7 @@ const MyShift = () => {
       const data = await dutyService.getMyDayDuty(
         date.getFullYear(),
         date.getMonth() + 1,
-        date.getDate(),
+        date.getDate()
       );
       setSelectedDate(date); // ✅ 데이터를 다 받아온 후 set
       setDayDutyData(data);
@@ -215,13 +215,13 @@ const MyShift = () => {
           const day = i + 1;
           const date = new Date(year, month - 1, day);
           const dateKey = `${year}-${String(month).padStart(2, '0')}-${String(
-            day,
+            day
           ).padStart(2, '0')}`;
           return fetchSchedulesFromService(date).then((schedules) => ({
             dateKey,
             schedules,
           }));
-        }),
+        })
       );
 
       // 한 번에 상태 업데이트
