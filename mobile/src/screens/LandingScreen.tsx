@@ -1,7 +1,7 @@
 import { Platform, StyleSheet } from "react-native";
 
 import { Button } from "@/components/button/Button";
-import { StyledText } from "@/components/styled/StyledText";
+import { StyledText } from "@/components/custom/StyledText";
 import { Layout } from "@/layout/Layout";
 
 /**
