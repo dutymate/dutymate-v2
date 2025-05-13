@@ -1,5 +1,8 @@
 package net.dutymate.api.domain.color;
 
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+
 import net.dutymate.api.domain.color.dto.ColorDto;
 import net.dutymate.api.domain.member.Member;
 
@@ -29,6 +32,7 @@ public class Color {
 	@OneToOne(fetch = FetchType.LAZY, optional = false)
 	@MapsId
 	@JoinColumn(name = "member_id", nullable = false)
+	@OnDelete(action = OnDeleteAction.CASCADE)
 	private Member member;
 
 	@Column(nullable = false)
