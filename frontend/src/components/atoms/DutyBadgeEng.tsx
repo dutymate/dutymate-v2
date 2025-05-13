@@ -1,3 +1,6 @@
+import useUserAuthStore from '@/stores/userAuthStore';
+import { convertDutyTypeSafe, getDutyColors } from '@/utils/dutyUtils';
+
 interface DutyBadgeEngProps {
   type: 'D' | 'E' | 'N' | 'O' | 'ALL' | 'X' | 'M';
   size?: 'xs' | 'sm' | 'md' | 'lg';
@@ -7,6 +10,9 @@ interface DutyBadgeEngProps {
   noRing?: boolean;
   customLabel?: string;
   useSmallText?: boolean;
+  useCustomColors?: boolean;
+  bgColor?: string;
+  textColor?: string;
 }
 
 const DutyBadgeEng = ({
@@ -17,7 +23,13 @@ const DutyBadgeEng = ({
   onClick,
   customLabel,
   useSmallText = false,
+  useCustomColors = false,
+  bgColor,
+  textColor,
 }: DutyBadgeEngProps) => {
+  const { userInfo } = useUserAuthStore();
+  const dutyColors = useCustomColors ? getDutyColors(userInfo?.color) : null;
+
   const sizeClasses = {
     xs: 'w-5 h-5 text-sm',
     sm: 'w-6 h-6 text-base',
@@ -46,13 +58,27 @@ const DutyBadgeEng = ({
 
   const badgeStyles = {
     filled: {
-      D: `bg-duty-day text-white ${isSelected ? `ring-2 ring-offset-2 ${getRingColor('D')}` : ''}`,
-      E: `bg-duty-evening text-white ${isSelected ? `ring-2 ring-offset-2 ${getRingColor('E')}` : ''}`,
-      N: `bg-duty-night text-white ${isSelected ? `ring-2 ring-offset-2 ${getRingColor('N')}` : ''}`,
-      O: `bg-duty-off text-white ${isSelected ? `ring-2 ring-offset-2 ${getRingColor('O')}` : ''}`,
-      ALL: `bg-base-foreground text-white ${isSelected ? `ring-2 ring-offset-2 ${getRingColor('ALL')}` : ''}`,
-      X: `bg-base-muted text-white font-bold ${isSelected ? `ring-2 ring-offset-2 ${getRingColor('X')}` : ''}`,
-      M: `bg-duty-mid text-white ${isSelected ? `ring-2 ring-offset-2 ${getRingColor('M')}` : ''}`,
+      D: `bg-duty-day text-white ${
+        isSelected ? `ring-2 ring-offset-2 ${getRingColor('D')}` : ''
+      }`,
+      E: `bg-duty-evening text-white ${
+        isSelected ? `ring-2 ring-offset-2 ${getRingColor('E')}` : ''
+      }`,
+      N: `bg-duty-night text-white ${
+        isSelected ? `ring-2 ring-offset-2 ${getRingColor('N')}` : ''
+      }`,
+      O: `bg-duty-off text-white ${
+        isSelected ? `ring-2 ring-offset-2 ${getRingColor('O')}` : ''
+      }`,
+      ALL: `bg-base-foreground text-white ${
+        isSelected ? `ring-2 ring-offset-2 ${getRingColor('ALL')}` : ''
+      }`,
+      X: `bg-base-muted text-white font-bold ${
+        isSelected ? `ring-2 ring-offset-2 ${getRingColor('X')}` : ''
+      }`,
+      M: `bg-duty-mid text-white ${
+        isSelected ? `ring-2 ring-offset-2 ${getRingColor('M')}` : ''
+      }`,
     },
     outline: {
       D: 'bg-white text-duty-day border-2 border-duty-day hover:ring-2 hover:ring-offset-2 hover:ring-duty-day focus:ring-2 focus:ring-offset-2 focus:ring-duty-day',
@@ -81,19 +107,70 @@ const DutyBadgeEng = ({
     return type;
   };
 
+  const getCustomStyle = () => {
+    if (!useCustomColors || !dutyColors) return {};
+
+    if (bgColor || textColor) {
+      if (variant === 'letter') {
+        return { color: textColor };
+      } else if (variant === 'outline') {
+        return {
+          color: textColor,
+          backgroundColor: '#FFFFFF',
+          border: `2px solid ${textColor}`,
+        };
+      } else {
+        return {
+          backgroundColor: bgColor,
+          color: textColor,
+          ...(isSelected && {
+            boxShadow: `0 0 0 2px white, 0 0 0 4px ${bgColor}`,
+          }),
+        };
+      }
+    }
+
+    if (type === 'ALL' || type === 'X') {
+      return {};
+    }
+
+    const dutyType = convertDutyTypeSafe(type);
+    const color = dutyColors[dutyType];
+
+    if (variant === 'letter') {
+      return { color: color.text };
+    } else if (variant === 'outline') {
+      return {
+        color: color.text,
+        backgroundColor: color.bg,
+      };
+    } else {
+      return {
+        backgroundColor: color.bg,
+        color: color.text,
+        ...(isSelected && {
+          boxShadow: `0 0 0 2px white, 0 0 0 4px ${color.bg}`,
+        }),
+      };
+    }
+  };
+
+  const customStyle = useCustomColors ? getCustomStyle() : {};
+
   return (
     <div
       onClick={onClick}
       translate="no"
       className={`
         ${sizeClasses[size]}
-        ${badgeStyles[variant][type]}
+        ${!useCustomColors ? badgeStyles[variant][type] : ''}
         flex items-center justify-center
         rounded-[9px] font-medium
         ${onClick ? 'cursor-pointer' : ''}
         transition-all duration-200
         ${useSmallText ? 'text-[0.875rem]' : 'text-md'}
       `}
+      style={customStyle}
     >
       {getDisplayText()}
     </div>

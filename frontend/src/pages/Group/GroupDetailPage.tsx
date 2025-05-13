@@ -507,8 +507,9 @@ const GroupDetailPage = () => {
                                   <DutyBadgeEng
                                     type={dutyInfo.duty as DutyType}
                                     size="xs"
-                                    variant="letter"
+                                    variant="outline"
                                     useSmallText
+                                    useCustomColors
                                   />
                                 </div>
                               </div>
