@@ -38,7 +38,12 @@ export function GoogleRedirect() {
           ...data,
           provider: 'google',
         });
-        toast.success('정상적으로 로그인되었습니다.');
+
+        const inviteToken = localStorage.getItem('inviteToken');
+        if (inviteToken) {
+          toast.success('정상적으로 로그인되었습니다.');
+          navigate(`/invite/${inviteToken}`);
+        }
 
         // 로그인 후 이동 로직
         if (!existAdditionalInfo) {

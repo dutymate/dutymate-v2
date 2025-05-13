@@ -102,7 +102,13 @@ const LoginForm = ({ onRequireVerification }: LoginFormProps) => {
       userAuthStore.setUserInfo(data);
       setTimeout(false);
       sessionStorage.removeItem('demo-start-time');
-      toast.success('정상적으로 로그인되었습니다.');
+
+      const inviteToken = localStorage.getItem('inviteToken');
+      if (inviteToken) {
+        toast.success('정상적으로 로그인되었습니다.');
+        navigate(`/invite/${inviteToken}`);
+        localStorage.removeItem('inviteToken');
+      }
 
       // 로그인 후 이동 로직
       if (!existAdditionalInfo) {

@@ -7,8 +7,9 @@ import PageLoadingSpinner from '@/components/atoms/Loadingspinner';
 import { Helmet } from 'react-helmet-async';
 
 const GroupInvitePage = () => {
-  const { inviteToken } = useParams();
   const navigate = useNavigate();
+  // const inviteToken = localStorage.getItem('inviteToken');]
+  const { inviteToken } = useParams();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [groupName, setGroupName] = useState<string | null>(null);
@@ -21,7 +22,17 @@ const GroupInvitePage = () => {
         return;
       }
 
+      const joinedToken = localStorage.getItem('inviteToken');
+      if (joinedToken === inviteToken) {
+        groupService.joinGroupByInvite(inviteToken);
+
+        navigate('/group');
+        return;
+      }
+
       try {
+        localStorage.setItem('inviteToken', inviteToken);
+
         setLoading(true);
         useLoadingStore.setState({ isLoading: true });
 
@@ -31,6 +42,7 @@ const GroupInvitePage = () => {
           setGroupName(response.groupName);
         }
 
+        sessionStorage.setItem('inviteToken', inviteToken);
         toast.success('그룹에 성공적으로 참여했습니다!');
 
         // 참여 후 그룹 목록 페이지로 이동
@@ -51,8 +63,6 @@ const GroupInvitePage = () => {
 
     joinGroup();
   }, [inviteToken, navigate]);
-
-  console.log('groupName :>> ', groupName);
 
   const baseUrl = import.meta.env.VITE_BASE_URL;
   const currentUrl = `${baseUrl}/invite/${inviteToken}`;
