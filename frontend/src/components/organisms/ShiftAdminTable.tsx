@@ -880,8 +880,28 @@ const ShiftAdminTable = memo(
 
         // 자동 생성 횟수 감소
         setAutoGenCnt((prev) => prev - 1);
-      } catch (error) {
-        toast.error('자동생성에 실패했습니다');
+      } catch (error: any) {
+        // 로딩 토스트 제거
+        toast.dismiss();
+
+        if (error.response) {
+          switch (error.response.status) {
+            case 401:
+              toast.error('로그인이 필요합니다.');
+              window.location.href = '/login';
+              break;
+            case 400:
+              toast.error('근무 일정을 찾을 수 없습니다.');
+              break;
+            case 405:
+              toast.info('모든 조건을 만족하는 최적의 근무표입니다.');
+              break;
+            default:
+              toast.error('자동생성에 실패했습니다');
+          }
+        } else {
+          toast.error('자동생성에 실패했습니다');
+        }
       } finally {
         setIsAutoCreating(false);
         setIsNurseShortageModalOpen(false);
