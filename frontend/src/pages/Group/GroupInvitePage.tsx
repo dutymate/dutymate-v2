@@ -8,7 +8,6 @@ import { Helmet } from 'react-helmet-async';
 
 const GroupInvitePage = () => {
   const navigate = useNavigate();
-  // const inviteToken = localStorage.getItem('inviteToken');]
   const { inviteToken } = useParams();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -22,40 +21,28 @@ const GroupInvitePage = () => {
         return;
       }
 
-      const joinedToken = localStorage.getItem('inviteToken');
-      if (joinedToken === inviteToken) {
-        groupService.joinGroupByInvite(inviteToken);
-
-        navigate('/group');
-        return;
-      }
-
       try {
-        localStorage.setItem('inviteToken', inviteToken);
-
         setLoading(true);
         useLoadingStore.setState({ isLoading: true });
 
-        // 그룹 참가 API 호출 (groupName이 포함된 응답을 받음)
+        // 그룹 참가 API 호출
         const response = await groupService.joinGroupByInvite(inviteToken);
         if (response && response.groupName) {
           setGroupName(response.groupName);
         }
 
-        sessionStorage.setItem('inviteToken', inviteToken);
         toast.success('그룹에 성공적으로 참여했습니다!');
-
-        // 참여 후 그룹 목록 페이지로 이동
         navigate('/group');
       } catch (error: any) {
         console.error('Failed to join group:', error);
         if (error && error.message) {
           setError(error.message);
-          toast.error(error);
+          toast.error(error.message);
         } else {
           setError('그룹 참여에 실패했습니다. 다시 시도해주세요.');
           toast.error('그룹 참여에 실패했습니다.');
         }
+      } finally {
         setLoading(false);
         useLoadingStore.setState({ isLoading: false });
       }

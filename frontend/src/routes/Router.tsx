@@ -1,5 +1,5 @@
-import { ReactElement } from 'react';
-import { Navigate, Route, Routes } from 'react-router-dom';
+import { ReactElement, useEffect } from 'react';
+import { Navigate, Route, Routes, useParams } from 'react-router-dom';
 
 import Community from '@/pages/Community';
 import CommunityDetailPage from '@/pages/CommunityDetailPage';
@@ -50,6 +50,24 @@ const ProtectedRoute = ({ element }: ProtectedRouteProps) => {
   return element;
 };
 
+const InviteRoute = ({ element }: ProtectedRouteProps) => {
+  const { inviteToken } = useParams();
+  const token = sessionStorage.getItem('user-auth-storage');
+
+  useEffect(() => {
+    if (inviteToken) {
+      console.log('Storing invite token:', inviteToken);
+      localStorage.setItem('inviteToken', inviteToken);
+    }
+  }, [inviteToken]);
+
+  if (!token) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return element;
+};
+
 const Router = () => {
   return (
     <Routes>
@@ -63,7 +81,7 @@ const Router = () => {
       {/* 그룹 초대 링크 - 로그인 필요 */}
       <Route
         path="/invite/:inviteToken"
-        element={<ProtectedRoute element={<GroupInvitePage />} />}
+        element={<InviteRoute element={<GroupInvitePage />} />}
       />
 
       {/* 로그인이 필요한 페이지 */}

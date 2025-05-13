@@ -40,9 +40,17 @@ export function GoogleRedirect() {
         });
 
         const inviteToken = localStorage.getItem('inviteToken');
+        console.log(
+          'Google login success - Checking invite token:',
+          inviteToken
+        );
+
         if (inviteToken) {
+          console.log('Found invite token, redirecting to invite page');
           toast.success('정상적으로 로그인되었습니다.');
           navigate(`/invite/${inviteToken}`);
+          localStorage.removeItem('inviteToken');
+          return;
         }
 
         // 로그인 후 이동 로직
