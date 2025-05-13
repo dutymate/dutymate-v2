@@ -31,6 +31,9 @@ const GroupInvitePage = () => {
           setGroupName(response.groupName);
         }
 
+        // 로컬 스토리지에서 inviteToken 제거
+        localStorage.removeItem('inviteToken');
+
         toast.success('그룹에 성공적으로 참여했습니다!');
         navigate('/group');
       } catch (error: any) {
