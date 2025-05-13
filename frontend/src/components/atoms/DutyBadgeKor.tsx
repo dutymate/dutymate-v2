@@ -1,10 +1,17 @@
 interface DutyBadgeProps {
   type: 'day' | 'evening' | 'night' | 'off' | 'mid';
   size?: 'xxs' | 'xs' | 'sm' | 'md';
+  bgColor?: string;
+  textColor?: string;
 }
 
-export const DutyBadgeKor = ({ type, size = 'md' }: DutyBadgeProps) => {
-  const badgeStyles = {
+export const DutyBadgeKor = ({
+  type,
+  size = 'md',
+  bgColor,
+  textColor,
+}: DutyBadgeProps) => {
+  const defaultBadgeStyles = {
     day: 'bg-duty-day-bg text-duty-day',
     evening: 'bg-duty-evening-bg text-duty-evening',
     night: 'bg-duty-night-bg text-duty-night',
@@ -41,6 +48,15 @@ export const DutyBadgeKor = ({ type, size = 'md' }: DutyBadgeProps) => {
     mid: '미드',
   };
 
+  // If custom colors are provided, use inline styles instead of Tailwind classes
+  const customStyle =
+    bgColor || textColor
+      ? {
+          backgroundColor: bgColor,
+          color: textColor,
+        }
+      : undefined;
+
   return (
     <span
       translate="no"
@@ -49,10 +65,11 @@ export const DutyBadgeKor = ({ type, size = 'md' }: DutyBadgeProps) => {
         ${roundedStyles[size]}
         font-semibold
         whitespace-nowrap
-        ${badgeStyles[type]}
-        ${type === 'off' ? borderWidthStyles[size] : ''}
+        ${!(bgColor || textColor) ? defaultBadgeStyles[type] : ''}
+        ${type === 'off' && !bgColor ? borderWidthStyles[size] : ''}
         ${sizeStyles[size]}
       `}
+      style={customStyle}
     >
       {badgeLabels[type]}
     </span>

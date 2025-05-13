@@ -13,6 +13,21 @@ interface UserInfo {
   existMyWard: boolean;
   sentWardCode: boolean;
   isDemo?: boolean; //데모 계정 여부 추가
+  color?: ColorTheme;
+}
+
+// 색상 테마 타입
+export interface ColorTheme {
+  dayBg: string;
+  dayText: string;
+  eveningBg: string;
+  eveningText: string;
+  nightBg: string;
+  nightText: string;
+  offBg: string;
+  offText: string;
+  midBg: string;
+  midText: string;
 }
 
 // 부가 정보 타입

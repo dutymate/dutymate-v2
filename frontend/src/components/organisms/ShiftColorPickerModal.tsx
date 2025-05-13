@@ -1,6 +1,9 @@
-import { useState, useEffect } from 'react';
+import { DutyBadgeKor } from '@/components/atoms/DutyBadgeKor';
+import { dutyService } from '@/services/dutyService';
+import { useUserAuthStore } from '@/stores/userAuthStore';
+import { useEffect, useState } from 'react';
 import { HexColorPicker } from 'react-colorful';
-import { DutyBadgeKor } from '@/components/atoms/DutyBadgeKor'; // Updated import
+import { toast } from 'react-toastify';
 
 const dutyTypes = ['day', 'off', 'evening', 'night', 'mid'] as const;
 type DutyType = (typeof dutyTypes)[number];
@@ -23,10 +26,11 @@ const ShiftColorPickerModal = ({
   >(dutyColors as any);
   const [activeType, setActiveType] = useState<DutyType>('day');
   const [activeTab, setActiveTab] = useState<'bg' | 'text'>('bg');
+  const { userInfo, setUserInfo } = useUserAuthStore();
 
   useEffect(() => {
-    onChange(localColors);
-  }, [localColors, onChange]);
+    setLocalColors(dutyColors);
+  }, [dutyColors]);
 
   if (!open) return null;
 
@@ -39,6 +43,46 @@ const ShiftColorPickerModal = ({
       ...prev,
       [type]: { ...prev[type], [mode]: color },
     }));
+    onChange({
+      ...localColors,
+      [type]: {
+        ...localColors[type],
+        [mode]: color,
+      },
+    });
+  };
+
+  const handleSaveColors = async () => {
+    try {
+      const colorUpdate = {
+        dayBg: localColors.day.bg.replace('#', ''),
+        dayText: localColors.day.text.replace('#', ''),
+        eveningBg: localColors.evening.bg.replace('#', ''),
+        eveningText: localColors.evening.text.replace('#', ''),
+        nightBg: localColors.night.bg.replace('#', ''),
+        nightText: localColors.night.text.replace('#', ''),
+        offBg: localColors.off.bg.replace('#', ''),
+        offText: localColors.off.text.replace('#', ''),
+        midBg: localColors.mid.bg.replace('#', ''),
+        midText: localColors.mid.text.replace('#', ''),
+      };
+
+      // 색상 store에 저장
+      if (userInfo) {
+        setUserInfo({
+          ...userInfo,
+          color: colorUpdate,
+        });
+
+        await dutyService.updateDutyColors(colorUpdate);
+        toast.success('색상 설정이 저장되었습니다.');
+      }
+
+      onClose();
+    } catch (error) {
+      toast.error('색상 저장에 실패했습니다.');
+      console.error('Error saving colors:', error);
+    }
   };
 
   return (
@@ -67,18 +111,27 @@ const ShiftColorPickerModal = ({
             {dutyTypes.map((type) => (
               <span
                 key={type}
-                className={`inline-flex items-center justify-center rounded-[9px] font-semibold whitespace-nowrap text-sm w-[48px] h-[28px] border cursor-pointer transition-all ${activeType === type ? 'ring-2 ring-gray-300' : 'border-gray-200'}`}
-                style={{
-                  background: localColors[type].bg,
-                  color: localColors[type].text,
-                }}
+                className={`rounded-lg inline-flex items-center justify-center cursor-pointer transition-all px-0.5 py-0.5 border-1 ${
+                  activeType === type ? 'ring-2' : 'border-gray-200'
+                }`}
+                style={
+                  activeType === type
+                    ? ({
+                        '--tw-ring-color': localColors[type].bg,
+                      } as React.CSSProperties)
+                    : {}
+                }
                 onClick={() => {
                   setActiveType(type);
                   setActiveTab('bg');
                 }}
               >
-                <DutyBadgeKor type={type} size="xxs" />{' '}
-                {/* Updated component */}
+                <DutyBadgeKor
+                  type={type}
+                  size="xxs"
+                  bgColor={localColors[type].bg}
+                  textColor={localColors[type].text}
+                />
               </span>
             ))}
           </div>
@@ -89,13 +142,21 @@ const ShiftColorPickerModal = ({
           <div>
             <div className="flex gap-2 mb-4">
               <button
-                className={`flex-1 py-2 rounded-lg font-semibold text-sm border ${activeTab === 'bg' ? 'bg-primary text-white border-primary' : 'bg-white text-primary border-gray-200'}`}
+                className={`flex-1 py-2 rounded-lg font-semibold text-sm border ${
+                  activeTab === 'bg'
+                    ? 'bg-primary text-white border-primary'
+                    : 'bg-white text-primary border-gray-200'
+                }`}
                 onClick={() => setActiveTab('bg')}
               >
                 배경색
               </button>
               <button
-                className={`flex-1 py-2 rounded-lg font-semibold text-sm border ${activeTab === 'text' ? 'bg-primary text-white border-primary' : 'bg-white text-primary border-gray-200'}`}
+                className={`flex-1 py-2 rounded-lg font-semibold text-sm border ${
+                  activeTab === 'text'
+                    ? 'bg-primary text-white border-primary'
+                    : 'bg-white text-primary border-gray-200'
+                }`}
                 onClick={() => setActiveTab('text')}
               >
                 텍스트 색상
@@ -133,7 +194,7 @@ const ShiftColorPickerModal = ({
         <div className="px-6 py-4 bg-white border-t border-gray-200">
           <button
             className="w-full py-3 rounded-lg bg-white border border-primary text-primary font-bold hover:bg-primary hover:text-white transition-colors shadow-sm"
-            onClick={onClose}
+            onClick={handleSaveColors}
           >
             완료
           </button>

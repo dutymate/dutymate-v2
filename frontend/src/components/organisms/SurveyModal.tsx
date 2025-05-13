@@ -267,12 +267,18 @@ const SurveyModal = ({ isOpen, onClose }: SurveyModalProps) => {
     let formData = '';
 
     // 설문 응답 데이터 추가
-    formData += `Satisfaction=${encodeURIComponent(data.satisfaction.toString())}`;
-    formData += `&FavoriteFeatures=${encodeURIComponent(data.favoriteFeatures.join(', '))}`;
+    formData += `Satisfaction=${encodeURIComponent(
+      data.satisfaction.toString(),
+    )}`;
+    formData += `&FavoriteFeatures=${encodeURIComponent(
+      data.favoriteFeatures.join(', '),
+    )}`;
     if (data.customFeature) {
       formData += `&CustomFeature=${encodeURIComponent(data.customFeature)}`;
     }
-    formData += `&Recommendation=${encodeURIComponent(data.recommendation.toString())}`;
+    formData += `&Recommendation=${encodeURIComponent(
+      data.recommendation.toString(),
+    )}`;
     if (data.feedback) {
       formData += `&Feedback=${encodeURIComponent(data.feedback)}`;
     }
@@ -295,12 +301,18 @@ const SurveyModal = ({ isOpen, onClose }: SurveyModalProps) => {
     const koreaTimeString = koreaTime.toISOString().replace('Z', '+09:00'); // ISO 형식에 KST 표시
 
     formData += `&SubmissionDate=${encodeURIComponent(koreaTimeString)}`;
-    formData += `&SubmissionDateLocal=${encodeURIComponent(now.toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' }))}`;
+    formData += `&SubmissionDateLocal=${encodeURIComponent(
+      now.toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' }),
+    )}`;
 
     // 로그인한 사용자 정보 추가
     if (isAuthenticated && userInfo) {
       formData += `&UserName=${encodeURIComponent(userInfo.name)}`;
-      formData += `&MemberId=${encodeURIComponent(userInfo.memberId.toString())}`;
+
+      formData += `&MemberId=${encodeURIComponent(
+        userInfo.memberId.toString(),
+      )}`;
+
       formData += `&UserRole=${encodeURIComponent(userInfo.role || '')}`;
       if (userInfo.provider) {
         formData += `&Provider=${encodeURIComponent(userInfo.provider || '')}`;
@@ -691,8 +703,8 @@ const SurveyModal = ({ isOpen, onClose }: SurveyModalProps) => {
                                 field.value === value
                                   ? 'bg-duty-night text-white'
                                   : field.value > 0
-                                    ? 'bg-white border-2 border-gray-200'
-                                    : 'bg-white border-2 border-gray-200'
+                                  ? 'bg-white border-2 border-gray-200'
+                                  : 'bg-white border-2 border-gray-200'
                               }`}
                             >
                               {value}
@@ -871,7 +883,9 @@ const SurveyModal = ({ isOpen, onClose }: SurveyModalProps) => {
 
           {/* 버튼 */}
           <div
-            className={`flex ${currentStepIndex() > 0 ? 'justify-between' : 'justify-end'} pt-2`}
+            className={`flex ${
+              currentStepIndex() > 0 ? 'justify-between' : 'justify-end'
+            } pt-2`}
           >
             {currentStepIndex() > 0 && (
               <button

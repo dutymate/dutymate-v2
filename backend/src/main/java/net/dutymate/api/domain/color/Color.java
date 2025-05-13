@@ -73,8 +73,8 @@ public class Color {
 			.nightText("7454DF")
 			.offBg("E5E5E1")
 			.offText("999786")
-			.midBg("68A6FC")
-			.midText("FFFFFF")
+			.midBg("D2E5FD")
+			.midText("68A6FC")
 			.build();
 	}
 

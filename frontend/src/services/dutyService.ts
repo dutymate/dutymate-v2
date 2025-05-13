@@ -1,4 +1,5 @@
 import axiosInstance from '@/lib/axios';
+import axios from 'axios';
 
 // 타입 정의
 export interface DayDuty {
@@ -437,6 +438,18 @@ export const dutyService = {
             console.error('Error occurred:', error);
             throw error;
         }
+      }
+      throw error;
+    }
+  },
+
+  updateDutyColors: async (colors: any) => {
+    try {
+      const response = await axiosInstance.put('/duty/color', colors);
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        throw error.response?.data;
       }
       throw error;
     }

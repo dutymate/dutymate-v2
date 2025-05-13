@@ -1,26 +1,26 @@
-import { IoChevronBack, IoChevronForward } from 'react-icons/io5';
-import { IoMdClose } from 'react-icons/io';
 import { DutyBadgeKor } from '@/components/atoms/DutyBadgeKor';
-import { convertDutyType } from '@/utils/dutyUtils';
-import { useState } from 'react';
 import ScheduleEditModal from '@/components/organisms/ScheduleEditModal';
-import ShiftColorPickerModal from '@/components/organisms/ShiftColorPickerModal';
-// 상수를 컴포넌트 외부로 이동
 import {
+  convertDutyTypeSafe,
+  getDutyColorForCode,
+  getDutyColors,
+} from '@/utils/dutyUtils';
+import { useEffect, useState } from 'react';
+import { IoMdClose } from 'react-icons/io';
+import { IoChevronBack, IoChevronForward } from 'react-icons/io5';
+import type { ScheduleType } from '@/services/calendarService';
+import {
+  CalendarCreateRequest,
+  createCalendar,
   getCalendarById,
   updateCalendar,
-  createCalendar,
-  CalendarCreateRequest,
 } from '@/services/calendarService';
-import type { ScheduleType } from '@/services/calendarService';
 import { toast } from 'react-toastify';
-// import CustomButton from '@/components/atoms/CustomButton';
-// import EnterWardForm from './EnterWardForm';
-// import WaitingForApproval from './WaitingForApproval';
-import JoinWardGuideModal from './JoinWardGuideModal';
 import { wardService } from '@/services/wardService';
 import { useUserAuthStore } from '@/stores/userAuthStore';
 import { dutyService } from '@/services/dutyService';
+import JoinWardGuideModal from './JoinWardGuideModal';
+import ShiftColorPickerModal from './ShiftColorPickerModal';
 const weekDays = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'] as const;
 type WeekDay = (typeof weekDays)[number];
 
@@ -60,6 +60,10 @@ interface TodayShiftModalProps {
   onDutyTypeChange: (type: 'day' | 'off' | 'evening' | 'night' | 'mid') => void;
   fetchAllSchedulesForMonth: (year: number, month: number) => Promise<void>;
   refreshMyDutyData?: () => Promise<void>;
+  dutyColors?: Record<
+    'day' | 'evening' | 'night' | 'off' | 'mid',
+    { bg: string; text: string }
+  >;
 }
 
 const colorClassMap: Record<string, string> = {
@@ -88,6 +92,7 @@ const TodayShiftModal = ({
   onDutyTypeChange,
   fetchAllSchedulesForMonth,
   refreshMyDutyData,
+  dutyColors: externalDutyColors,
 }: TodayShiftModalProps) => {
   if (!date) return null;
 
@@ -96,25 +101,39 @@ const TodayShiftModal = ({
     'create' | 'view' | 'edit'
   >('create');
   const [selectedSchedule, setSelectedSchedule] = useState<ScheduleType | null>(
-    null
+    null,
   );
   const [isEnteringWard, setIsEnteringWard] = useState(false);
   const { userInfo, setUserInfo } = useUserAuthStore();
-  const dateKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+  const dateKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
+    2,
+    '0',
+  )}-${String(date.getDate()).padStart(2, '0')}`;
   const schedules = schedulesByDate[dateKey] || [];
   const [isColorModalOpen, setIsColorModalOpen] = useState(false);
 
   const dutyTypes = ['day', 'off', 'evening', 'night', 'mid'] as const;
   type DutyType = (typeof dutyTypes)[number];
-  const [dutyColors, setDutyColors] = useState<
+
+  // Get user color settings from store or use default colors
+  const [localDutyColors, setLocalDutyColors] = useState<
     Record<DutyType, { bg: string; text: string }>
-  >({
-    day: { bg: '#dcfce7', text: '#222222' },
-    off: { bg: '#f3f4f6', text: '#222222' },
-    evening: { bg: '#fee2e2', text: '#222222' },
-    night: { bg: '#e0e7ff', text: '#222222' },
-    mid: { bg: '#dbeafe', text: '#222222' },
+  >(() => {
+    // 외부에서 전달받은 dutyColors가 있으면 그것을 사용
+    if (externalDutyColors) {
+      return externalDutyColors;
+    }
+
+    // 유틸리티 함수 사용
+    return getDutyColors(userInfo?.color);
   });
+
+  // 외부 dutyColors가 변경되면 로컬 상태도 업데이트
+  useEffect(() => {
+    if (externalDutyColors) {
+      setLocalDutyColors(externalDutyColors);
+    }
+  }, [externalDutyColors]);
 
   const MAX_SCHEDULES_PER_DAY = 10;
 
@@ -141,12 +160,14 @@ const TodayShiftModal = ({
   const handleDelete = async (calendarId: number) => {
     try {
       // schedulesByDate 상태 직접 업데이트
-      const dateKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+      const dateKey = `${date.getFullYear()}-${String(
+        date.getMonth() + 1,
+      ).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
       setSchedulesByDate((prev) => ({
         ...prev,
         [dateKey]:
           prev[dateKey]?.filter(
-            (schedule) => schedule.calendarId !== calendarId
+            (schedule) => schedule.calendarId !== calendarId,
           ) || [],
       }));
 
@@ -167,7 +188,9 @@ const TodayShiftModal = ({
       const selectedDate = new Date(date as Date);
 
       // 날짜를 YYYY-MM-DD 형식으로 변환 (시간대 이슈 없이)
-      const formattedDate = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}`;
+      const formattedDate = `${selectedDate.getFullYear()}-${String(
+        selectedDate.getMonth() + 1,
+      ).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}`;
 
       const req: CalendarCreateRequest = {
         title: data.title || '',
@@ -206,7 +229,7 @@ const TodayShiftModal = ({
       // 바로 UI 업데이트를 위한 새로고침
       await fetchAllSchedulesForMonth(
         selectedDate.getFullYear(),
-        selectedDate.getMonth() + 1
+        selectedDate.getMonth() + 1,
       );
     } catch (error) {
       alert('일정 저장에 실패했습니다.');
@@ -231,7 +254,9 @@ const TodayShiftModal = ({
 
       // 날짜를 YYYY-MM-DD 형식으로 변환
       // getDate()는 해당 날짜의 일(day)을 반환 (시간대 조정 없이)
-      const formattedDate = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}`;
+      const formattedDate = `${selectedDate.getFullYear()}-${String(
+        selectedDate.getMonth() + 1,
+      ).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}`;
 
       // API 호출을 통한 서버 데이터 업데이트
       const editData: CalendarCreateRequest = {
@@ -258,7 +283,7 @@ const TodayShiftModal = ({
       // 바로 UI 업데이트를 위한 새로고침
       await fetchAllSchedulesForMonth(
         selectedDate.getFullYear(),
-        selectedDate.getMonth() + 1
+        selectedDate.getMonth() + 1,
       );
     } catch (error) {
       alert('일정 수정에 실패했습니다.');
@@ -285,7 +310,7 @@ const TodayShiftModal = ({
     ...schedules.filter((s) => s.isAllDay),
     ...[...schedules.filter((s) => !s.isAllDay)].sort(
       (a, b) =>
-        parseTimeString(a.startTime ?? '') - parseTimeString(b.startTime ?? '')
+        parseTimeString(a.startTime ?? '') - parseTimeString(b.startTime ?? ''),
     ),
   ];
 
@@ -314,7 +339,9 @@ const TodayShiftModal = ({
       const period = hour < 12 ? '오전' : '오후';
       if (hour === 0) hour = 12;
       else if (hour > 12) hour -= 12;
-      return `${period} ${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+      return `${period} ${hour.toString().padStart(2, '0')}:${minute
+        .toString()
+        .padStart(2, '0')}`;
     }
     return timeStr;
   }
@@ -352,7 +379,7 @@ const TodayShiftModal = ({
 
   // 듀티 버튼 클릭 처리 함수
   const handleDutyBadgeClick = async (
-    type: 'day' | 'evening' | 'night' | 'off' | 'mid'
+    type: 'day' | 'evening' | 'night' | 'off' | 'mid',
   ) => {
     if (!date || !userInfo) return;
 
@@ -495,12 +522,18 @@ const TodayShiftModal = ({
           <div className="inline-block">
             <p className="text-base-foreground text-[1rem] mb-[0.25rem] lg:mb-[0.5rem]">
               오늘의 근무 일정은{' '}
-              <span className={`text-duty-${duty} font-medium`}>
+              <span
+                className={`text-duty-${duty} font-medium`}
+                style={{ color: localDutyColors[duty].bg }}
+              >
                 {duty.toUpperCase()}
               </span>{' '}
               입니다!
             </p>
-            <div className={`h-1 bg-duty-${duty}-bg w-full`} />
+            <div
+              className="h-[3px] w-full"
+              style={{ backgroundColor: localDutyColors[duty].bg }}
+            />
           </div>
         )}
       </div>
@@ -552,8 +585,16 @@ const TodayShiftModal = ({
                       {nurse.shift !== 'X' ? (
                         <div>
                           <DutyBadgeKor
-                            type={convertDutyType(nurse.shift)}
+                            type={convertDutyTypeSafe(nurse.shift)}
                             size="xxs"
+                            bgColor={
+                              getDutyColorForCode(nurse.shift, localDutyColors)
+                                .bg
+                            }
+                            textColor={
+                              getDutyColorForCode(nurse.shift, localDutyColors)
+                                .text
+                            }
                           />
                         </div>
                       ) : (
@@ -569,7 +610,13 @@ const TodayShiftModal = ({
             {/* 근무 종류 뱃지: userInfo.existMyWard가 false일 때만 표시 */}
             {!userInfo?.existMyWard && (
               <div
-                className={`w-full ${isMobile ? 'mb-2 p-1 rounded-lg' : 'mb-3 p-3 rounded-xl'} bg-white border-2 border-primary-40 flex ${isMobile ? 'flex-row justify-center gap-1' : 'flex-col items-center justify-center'} shrink-0`}
+                className={`w-full ${
+                  isMobile ? 'mb-2 p-1 rounded-lg' : 'mb-3 p-3 rounded-xl'
+                } bg-white border-2 border-primary-40 flex ${
+                  isMobile
+                    ? 'flex-row justify-center gap-1'
+                    : 'flex-col items-center justify-center'
+                } shrink-0`}
               >
                 {isMobile ? (
                   <div className="flex flex-row flex-wrap justify-center gap-1 w-full">
@@ -578,27 +625,29 @@ const TodayShiftModal = ({
                         <button
                           key={type}
                           type="button"
-                          onClick={() => {
-                            onDutyTypeChange(type);
-                            handleDutyBadgeClick(type);
-                          }}
-                          className={`rounded-lg focus:outline-none transition-all border-2 px-0.5 py-0.5 ${
+                          onClick={() => onDutyTypeChange(type)}
+                          className={`rounded-lg focus:outline-none transition-all border-1 px-0.5 py-0.5 ${
                             selectedDutyType === type
-                              ? 'border-duty-' +
-                                type +
-                                ' shadow-duty-' +
-                                type +
-                                ' ring-2 ring-duty-' +
-                                type
+                              ? 'ring-2'
                               : 'border-transparent'
                           }`}
-                          style={{ lineHeight: 0 }}
+                          style={{
+                            lineHeight: 0,
+                            ...(selectedDutyType === type
+                              ? ({
+                                  '--tw-ring-color': localDutyColors[type].bg,
+                                } as React.CSSProperties)
+                              : {}),
+                          }}
                         >
-                          <span className={dutyColors[type].bg}>
-                            <DutyBadgeKor type={type} size="xxs" />
-                          </span>
+                          <DutyBadgeKor
+                            type={type}
+                            size="xxs"
+                            bgColor={localDutyColors[type].bg}
+                            textColor={localDutyColors[type].text}
+                          />
                         </button>
-                      )
+                      ),
                     )}
                   </div>
                 ) : (
@@ -608,25 +657,27 @@ const TodayShiftModal = ({
                         <button
                           key={type}
                           type="button"
-                          onClick={() => {
-                            onDutyTypeChange(type);
-                            handleDutyBadgeClick(type);
-                          }}
-                          className={`rounded-lg focus:outline-none transition-all border-2 px-0.5 py-0.5 ${
+                          onClick={() => onDutyTypeChange(type)}
+                          className={`rounded-lg focus:outline-none transition-all border-1 px-0.5 py-0.5 ${
                             selectedDutyType === type
-                              ? 'border-duty-' +
-                                type +
-                                ' shadow-duty-' +
-                                type +
-                                ' ring-2 ring-duty-' +
-                                type
+                              ? 'ring-2'
                               : 'border-transparent'
                           }`}
-                          style={{ lineHeight: 0 }}
+                          style={{
+                            lineHeight: 0,
+                            ...(selectedDutyType === type
+                              ? ({
+                                  '--tw-ring-color': localDutyColors[type].bg,
+                                } as React.CSSProperties)
+                              : {}),
+                          }}
                         >
-                          <span className={dutyColors[type].bg}>
-                            <DutyBadgeKor type={type} size="xxs" />
-                          </span>
+                          <DutyBadgeKor
+                            type={type}
+                            size="xxs"
+                            bgColor={localDutyColors[type].bg}
+                            textColor={localDutyColors[type].text}
+                          />
                         </button>
                       ))}
                     </div>
@@ -635,25 +686,27 @@ const TodayShiftModal = ({
                         <button
                           key={type}
                           type="button"
-                          onClick={() => {
-                            onDutyTypeChange(type);
-                            handleDutyBadgeClick(type);
-                          }}
-                          className={`rounded-lg focus:outline-none transition-all border-2 px-0.5 py-0.5 ${
+                          onClick={() => onDutyTypeChange(type)}
+                          className={`rounded-lg focus:outline-none transition-all border-1 px-0.5 py-0.5 ${
                             selectedDutyType === type
-                              ? 'border-duty-' +
-                                type +
-                                ' shadow-duty-' +
-                                type +
-                                ' ring-2 ring-duty-' +
-                                type
+                              ? 'ring-2'
                               : 'border-transparent'
                           }`}
-                          style={{ lineHeight: 0 }}
+                          style={{
+                            lineHeight: 0,
+                            ...(selectedDutyType === type
+                              ? ({
+                                  '--tw-ring-color': localDutyColors[type].bg,
+                                } as React.CSSProperties)
+                              : {}),
+                          }}
                         >
-                          <span className={dutyColors[type].bg}>
-                            <DutyBadgeKor type={type} size="xxs" />
-                          </span>
+                          <DutyBadgeKor
+                            type={type}
+                            size="xxs"
+                            bgColor={localDutyColors[type].bg}
+                            textColor={localDutyColors[type].text}
+                          />
                         </button>
                       ))}
                     </div>
@@ -663,7 +716,9 @@ const TodayShiftModal = ({
             )}
             {/* 일정 리스트 */}
             <div
-              className={`flex flex-col gap-1.5 flex-1 overflow-y-auto mb-2 ${isMobile ? 'max-h-[12rem]' : 'max-h-[25rem]'}`}
+              className={`flex flex-col gap-1.5 flex-1 overflow-y-auto mb-2 ${
+                isMobile ? 'max-h-[12rem]' : 'max-h-[25rem]'
+              }`}
             >
               {sortedSchedules.map((schedule) => (
                 <div
@@ -681,28 +736,40 @@ const TodayShiftModal = ({
                 >
                   {/* 색상 동그라미 */}
                   <span
-                    className={`${isMobile ? 'w-2.5 h-2.5 mt-1.5' : 'w-3 h-3 mt-2'} rounded-full flex-shrink-0 ${colorClassMap[schedule.color] || 'bg-gray-300'}`}
+                    className={`${
+                      isMobile ? 'w-2.5 h-2.5 mt-1.5' : 'w-3 h-3 mt-2'
+                    } rounded-full flex-shrink-0 ${
+                      colorClassMap[schedule.color] || 'bg-gray-300'
+                    }`}
                   />
                   {/* 시간 or 종일 */}
                   <div
-                    className={`relative min-w-[3rem] ${isMobile ? 'min-w-[2.8rem]' : 'min-w-[3.5rem]'} flex flex-col items-end justify-center flex-shrink-0`}
+                    className={`relative min-w-[3rem] ${
+                      isMobile ? 'min-w-[2.8rem]' : 'min-w-[3.5rem]'
+                    } flex flex-col items-end justify-center flex-shrink-0`}
                     style={{ height: isMobile ? '1.8rem' : '2.25rem' }}
                   >
                     {schedule.isAllDay ? (
                       <span
-                        className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-2.5 ${isMobile ? 'text-[10px]' : 'text-xs'} text-primary font-bold`}
+                        className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-2.5 ${
+                          isMobile ? 'text-[10px]' : 'text-xs'
+                        } text-primary font-bold`}
                       >
                         종일
                       </span>
                     ) : (
                       <>
                         <span
-                          className={`${isMobile ? 'text-[10px]' : 'text-xs'} text-gray-500`}
+                          className={`${
+                            isMobile ? 'text-[10px]' : 'text-xs'
+                          } text-gray-500`}
                         >
                           {formatTimeForDisplay(schedule.startTime ?? '')}
                         </span>
                         <span
-                          className={`${isMobile ? 'text-[10px]' : 'text-xs'} text-gray-400`}
+                          className={`${
+                            isMobile ? 'text-[10px]' : 'text-xs'
+                          } text-gray-400`}
                         >
                           {formatTimeForDisplay(schedule.endTime ?? '')}
                         </span>
@@ -711,7 +778,9 @@ const TodayShiftModal = ({
                   </div>
                   {/* 제목 */}
                   <div
-                    className={`flex-1 bg-gray-50 rounded-lg px-2 py-1 ${isMobile ? 'text-xs' : 'text-sm'} font-medium min-w-0`}
+                    className={`flex-1 bg-gray-50 rounded-lg px-2 py-1 ${
+                      isMobile ? 'text-xs' : 'text-sm'
+                    } font-medium min-w-0`}
                   >
                     <div className="truncate">{schedule.title}</div>
                     {isMobile && schedule.place && (
@@ -799,8 +868,8 @@ const TodayShiftModal = ({
         <ShiftColorPickerModal
           open={isColorModalOpen}
           onClose={() => setIsColorModalOpen(false)}
-          dutyColors={dutyColors}
-          onChange={setDutyColors}
+          dutyColors={localDutyColors}
+          onChange={setLocalDutyColors}
         />
       </>
     );
@@ -812,8 +881,8 @@ const TodayShiftModal = ({
       <ShiftColorPickerModal
         open={isColorModalOpen}
         onClose={() => setIsColorModalOpen(false)}
-        dutyColors={dutyColors}
-        onChange={setDutyColors}
+        dutyColors={localDutyColors}
+        onChange={setLocalDutyColors}
       />
     </>
   );

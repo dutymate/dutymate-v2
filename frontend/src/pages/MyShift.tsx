@@ -5,33 +5,20 @@ import { toast } from 'react-toastify';
 
 import DemoTimer from '@/components/atoms/DemoTimer';
 import Title from '@/components/atoms/Title';
+import KakaoPlaceModal from '@/components/organisms/KakaoPlaceModal';
 import MSidebar from '@/components/organisms/MSidebar';
 import MyShiftCalendar from '@/components/organisms/MyShiftCalendar';
-import Sidebar from '@/components/organisms/WSidebar';
 import TodayShiftModal from '@/components/organisms/TodayShiftModal';
+import Sidebar from '@/components/organisms/WSidebar';
 import { SEO } from '@/components/SEO';
+import type { ScheduleType } from '@/services/calendarService';
+import { fetchSchedules as fetchSchedulesFromService } from '@/services/calendarService';
 import { dutyService } from '@/services/dutyService';
 import { useLoadingStore } from '@/stores/loadingStore';
 import useUserAuthStore from '@/stores/userAuthStore';
-import KakaoPlaceModal from '@/components/organisms/KakaoPlaceModal';
-import type { ScheduleType } from '@/services/calendarService';
-import { fetchSchedules as fetchSchedulesFromService } from '@/services/calendarService';
+import { convertDutyTypeSafe, getDutyColors } from '@/utils/dutyUtils';
 
-// Duty 타입 변환 유틸리티 함수
-const convertDutyType = (
-  duty: 'D' | 'E' | 'N' | 'O' | 'M'
-): 'day' | 'evening' | 'night' | 'off' | 'mid' => {
-  const dutyMap = {
-    D: 'day',
-    E: 'evening',
-    N: 'night',
-    O: 'off',
-    M: 'mid',
-  } as const;
-  return dutyMap[duty];
-};
-
-// 일정 색상 클래스 매핑
+// 일정 색상 클래스 매핑 - 사용자 색상 대신 일정 색상용으로만 유지
 const colorClassMap: Record<string, string> = {
   FF43F3: 'bg-pink-400',
   '777777': 'bg-gray-400',
@@ -42,9 +29,6 @@ const colorClassMap: Record<string, string> = {
   FACC15: 'bg-yellow-400',
   FB923C: 'bg-orange-400',
 };
-
-// 일정 타입 정의 부분 삭제
-// type ScheduleType = { ... } 삭제
 
 const MyShift = () => {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -87,17 +71,24 @@ const MyShift = () => {
     'day' | 'off' | 'evening' | 'night' | 'mid'
   >('day');
 
+  // 사용자 색상 정보를 이용한 duty 색상 설정 - 유틸리티 함수 사용
+  const dutyColors = getDutyColors(userInfo?.color);
+
   // 캘린더 데이터 가져오기 함수 수정
   const fetchSchedules = async (date: Date) => {
     try {
-      const dateKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+      const dateKey = `${date.getFullYear()}-${String(
+        date.getMonth() + 1,
+      ).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
       const schedules = await fetchSchedulesFromService(date);
       setSchedulesByDate((prev) => ({
         ...prev,
         [dateKey]: schedules,
       }));
     } catch (error) {
-      const dateKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+      const dateKey = `${date.getFullYear()}-${String(
+        date.getMonth() + 1,
+      ).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
       setSchedulesByDate((prev) => ({
         ...prev,
         [dateKey]: [],
@@ -113,7 +104,7 @@ const MyShift = () => {
         const today = new Date();
         const data = await dutyService.getMyDuty(
           today.getFullYear(),
-          today.getMonth() + 1
+          today.getMonth() + 1,
         );
         setMyDutyData(data);
         useLoadingStore.getState().setLoading(false);
@@ -137,12 +128,14 @@ const MyShift = () => {
         Array.from({ length: daysInMonth }, (_, i) => {
           const day = i + 1;
           const date = new Date(year, month - 1, day);
-          const dateKey = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+          const dateKey = `${year}-${String(month).padStart(2, '0')}-${String(
+            day,
+          ).padStart(2, '0')}`;
           return fetchSchedulesFromService(date).then((schedules) => ({
             dateKey,
             schedules,
           }));
-        })
+        }),
       );
       // 한 번에 상태 업데이트
       setSchedulesByDate((prev) => {
@@ -163,12 +156,15 @@ const MyShift = () => {
       const data = await dutyService.getMyDayDuty(
         date.getFullYear(),
         date.getMonth() + 1,
-        date.getDate()
+        date.getDate(),
       );
       setSelectedDate(date); // ✅ 데이터를 다 받아온 후 set
       setDayDutyData(data);
-      setSelectedDuty(convertDutyType(data.myShift));
-      setSelectedDutyType(convertDutyType(data.myShift));
+
+      const dutyType = convertDutyTypeSafe(data.myShift);
+      setSelectedDuty(dutyType);
+      setSelectedDutyType(dutyType);
+
       await fetchSchedules(date);
     } catch (error) {
       toast.error('해당 날짜의 근무 정보가 없습니다.');
@@ -212,12 +208,14 @@ const MyShift = () => {
         Array.from({ length: daysInMonth }, (_, i) => {
           const day = i + 1;
           const date = new Date(year, month - 1, day);
-          const dateKey = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+          const dateKey = `${year}-${String(month).padStart(2, '0')}-${String(
+            day,
+          ).padStart(2, '0')}`;
           return fetchSchedulesFromService(date).then((schedules) => ({
             dateKey,
             schedules,
           }));
-        })
+        }),
       );
 
       // 한 번에 상태 업데이트
@@ -295,6 +293,7 @@ const MyShift = () => {
                   schedulesByDate={schedulesByDate}
                   colorClassMap={colorClassMap}
                   setSchedulesByDate={setSchedulesByDate}
+                  dutyColors={dutyColors}
                 />
               </div>
 
@@ -317,6 +316,7 @@ const MyShift = () => {
                     onDutyTypeChange={setSelectedDutyType}
                     fetchAllSchedulesForMonth={fetchAllSchedulesForMonth}
                     refreshMyDutyData={refreshMyDutyData}
+                    dutyColors={dutyColors}
                   />
                 ) : null}
               </div>
@@ -340,6 +340,7 @@ const MyShift = () => {
                     onDutyTypeChange={setSelectedDutyType}
                     fetchAllSchedulesForMonth={fetchAllSchedulesForMonth}
                     refreshMyDutyData={refreshMyDutyData}
+                    dutyColors={dutyColors}
                   />
                 ) : null}
               </div>

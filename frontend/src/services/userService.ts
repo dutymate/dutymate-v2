@@ -1,6 +1,7 @@
 import axios from 'axios';
 
 import axiosInstance from '@/lib/axios';
+import { ColorTheme } from '@/stores/userAuthStore';
 
 // Response Types
 export interface LoginResponse {
@@ -13,6 +14,8 @@ export interface LoginResponse {
   existMyWard: boolean;
   sentWardCode: boolean;
   provider: string;
+  color?: ColorTheme;
+  isDemo?: boolean;
 }
 
 interface AdditionalInfoRequest {

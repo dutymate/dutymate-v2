@@ -4,18 +4,20 @@ import { IoIosArrowBack, IoIosArrowForward } from 'react-icons/io';
 import { Button } from '@/components/atoms/Button';
 import { DutyBadgeKor } from '@/components/atoms/DutyBadgeKor';
 import ReqShiftModal from '@/components/organisms/ReqShiftModal';
+import type { ScheduleType } from '@/services/calendarService';
+import { useHolidayStore } from '@/stores/holidayStore';
+import { useUserAuthStore } from '@/stores/userAuthStore';
 import {
   WEEKDAYS,
   getCurrentMonthDays,
+  getDayOfWeek,
+  getHolidayInfo,
   getNextMonthDays,
   getPrevMonthDays,
-  isToday,
-  getDayOfWeek,
   isHoliday,
-  getHolidayInfo,
+  isToday,
 } from '@/utils/dateUtils';
-import { useHolidayStore } from '@/stores/holidayStore';
-import type { ScheduleType } from '@/services/calendarService';
+import { getDutyColors } from '@/utils/dutyUtils';
 
 interface MyShiftCalendarProps {
   onDateSelect: (date: Date) => void;
@@ -34,6 +36,8 @@ interface MyShiftCalendarProps {
     React.SetStateAction<Record<string, ScheduleType[]>>
   >;
   onClose?: () => void;
+  dutyColors?: Record<string, { bg: string; text: string }>;
+  dutyBadges?: Record<string, JSX.Element>;
 }
 
 const MyShiftCalendar = ({
@@ -43,12 +47,17 @@ const MyShiftCalendar = ({
   onMonthChange,
   schedulesByDate,
   colorClassMap,
+  dutyColors: externalDutyColors,
 }: MyShiftCalendarProps) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1024); // lg 브레이크포인트
   const [isReqModalOpen, setIsReqModalOpen] = useState(false);
   const fetchHolidays = useHolidayStore((state) => state.fetchHolidays);
-  // const [selectedSchedule] = useState<ScheduleType | null>(null);
+  const { userInfo } = useUserAuthStore();
+
+  // dutyColors가 전달되지 않은 경우 기본값 설정
+  const defaultDutyColors =
+    externalDutyColors || getDutyColors(userInfo?.color);
 
   // 화면 크기 변경 감지
   useEffect(() => {
@@ -260,7 +269,12 @@ const MyShiftCalendar = ({
                 day
               );
               const dutyBadge = duty ? (
-                <DutyBadgeKor type={duty} size="xs" />
+                <DutyBadgeKor
+                  type={duty}
+                  size="xs"
+                  bgColor={defaultDutyColors[duty].bg}
+                  textColor={defaultDutyColors[duty].text}
+                />
               ) : null;
 
               // 요일 및 공휴일 확인
@@ -275,7 +289,9 @@ const MyShiftCalendar = ({
               return (
                 <div
                   key={`prev-${day}`}
-                  className={`${isMobile ? 'min-h-[5rem]' : 'min-h-[7.5rem]'} p-2 lg:p-3 relative bg-gray-50 cursor-not-allowed flex flex-col justify-between`}
+                  className={`${
+                    isMobile ? 'min-h-[5rem]' : 'min-h-[7.5rem]'
+                  } p-2 lg:p-3 relative bg-gray-50 cursor-not-allowed flex flex-col justify-between`}
                 >
                   <span className={`${textColor} text-xs lg:text-sm`}>
                     {day}
@@ -298,9 +314,17 @@ const MyShiftCalendar = ({
                 day
               );
               const dutyBadge = duty ? (
-                <DutyBadgeKor type={duty} size="xs" />
+                <DutyBadgeKor
+                  type={duty}
+                  size="xs"
+                  bgColor={defaultDutyColors[duty].bg}
+                  textColor={defaultDutyColors[duty].text}
+                />
               ) : null;
-              const dateKey = `${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+              const dateKey = `${currentYear}-${String(currentMonth).padStart(
+                2,
+                '0'
+              )}-${String(day).padStart(2, '0')}`;
               const schedules = schedulesByDate[dateKey] || [];
 
               return (
@@ -314,7 +338,9 @@ const MyShiftCalendar = ({
                     );
                     onDateSelect(newDate);
                   }}
-                  className={`${isMobile ? 'min-h-[5rem]' : 'min-h-[7.5rem]'} p-2 lg:p-3 relative cursor-pointer hover:bg-gray-50 flex flex-col ${
+                  className={`${
+                    isMobile ? 'min-h-[5rem]' : 'min-h-[7.5rem]'
+                  } p-2 lg:p-3 relative cursor-pointer hover:bg-gray-50 flex flex-col ${
                     externalSelectedDate &&
                     externalSelectedDate.getDate() === day &&
                     externalSelectedDate.getMonth() === currentMonth - 1
@@ -325,7 +351,12 @@ const MyShiftCalendar = ({
                   {/* 날짜 표시 영역 */}
                   <div className="relative flex flex-row items-center mb-1">
                     <span
-                      className={`w-6 h-6 lg:w-8 lg:h-8 flex items-center justify-center ${isTodayDate ? 'bg-primary' : ''} ${getDateStyle(day, isTodayDate)} rounded-full text-xs lg:text-sm`}
+                      className={`w-6 h-6 lg:w-8 lg:h-8 flex items-center justify-center ${
+                        isTodayDate ? 'bg-primary' : ''
+                      } ${getDateStyle(
+                        day,
+                        isTodayDate
+                      )} rounded-full text-xs lg:text-sm`}
                     >
                       {day}
                     </span>
@@ -338,7 +369,9 @@ const MyShiftCalendar = ({
 
                   {/* 일정 동그라미 영역 - 높이 조정 */}
                   <div
-                    className={`flex-1 ${isMobile ? 'min-h-[1.5rem]' : 'min-h-[2.5rem]'}`}
+                    className={`flex-1 ${
+                      isMobile ? 'min-h-[1.5rem]' : 'min-h-[2.5rem]'
+                    }`}
                   >
                     <div className="flex flex-wrap gap-[1px] lg:gap-1">
                       {schedules
@@ -346,9 +379,9 @@ const MyShiftCalendar = ({
                         .map((schedule, index) => (
                           <span
                             key={schedule.calendarId || `temp-${index}`}
-                            className={`inline-block rounded-full ${colorClassMap[schedule.color] || 'bg-gray-300'} ${
-                              isMobile ? 'w-1 h-1' : 'w-2 h-2'
-                            }`}
+                            className={`inline-block rounded-full ${
+                              colorClassMap[schedule.color] || 'bg-gray-300'
+                            } ${isMobile ? 'w-1 h-1' : 'w-2 h-2'}`}
                             title={schedule.title}
                           />
                         ))}
@@ -380,7 +413,12 @@ const MyShiftCalendar = ({
                 day
               );
               const dutyBadge = duty ? (
-                <DutyBadgeKor type={duty} size="xs" />
+                <DutyBadgeKor
+                  type={duty}
+                  size="xs"
+                  bgColor={defaultDutyColors[duty].bg}
+                  textColor={defaultDutyColors[duty].text}
+                />
               ) : null;
 
               // 요일 및 공휴일 확인
@@ -395,7 +433,9 @@ const MyShiftCalendar = ({
               return (
                 <div
                   key={`next-${day}`}
-                  className={`${isMobile ? 'min-h-[5rem]' : 'min-h-[7.5rem]'} p-2 lg:p-3 relative bg-gray-50 cursor-not-allowed flex flex-col justify-between`}
+                  className={`${
+                    isMobile ? 'min-h-[5rem]' : 'min-h-[7.5rem]'
+                  } p-2 lg:p-3 relative bg-gray-50 cursor-not-allowed flex flex-col justify-between`}
                 >
                   <span className={`${textColor} text-xs lg:text-sm`}>
                     {day}
