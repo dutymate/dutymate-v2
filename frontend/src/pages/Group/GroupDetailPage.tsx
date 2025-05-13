@@ -54,7 +54,7 @@ const GroupDetailPage = () => {
         Number(groupId),
         year,
         month,
-        orderBy,
+        orderBy
       );
 
       // 그룹 설정
@@ -113,7 +113,7 @@ const GroupDetailPage = () => {
   const handlePrevMonth = () => {
     // 이전 달로 변경
     setCurrentMonth(
-      new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1),
+      new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1)
     );
     // 정렬 기준 이름순으로 초기화
     setSortByName(true);
@@ -123,7 +123,7 @@ const GroupDetailPage = () => {
   const handleNextMonth = () => {
     // 다음 달로 변경
     setCurrentMonth(
-      new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1),
+      new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1)
     );
     // 정렬 기준 이름순으로 초기화
     setSortByName(true);
@@ -189,7 +189,7 @@ const GroupDetailPage = () => {
 
       const prevMonthDateStr = `${prevYear}-${String(prevMonth + 1).padStart(
         2,
-        '0',
+        '0'
       )}-${String(day).padStart(2, '0')}`;
 
       // 이전 달 데이터 찾기
@@ -218,7 +218,7 @@ const GroupDetailPage = () => {
     for (let i = 1; i <= daysInMonth; i++) {
       const currentDate = `${year}-${String(month + 1).padStart(
         2,
-        '0',
+        '0'
       )}-${String(i).padStart(2, '0')}`;
 
       const dayShift = shiftsMap.get(currentDate);
@@ -261,7 +261,7 @@ const GroupDetailPage = () => {
 
         const nextMonthDateStr = `${nextYear}-${String(nextMonth + 1).padStart(
           2,
-          '0',
+          '0'
         )}-${String(i).padStart(2, '0')}`;
 
         // 다음 달 데이터 찾기
@@ -464,10 +464,10 @@ const GroupDetailPage = () => {
                             day.isPrevMonth || day.isNextMonth
                               ? 'text-gray-400 bg-gray-50'
                               : dayIndex === 0
-                              ? 'text-red-500'
-                              : dayIndex === 6
-                              ? 'text-purple-500'
-                              : 'text-gray-700'
+                                ? 'text-red-500'
+                                : dayIndex === 6
+                                  ? 'text-purple-500'
+                                  : 'text-gray-700'
                           } ${
                             isMobile ? 'min-w-[70px] p-1' : 'min-w-[90px] p-2'
                           }`}
