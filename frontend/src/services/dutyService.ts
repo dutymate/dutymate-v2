@@ -82,6 +82,14 @@ export interface DutyUpdateRequest {
   };
 }
 
+// 개인 근무표 수정 요청 인터페이스
+export interface EditMemberDutyRequestDto {
+  year: number;
+  month: number;
+  day: number;
+  shift: 'D' | 'E' | 'N' | 'O' | 'X' | 'M';
+}
+
 export interface UnreflectedRequest {
   requestId: number;
   memberId: number;
@@ -347,6 +355,20 @@ export const dutyService = {
         }
         throw error;
       });
+  },
+
+  /**
+   * 개인 근무표 수정 API
+   * @param data - 개인 근무표 수정 데이터
+   */
+  updateMyDuty: async (data: EditMemberDutyRequestDto) => {
+    try {
+      const response = await axiosInstance.put('/duty/my', data);
+      return response.data;
+    } catch (error) {
+      console.error('개인 근무표 수정 실패:', error);
+      throw error;
+    }
   },
 
   updateShiftBatch: async (requests: any[]) => {

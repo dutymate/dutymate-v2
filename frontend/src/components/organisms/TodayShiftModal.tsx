@@ -20,6 +20,7 @@ import { toast } from 'react-toastify';
 import JoinWardGuideModal from './JoinWardGuideModal';
 import { wardService } from '@/services/wardService';
 import { useUserAuthStore } from '@/stores/userAuthStore';
+import { dutyService } from '@/services/dutyService';
 const weekDays = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'] as const;
 type WeekDay = (typeof weekDays)[number];
 
@@ -58,6 +59,7 @@ interface TodayShiftModalProps {
   selectedDutyType: 'day' | 'off' | 'evening' | 'night' | 'mid';
   onDutyTypeChange: (type: 'day' | 'off' | 'evening' | 'night' | 'mid') => void;
   fetchAllSchedulesForMonth: (year: number, month: number) => Promise<void>;
+  refreshMyDutyData?: () => Promise<void>;
 }
 
 const colorClassMap: Record<string, string> = {
@@ -85,6 +87,7 @@ const TodayShiftModal = ({
   selectedDutyType,
   onDutyTypeChange,
   fetchAllSchedulesForMonth,
+  refreshMyDutyData,
 }: TodayShiftModalProps) => {
   if (!date) return null;
 
@@ -347,6 +350,92 @@ const TodayShiftModal = ({
     }
   };
 
+  // 듀티 버튼 클릭 처리 함수
+  const handleDutyBadgeClick = async (
+    type: 'day' | 'evening' | 'night' | 'off' | 'mid'
+  ) => {
+    if (!date || !userInfo) return;
+
+    // 1. 현재 날짜와 사용자 정보 가져오기
+    const selectedDate = new Date(date);
+    const year = selectedDate.getFullYear();
+    const month = selectedDate.getMonth() + 1;
+    const day = selectedDate.getDate();
+
+    try {
+      // 2. 듀티 타입을 서버 형식으로 변환
+      const dutyTypeToShiftMap: Record<
+        string,
+        'D' | 'E' | 'N' | 'O' | 'X' | 'M'
+      > = {
+        day: 'D',
+        evening: 'E',
+        night: 'N',
+        off: 'O',
+        mid: 'M',
+      };
+
+      // 3. 현재 선택한 날짜의 근무 정보 가져오기
+      const dutyData = await dutyService.getMyDuty(year, month);
+
+      // 4. 현재 날짜에 해당하는 근무 정보 찾기
+      const dayIndex = day - 1;
+      if (dayIndex < 0 || dayIndex >= dutyData.shifts.length) {
+        toast.error('날짜 인덱스가 유효하지 않습니다.');
+        return;
+      }
+
+      // 5. 현재 해당 날짜의 근무 유형 확인
+      const currentShift = dutyData.shifts.charAt(dayIndex);
+      const newShift = dutyTypeToShiftMap[type];
+
+      // 6. 같은 근무 유형을 다시 클릭했을 경우 삭제 (X로 설정)
+      let shiftToSend = newShift;
+      if (currentShift === newShift) {
+        shiftToSend = 'X'; // 같은 유형을 다시 클릭하면 삭제
+      }
+
+      // 7. 업데이트 요청 데이터 생성 - EditMemberDutyRequestDto 형식으로 변경
+      const updateData = {
+        year,
+        month,
+        day,
+        shift: shiftToSend,
+      };
+
+      // 8. API 호출로 근무표 업데이트
+      await dutyService.updateMyDuty(updateData);
+
+      // // 9. 토스트 메시지 표시
+      // if (shiftToSend === 'X') {
+      //   toast.success(`${month}월 ${day}일 근무가 삭제되었습니다.`);
+      // } else {
+      //   toast.success(`${month}월 ${day}일 근무가 ${type}으로 설정되었습니다.`);
+      // }
+
+      // 10. 월 전체 일정 새로고침 (새로고침 없이 즉시 반영)
+      if (typeof fetchAllSchedulesForMonth === 'function') {
+        await fetchAllSchedulesForMonth(year, month);
+      }
+
+      // 11. 전체 월간 근무 데이터 갱신 (부모 컴포넌트에서 전달된 함수가 있다면)
+      if (typeof refreshMyDutyData === 'function') {
+        await refreshMyDutyData();
+      } else {
+        // refreshMyDutyData가 없는 경우 현재 날짜 다시 선택해서 부분 갱신
+        onDateChange(new Date(date));
+      }
+
+      // 12. 다음 날짜로 이동
+      const nextDay = new Date(date);
+      nextDay.setDate(date.getDate() + 1);
+      onDateChange(nextDay);
+    } catch (error) {
+      console.error('근무 업데이트 실패:', error);
+      toast.error('근무 업데이트에 실패했습니다.');
+    }
+  };
+
   const modalContent = (
     <div
       className={`bg-white rounded-[1rem] p-[1rem] shadow-sm ${
@@ -489,7 +578,10 @@ const TodayShiftModal = ({
                         <button
                           key={type}
                           type="button"
-                          onClick={() => onDutyTypeChange(type)}
+                          onClick={() => {
+                            onDutyTypeChange(type);
+                            handleDutyBadgeClick(type);
+                          }}
                           className={`rounded-lg focus:outline-none transition-all border-2 px-0.5 py-0.5 ${
                             selectedDutyType === type
                               ? 'border-duty-' +
@@ -516,7 +608,10 @@ const TodayShiftModal = ({
                         <button
                           key={type}
                           type="button"
-                          onClick={() => onDutyTypeChange(type)}
+                          onClick={() => {
+                            onDutyTypeChange(type);
+                            handleDutyBadgeClick(type);
+                          }}
                           className={`rounded-lg focus:outline-none transition-all border-2 px-0.5 py-0.5 ${
                             selectedDutyType === type
                               ? 'border-duty-' +
@@ -540,7 +635,10 @@ const TodayShiftModal = ({
                         <button
                           key={type}
                           type="button"
-                          onClick={() => onDutyTypeChange(type)}
+                          onClick={() => {
+                            onDutyTypeChange(type);
+                            handleDutyBadgeClick(type);
+                          }}
                           className={`rounded-lg focus:outline-none transition-all border-2 px-0.5 py-0.5 ${
                             selectedDutyType === type
                               ? 'border-duty-' +

@@ -158,24 +158,20 @@ const MyShift = () => {
 
   // 날짜 선택 시 해당 날짜의 근무 데이터 로딩
   const handleDateSelect = async (date: Date) => {
-    setSelectedDate(date);
     setLoading(true);
-    setDayDutyData(null); // 새로운 요청 시 이전 데이터 초기화
     try {
       const data = await dutyService.getMyDayDuty(
         date.getFullYear(),
         date.getMonth() + 1,
         date.getDate()
       );
+      setSelectedDate(date); // ✅ 데이터를 다 받아온 후 set
       setDayDutyData(data);
       setSelectedDuty(convertDutyType(data.myShift));
       setSelectedDutyType(convertDutyType(data.myShift));
-
-      // 일정 데이터도 함께 가져오기
       await fetchSchedules(date);
     } catch (error) {
       toast.error('해당 날짜의 근무 정보가 없습니다.');
-      setSelectedDate(null); // 선택된 날짜 초기화
     } finally {
       setLoading(false);
     }
@@ -186,6 +182,25 @@ const MyShift = () => {
     try {
       const data = await dutyService.getMyDuty(year, month);
       setMyDutyData(data);
+    } catch (error) {}
+  };
+
+  // 전체 월간 근무 데이터를 갱신하는 함수 추가
+  const refreshMyDutyData = async () => {
+    if (!selectedDate) return;
+
+    try {
+      // 1. 현재 선택된 날짜의 월간 근무 데이터 갱신
+      const year = selectedDate.getFullYear();
+      const month = selectedDate.getMonth() + 1;
+
+      // 월간 근무 데이터 새로 가져오기
+      const updatedMonthData = await dutyService.getMyDuty(year, month);
+      setMyDutyData(updatedMonthData);
+
+      // 2. 현재 선택된 날짜의 일별 근무 데이터 갱신은 생략
+      // 다음 날짜로 이동할 것이므로 현재 날짜의 데이터는 갱신할 필요 없음
+      // 성공 메시지
     } catch (error) {}
   };
 
@@ -301,6 +316,7 @@ const MyShift = () => {
                     selectedDutyType={selectedDutyType}
                     onDutyTypeChange={setSelectedDutyType}
                     fetchAllSchedulesForMonth={fetchAllSchedulesForMonth}
+                    refreshMyDutyData={refreshMyDutyData}
                   />
                 ) : null}
               </div>
@@ -323,6 +339,7 @@ const MyShift = () => {
                     selectedDutyType={selectedDutyType}
                     onDutyTypeChange={setSelectedDutyType}
                     fetchAllSchedulesForMonth={fetchAllSchedulesForMonth}
+                    refreshMyDutyData={refreshMyDutyData}
                   />
                 ) : null}
               </div>
