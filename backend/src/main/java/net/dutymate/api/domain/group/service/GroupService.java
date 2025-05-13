@@ -188,20 +188,18 @@ public class GroupService {
 
 		// 3. 그룹 멤버 리스트
 		List<GroupMember> groupMemberList = group.getGroupMemberList();
-		List<Long> memberIdList = groupMemberList.stream()
-			.map(gm -> gm.getMember().getMemberId())
-			.toList();
+		List<Long> memberIdList = groupMemberList.stream().map(gm -> gm.getMember().getMemberId()).toList();
 
 		// 4. MongoDB에서 스케줄 조회 (이전, 현재, 다음 월)
 		YearMonth prevMonth = yearMonth.prevYearMonth();
 		YearMonth nextMonth = yearMonth.nextYearMonth();
 
-		List<MemberSchedule> prev = memberScheduleRepository.findAllByMemberIdInAndYearAndMonth(
-			memberIdList, prevMonth.year(), prevMonth.month());
-		List<MemberSchedule> curr = memberScheduleRepository.findAllByMemberIdInAndYearAndMonth(
-			memberIdList, yearMonth.year(), yearMonth.month());
-		List<MemberSchedule> next = memberScheduleRepository.findAllByMemberIdInAndYearAndMonth(
-			memberIdList, nextMonth.year(), nextMonth.month());
+		List<MemberSchedule> prev = memberScheduleRepository.findAllByMemberIdInAndYearAndMonth(memberIdList,
+			prevMonth.year(), prevMonth.month());
+		List<MemberSchedule> curr = memberScheduleRepository.findAllByMemberIdInAndYearAndMonth(memberIdList,
+			yearMonth.year(), yearMonth.month());
+		List<MemberSchedule> next = memberScheduleRepository.findAllByMemberIdInAndYearAndMonth(memberIdList,
+			nextMonth.year(), nextMonth.month());
 
 		List<MemberSchedule> scheduleList = new ArrayList<>();
 		scheduleList.addAll(prev);
@@ -210,9 +208,7 @@ public class GroupService {
 
 		// 5. 스케줄 Map 생성 (memberId-year-month → schedule)
 		Map<String, MemberSchedule> scheduleMap = scheduleList.stream()
-			.collect(Collectors.toMap(
-				s -> s.getMemberId() + "-" + s.getYear() + "-" + s.getMonth(),
-				s -> s,
+			.collect(Collectors.toMap(s -> s.getMemberId() + "-" + s.getYear() + "-" + s.getMonth(), s -> s,
 				(existing, replacement) -> existing // 중복 방지
 			));
 
@@ -233,9 +229,12 @@ public class GroupService {
 		}
 
 		// 7. 날짜별 멤버 duty 매핑
-		Map<LocalDate, List<GroupDetailResponseDto.MemberDto>> prevMap = mapDateToMembers(prevDateList, groupMemberList, scheduleMap);
-		Map<LocalDate, List<GroupDetailResponseDto.MemberDto>> currMap = mapDateToMembers(currDateList, groupMemberList, scheduleMap);
-		Map<LocalDate, List<GroupDetailResponseDto.MemberDto>> nextMap = mapDateToMembers(nextDateList, groupMemberList, scheduleMap);
+		Map<LocalDate, List<GroupDetailResponseDto.MemberDto>> prevMap = mapDateToMembers(prevDateList, groupMemberList,
+			scheduleMap);
+		Map<LocalDate, List<GroupDetailResponseDto.MemberDto>> currMap = mapDateToMembers(currDateList, groupMemberList,
+			scheduleMap);
+		Map<LocalDate, List<GroupDetailResponseDto.MemberDto>> nextMap = mapDateToMembers(nextDateList, groupMemberList,
+			scheduleMap);
 
 		// 8. 정렬 (이름순 or 근무순)
 		Comparator<GroupDetailResponseDto.MemberDto> comparator = getComparator(orderBy);
@@ -253,11 +252,8 @@ public class GroupService {
 	}
 
 	// 날짜별 멤버 duty 매핑하기
-	private Map<LocalDate, List<GroupDetailResponseDto.MemberDto>> mapDateToMembers(
-		List<LocalDate> dates,
-		List<GroupMember> groupMemberList,
-		Map<String, MemberSchedule> scheduleMap
-	) {
+	private Map<LocalDate, List<GroupDetailResponseDto.MemberDto>> mapDateToMembers(List<LocalDate> dates,
+		List<GroupMember> groupMemberList, Map<String, MemberSchedule> scheduleMap) {
 		Map<LocalDate, List<GroupDetailResponseDto.MemberDto>> result = new TreeMap<>();
 
 		for (GroupMember gm : groupMemberList) {
@@ -270,9 +266,8 @@ public class GroupService {
 				String key = memberId + "-" + ym.year() + "-" + ym.month();
 
 				MemberSchedule schedule = scheduleMap.get(key);
-				String shiftStr = (schedule != null && schedule.getShifts() != null)
-					? schedule.getShifts()
-					: "X".repeat(ym.daysInMonth());
+				String shiftStr = (schedule != null && schedule.getShifts() != null) ? schedule.getShifts() :
+					"X".repeat(ym.daysInMonth());
 
 				String duty = (day - 1 < shiftStr.length()) ? String.valueOf(shiftStr.charAt(day - 1)) : "X";
 
@@ -291,9 +286,9 @@ public class GroupService {
 
 	// Map -> ShiftDto 변환
 	private List<GroupDetailResponseDto.ShiftDto> convertToShiftDto(
-		Map<LocalDate, List<GroupDetailResponseDto.MemberDto>> dateMap
-	) {
-		return dateMap.entrySet().stream()
+		Map<LocalDate, List<GroupDetailResponseDto.MemberDto>> dateMap) {
+		return dateMap.entrySet()
+			.stream()
 			.map(entry -> GroupDetailResponseDto.ShiftDto.builder()
 				.date(entry.getKey().toString())
 				.memberList(entry.getValue())

@@ -18,7 +18,8 @@ public class GroupDetailResponseDto {
 	private List<ShiftDto> shifts;
 	private List<ShiftDto> nextShifts;
 
-	public static GroupDetailResponseDto of(NurseGroup group,List<ShiftDto> prevShiftList, List<ShiftDto> currShiftDtoList, List<ShiftDto> nextShiftList) {
+	public static GroupDetailResponseDto of(NurseGroup group, List<ShiftDto> prevShiftList,
+		List<ShiftDto> currShiftDtoList, List<ShiftDto> nextShiftList) {
 		return GroupDetailResponseDto.builder()
 			.groupId(group.getGroupId())
 			.groupName(group.getGroupName())
