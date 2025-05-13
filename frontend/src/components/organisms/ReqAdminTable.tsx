@@ -217,13 +217,12 @@ const ReqAdminTable = forwardRef<ReqAdminTableRef, ReqAdminTableProps>(
 
     return (
       <div className="w-full">
-        <div className="bg-white rounded-[1.154375rem] p-4 sm:p-6">
+        <div className="bg-white rounded-[1.154375rem] p-1 sm:p-6">
           <div className="flex flex-col lg:flex-row items-center justify-between mb-[1rem] px-[0.5rem]">
+            <h2 className="text-base lg:text-[1.125rem] font-semibold whitespace-nowrap">
+              요청 내역
+            </h2>
             <div className="flex items-center justify-between w-full">
-              <h2 className="text-base lg:text-[1.125rem] font-semibold whitespace-nowrap">
-                요청 내역
-              </h2>
-
               {/* 월 이동 컨트롤 */}
               <div className="flex-1 flex items-center justify-center">
                 <div className="flex items-center gap-2 sm:gap-4">
@@ -275,12 +274,12 @@ const ReqAdminTable = forwardRef<ReqAdminTableRef, ReqAdminTableProps>(
 
           {/* 요청 목록 */}
           <div className="overflow-x-auto lg:overflow-x-hidden">
-            <table className="w-full min-w-[20rem] md:min-w-[40rem] lg:min-w-0 lg:w-full">
+            <table className="w-full min-w-[20rem] md:min-w-[40rem] lg:min-w-0 lg:w-full table-fixed">
               {/* 헤더 */}
               <thead>
                 <tr>
                   {/* 모바일: 이름+날짜 통합 헤더 */}
-                  <th className="bg-base-muted-30 first:rounded-l-xl md:hidden w-[8rem] lg:w-[11.25rem] p-[0.5rem] text-left">
+                  <th className="bg-base-muted-30 first:rounded-l-xl md:hidden w-[4rem] lg:w-[11.25rem] p-[0.25rem] text-left">
                     <div className="flex justify-center">
                       <span className="text-[0.75rem] lg:text-[0.875rem] text-gray-600 font-medium">
                         이름
@@ -311,12 +310,12 @@ const ReqAdminTable = forwardRef<ReqAdminTableRef, ReqAdminTableProps>(
                       내용
                     </span>
                   </th>
-                  <th className="bg-base-muted-30 md:hidden w-[8rem] lg:w-[16rem] p-[0.5rem]">
+                  <th className="bg-base-muted-30 md:hidden w-[4rem] lg:w-[16rem] p-[0.25rem]">
                     <span className="text-[0.75rem] lg:text-[0.875rem] text-gray-600 font-medium text-center block">
                       내용
                     </span>
                   </th>
-                  <th className="bg-base-muted-30 rounded-r-xl w-auto lg:w-[11.25rem] p-[0.5rem]">
+                  <th className="bg-base-muted-30 rounded-r-xl w-[8rem] lg:w-[11.25rem] p-[0.25rem]">
                     <div className="flex justify-center">
                       <span className="text-[0.75rem] lg:text-[0.875rem] text-gray-600 font-medium">
                         상태
@@ -343,7 +342,7 @@ const ReqAdminTable = forwardRef<ReqAdminTableRef, ReqAdminTableProps>(
                       className="border-b border-gray-100"
                     >
                       {/* 모바일: 이름과 날짜 합쳐서 표시 */}
-                      <td className="md:hidden w-[8rem] lg:w-[11.25rem] p-[0.5rem]">
+                      <td className="md:hidden w-[4rem] lg:w-[11.25rem] p-[0.25rem]">
                         <div className="flex flex-col items-center">
                           <span className="font-medium truncate text-[0.75rem] lg:text-[1rem] whitespace-nowrap">
                             {request.name}
@@ -366,7 +365,7 @@ const ReqAdminTable = forwardRef<ReqAdminTableRef, ReqAdminTableProps>(
                           {request.date}
                         </div>
                       </td>
-                      <td className="w-[3.5rem] lg:w-[4.125rem] p-[0.5rem]">
+                      <td className="w-[3.5rem] lg:w-[4.125rem] p-[0.25rem]">
                         <div className="flex justify-center scale-75 lg:scale-90">
                           <DutyBadgeKor
                             type={
@@ -383,11 +382,24 @@ const ReqAdminTable = forwardRef<ReqAdminTableRef, ReqAdminTableProps>(
                         </div>
                       </td>
                       <td className="hidden md:table-cell w-[12rem] lg:w-[11.25rem] p-[0.5rem]">
-                        <div className="truncate text-gray-600 text-[0.75rem] lg:text-[0.875rem] text-center whitespace-nowrap overflow-hidden text-ellipsis">
-                          {request.memo}
-                        </div>
+                        {request.memo ? (
+                          <button
+                            className="text-[0.875rem] lg:text-[1rem] text-gray-600 hover:text-primary flex items-center justify-center w-full"
+                            onClick={(e) =>
+                              showMemoModal(request.requestId, request.memo, e)
+                            }
+                          >
+                            <span className="truncate text-left w-full">
+                              {request.memo}
+                            </span>
+                          </button>
+                        ) : (
+                          <span className="text-[0.875rem] lg:text-[1rem] text-gray-400 text-center block">
+                            -
+                          </span>
+                        )}
                       </td>
-                      <td className="md:hidden w-[8rem] lg:w-[16rem] p-[0.5rem]">
+                      <td className="md:hidden w-[8rem] lg:w-[16rem] p-[0.25rem]">
                         {request.memo ? (
                           <button
                             className="text-xs text-gray-500 hover:text-primary flex items-center justify-center w-full whitespace-nowrap"
@@ -408,7 +420,7 @@ const ReqAdminTable = forwardRef<ReqAdminTableRef, ReqAdminTableProps>(
                           </span>
                         )}
                       </td>
-                      <td className="w-auto lg:w-[11.25rem] p-[0.5rem]">
+                      <td className="w-[8rem] lg:w-[11.25rem] p-[0.25rem]">
                         <div className="flex justify-center items-center h-full whitespace-nowrap">
                           <div className="scale-[0.65] lg:scale-90 transform-gpu">
                             <ApprovalBtn

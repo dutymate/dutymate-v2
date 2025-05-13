@@ -318,6 +318,7 @@ interface TextAreaProps {
   value?: string;
   onChange?: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
   className?: string;
+  maxLength?: number;
 }
 
 export const TextArea = ({
@@ -334,10 +335,15 @@ export const TextArea = ({
   value,
   onChange,
   className,
+  maxLength,
 }: TextAreaProps) => {
   const textAreaClasses = error
     ? 'block w-full rounded-md bg-white py-1.5 text-base text-red-900 outline outline-[0.125rem] outline-red-300/50 placeholder:text-red-300 focus:outline-[0.125rem] focus:outline-red-600/50 sm:text-sm/6'
     : 'block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-[0.125rem] outline-gray-300/50 placeholder:text-gray-400 focus:outline-[0.125rem] focus:outline-primary/50 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500 disabled:outline-gray-200/50 sm:text-sm/6';
+
+  const currentLength = value?.length || 0;
+  const isMaxLengthReached =
+    maxLength !== undefined && currentLength >= maxLength;
 
   return (
     <div>
@@ -374,8 +380,18 @@ export const TextArea = ({
                   ? `${id}-optional`
                   : undefined
           }
-          className={`${textAreaClasses} ${className || ''}`}
+          className={`${textAreaClasses} ${className || ''} ${isMaxLengthReached ? 'outline-red-500' : ''}`}
+          maxLength={maxLength}
         />
+        {maxLength && (
+          <div className="flex justify-end mt-1">
+            <span
+              className={`text-xs ${isMaxLengthReached ? 'text-red-500 font-medium' : 'text-gray-500'}`}
+            >
+              {currentLength}/{maxLength}
+            </span>
+          </div>
+        )}
       </div>
       {helpText && !error && (
         <p id={`${id}-description`} className="mt-2 text-sm text-gray-500">

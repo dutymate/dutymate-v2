@@ -167,10 +167,11 @@ const ReqShiftModal = ({ onClose }: ReqShiftModalProps) => {
               id="req-memo"
               name="reqMemo"
               label="메모"
-              placeholder="요청 사유를 입력해주세요."
+              placeholder="요청 사유를 입력해주세요. (최대 50자)"
               value={memo}
               onChange={(e) => setMemo(e.target.value)}
               className="h-[6.25rem]"
+              maxLength={50}
             />
           </div>
 

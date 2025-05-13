@@ -14,7 +14,7 @@ export const DutyBadgeKor = ({
   const defaultBadgeStyles = {
     day: 'bg-duty-day-bg text-duty-day',
     evening: 'bg-duty-evening-bg text-duty-evening',
-    night: 'bg-duty-night-bg text-duty-night',
+    night: 'bg-duty-night-bg text-duty-night text-[100%]',
     off: 'bg-base-white text-duty-off border border-duty-off',
     mid: 'bg-duty-mid-bg text-duty-mid',
   };
