@@ -42,7 +42,7 @@ public class NurseScheduler {
 		List<Long> reinforcementRequestIds,
 		Map<Long, WorkIntensity> workIntensities) {
 		Map<Long, String> prevMonthSchedules = getPreviousMonthSchedules(prevNurseShifts);
-		Solution currentSolution = createInitialSolutionWithWorkIntensity(
+		Solution currentSolution = createInitialSolution(
 			wardSchedule, rule, wardMembers, yearMonth, dailyNightCnt,
 			prevMonthSchedules, workIntensities
 		);
@@ -95,7 +95,7 @@ public class NurseScheduler {
 		return applyFinalSchedule(wardSchedule, bestSolution, currentMemberId);
 	}
 
-	private Solution createInitialSolutionWithWorkIntensity(
+	private Solution createInitialSolution(
 		WardSchedule wardSchedule,
 		Rule rule,
 		List<WardMember> wardMembers,
@@ -134,14 +134,18 @@ public class NurseScheduler {
 			WorkIntensity i2 = workIntensities.getOrDefault(n2.getId(), WorkIntensity.MEDIUM);
 
 			// HIGH가 우선, LOW가 나중
-			if (i1 == WorkIntensity.HIGH && i2 != WorkIntensity.HIGH)
+			if (i1 == WorkIntensity.HIGH && i2 != WorkIntensity.HIGH) {
 				return -1;
-			if (i1 != WorkIntensity.HIGH && i2 == WorkIntensity.HIGH)
+			}
+			if (i1 != WorkIntensity.HIGH && i2 == WorkIntensity.HIGH) {
 				return 1;
-			if (i1 == WorkIntensity.MEDIUM && i2 == WorkIntensity.LOW)
+			}
+			if (i1 == WorkIntensity.MEDIUM && i2 == WorkIntensity.LOW) {
 				return -1;
-			if (i1 == WorkIntensity.LOW && i2 == WorkIntensity.MEDIUM)
+			}
+			if (i1 == WorkIntensity.LOW && i2 == WorkIntensity.MEDIUM) {
 				return 1;
+			}
 
 			return 0;
 		});
@@ -160,45 +164,6 @@ public class NurseScheduler {
 		}
 		return prevMonthSchedules;
 	}
-
-	// private Solution createInitialSolution(WardSchedule wardSchedule,
-	// 	Rule rule,
-	// 	List<WardMember> wardMembers,
-	// 	YearMonth yearMonth,
-	// 	Map<Integer, Integer> dailyNightCnt,
-	// 	Map<Long, String> prevMonthSchedules) {
-	//
-	// 	Map<Long, String> existingSchedules = getExistingSchedules(wardSchedule);
-	// 	Map<Integer, Solution.DailyRequirement> requirements = calculateDailyRequirements(rule, yearMonth,
-	// 		dailyNightCnt);
-	//
-	// 	// 워크 인텐시티에 따른 휴일 조정
-	// 	Map<Long, Integer> adjustedOffDays = calculateAdjustedOffDays(wardMembers, yearMonth);
-	//
-	// 	// 간호사 초기화 (휴일 배분 고려)
-	// 	List<Solution.Nurse> nurses = initializeNursesWithWorkIntensity(
-	// 		wardMembers,
-	// 		existingSchedules,
-	// 		yearMonth.daysInMonth(),
-	// 		adjustedOffDays
-	// 	);
-	//
-	// 	// 이전 달 마지막 근무와의 연속성 고려
-	// 	considerPreviousMonthContinuity(nurses, prevMonthSchedules, rule);
-	//
-	// 	// 나머지 날짜에 대한 근무 배정
-	// 	for (int day = 1; day <= yearMonth.daysInMonth(); day++) {
-	// 		if (hasNoAssignmentsForDay(nurses, day)) {
-	// 			assignShiftsForDay(nurses, day, requirements.get(day));
-	// 		}
-	// 	}
-	//
-	// 	return Solution.builder()
-	// 		.daysInMonth(yearMonth.daysInMonth())
-	// 		.nurses(nurses)
-	// 		.dailyRequirements(requirements)
-	// 		.build();
-	// }
 
 	/**
 	 * 워크 인텐시티에 따라 휴일 배분을 조정합니다.
@@ -539,7 +504,7 @@ public class NurseScheduler {
 		score += evaluateShiftPatterns(solution) * 2500;
 		score += evaluateWorkloadBalance(solution) * 1000;
 
-		score += evaluateWorkIntensityBalance(solution, workIntensities) * 1000;
+		score += evaluateWorkIntensityBalance(solution, workIntensities) * 2000;
 
 		return score;
 	}
@@ -581,6 +546,10 @@ public class NurseScheduler {
 		double violations = 0;
 		int daysInMonth = solution.getDaysInMonth();
 
+		// LOW 강도 간호사만 있는지 확인
+		boolean onlyLowExists = solution.getNurses().stream()
+			.allMatch(nurse -> workIntensities.getOrDefault(nurse.getId(), WorkIntensity.MEDIUM) == WorkIntensity.LOW);
+
 		// 전체 근무 배정 현황 계산
 		Map<Long, Map<Character, Integer>> nurseShiftCounts = new HashMap<>();
 
@@ -590,15 +559,6 @@ public class NurseScheduler {
 				counts.merge(shift, 1, Integer::sum);
 			}
 			nurseShiftCounts.put(nurse.getId(), counts);
-		}
-
-		// 각 근무 유형별 평균 근무 일수 계산
-		Map<Character, Double> avgShiftCounts = new HashMap<>();
-		for (char shiftType : new char[] {'D', 'E', 'N'}) {
-			double sum = nurseShiftCounts.values().stream()
-				.mapToInt(counts -> counts.getOrDefault(shiftType, 0))
-				.sum();
-			avgShiftCounts.put(shiftType, sum / nurseShiftCounts.size());
 		}
 
 		// 워크 인텐시티에 따른 평가
@@ -627,7 +587,30 @@ public class NurseScheduler {
 
 			// 목표 비율과의 차이에 따른 페널티
 			double diff = Math.abs(workRatio - targetRatio);
-			violations += diff * 100; // 비율 차이에 가중치
+
+			// 강도별 다른 가중치 적용
+			if (intensity == WorkIntensity.LOW) {
+				// LOW 강도 간호사에게 더 높은 가중치 적용
+				double weightMultiplier = 3.0; // 3배 가중치
+
+				// LOW 강도 간호사만 있는 경우 추가 가중치 적용
+				if (onlyLowExists) {
+					weightMultiplier = 5.0; // 5배 가중치
+				}
+
+				// 목표보다 더 많이 일하는 경우 (workRatio > targetRatio) 페널티 추가
+				if (workRatio > targetRatio) {
+					weightMultiplier *= 1.5; // 추가 50% 페널티
+				}
+
+				violations += diff * 100 * weightMultiplier;
+			} else if (intensity == WorkIntensity.HIGH) {
+				// HIGH 강도 간호사는 일반 가중치
+				violations += diff * 100;
+			} else {
+				// MEDIUM 강도 간호사는 일반 가중치
+				violations += diff * 100;
+			}
 		}
 
 		return violations;

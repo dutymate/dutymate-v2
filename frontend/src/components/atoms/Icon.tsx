@@ -8,7 +8,7 @@ import {
 } from 'react-icons/ai';
 import { BiSolidUserPin } from 'react-icons/bi';
 import { BsFunnel, BsThreeDots, BsThreeDotsVertical } from 'react-icons/bs';
-import { FaDoorOpen, FaHospital, FaUserCircle } from 'react-icons/fa';
+import { FaCrown, FaDoorOpen, FaHospital, FaUserCircle } from 'react-icons/fa';
 import { FaChevronDown, FaChevronLeft, FaChevronRight } from 'react-icons/fa6';
 import { GrPowerReset, GrUndo } from 'react-icons/gr';
 import { HiDownload } from 'react-icons/hi';
@@ -70,6 +70,7 @@ const iconComponents = {
   rule: RiRulerLine,
   auto: MdAutoMode,
   download: HiDownload,
+  crown: FaCrown,
 };
 
 export type IconName =

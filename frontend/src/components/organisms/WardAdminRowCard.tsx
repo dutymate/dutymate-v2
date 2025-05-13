@@ -2,7 +2,6 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
-import { Badge } from '@/components/atoms/Badge';
 import DutyBadgeEng from '@/components/atoms/DutyBadgeEng';
 import DutyTooltip from '@/components/atoms/DutyTooltip';
 import { Dropdown } from '@/components/atoms/Dropdown';
@@ -28,7 +27,8 @@ const WardAdminRowCard = ({
     return null;
   }
 
-  const [openSkillDropdown, setOpenSkillDropdown] = useState(false);
+  const [openWorkIntensityDropdown, setOpenWorkIntensityDropdown] =
+    useState(false);
   const [isEditingMemo, setIsEditingMemo] = useState(false);
   const [memo, setMemo] = useState(nurse.memo ?? '');
   const memoInputRef = useRef<HTMLInputElement>(null);
@@ -45,6 +45,8 @@ const WardAdminRowCard = ({
   const authorityDropdownRef = useRef<HTMLDivElement>(null);
   const skillButtonRef = useRef<HTMLButtonElement>(null);
   const skillDropdownRef = useRef<HTMLDivElement>(null);
+  const workIntensityButtonRef = useRef<HTMLButtonElement>(null);
+  const workIntensityDropdownRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [isEditingName, setIsEditingName] = useState(false);
   const [name, setName] = useState(nurse.name);
@@ -126,6 +128,21 @@ const WardAdminRowCard = ({
     };
   }, [updateDropdownPosition]);
 
+  // Add workIntensity dropdown position update
+  useEffect(() => {
+    const handlePositionUpdate = () =>
+      updateDropdownPosition(workIntensityButtonRef);
+
+    handlePositionUpdate();
+    window.addEventListener('scroll', handlePositionUpdate, true);
+    window.addEventListener('resize', handlePositionUpdate);
+
+    return () => {
+      window.removeEventListener('scroll', handlePositionUpdate, true);
+      window.removeEventListener('resize', handlePositionUpdate);
+    };
+  }, [updateDropdownPosition]);
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -134,7 +151,15 @@ const WardAdminRowCard = ({
         !skillDropdownRef.current.contains(event.target as Node) &&
         !skillButtonRef.current.contains(event.target as Node)
       ) {
-        setOpenSkillDropdown(false);
+        setOpenWorkIntensityDropdown(false);
+      }
+      if (
+        workIntensityDropdownRef.current &&
+        workIntensityButtonRef.current &&
+        !workIntensityDropdownRef.current.contains(event.target as Node) &&
+        !workIntensityButtonRef.current.contains(event.target as Node)
+      ) {
+        setOpenWorkIntensityDropdown(false);
       }
       if (
         genderDropdownRef.current &&
@@ -154,20 +179,46 @@ const WardAdminRowCard = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const skillOptions = [
-    { value: 'HIGH' as 'HIGH', icon: 'high' as const, label: '상급' },
-    { value: 'MID' as 'MID', icon: 'mid' as const, label: '중급' },
-    { value: 'LOW' as 'LOW', icon: 'low' as const, label: '초급' },
+  const workIntensityOptions = [
+    { value: 'HIGH' as 'HIGH', icon: 'high' as const, label: '높음' },
+    { value: 'MEDIUM' as 'MEDIUM', icon: 'mid' as const, label: '중간' },
+    { value: 'LOW' as 'LOW', icon: 'low' as const, label: '낮음' },
   ];
 
-  const handleSkillChange = (skillLevel: 'HIGH' | 'MID' | 'LOW') => {
-    onUpdate(nurse.memberId, {
-      skillLevel,
+  const getWorkIntensityIcon = (
+    intensity: 'HIGH' | 'MEDIUM' | 'LOW'
+  ): IconName => {
+    switch (intensity) {
+      case 'HIGH':
+        return 'high';
+      case 'MEDIUM':
+        return 'mid';
+      case 'LOW':
+        return 'low';
+      default:
+        return 'low';
+    }
+  };
+
+  const handleWorkIntensityChange = (
+    workIntensity: 'HIGH' | 'MEDIUM' | 'LOW'
+  ) => {
+    console.log('Updating workIntensity:', {
+      memberId: nurse.memberId,
+      workIntensity,
       shift: nurse.shift || null,
+      skillLevel: nurse.skillLevel || null,
       memo: nurse.memo || '',
       role: nurse.role,
     });
-    setOpenSkillDropdown(false);
+    onUpdate(nurse.memberId, {
+      workIntensity,
+      shift: nurse.shift || null,
+      skillLevel: nurse.skillLevel || null,
+      memo: nurse.memo || '',
+      role: nurse.role,
+    });
+    setOpenWorkIntensityDropdown(false);
   };
 
   const handleShiftChange = (shift: 'D' | 'E' | 'N' | 'M' | 'ALL') => {
@@ -334,7 +385,7 @@ const WardAdminRowCard = ({
         <div className="flex items-center p-1.5 lg:p-2 bg-white rounded-xl border border-gray-100">
           <div className="flex items-center justify-between flex-1 gap-[2.5rem]">
             <div className="flex items-center gap-[1.5rem] flex-shrink-0">
-              <div className="flex items-center gap-3 w-[9rem] pl-[0.5rem] group relative">
+              <div className="flex items-center gap-3 w-[7rem] pl-[0.5rem] group relative">
                 {!nurse.isSynced && (
                   <div className="flex-1 items-center">
                     {isEditingName ? (
@@ -374,11 +425,17 @@ const WardAdminRowCard = ({
                   </div>
                 )}
                 {nurse.isSynced && (
-                  <span className="w-0 flex-1 truncate">{nurse.name}</span>
+                  <div className="flex items-center gap-1 w-full">
+                    {nurse.role === 'HN' && (
+                      <Icon
+                        name="crown"
+                        size={16}
+                        className="text-yellow-500 flex-shrink-0"
+                      />
+                    )}
+                    <span className="w-0 flex-1 truncate">{nurse.name}</span>
+                  </div>
                 )}
-              </div>
-              <div className="w-[3.75rem] flex items-center">
-                <Badge type={nurse.role} className="whitespace-nowrap" />
               </div>
               <div className="relative" ref={genderDropdownRef}>
                 <button
@@ -465,35 +522,39 @@ const WardAdminRowCard = ({
               <div className="relative w-[5rem]">
                 <button
                   className="flex items-center gap-[0.25rem] px-[0.5rem] py-[0.25rem] border rounded hover:bg-gray-50"
-                  onClick={() => setOpenSkillDropdown(!openSkillDropdown)}
-                  ref={skillButtonRef}
+                  onClick={() =>
+                    setOpenWorkIntensityDropdown(!openWorkIntensityDropdown)
+                  }
+                  ref={workIntensityButtonRef}
                 >
                   <Icon
-                    name={
-                      (nurse.skillLevel?.toLowerCase() ?? 'low') as IconName
-                    }
+                    name={getWorkIntensityIcon(nurse.workIntensity)}
                     size={16}
                   />
                   <span className="text-[0.875rem]">
                     {
-                      skillOptions.find((opt) => opt.value === nurse.skillLevel)
-                        ?.label
+                      workIntensityOptions.find(
+                        (opt) => opt.value === nurse.workIntensity
+                      )?.label
                     }
                   </span>
                 </button>
 
-                {openSkillDropdown && (
+                {openWorkIntensityDropdown && (
                   <div
-                    ref={skillDropdownRef}
+                    ref={workIntensityDropdownRef}
                     className={`absolute ${dropdownPosition === 'top' ? 'bottom-full mb-1' : 'top-full mt-1'} left-0 bg-white border rounded-md shadow-lg z-10`}
                   >
-                    {skillOptions.map((option) => (
+                    {workIntensityOptions.map((option) => (
                       <button
                         key={option.value}
                         className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 w-full"
-                        onClick={() => handleSkillChange(option.value)}
+                        onClick={() => handleWorkIntensityChange(option.value)}
                       >
-                        <Icon name={option.icon} size={16} />
+                        <Icon
+                          name={getWorkIntensityIcon(option.value)}
+                          size={16}
+                        />
                         <span className="text-sm">{option.label}</span>
                       </button>
                     ))}

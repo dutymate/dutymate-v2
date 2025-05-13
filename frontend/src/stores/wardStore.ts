@@ -55,6 +55,7 @@ const useWardStore = create<WardStore>((set, get) => ({
         skillLevel: updatedData.skillLevel,
         memo: updatedData.memo,
         role: updatedData.role,
+        workIntensity: updatedData.workIntensity,
       });
     } catch (error) {
       // 에러 발생 시 이전 상태로 롤백

@@ -4,6 +4,7 @@ import DutyTooltip from '@/components/atoms/DutyTooltip';
 import { Icon } from '@/components/atoms/Icon';
 import WardAdminRowCard from '@/components/organisms/WardAdminRowCard';
 import useWardStore from '@/stores/wardStore';
+import { Tooltip } from '@/components/atoms/Tooltip';
 
 interface WardAdminTableProps {
   // nurses: Nurse[];
@@ -35,11 +36,35 @@ const WardAdminTable = ({}: WardAdminTableProps) => {
             <div className="flex items-center p-[0.375rem] lg:p-[0.5rem] mb-[0.5rem] text-[0.875rem] lg:text-[1rem] text-gray-600 font-medium bg-base-muted-30 rounded-xl">
               <div className="flex items-center justify-between flex-1 gap-[2.5rem]">
                 <div className="flex items-center gap-[1.5rem] flex-shrink-0">
-                  <div className="w-[9rem] pl-[5rem]">이름</div>
-                  <div className="w-[3.75rem] text-center">직위</div>
+                  <div className="w-[7rem] pl-[0.5rem]">이름</div>
                   <div className="w-[3.75rem] text-center">성별</div>
                   <div className="w-[4.375rem] pl-[1.7rem]">경력</div>
-                  <div className="w-[5rem] pl-[2rem]">숙련도</div>
+                  {/* <div className="w-[5rem] pl-[2rem]">숙련도</div> */}
+                  <div className="w-[5rem] pl-[2rem]">
+                    <div className="flex items-center gap-1 whitespace-nowrap">
+                      업무강도
+                      <Tooltip
+                        content={
+                          <div className="text-left">
+                            <p>
+                              업무강도는 자동 생성 시 OFF 일수에 반영됩니다.
+                            </p>
+                            <p className="mt-1">
+                              • 높음: 평균보다 2~3일 적게 배정
+                            </p>
+                            <p>• 중간: 평균 일수로 배정</p>
+                            <p>• 낮음: 평균보다 2~3일 많이 배정</p>
+                          </div>
+                        }
+                        icon={{
+                          name: 'alert',
+                          size: 14,
+                          className:
+                            'text-gray-400 hover:text-gray-600 cursor-help',
+                        }}
+                      />
+                    </div>
+                  </div>
                   <div className="w-[11rem] pl-[3rem] flex items-center gap-[0.25rem]">
                     전담 근무
                     <DutyTooltip message="자동생성 시 반영됩니다.">

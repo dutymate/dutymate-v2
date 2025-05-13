@@ -36,6 +36,8 @@ export interface Nurse {
   /** 동기화 여부 */
   isSynced: boolean;
   profileImg: string;
+  /** 업무 강도 */
+  workIntensity: 'HIGH' | 'MEDIUM' | 'LOW';
 }
 
 /**
@@ -50,6 +52,8 @@ export interface NurseUpdateRequest {
   memo: string;
   /** 직위 */
   role: 'HN' | 'RN';
+  /** 업무 강도 */
+  workIntensity: 'HIGH' | 'MEDIUM' | 'LOW';
 }
 
 /**
