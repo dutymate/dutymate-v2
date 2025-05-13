@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.mindrot.jbcrypt.BCrypt;
 
+import net.dutymate.api.domain.calendar.Calendar;
 import net.dutymate.api.domain.color.Color;
 import net.dutymate.api.domain.common.utils.YearMonth;
 import net.dutymate.api.domain.community.Board;
@@ -105,6 +106,10 @@ public class Member {
 	@Setter
 	@OneToOne(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
 	private Color color;
+
+	@OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<Calendar> calendarList;
+
 
 	// 멤버 초기값 설정 (닉네임, 생성시각, 활성화여부)
 	@PrePersist

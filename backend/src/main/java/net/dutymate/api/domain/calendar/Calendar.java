@@ -3,6 +3,9 @@ package net.dutymate.api.domain.calendar;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+
 import net.dutymate.api.domain.calendar.dto.CalendarRequestDto;
 import net.dutymate.api.domain.member.Member;
 
@@ -33,6 +36,7 @@ public class Calendar {
 
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
 	@JoinColumn(name = "member_id", nullable = false)
+	@OnDelete(action = OnDeleteAction.CASCADE)
 	private Member member;
 
 	@Column(nullable = false)
