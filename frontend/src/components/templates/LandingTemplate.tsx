@@ -46,7 +46,7 @@ const LandingTemplate: React.FC<LandingTemplateProps> = ({
           <p className="text-[0.875rem] text-gray-600">
             간호사 업무의 효율성과 공정성을 높이는
             <br />
-            자동화 듀티표 생성 서비스.
+            근무표 자동 생성 서비스.
           </p>
         </div>
       )}
