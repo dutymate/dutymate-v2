@@ -1,16 +1,11 @@
 import Constants from "expo-constants";
 
-import { Dimensions, Linking, Platform, StyleSheet, View } from "react-native";
+import { Linking, Platform, StyleSheet, View } from "react-native";
 
 import { Button } from "@/components/button/Button";
 import { StyledText } from "@/components/custom/StyledText";
 import { Layout } from "@/layout/Layout";
-
-import Logo from "assets/images/text-logo.svg";
-
-const screenWidth = Dimensions.get("window").width;
-const logoWidth = screenWidth * 0.6;
-const logoHeight = logoWidth * 0.5;
+import { LogoTemplate } from "@/templates/LogoTemplate";
 
 /**
  * LandingScreen의 props 타입을 정의합니다.
@@ -53,12 +48,7 @@ export const LandingScreen = ({ navigation }: LandingScreenProps) => {
 
 	return (
 		<Layout>
-			<View
-				className={
-					"flex-1 flex flex-col items-center justify-center p-[1rem] py-[0.75rem]"
-				}
-			>
-				<Logo width={logoWidth} height={logoHeight} />
+			<LogoTemplate>
 				<View className={"mb-[1.5rem]"}>
 					<StyledText className={"text-center"} style={styles.h1}>
 						"듀티표의 마침표, 듀티메이트."
@@ -106,7 +96,7 @@ export const LandingScreen = ({ navigation }: LandingScreenProps) => {
 						</StyledText>
 					</StyledText>
 				</View>
-			</View>
+			</LogoTemplate>
 		</Layout>
 	);
 };
