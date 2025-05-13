@@ -58,6 +58,10 @@ const AutoGenerateConfirmModal = ({
 }: AutoGenerateConfirmModalProps) => {
   // 모바일 여부 상태 추가
   const [isMobile, setIsMobile] = useState(false);
+  // 규칙 수정 모달 상태 관리
+  const [isRuleEditModalOpen, setIsRuleEditModalOpen] = useState(false);
+  // 업데이트된 규칙 상태 관리
+  const [updatedRules, setUpdatedRules] = useState<WardRule | null>(null);
 
   // 모바일 여부 확인
   useEffect(() => {
@@ -87,11 +91,6 @@ const AutoGenerateConfirmModal = ({
   if (autoGenCnt <= 0) {
     return null;
   }
-
-  // 규칙 수정 모달 상태 관리
-  const [isRuleEditModalOpen, setIsRuleEditModalOpen] = useState(false);
-  // 업데이트된 규칙 상태 관리
-  const [updatedRules, setUpdatedRules] = useState<WardRule | null>(null);
 
   // 규칙이 없는 경우도 렌더링하지 않음
   const currentRules = updatedRules || wardRules;
