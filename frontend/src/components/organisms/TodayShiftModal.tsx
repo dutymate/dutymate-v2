@@ -477,90 +477,92 @@ const TodayShiftModal = ({
           </div>
         ) : (
           <>
-            {/* 근무 종류 뱃지: 모바일은 한 줄, 네모 작게 / 웹은 기존대로 */}
-            <div
-              className={`w-full ${isMobile ? 'mb-2 p-1 rounded-lg' : 'mb-3 p-3 rounded-xl'} bg-white border-2 border-primary-40 flex ${isMobile ? 'flex-row justify-center gap-1' : 'flex-col items-center justify-center'} shrink-0`}
-            >
-              {isMobile ? (
-                <div className="flex flex-row flex-wrap justify-center gap-1 w-full">
-                  {(['day', 'off', 'evening', 'night', 'mid'] as const).map(
-                    (type) => (
-                      <button
-                        key={type}
-                        type="button"
-                        onClick={() => onDutyTypeChange(type)}
-                        className={`rounded-lg focus:outline-none transition-all border-2 px-0.5 py-0.5 ${
-                          selectedDutyType === type
-                            ? 'border-duty-' +
-                              type +
-                              ' shadow-duty-' +
-                              type +
-                              ' ring-2 ring-duty-' +
-                              type
-                            : 'border-transparent'
-                        }`}
-                        style={{ lineHeight: 0 }}
-                      >
-                        <span className={dutyColors[type].bg}>
-                          <DutyBadgeKor type={type} size="xxs" />
-                        </span>
-                      </button>
-                    )
-                  )}
-                </div>
-              ) : (
-                <>
-                  <div className="flex justify-center gap-2 mb-2">
-                    {(['day', 'off'] as const).map((type) => (
-                      <button
-                        key={type}
-                        type="button"
-                        onClick={() => onDutyTypeChange(type)}
-                        className={`rounded-lg focus:outline-none transition-all border-2 px-0.5 py-0.5 ${
-                          selectedDutyType === type
-                            ? 'border-duty-' +
-                              type +
-                              ' shadow-duty-' +
-                              type +
-                              ' ring-2 ring-duty-' +
-                              type
-                            : 'border-transparent'
-                        }`}
-                        style={{ lineHeight: 0 }}
-                      >
-                        <span className={dutyColors[type].bg}>
-                          <DutyBadgeKor type={type} size="xxs" />
-                        </span>
-                      </button>
-                    ))}
+            {/* 근무 종류 뱃지: userInfo.existMyWard가 false일 때만 표시 */}
+            {!userInfo?.existMyWard && (
+              <div
+                className={`w-full ${isMobile ? 'mb-2 p-1 rounded-lg' : 'mb-3 p-3 rounded-xl'} bg-white border-2 border-primary-40 flex ${isMobile ? 'flex-row justify-center gap-1' : 'flex-col items-center justify-center'} shrink-0`}
+              >
+                {isMobile ? (
+                  <div className="flex flex-row flex-wrap justify-center gap-1 w-full">
+                    {(['day', 'off', 'evening', 'night', 'mid'] as const).map(
+                      (type) => (
+                        <button
+                          key={type}
+                          type="button"
+                          onClick={() => onDutyTypeChange(type)}
+                          className={`rounded-lg focus:outline-none transition-all border-2 px-0.5 py-0.5 ${
+                            selectedDutyType === type
+                              ? 'border-duty-' +
+                                type +
+                                ' shadow-duty-' +
+                                type +
+                                ' ring-2 ring-duty-' +
+                                type
+                              : 'border-transparent'
+                          }`}
+                          style={{ lineHeight: 0 }}
+                        >
+                          <span className={dutyColors[type].bg}>
+                            <DutyBadgeKor type={type} size="xxs" />
+                          </span>
+                        </button>
+                      )
+                    )}
                   </div>
-                  <div className="flex justify-center gap-2">
-                    {(['evening', 'night', 'mid'] as const).map((type) => (
-                      <button
-                        key={type}
-                        type="button"
-                        onClick={() => onDutyTypeChange(type)}
-                        className={`rounded-lg focus:outline-none transition-all border-2 px-0.5 py-0.5 ${
-                          selectedDutyType === type
-                            ? 'border-duty-' +
-                              type +
-                              ' shadow-duty-' +
-                              type +
-                              ' ring-2 ring-duty-' +
-                              type
-                            : 'border-transparent'
-                        }`}
-                        style={{ lineHeight: 0 }}
-                      >
-                        <span className={dutyColors[type].bg}>
-                          <DutyBadgeKor type={type} size="xxs" />
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                </>
-              )}
-            </div>
+                ) : (
+                  <>
+                    <div className="flex justify-center gap-2 mb-2">
+                      {(['day', 'off'] as const).map((type) => (
+                        <button
+                          key={type}
+                          type="button"
+                          onClick={() => onDutyTypeChange(type)}
+                          className={`rounded-lg focus:outline-none transition-all border-2 px-0.5 py-0.5 ${
+                            selectedDutyType === type
+                              ? 'border-duty-' +
+                                type +
+                                ' shadow-duty-' +
+                                type +
+                                ' ring-2 ring-duty-' +
+                                type
+                              : 'border-transparent'
+                          }`}
+                          style={{ lineHeight: 0 }}
+                        >
+                          <span className={dutyColors[type].bg}>
+                            <DutyBadgeKor type={type} size="xxs" />
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                    <div className="flex justify-center gap-2">
+                      {(['evening', 'night', 'mid'] as const).map((type) => (
+                        <button
+                          key={type}
+                          type="button"
+                          onClick={() => onDutyTypeChange(type)}
+                          className={`rounded-lg focus:outline-none transition-all border-2 px-0.5 py-0.5 ${
+                            selectedDutyType === type
+                              ? 'border-duty-' +
+                                type +
+                                ' shadow-duty-' +
+                                type +
+                                ' ring-2 ring-duty-' +
+                                type
+                              : 'border-transparent'
+                          }`}
+                          style={{ lineHeight: 0 }}
+                        >
+                          <span className={dutyColors[type].bg}>
+                            <DutyBadgeKor type={type} size="xxs" />
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
             {/* 일정 리스트 */}
             <div
               className={`flex flex-col gap-1.5 flex-1 overflow-y-auto mb-2 ${isMobile ? 'max-h-[12rem]' : 'max-h-[25rem]'}`}
