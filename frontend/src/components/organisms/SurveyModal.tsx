@@ -258,9 +258,9 @@ const SurveyModal = ({ isOpen, onClose }: SurveyModalProps) => {
     if (isAuthenticated && userInfo) {
       formData += `&UserName=${encodeURIComponent(userInfo.name)}`;
       formData += `&MemberId=${encodeURIComponent(userInfo.memberId.toString())}`;
-      formData += `&UserRole=${encodeURIComponent(userInfo.role)}`;
+      formData += `&UserRole=${encodeURIComponent(userInfo.role || '')}`;
       if (userInfo.provider) {
-        formData += `&Provider=${encodeURIComponent(userInfo.provider)}`;
+        formData += `&Provider=${encodeURIComponent(userInfo.provider || '')}`;
       }
     }
 
