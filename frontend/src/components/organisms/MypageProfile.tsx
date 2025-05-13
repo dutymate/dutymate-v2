@@ -297,7 +297,7 @@ const MypageProfile = () => {
 
   const handleCreateWard = () => {
     profileService.editRole(
-      { role: 'HN' },
+      { role: null },
       () => {
         if (!userInfo) {
           return;
@@ -306,7 +306,7 @@ const MypageProfile = () => {
         // userInfo 최신화
         setUserInfo({
           ...userInfo,
-          role: 'HN',
+          role: null,
           existMyWard: false,
           sentWardCode: false,
         });

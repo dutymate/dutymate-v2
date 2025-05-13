@@ -91,6 +91,7 @@ public class WardService {
 
 		// 병동 생성한 멤버 입장 연월 설정
 		member.changeEnterYearMonth(YearMonth.nowYearMonth());
+		member.setRole(Role.HN);
 	}
 
 	@Transactional
