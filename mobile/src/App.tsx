@@ -4,6 +4,10 @@ import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 import { BackHandler } from "react-native";
 import {
+	configureReanimatedLogger,
+	ReanimatedLogLevel,
+} from "react-native-reanimated";
+import {
 	NavigationContainer,
 	createNavigationContainerRef,
 } from "@react-navigation/native";
@@ -11,6 +15,11 @@ import { createStackNavigator } from "@react-navigation/stack";
 
 import { LandingScreen } from "@/screens/LandingScreen";
 import { WebViewScreen } from "@/screens/WebViewScreen";
+
+configureReanimatedLogger({
+	level: ReanimatedLogLevel.warn,
+	strict: false,
+});
 
 const Stack = createStackNavigator();
 const navigationRef = createNavigationContainerRef();
