@@ -74,6 +74,12 @@ const MyShift = () => {
   // 사용자 색상 정보를 이용한 duty 색상 설정 - 유틸리티 함수 사용
   const dutyColors = getDutyColors(userInfo?.color);
 
+  // 사용자 색상 설정이 변경될 때마다 dutyColors 업데이트
+  useEffect(() => {
+    // userInfo?.color가 변경될 때마다 실행됨
+    // dutyColors는 getDutyColors(userInfo?.color)로 이미 자동 업데이트됨
+  }, [userInfo?.color]);
+
   // 캘린더 데이터 가져오기 함수 수정
   const fetchSchedules = async (date: Date) => {
     try {

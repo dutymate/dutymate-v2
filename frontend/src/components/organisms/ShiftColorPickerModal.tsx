@@ -1,9 +1,11 @@
 import { DutyBadgeKor } from '@/components/atoms/DutyBadgeKor';
 import { dutyService } from '@/services/dutyService';
 import { useUserAuthStore } from '@/stores/userAuthStore';
+import { DEFAULT_DUTY_COLORS } from '@/utils/dutyUtils';
 import { useEffect, useState } from 'react';
 import { HexColorPicker } from 'react-colorful';
 import { toast } from 'react-toastify';
+import { Icon } from '../atoms/Icon';
 
 const dutyTypes = ['day', 'off', 'evening', 'night', 'mid'] as const;
 type DutyType = (typeof dutyTypes)[number];
@@ -21,16 +23,17 @@ const ShiftColorPickerModal = ({
   dutyColors,
   onChange,
 }: ShiftColorPickerModalProps) => {
-  const [localColors, setLocalColors] = useState<
-    Record<DutyType, { bg: string; text: string }>
-  >(dutyColors as any);
+  const [localColors, setLocalColors] =
+    useState<Record<DutyType, { bg: string; text: string }>>(dutyColors);
   const [activeType, setActiveType] = useState<DutyType>('day');
   const [activeTab, setActiveTab] = useState<'bg' | 'text'>('bg');
   const { userInfo, setUserInfo } = useUserAuthStore();
 
   useEffect(() => {
-    setLocalColors(dutyColors);
-  }, [dutyColors]);
+    if (open) {
+      setLocalColors(dutyColors);
+    }
+  }, [dutyColors, open]);
 
   if (!open) return null;
 
@@ -43,17 +46,12 @@ const ShiftColorPickerModal = ({
       ...prev,
       [type]: { ...prev[type], [mode]: color },
     }));
-    onChange({
-      ...localColors,
-      [type]: {
-        ...localColors[type],
-        [mode]: color,
-      },
-    });
   };
 
   const handleSaveColors = async () => {
     try {
+      onChange(localColors);
+
       const colorUpdate = {
         dayBg: localColors.day.bg.replace('#', ''),
         dayText: localColors.day.text.replace('#', ''),
@@ -67,22 +65,26 @@ const ShiftColorPickerModal = ({
         midText: localColors.mid.text.replace('#', ''),
       };
 
-      // 색상 store에 저장
       if (userInfo) {
         setUserInfo({
           ...userInfo,
           color: colorUpdate,
         });
-
-        await dutyService.updateDutyColors(colorUpdate);
-        toast.success('색상 설정이 저장되었습니다.');
       }
+
+      await dutyService.updateDutyColors(colorUpdate);
+      toast.success('색상 설정이 저장되었습니다.');
 
       onClose();
     } catch (error) {
       toast.error('색상 저장에 실패했습니다.');
       console.error('Error saving colors:', error);
     }
+  };
+
+  const handleResetColor = () => {
+    setLocalColors(DEFAULT_DUTY_COLORS);
+    toast.success('기본 색상으로 초기화되었습니다.');
   };
 
   return (
@@ -104,9 +106,18 @@ const ShiftColorPickerModal = ({
 
         {/* 미리보기 영역 */}
         <div className="px-6 pt-4 pb-2 bg-gray-50 border-b">
-          <p className="text-sm text-gray-600 mb-2">
-            미리보기 (클릭해서 색상 변경)
-          </p>
+          <div className="flex justify-between items-center">
+            <p className="text-sm text-gray-600 mb-2">
+              미리보기 (클릭해서 색상 변경)
+            </p>
+            <button
+              className="flex items-center gap-1 mb-2"
+              onClick={handleResetColor}
+            >
+              <Icon name="reset" size={12} />
+              <p className="text-xs text-gray-600">색상 초기화하기</p>
+            </button>
+          </div>
           <div className="flex flex-wrap gap-2">
             {dutyTypes.map((type) => (
               <span

@@ -869,7 +869,10 @@ const TodayShiftModal = ({
           open={isColorModalOpen}
           onClose={() => setIsColorModalOpen(false)}
           dutyColors={localDutyColors}
-          onChange={setLocalDutyColors}
+          onChange={(newColors) => {
+            // 완료 버튼을 클릭했을 때만 호출됨
+            setLocalDutyColors(newColors);
+          }}
         />
       </>
     );
@@ -882,7 +885,10 @@ const TodayShiftModal = ({
         open={isColorModalOpen}
         onClose={() => setIsColorModalOpen(false)}
         dutyColors={localDutyColors}
-        onChange={setLocalDutyColors}
+        onChange={(newColors) => {
+          // 완료 버튼을 클릭했을 때만 호출됨
+          setLocalDutyColors(newColors);
+        }}
       />
     </>
   );
