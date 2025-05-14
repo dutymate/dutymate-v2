@@ -13,7 +13,7 @@ import { useLoadingStore } from '@/stores/loadingStore';
 import { useRequestCountStore } from '@/stores/requestCountStore';
 import { Icon } from '@/components/atoms/Icon';
 import { Button } from '@/components/atoms/Button';
-import { FaPlus } from 'react-icons/fa';
+import { FaPlus, FaTrash } from 'react-icons/fa';
 
 interface ReqAdminTableProps {
   requests?: WardRequest[];
@@ -38,6 +38,13 @@ const ReqAdminTable = forwardRef<ReqAdminTableRef, ReqAdminTableProps>(
     const memoModalRef = useRef<HTMLDivElement>(null);
     const setRequestCount = useRequestCountStore((state) => state.setCount);
     const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+    const [deleteModal, setDeleteModal] = useState<{
+      isOpen: boolean;
+      requestId: number | null;
+    }>({
+      isOpen: false,
+      requestId: null,
+    });
 
     // Add date state
     const [selectedDate, setSelectedDate] = useState(() => {
@@ -224,6 +231,31 @@ const ReqAdminTable = forwardRef<ReqAdminTableRef, ReqAdminTableProps>(
       };
     }, [viewingMemo]);
 
+    // 삭제 핸들러 수정
+    const handleDelete = async (requestId: number) => {
+      setDeleteModal({
+        isOpen: true,
+        requestId,
+      });
+    };
+
+    const confirmDelete = async () => {
+      if (!deleteModal.requestId) return;
+
+      try {
+        await requestService.deleteRequest(deleteModal.requestId);
+        // 상태 직접 업데이트
+        setRequests((prevRequests) =>
+          prevRequests.filter((req) => req.requestId !== deleteModal.requestId)
+        );
+        toast.success('요청이 삭제되었습니다');
+      } catch (error) {
+        toast.error('요청 삭제에 실패했습니다');
+      } finally {
+        setDeleteModal({ isOpen: false, requestId: null });
+      }
+    };
+
     if (isLoading) {
       return <div>Loading...</div>;
     }
@@ -344,10 +376,17 @@ const ReqAdminTable = forwardRef<ReqAdminTableRef, ReqAdminTableProps>(
                       내용
                     </span>
                   </th>
-                  <th className="bg-base-muted-30 rounded-r-xl w-[8rem] lg:w-[11.25rem] p-[0.25rem]">
+                  <th className="bg-base-muted-30 w-[8rem] lg:w-[11.25rem] p-[0.25rem]">
                     <div className="flex justify-center">
                       <span className="text-[0.75rem] lg:text-[0.875rem] text-gray-600 font-medium">
                         상태
+                      </span>
+                    </div>
+                  </th>
+                  <th className="bg-base-muted-30 rounded-r-xl w-[2rem] lg:w-[2.5rem] p-[0.25rem]">
+                    <div className="flex justify-center">
+                      <span className="text-[0.75rem] lg:text-[0.875rem] text-gray-600 font-medium">
+                        삭제
                       </span>
                     </div>
                   </th>
@@ -358,7 +397,7 @@ const ReqAdminTable = forwardRef<ReqAdminTableRef, ReqAdminTableProps>(
               <tbody>
                 {currentRequests.length === 0 ? (
                   <tr>
-                    <td colSpan={isMobile ? 4 : 5}>
+                    <td colSpan={isMobile ? 5 : 6}>
                       <div className="flex items-center justify-center h-[25rem] text-gray-500">
                         요청 내역이 없습니다.
                       </div>
@@ -479,6 +518,16 @@ const ReqAdminTable = forwardRef<ReqAdminTableRef, ReqAdminTableProps>(
                           </div>
                         </div>
                       </td>
+                      <td className="w-[4rem] lg:w-[5rem] p-[0.25rem]">
+                        <div className="flex justify-center items-center h-full">
+                          <button
+                            onClick={() => handleDelete(request.requestId)}
+                            className="p-2 text-gray-400 hover:text-red-500 transition-colors"
+                          >
+                            <FaTrash className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
                     </tr>
                   ))
                 )}
@@ -553,6 +602,64 @@ const ReqAdminTable = forwardRef<ReqAdminTableRef, ReqAdminTableProps>(
               <p className="text-sm text-gray-700 break-words">
                 {viewingMemo.memo}
               </p>
+            </div>
+          </div>
+        )}
+
+        {/* 삭제 확인 모달 */}
+        {deleteModal.isOpen && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                setDeleteModal({ isOpen: false, requestId: null });
+              }
+            }}
+          >
+            <div
+              className="bg-white rounded-xl shadow-lg w-[22.5rem] max-h-[90vh] overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* 헤더 */}
+              <div className="flex rounded-t-xl justify-between bg-primary-bg items-center px-[1rem] py-[0.25rem] border-b">
+                <h2 className="text-sm font-medium text-primary-dark">
+                  요청 삭제
+                </h2>
+                <button
+                  onClick={() =>
+                    setDeleteModal({ isOpen: false, requestId: null })
+                  }
+                  className="text-primary hover:text-primary/80"
+                >
+                  <span className="text-lg">×</span>
+                </button>
+              </div>
+
+              {/* 내용 */}
+              <div className="p-[1rem]">
+                <div className="space-y-[0.5rem]">
+                  {/* 안내 멘트 */}
+                  <div className="flex items-center justify-center gap-[0.25rem] py-[0.5rem] px-[0.25rem] bg-gray-50 rounded text-sm text-gray">
+                    <span>정말로 이 요청을 삭제하시겠습니까?</span>
+                  </div>
+                </div>
+
+                {/* 버튼 영역 */}
+                <div className="flex justify-end gap-[0.25rem] mt-[1rem]">
+                  <Button
+                    size="xs"
+                    color="off"
+                    onClick={() =>
+                      setDeleteModal({ isOpen: false, requestId: null })
+                    }
+                  >
+                    취소
+                  </Button>
+                  <Button size="xs" color="primary" onClick={confirmDelete}>
+                    삭제
+                  </Button>
+                </div>
+              </div>
             </div>
           </div>
         )}
