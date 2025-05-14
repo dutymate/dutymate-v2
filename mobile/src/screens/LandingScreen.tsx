@@ -28,8 +28,7 @@ export const LandingScreen = ({ navigation }: LandingScreenProps) => {
 			const tutorialUrl = Constants.expoConfig?.extra?.tutorialUrl;
 			await Linking.openURL(tutorialUrl);
 		} catch (error) {
-			// TODO: Error 페이지 구현
-			// navigation.navigate("Error");
+			navigation.navigate("Error");
 		}
 	};
 
@@ -41,8 +40,7 @@ export const LandingScreen = ({ navigation }: LandingScreenProps) => {
 			const youtubeUrl = Constants.expoConfig?.extra?.youtubeUrl;
 			await Linking.openURL(youtubeUrl);
 		} catch (error) {
-			// TODO: Error 페이지 구현
-			// navigation.navigate("Error");
+			navigation.navigate("Error");
 		}
 	};
 

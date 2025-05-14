@@ -28,7 +28,7 @@ export const Layout = ({
 }: LayoutProps) => {
 	return (
 		<View
-			className={`flex-1 ${className} ${isWebView ? "bg-base-muted-30" : ""}`}
+			className={`flex-1 ${className} ${isWebView ? "bg-base-muted-30" : "bg-white"}`}
 		>
 			{isWaveBackground && <WaveBackground />}
 			{children}

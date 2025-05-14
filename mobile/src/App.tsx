@@ -13,6 +13,7 @@ import {
 } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 
+import { ErrorScreen } from "@/screens/ErrorScreen";
 import { LandingScreen } from "@/screens/LandingScreen";
 import { WebViewScreen } from "@/screens/WebViewScreen";
 
@@ -62,6 +63,7 @@ export default function App() {
 					initialRouteName={"Landing"}
 					screenOptions={{ headerShown: false }}
 				>
+					<Stack.Screen name={"Error"} component={ErrorScreen} />
 					<Stack.Screen name="Landing" component={LandingScreen} />
 					<Stack.Screen name="WebView" component={WebViewScreen} />
 				</Stack.Navigator>
