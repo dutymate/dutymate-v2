@@ -9,21 +9,19 @@ export interface InputProps
   type?: string;
   label?: string;
   placeholder?: string;
+  status?: 'idle' | 'success' | 'error'; // 인증 상태
+  successText?: string; // 성공 메시지
   helpText?: string;
   error?: string;
   disabled?: boolean;
+  required?: boolean;
   optional?: boolean;
   defaultValue?: string;
   value?: string;
-  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  required?: boolean;
-  onInvalid?: (e: React.InvalidEvent<HTMLInputElement>) => void;
-  onInput?: (e: React.FormEvent<HTMLInputElement>) => void;
-  onFocus?: (e: React.FocusEvent<HTMLInputElement>) => void;
   rightElement?: ReactNode;
-  successText?: string; // 성공 메시지
-  status?: 'idle' | 'success' | 'error'; // 인증 상태
   autoComplete?: string;
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onFocus?: (e: React.FocusEvent<HTMLInputElement>) => void;
 }
 
 export const Input = ({
@@ -32,21 +30,19 @@ export const Input = ({
   type = 'text',
   label,
   placeholder,
+  successText,
+  status,
   helpText,
   error,
   disabled,
+  required,
   optional,
   defaultValue,
   value,
-  onChange,
-  required,
-  onInvalid,
-  onInput,
-  onFocus,
   rightElement,
-  successText,
-  status,
   autoComplete,
+  onChange,
+  onFocus,
 }: InputProps) => {
   const getStatusClass = () => {
     if (status === 'success') {
@@ -86,7 +82,12 @@ export const Input = ({
             id={`${id}-optional`}
             className="text-sm text-gray-500 sm:text-base"
           >
-            Optional
+            선택 사항
+          </span>
+        )}
+        {status === 'success' && successText && (
+          <span className="text-sm text-green-600 sm:text-base">
+            {successText}
           </span>
         )}
       </div>
@@ -94,6 +95,7 @@ export const Input = ({
         className={`relative mt-1 sm:mt-2 ${error ? 'grid grid-cols-1' : ''}`}
       >
         <input
+          className={inputClasses}
           id={id}
           name={name}
           type={type}
@@ -101,10 +103,8 @@ export const Input = ({
           value={value}
           placeholder={placeholder}
           disabled={disabled}
-          onChange={onChange}
           required={required}
-          onInvalid={onInvalid}
-          onInput={onInput}
+          onChange={onChange}
           onFocus={onFocus}
           aria-invalid={error ? 'true' : undefined}
           aria-describedby={
@@ -116,7 +116,6 @@ export const Input = ({
                   ? `${id}-optional`
                   : undefined
           }
-          className={`${inputClasses}`}
           autoComplete={autoComplete}
         />
 
@@ -145,11 +144,6 @@ export const Input = ({
           className="mt-2 text-base text-gray-500 sm:text-lg"
         >
           {helpText}
-        </p>
-      )}
-      {status === 'success' && successText && (
-        <p className="mt-2 text-sm text-green-600 sm:text-base">
-          {successText}
         </p>
       )}
     </div>
@@ -252,7 +246,7 @@ export const NumberInput = ({
             id={`${props.id}-optional`}
             className="text-sm text-gray-500 sm:text-base"
           >
-            Optional
+            선택 사항
           </span>
         )}
       </div>
@@ -356,7 +350,7 @@ export const TextArea = ({
         </label>
         {optional && (
           <span id={`${id}-optional`} className="text-sm/6 text-gray-500">
-            Optional
+            선택 사항
           </span>
         )}
       </div>
@@ -507,7 +501,7 @@ export const Select = ({
           <span className="text-sm text-red-600 sm:text-base">{error}</span>
         )}
         {optional && (
-          <span className="text-sm text-gray-500 sm:text-base">Optional</span>
+          <span className="text-sm text-gray-500 sm:text-base">선택 사항</span>
         )}
       </div>
       <div className="mt-2 sm:mt-3">
