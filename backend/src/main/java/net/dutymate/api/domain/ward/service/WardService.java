@@ -59,6 +59,9 @@ public class WardService {
 	private final MemberService memberService;
 	private final MemberScheduleRepository memberScheduleRepository;
 
+	private static final int MAX_VIRTUAL_NURSE_COUNT = 20;
+	private static final int MAX_NURSE_COUNT = 30;
+
 	@Transactional
 	public void createWard(WardRequestDto requestWardDto, Member member) {
 		// 1. 로그인한 member가 이미 병동을 생성했다면, 400(BAD_REQUEST)
@@ -408,6 +411,25 @@ public class WardService {
 		Ward ward = Optional.ofNullable(member.getWardMember())
 			.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "병동에 속해있지 않은 회원입니다."))
 			.getWard();
+
+		// 병동 최대 인원 로직 추가
+
+		// 연동 간호사 수
+		int syncedNurseCnt = ward.getWardMemberList().stream()
+			.filter(WardMember::getIsSynced)
+			.toList().size();
+		// 전체 간호사 수
+		int wardMemberCnt = ward.getWardMemberList().size();
+
+		// 1. 임시 간호사 최대 20명
+		if (wardMemberCnt - syncedNurseCnt + addNurseCnt > MAX_VIRTUAL_NURSE_COUNT) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "임시 간호사 수는 20명을 초과할 수 없습니다.");
+		}
+
+		// 2. 병동 간호사 최대 30명
+		if (wardMemberCnt + addNurseCnt > MAX_NURSE_COUNT) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "병동 간호사 수는 30명을 초과할 수 없습니다.");
+		}
 
 		// 3. 새로운 임시간호사와 WardMember 만들기
 		List<Member> newMemberList = new ArrayList<>();
