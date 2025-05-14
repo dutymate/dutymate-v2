@@ -104,8 +104,8 @@ const DutyManagement = () => {
   return (
     <>
       <SEO
-        title="근무표 관리 | Dutymate"
-        description="근무표를 관리해보세요."
+        title="듀티표 관리 | Dutymate"
+        description="듀티표를 관리해보세요."
       />
       <div className="w-full h-screen flex flex-row bg-[#F4F4F4]">
         {/* 데스크톱 Sidebar */}
@@ -135,15 +135,15 @@ const DutyManagement = () => {
               <IoMdMenu className="w-6 h-6 text-gray-600" />
             </button>
             <div className="flex-1">
-              <h1 className="text-lg font-bold">근무표 관리</h1>
-              <p className="text-sm text-gray-500">근무표를 관리해보세요</p>
+              <h1 className="text-lg font-bold">듀티표 관리</h1>
+              <p className="text-sm text-gray-500">듀티표를 관리해보세요</p>
             </div>
             {isDemo && <DemoTimer />}
           </div>
 
           {/* 데스크톱 타이틀 */}
           <div className="hidden lg:block mb-4">
-            <Title title="근무표 관리" subtitle="근무표를 관리해보세요" />
+            <Title title="듀티표 관리" subtitle="듀티표를 관리해보세요" />
           </div>
 
           <div className="flex flex-col gap-[0.75rem] pb-[2rem]">
