@@ -88,12 +88,16 @@ const WardAdminInfo = ({ wardInfo, onAddTempNurse }: WardAdminInfoProps) => {
     const totalNurses = wardInfo.nursesTotalCnt;
 
     if (totalNurses >= MAX_TOTAL_NURSES) {
-      toast.warning('병동 최대 인원(30명)을 초과할 수 없습니다.');
+      toast.warning(
+        `병동 최대 인원(${MAX_TOTAL_NURSES}명)을 초과할 수 없습니다.`
+      );
       return;
     }
 
     if (currentTempNurses >= MAX_TEMP_NURSES) {
-      toast.warning('임시 간호사는 최대 20명까지만 추가할 수 있습니다.');
+      toast.warning(
+        `임시 간호사는 최대 ${MAX_TEMP_NURSES}명까지만 추가할 수 있습니다.`
+      );
       return;
     }
 

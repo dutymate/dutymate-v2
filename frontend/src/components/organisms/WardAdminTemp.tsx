@@ -49,7 +49,9 @@ const WardAdminTemp = ({
     }
 
     if (totalAfterAdd > MAX_TOTAL_NURSES) {
-      toast.warning('병동 최대 인원(30명)을 초과할 수 없습니다.');
+      toast.warning(
+        `병동 최대 인원 ${MAX_TOTAL_NURSES}명을 초과할 수 없습니다.`
+      );
       return;
     }
 
