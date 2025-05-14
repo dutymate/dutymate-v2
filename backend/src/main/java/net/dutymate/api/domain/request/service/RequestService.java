@@ -129,12 +129,14 @@ public class RequestService {
 
 	@Transactional
 	public void deleteRequest(Member member, Long requestId) {
-		Request request =
-			requestRepository.findById(requestId)
-				.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "요청을 찾을 수 없습니다."));
+		Request request = requestRepository.findById(requestId)
+			.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "요청을 찾을 수 없습니다."));
 
-		if (!request.getWardMember().getMember().equals(member)) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "본인의 요청이 아닙니다.");
+		// 본인의 요청이거나 HN 역할이면서 동일한 와드의 요청인 경우에만 삭제 가능
+		if (!request.getWardMember().getMember().equals(member)
+			&& !(member.getRole().equals(Role.HN)
+			&& member.getWardMember().getWard().equals(request.getWardMember().getWard()))) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "해당 요청에 대한 삭제 권한이 없습니다.");
 		}
 
 		requestRepository.delete(request);

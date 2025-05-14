@@ -647,7 +647,7 @@ const ReqAdminTable = forwardRef<ReqAdminTableRef, ReqAdminTableProps>(
                 {/* 버튼 영역 */}
                 <div className="flex justify-end gap-[0.25rem] mt-[1rem]">
                   <Button
-                    size="xs"
+                    size="sm"
                     color="off"
                     onClick={() =>
                       setDeleteModal({ isOpen: false, requestId: null })
@@ -655,7 +655,7 @@ const ReqAdminTable = forwardRef<ReqAdminTableRef, ReqAdminTableProps>(
                   >
                     취소
                   </Button>
-                  <Button size="xs" color="primary" onClick={confirmDelete}>
+                  <Button size="sm" color="primary" onClick={confirmDelete}>
                     삭제
                   </Button>
                 </div>
