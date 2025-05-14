@@ -12,9 +12,12 @@ import { requestService, WardRequest } from '@/services/requestService.ts';
 import { useLoadingStore } from '@/stores/loadingStore';
 import { useRequestCountStore } from '@/stores/requestCountStore';
 import { Icon } from '@/components/atoms/Icon';
+import { Button } from '@/components/atoms/Button';
+import { FaPlus } from 'react-icons/fa';
 
 interface ReqAdminTableProps {
   requests?: WardRequest[];
+  onCreateRequest?: () => void;
 }
 
 export interface ReqAdminTableRef {
@@ -22,7 +25,7 @@ export interface ReqAdminTableRef {
 }
 
 const ReqAdminTable = forwardRef<ReqAdminTableRef, ReqAdminTableProps>(
-  ({ requests: propRequests }, ref) => {
+  ({ requests: propRequests, onCreateRequest }, ref) => {
     const [requests, setRequests] = useState<WardRequest[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [searchTerm] = useState('');
@@ -228,57 +231,73 @@ const ReqAdminTable = forwardRef<ReqAdminTableRef, ReqAdminTableProps>(
     return (
       <div className="w-full">
         <div className="bg-white rounded-[1.154375rem] p-1 sm:p-6">
-          <h2 className="text-base lg:text-[1.125rem] font-semibold whitespace-nowrap">
-            요청 내역
-          </h2>
-          <div className="flex flex-col lg:flex-row items-center justify-between mb-[1rem] px-[0.5rem]">
-            <div className="flex items-center justify-between w-full">
-              {/* 월 이동 컨트롤 */}
-              <div className="flex-1 flex items-center justify-center">
-                <div className="flex items-center gap-2 sm:gap-4">
-                  <button
-                    onClick={handlePrevMonth}
-                    className="p-1.5 hover:bg-gray-100 rounded-full transition-colors"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-4 w-4 sm:h-5 sm:w-5"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M15 19l-7-7 7-7"
-                      />
-                    </svg>
-                  </button>
-                  <div className="text-sm sm:text-base lg:text-lg font-medium whitespace-nowrap">
-                    {selectedDate.year}년 {selectedDate.month}월
-                  </div>
-                  <button
-                    onClick={handleNextMonth}
-                    className="p-1.5 hover:bg-gray-100 rounded-full transition-colors"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-4 w-4 sm:h-5 sm:w-5"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 5l7 7-7 7"
-                      />
-                    </svg>
-                  </button>
-                </div>
+          <div className="grid grid-cols-3 items-center mb-4 px-[0.5rem]">
+            {/* 왼쪽 - 빈 공간 */}
+            <div className="col-start-1"></div>
+
+            {/* 중앙 - 연월 표시 */}
+            <div className="col-start-2 flex items-center justify-center gap-2 md:gap-4">
+              <button
+                onClick={handlePrevMonth}
+                className="p-1.5 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-4 w-4 sm:h-5 sm:w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 19l-7-7 7-7"
+                  />
+                </svg>
+              </button>
+              <div className="text-sm sm:text-base lg:text-lg font-medium whitespace-nowrap">
+                {selectedDate.year}년 {selectedDate.month}월
               </div>
+              <button
+                onClick={handleNextMonth}
+                className="p-1.5 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-4 w-4 sm:h-5 sm:w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
+              </button>
+            </div>
+
+            {/* 오른쪽 - 요청생성 버튼 */}
+            <div className="col-start-3 flex justify-end shrink-0">
+              <Button
+                text-size="md"
+                size={isMobile ? 'xs' : 'register'}
+                color="primary"
+                onClick={onCreateRequest}
+                className={`whitespace-nowrap ${
+                  isMobile
+                    ? 'px-2 py-2 text-xs'
+                    : 'py-0.5 px-1.5 sm:py-1 sm:px-2'
+                }`}
+              >
+                <div className="flex items-center gap-1 relative group">
+                  <FaPlus className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'}`} />
+                  <span>요청생성</span>
+                </div>
+              </Button>
             </div>
           </div>
 

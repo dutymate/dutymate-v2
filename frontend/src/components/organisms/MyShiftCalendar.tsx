@@ -222,13 +222,16 @@ const MyShiftCalendar = ({
         <div className="col-start-3 flex justify-end shrink-0">
           <Button
             color="primary"
+            text-size="md"
             className={`whitespace-nowrap ${
-              isMobile ? 'px-2 py-2 text-xs' : 'px-3 py-2 text-sm'
+              isMobile ? 'px-2 py-2 text-xs' : 'py-0.5 px-1.5 sm:py-1 sm:px-2'
             }`}
             onClick={() => setIsReqModalOpen(true)}
-            size={isMobile ? 'xs' : 'md'}
+            size={isMobile ? 'xs' : 'register'}
           >
-            근무 요청
+            <div className="flex items-center gap-1 relative group">
+              <span>근무 요청</span>
+            </div>
           </Button>
         </div>
       </div>
