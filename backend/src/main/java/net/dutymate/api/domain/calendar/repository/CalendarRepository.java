@@ -11,4 +11,6 @@ import net.dutymate.api.domain.member.Member;
 public interface CalendarRepository extends JpaRepository<Calendar, Long> {
 
 	List<Calendar> findAllByMemberAndDate(Member member, LocalDate date);
+
+	List<Calendar> findAllByMemberAndDateBetween(Member member, LocalDate start, LocalDate end);
 }

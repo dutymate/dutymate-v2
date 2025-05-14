@@ -1,5 +1,6 @@
 package net.dutymate.api.domain.wardschedules.service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -17,6 +18,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import net.dutymate.api.domain.autoschedule.Shift;
+import net.dutymate.api.domain.calendar.Calendar;
+import net.dutymate.api.domain.calendar.repository.CalendarRepository;
 import net.dutymate.api.domain.common.utils.YearMonth;
 import net.dutymate.api.domain.member.Member;
 import net.dutymate.api.domain.member.repository.MemberRepository;
@@ -52,6 +55,7 @@ public class WardScheduleService {
 	private final RequestRepository requestRepository;
 	private final WardMemberRepository wardMemberRepository;
 	private final MemberScheduleRepository memberScheduleRepository;
+	private final CalendarRepository calendarRepository;
 
 	@Transactional
 	public WardScheduleResponseDto getWardSchedule(Member member, final YearMonth yearMonth, Integer nowIdx) {
@@ -308,15 +312,15 @@ public class WardScheduleService {
 
 	@Transactional(readOnly = true)
 	public MyDutyResponseDto getMyDuty(Member member, final YearMonth yearMonth) {
+		// 1. 이전 달, 다음 달 계산
 		// 이전 연, 월 초기화
 		YearMonth prevYearMonth = yearMonth.prevYearMonth();
-
 		// 다음 연, 월 초기화
 		YearMonth nextYearMonth = yearMonth.nextYearMonth();
-
 		// 일주일 상수 초기화
 		final int daysInAWeek = 7;
 
+		// 2. 근무표 조회
 		// 사용자 병동 입장X
 		String shifts = getOrCreateMemberSchedule(member.getMemberId(), yearMonth).getShifts();
 		String prevShifts = getOrCreateMemberSchedule(member.getMemberId(), prevYearMonth).getShifts()
@@ -324,7 +328,48 @@ public class WardScheduleService {
 		String nextShifts = getOrCreateMemberSchedule(member.getMemberId(), nextYearMonth).getShifts()
 			.substring(0, daysInAWeek);
 
-		return MyDutyResponseDto.of(yearMonth, prevShifts, nextShifts, shifts);
+
+		// 3. 날짜 범위 계산
+		LocalDate firstDay = yearMonth.atDay(1); // 이번달 1일
+		LocalDate lastDay = yearMonth.atEndOfMonth(); // 이번달 말일
+		LocalDate prevStart = firstDay.minusDays(daysInAWeek); // 전달 7일 시작 날짜
+		LocalDate nextEnd = lastDay.plusDays(daysInAWeek); // 다음달 7일 끝나는 날짜
+
+		// 4. 일정 조회
+		// 전달 7일 ~ 다음달 7일까지 일정 조회
+		List<Calendar> calendars = calendarRepository.findAllByMemberAndDateBetween(member, prevStart, nextEnd);
+
+		// 5. 일정 분류하기
+		List<MyDutyResponseDto.CalendarEvent> prevCalendar = new ArrayList<>();
+		List<MyDutyResponseDto.CalendarEvent> currentCalendar = new ArrayList<>();
+		List<MyDutyResponseDto.CalendarEvent> nextCalendar = new ArrayList<>();
+
+		for(Calendar calendar : calendars) {
+
+			LocalDate date = calendar.getDate();
+			MyDutyResponseDto.CalendarEvent event = new MyDutyResponseDto.CalendarEvent();
+
+			event.setDate(date);
+			event.setTitle(calendar.getTitle());
+			event.setColor(calendar.getColor());
+
+			if(date.isBefore(firstDay)){
+				prevCalendar.add(event);
+			}else if(date.isAfter(lastDay)){
+				nextCalendar.add(event);
+			}else{
+				currentCalendar.add(event);
+			}
+
+		}
+
+		// 6. calendar DTO 구성
+		MyDutyResponseDto.CalendarData calendarData = new MyDutyResponseDto.CalendarData();
+		calendarData.setPrevCalendar(prevCalendar);
+		calendarData.setCurrCalendar(currentCalendar);
+		calendarData.setNextCalendar(nextCalendar);
+
+		return MyDutyResponseDto.of(yearMonth, prevShifts, nextShifts, shifts, calendarData);
 	}
 
 	// 병동 스케줄에서 현재 로그인한 멤버의 듀티 구하기
