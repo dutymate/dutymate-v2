@@ -64,8 +64,8 @@ export default function App() {
 					screenOptions={{ headerShown: false }}
 				>
 					<Stack.Screen name={"Error"} component={ErrorScreen} />
-					<Stack.Screen name="Landing" component={LandingScreen} />
-					<Stack.Screen name="WebView" component={WebViewScreen} />
+					<Stack.Screen name={"Landing"} component={LandingScreen} />
+					<Stack.Screen name={"WebView"} component={WebViewScreen} />
 				</Stack.Navigator>
 			</NavigationContainer>
 		</>
