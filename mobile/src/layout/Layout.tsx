@@ -10,6 +10,7 @@ interface LayoutProps {
 	children: React.ReactNode;
 	className?: string;
 	isWebView?: boolean;
+	isWaveBackground?: boolean;
 }
 
 /**
@@ -17,17 +18,19 @@ interface LayoutProps {
  * @param children
  * @param className
  * @param isWebView
+ * @param isWaveBackground
  */
 export const Layout = ({
 	children,
 	className,
 	isWebView = false,
+	isWaveBackground = true,
 }: LayoutProps) => {
 	return (
 		<View
 			className={`flex-1 ${className} ${isWebView ? "bg-base-muted-30" : ""}`}
 		>
-			{!isWebView && <WaveBackground />}
+			{isWaveBackground && <WaveBackground />}
 			{children}
 		</View>
 	);
