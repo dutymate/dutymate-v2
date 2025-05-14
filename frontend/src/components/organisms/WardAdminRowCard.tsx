@@ -203,14 +203,6 @@ const WardAdminRowCard = ({
   const handleWorkIntensityChange = (
     workIntensity: 'HIGH' | 'MEDIUM' | 'LOW'
   ) => {
-    console.log('Updating workIntensity:', {
-      memberId: nurse.memberId,
-      workIntensity,
-      shift: nurse.shift || null,
-      skillLevel: nurse.skillLevel || null,
-      memo: nurse.memo || '',
-      role: nurse.role,
-    });
     onUpdate(nurse.memberId, {
       workIntensity,
       shift: nurse.shift || null,
@@ -543,7 +535,11 @@ const WardAdminRowCard = ({
                 {openWorkIntensityDropdown && (
                   <div
                     ref={workIntensityDropdownRef}
-                    className={`absolute ${dropdownPosition === 'top' ? 'bottom-full mb-1' : 'top-full mt-1'} left-0 bg-white border rounded-md shadow-lg z-10`}
+                    className={`absolute ${
+                      dropdownPosition === 'top'
+                        ? 'bottom-full mb-1'
+                        : 'top-full mt-1'
+                    } left-0 bg-white border rounded-md shadow-lg z-10`}
                   >
                     {workIntensityOptions.map((option) => (
                       <button

@@ -32,7 +32,7 @@ interface MyShiftCalendarProps {
   onMonthChange?: (year: number, month: number) => void;
   schedulesByDate: Record<string, ScheduleType[]>;
   colorClassMap: Record<string, string>;
-  setSchedulesByDate: React.Dispatch<
+  setSchedulesByDate?: React.Dispatch<
     React.SetStateAction<Record<string, ScheduleType[]>>
   >;
   onClose?: () => void;

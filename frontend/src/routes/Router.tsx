@@ -56,7 +56,6 @@ const InviteRoute = ({ element }: ProtectedRouteProps) => {
 
   useEffect(() => {
     if (inviteToken) {
-      console.log('Storing invite token:', inviteToken);
       localStorage.setItem('inviteToken', inviteToken);
     }
   }, [inviteToken]);

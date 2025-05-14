@@ -12,11 +12,11 @@ import TodayShiftModal from '@/components/organisms/TodayShiftModal';
 import Sidebar from '@/components/organisms/WSidebar';
 import { SEO } from '@/components/SEO';
 import type { ScheduleType } from '@/services/calendarService';
-import { fetchSchedules as fetchSchedulesFromService } from '@/services/calendarService';
-import { dutyService } from '@/services/dutyService';
+import { dutyService, MyDuty } from '@/services/dutyService';
 import { useLoadingStore } from '@/stores/loadingStore';
 import useUserAuthStore from '@/stores/userAuthStore';
 import { convertDutyTypeSafe, getDutyColors } from '@/utils/dutyUtils';
+import { CalendarEvent } from '@/types/calendar';
 
 // 일정 색상 클래스 매핑 - 사용자 색상 대신 일정 색상용으로만 유지
 const colorClassMap: Record<string, string> = {
@@ -36,13 +36,7 @@ const MyShift = () => {
     'day' | 'evening' | 'night' | 'off' | 'mid'
   >('day');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [myDutyData, setMyDutyData] = useState<{
-    year: number;
-    month: number;
-    shifts: string;
-    prevShifts: string;
-    nextShifts: string;
-  } | null>(null);
+  const [myDutyData, setMyDutyData] = useState<MyDuty | null>(null);
   const [dayDutyData, setDayDutyData] = useState<{
     myShift: 'D' | 'E' | 'N' | 'O' | 'M';
     otherShifts: {
@@ -52,7 +46,7 @@ const MyShift = () => {
     }[];
   } | null>(null);
   const [loading, setLoading] = useState(false);
-  const { userInfo } = useUserAuthStore(); // 전역 상태에서 role 가져오기
+  const { userInfo } = useUserAuthStore();
   const navigate = useNavigate();
 
   // 날짜별 일정(메모) 상태
@@ -80,26 +74,18 @@ const MyShift = () => {
     // dutyColors는 getDutyColors(userInfo?.color)로 이미 자동 업데이트됨
   }, [userInfo?.color]);
 
-  // 캘린더 데이터 가져오기 함수 수정
-  const fetchSchedules = async (date: Date) => {
-    try {
-      const dateKey = `${date.getFullYear()}-${String(
-        date.getMonth() + 1
-      ).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-      const schedules = await fetchSchedulesFromService(date);
-      setSchedulesByDate((prev) => ({
-        ...prev,
-        [dateKey]: schedules,
-      }));
-    } catch (error) {
-      const dateKey = `${date.getFullYear()}-${String(
-        date.getMonth() + 1
-      ).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-      setSchedulesByDate((prev) => ({
-        ...prev,
-        [dateKey]: [],
-      }));
-    }
+  // CalendarEvent를 ScheduleType으로 변환하는 함수
+  const convertCalendarEventToSchedule = (
+    event: CalendarEvent
+  ): ScheduleType => {
+    return {
+      calendarId: 0, // ID는 TodayShiftModal에서 실제 데이터를 불러올 때 사용
+      title: event.title,
+      color: event.color,
+      date: event.date,
+      place: '',
+      isAllDay: true,
+    };
   };
 
   // 초기 데이터 로딩
@@ -113,6 +99,31 @@ const MyShift = () => {
           today.getMonth() + 1
         );
         setMyDutyData(data);
+
+        // MyDuty 응답에서 받은 calendar 데이터를 schedulesByDate로 변환
+        if (data.calendar) {
+          const allCalendarEvents = [
+            ...(data.calendar.prevCalendar || []),
+            ...(data.calendar.currCalendar || []),
+            ...(data.calendar.nextCalendar || []),
+          ];
+
+          const newSchedulesByDate: Record<string, ScheduleType[]> = {};
+
+          allCalendarEvents.forEach((event) => {
+            const dateKey = event.date;
+            if (!newSchedulesByDate[dateKey]) {
+              newSchedulesByDate[dateKey] = [];
+            }
+
+            newSchedulesByDate[dateKey].push(
+              convertCalendarEventToSchedule(event)
+            );
+          });
+
+          setSchedulesByDate(newSchedulesByDate);
+        }
+
         useLoadingStore.getState().setLoading(false);
       } catch (error) {
         useLoadingStore.getState().setLoading(false);
@@ -122,37 +133,28 @@ const MyShift = () => {
     fetchMyDuty();
   }, [navigate]);
 
-  // myDutyData가 바뀔 때마다(즉, 월이 바뀔 때마다) 모든 날짜의 메모를 미리 불러오기
+  // myDutyData가 바뀔 때마다(즉, 월이 바뀔 때마다) 일정 데이터 업데이트
   useEffect(() => {
-    if (!myDutyData) return;
-    const { year, month } = myDutyData;
-    const daysInMonth = new Date(year, month, 0).getDate();
+    if (!myDutyData || !myDutyData.calendar) return;
 
-    // 모든 날짜의 fetch를 병렬로 실행 후, 한 번에 상태 업데이트
-    const fetchAllSchedules = async () => {
-      const results = await Promise.all(
-        Array.from({ length: daysInMonth }, (_, i) => {
-          const day = i + 1;
-          const date = new Date(year, month - 1, day);
-          const dateKey = `${year}-${String(month).padStart(2, '0')}-${String(
-            day
-          ).padStart(2, '0')}`;
-          return fetchSchedulesFromService(date).then((schedules) => ({
-            dateKey,
-            schedules,
-          }));
-        })
-      );
-      // 한 번에 상태 업데이트
-      setSchedulesByDate((prev) => {
-        const newState = { ...prev };
-        results.forEach(({ dateKey, schedules }) => {
-          newState[dateKey] = schedules;
-        });
-        return newState;
-      });
-    };
-    fetchAllSchedules();
+    const allCalendarEvents = [
+      ...(myDutyData.calendar.prevCalendar || []),
+      ...(myDutyData.calendar.currCalendar || []),
+      ...(myDutyData.calendar.nextCalendar || []),
+    ];
+
+    const newSchedulesByDate: Record<string, ScheduleType[]> = {};
+
+    allCalendarEvents.forEach((event) => {
+      const dateKey = event.date;
+      if (!newSchedulesByDate[dateKey]) {
+        newSchedulesByDate[dateKey] = [];
+      }
+
+      newSchedulesByDate[dateKey].push(convertCalendarEventToSchedule(event));
+    });
+
+    setSchedulesByDate(newSchedulesByDate);
   }, [myDutyData]);
 
   // 날짜 선택 시 해당 날짜의 근무 데이터 로딩
@@ -164,14 +166,12 @@ const MyShift = () => {
         date.getMonth() + 1,
         date.getDate()
       );
-      setSelectedDate(date); // ✅ 데이터를 다 받아온 후 set
+      setSelectedDate(date);
       setDayDutyData(data);
 
       const dutyType = convertDutyTypeSafe(data.myShift);
       setSelectedDuty(dutyType);
       setSelectedDutyType(dutyType);
-
-      await fetchSchedules(date);
     } catch (error) {
       toast.error('해당 날짜의 근무 정보가 없습니다.');
     } finally {
@@ -192,7 +192,6 @@ const MyShift = () => {
     if (!selectedDate) return;
 
     try {
-      // 1. 현재 선택된 날짜의 월간 근무 데이터 갱신
       const year = selectedDate.getFullYear();
       const month = selectedDate.getMonth() + 1;
 
@@ -200,40 +199,31 @@ const MyShift = () => {
       const updatedMonthData = await dutyService.getMyDuty(year, month);
       setMyDutyData(updatedMonthData);
 
-      // 2. 현재 선택된 날짜의 일별 근무 데이터 갱신은 생략
-      // 다음 날짜로 이동할 것이므로 현재 날짜의 데이터는 갱신할 필요 없음
-      // 성공 메시지
-    } catch (error) {}
-  };
+      // MyDuty 응답에서 받은 calendar 데이터를 schedulesByDate로 변환
+      if (updatedMonthData.calendar) {
+        const allCalendarEvents = [
+          ...(updatedMonthData.calendar.prevCalendar || []),
+          ...(updatedMonthData.calendar.currCalendar || []),
+          ...(updatedMonthData.calendar.nextCalendar || []),
+        ];
 
-  // 월 전체 일정(메모) 한 번에 불러오는 함수 추가
-  const fetchAllSchedulesForMonth = async (year: number, month: number) => {
-    try {
-      const daysInMonth = new Date(year, month, 0).getDate();
-      const results = await Promise.all(
-        Array.from({ length: daysInMonth }, (_, i) => {
-          const day = i + 1;
-          const date = new Date(year, month - 1, day);
-          const dateKey = `${year}-${String(month).padStart(2, '0')}-${String(
-            day
-          ).padStart(2, '0')}`;
-          return fetchSchedulesFromService(date).then((schedules) => ({
-            dateKey,
-            schedules,
-          }));
-        })
-      );
+        const newSchedulesByDate: Record<string, ScheduleType[]> = {};
 
-      // 한 번에 상태 업데이트
-      setSchedulesByDate((prev) => {
-        const newState = { ...prev };
-        results.forEach(({ dateKey, schedules }) => {
-          newState[dateKey] = schedules;
+        allCalendarEvents.forEach((event) => {
+          const dateKey = event.date;
+          if (!newSchedulesByDate[dateKey]) {
+            newSchedulesByDate[dateKey] = [];
+          }
+
+          newSchedulesByDate[dateKey].push(
+            convertCalendarEventToSchedule(event)
+          );
         });
-        return newState;
-      });
+
+        setSchedulesByDate(newSchedulesByDate);
+      }
     } catch (error) {
-      toast.error('일정을 불러오는데 실패했습니다.');
+      console.error('데이터 새로고침 실패:', error);
     }
   };
 
@@ -298,7 +288,6 @@ const MyShift = () => {
                   onMonthChange={handleMonthChange}
                   schedulesByDate={schedulesByDate}
                   colorClassMap={colorClassMap}
-                  setSchedulesByDate={setSchedulesByDate}
                   dutyColors={dutyColors}
                 />
               </div>
@@ -320,7 +309,6 @@ const MyShift = () => {
                     onTabChange={setActiveTab}
                     selectedDutyType={selectedDutyType}
                     onDutyTypeChange={setSelectedDutyType}
-                    fetchAllSchedulesForMonth={fetchAllSchedulesForMonth}
                     refreshMyDutyData={refreshMyDutyData}
                     dutyColors={dutyColors}
                   />
@@ -344,7 +332,6 @@ const MyShift = () => {
                     onTabChange={setActiveTab}
                     selectedDutyType={selectedDutyType}
                     onDutyTypeChange={setSelectedDutyType}
-                    fetchAllSchedulesForMonth={fetchAllSchedulesForMonth}
                     refreshMyDutyData={refreshMyDutyData}
                     dutyColors={dutyColors}
                   />

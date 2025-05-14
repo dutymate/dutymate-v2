@@ -1,4 +1,5 @@
 import axiosInstance from '@/lib/axios';
+import { Calendar } from '@/types/calendar';
 import axios from 'axios';
 
 // 타입 정의
@@ -17,6 +18,7 @@ export interface MyDuty {
   prevShifts: string; // 전달 일주일
   nextShifts: string; // 다음달 일주일
   shifts: string; // 이번달 근무표
+  calendar: Calendar;
 }
 
 export interface DutyHistory {

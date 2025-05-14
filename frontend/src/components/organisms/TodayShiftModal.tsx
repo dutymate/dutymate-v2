@@ -14,6 +14,8 @@ import {
   createCalendar,
   getCalendarById,
   updateCalendar,
+  fetchSchedules,
+  deleteCalendar,
 } from '@/services/calendarService';
 import { toast } from 'react-toastify';
 import { wardService } from '@/services/wardService';
@@ -21,6 +23,7 @@ import { useUserAuthStore } from '@/stores/userAuthStore';
 import { dutyService } from '@/services/dutyService';
 import JoinWardGuideModal from './JoinWardGuideModal';
 import ShiftColorPickerModal from './ShiftColorPickerModal';
+import PageLoadingSpinner from '../atoms/Loadingspinner';
 const weekDays = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'] as const;
 type WeekDay = (typeof weekDays)[number];
 
@@ -58,7 +61,7 @@ interface TodayShiftModalProps {
   onTabChange: (tab: 'status' | 'calendar') => void;
   selectedDutyType: 'day' | 'off' | 'evening' | 'night' | 'mid';
   onDutyTypeChange: (type: 'day' | 'off' | 'evening' | 'night' | 'mid') => void;
-  fetchAllSchedulesForMonth: (year: number, month: number) => Promise<void>;
+  fetchAllSchedulesForMonth?: (year: number, month: number) => Promise<void>;
   refreshMyDutyData?: () => Promise<void>;
   dutyColors?: Record<
     'day' | 'evening' | 'night' | 'off' | 'mid',
@@ -84,7 +87,6 @@ const TodayShiftModal = ({
   isMobile,
   onClose,
   onDateChange,
-  schedulesByDate,
   setSchedulesByDate,
   activeTab,
   onTabChange,
@@ -105,12 +107,10 @@ const TodayShiftModal = ({
   );
   const [isEnteringWard, setIsEnteringWard] = useState(false);
   const { userInfo, setUserInfo } = useUserAuthStore();
-  const dateKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
-    2,
-    '0'
-  )}-${String(date.getDate()).padStart(2, '0')}`;
-  const schedules = schedulesByDate[dateKey] || [];
+
   const [isColorModalOpen, setIsColorModalOpen] = useState(false);
+  const [schedules, setSchedules] = useState<ScheduleType[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   const dutyTypes = ['day', 'off', 'evening', 'night', 'mid'] as const;
   type DutyType = (typeof dutyTypes)[number];
@@ -148,6 +148,7 @@ const TodayShiftModal = ({
   };
 
   const handleScheduleClick = async (calendarId: number) => {
+    console.log('calendarId :>> ', calendarId);
     try {
       const response = await getCalendarById(calendarId);
       const detail = response.data;
@@ -159,24 +160,20 @@ const TodayShiftModal = ({
 
   const handleDelete = async (calendarId: number) => {
     try {
-      // schedulesByDate 상태 직접 업데이트
-      const dateKey = `${date.getFullYear()}-${String(
-        date.getMonth() + 1
-      ).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-      setSchedulesByDate((prev) => ({
-        ...prev,
-        [dateKey]:
-          prev[dateKey]?.filter(
-            (schedule) => schedule.calendarId !== calendarId
-          ) || [],
-      }));
+      // API를 통해 일정 삭제
+      await deleteCalendar(calendarId);
 
       // 선택된 일정 초기화 및 모달 닫기
       setSelectedSchedule(null);
       setIsScheduleModalOpen(false);
 
-      // 월 전체 일정 새로고침
-      await fetchAllSchedulesForMonth(date.getFullYear(), date.getMonth() + 1);
+      // 해당 날짜의 일정 다시 가져오기
+      await loadSchedules();
+
+      // 월 전체 데이터 갱신 (선택적)
+      if (refreshMyDutyData) {
+        await refreshMyDutyData();
+      }
     } catch (error) {
       alert('일정 삭제에 실패했습니다.');
     }
@@ -210,27 +207,15 @@ const TodayShiftModal = ({
       setIsScheduleModalOpen(false);
 
       // API 호출
-      const response = await createCalendar(req);
-      const newCalendarId = response.data.calendarId;
+      await createCalendar(req);
 
-      // 새로 생성된 일정 UI에 즉시 추가
-      const dateKey = `${formattedDate}`;
-      const newSchedule: ScheduleType = {
-        calendarId: newCalendarId,
-        ...data,
-        date: formattedDate,
-      };
+      // 해당 날짜의 일정 다시 가져오기
+      await loadSchedules();
 
-      setSchedulesByDate((prev) => ({
-        ...prev,
-        [dateKey]: [...(prev[dateKey] || []), newSchedule],
-      }));
-
-      // 바로 UI 업데이트를 위한 새로고침
-      await fetchAllSchedulesForMonth(
-        selectedDate.getFullYear(),
-        selectedDate.getMonth() + 1
-      );
+      // 월 전체 데이터 갱신 (선택적)
+      if (refreshMyDutyData) {
+        await refreshMyDutyData();
+      }
     } catch (error) {
       alert('일정 저장에 실패했습니다.');
     }
@@ -280,11 +265,13 @@ const TodayShiftModal = ({
       // API 호출
       await updateCalendar(selectedSchedule.calendarId, editData);
 
-      // 바로 UI 업데이트를 위한 새로고침
-      await fetchAllSchedulesForMonth(
-        selectedDate.getFullYear(),
-        selectedDate.getMonth() + 1
-      );
+      // 해당 날짜의 일정 다시 가져오기
+      await loadSchedules();
+
+      // 월 전체 데이터 갱신 (선택적)
+      if (refreshMyDutyData) {
+        await refreshMyDutyData();
+      }
     } catch (error) {
       alert('일정 수정에 실패했습니다.');
     }
@@ -313,6 +300,7 @@ const TodayShiftModal = ({
         parseTimeString(a.startTime ?? '') - parseTimeString(b.startTime ?? '')
     ),
   ];
+  console.log('sortedSchedules :>> ', sortedSchedules);
 
   const formatMonth = (month: number) => {
     return month < 10 ? `0${month}` : month;
@@ -433,19 +421,12 @@ const TodayShiftModal = ({
       // 8. API 호출로 근무표 업데이트
       await dutyService.updateMyDuty(updateData);
 
-      // // 9. 토스트 메시지 표시
-      // if (shiftToSend === 'X') {
-      //   toast.success(`${month}월 ${day}일 근무가 삭제되었습니다.`);
-      // } else {
-      //   toast.success(`${month}월 ${day}일 근무가 ${type}으로 설정되었습니다.`);
-      // }
-
-      // 10. 월 전체 일정 새로고침 (새로고침 없이 즉시 반영)
+      // 9. 월 전체 일정 새로고침 (선택적)
       if (typeof fetchAllSchedulesForMonth === 'function') {
         await fetchAllSchedulesForMonth(year, month);
       }
 
-      // 11. 전체 월간 근무 데이터 갱신 (부모 컴포넌트에서 전달된 함수가 있다면)
+      // 10. 전체 월간 근무 데이터 갱신 (부모 컴포넌트에서 전달된 함수가 있다면)
       if (typeof refreshMyDutyData === 'function') {
         await refreshMyDutyData();
       } else {
@@ -453,7 +434,7 @@ const TodayShiftModal = ({
         onDateChange(new Date(date));
       }
 
-      // 12. 다음 날짜로 이동
+      // 11. 다음 날짜로 이동
       const nextDay = new Date(date);
       nextDay.setDate(date.getDate() + 1);
       onDateChange(nextDay);
@@ -462,6 +443,35 @@ const TodayShiftModal = ({
       toast.error('근무 업데이트에 실패했습니다.');
     }
   };
+
+  // 선택된 날짜의 일정을 가져오는 함수
+  const loadSchedules = async () => {
+    if (!date) return;
+
+    setIsLoading(true);
+    try {
+      // calendarService의 fetchSchedules 함수 사용
+      const fetchedSchedules = await fetchSchedules(date);
+      setSchedules(fetchedSchedules);
+    } catch (error) {
+      toast.error('일정을 불러오는데 실패했습니다.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // 날짜가 변경될 때마다 일정 다시 가져오기
+  useEffect(() => {
+    loadSchedules();
+  }, [date]);
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center p-4 py-10">
+        <PageLoadingSpinner />
+      </div>
+    );
+  }
 
   const modalContent = (
     <div
