@@ -16,8 +16,8 @@ spring:
   # 최대 이미지 파일 크기 설정
   servlet:
     multipart:
-      maxFileSize: 10MB
-      maxRequestSize: 10MB
+      maxFileSize: 30MB
+      maxRequestSize: 30MB
 
   # Object Mapper 타임존 설정
   jackson:
