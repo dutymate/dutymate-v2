@@ -148,7 +148,6 @@ const TodayShiftModal = ({
   };
 
   const handleScheduleClick = async (calendarId: number) => {
-    console.log('calendarId :>> ', calendarId);
     try {
       const response = await getCalendarById(calendarId);
       const detail = response.data;
@@ -300,7 +299,6 @@ const TodayShiftModal = ({
         parseTimeString(a.startTime ?? '') - parseTimeString(b.startTime ?? '')
     ),
   ];
-  console.log('sortedSchedules :>> ', sortedSchedules);
 
   const formatMonth = (month: number) => {
     return month < 10 ? `0${month}` : month;
