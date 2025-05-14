@@ -7,7 +7,18 @@
     <meta name="google" content="notranslate" />
     <title>듀티메이트</title>
 
+    <!-- 카카오톡 인앱브라우저 감지 및 리다이렉트 -->
+    <script>
+      function isKakaoTalkInAppBrowser() {
+        const userAgent = navigator.userAgent.toLowerCase();
+        return userAgent.includes('kakaotalk');
+      }
 
+      if (isKakaoTalkInAppBrowser()) {
+        const target_url = window.location.href;
+        location.href = 'kakaotalk://web/openExternal?url=' + encodeURIComponent(target_url);
+      }
+    </script>
 
     <!-- HTML Meta Tags -->
     <meta name="description" content="간호사를 위한 근무표 자동 생성 서비스">
