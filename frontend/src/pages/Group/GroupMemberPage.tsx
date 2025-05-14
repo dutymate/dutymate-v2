@@ -243,11 +243,11 @@ const GroupMemberPage = () => {
                     {groupInfo.groupDescription}
                   </div>
                   <button
-                    className="flex items-center border border-primary text-primary rounded-lg px-2 py-1 text-xs md:text-base md:px-4 md:py-2 font-semibold bg-white hover:bg-primary-50 ml-2"
+                    className="flex items-center border border-primary text-primary rounded-lg font-semibold bg-white hover:bg-primary-50 transition-colors whitespace-nowrap py-0.5 px-1.5 sm:py-1 sm:px-2 h-[2.25rem] text-sm"
                     type="button"
                     onClick={handleInviteButton}
                   >
-                    <FaUserPlus className="mr-1 md:text-base" /> 친구 초대
+                    <FaUserPlus className="mr-1 md:text-sm" /> 친구 초대
                   </button>
                 </div>
               </div>

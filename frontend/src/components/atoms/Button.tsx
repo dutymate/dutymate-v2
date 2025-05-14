@@ -258,11 +258,11 @@ export const CommunityWriteButton = ({
   return (
     <button
       onClick={handleClick}
-      className={`px-6 py-2 min-w-[7rem] ${
+      className={`py-0.5 px-1.5 sm:py-1 sm:px-2 min-w-[7rem] h-[2.25rem] rounded-lg ${
         isDemo
           ? 'bg-[#9CA3AF] hover:bg-[#9CA3AF] cursor-not-allowed'
           : 'bg-primary hover:bg-primary-dark'
-      } text-white rounded-lg transition-colors text-sm ${className || ''}`}
+      } text-white transition-colors text-sm font-semibold ${className || ''}`}
     >
       글쓰기
     </button>
@@ -282,11 +282,11 @@ export const CommunityRegisterButton = ({
     <button
       onClick={onClick}
       disabled={disabled}
-      className={`px-8 py-2.5 min-w-[8rem] ${
+      className={`py-0.5 px-1.5 sm:py-1 sm:px-2 min-w-[8rem] h-[2.25rem] rounded-lg ${
         disabled
           ? 'bg-gray-300 cursor-not-allowed'
           : 'bg-primary hover:bg-primary-dark'
-      } text-white rounded-lg transition-colors text-sm ${className || ''}`}
+      } text-white transition-colors text-sm font-semibold ${className || ''}`}
     >
       등록
     </button>

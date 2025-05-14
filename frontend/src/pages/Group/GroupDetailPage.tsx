@@ -32,6 +32,7 @@ const GroupDetailPage = () => {
   >('none');
   const [inviteModalOpen, setInviteModalOpen] = useState(false);
   const isMobile = useMediaQuery('(max-width: 1023px)');
+  const isSmallMobile = useMediaQuery('(max-width: 639px)');
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [groupMembers, setGroupMembers] = useState<ShiftMember[]>([]);
   const [inviteLink, setInviteLink] = useState<string>('');
@@ -341,62 +342,38 @@ const GroupDetailPage = () => {
                 </div>
               </div>
               <button
-                className="flex items-center border border-primary text-primary rounded-lg px-3 py-1 text-sm md:text-base md:px-4 md:py-2 font-semibold bg-white hover:bg-primary-50 max-[639px]:px-2 max-[639px]:py-0.5 max-[639px]:text-[0.65rem] cursor-pointer"
+                className={`flex items-center border border-primary text-primary rounded-lg font-semibold bg-white hover:bg-primary-50 transition-colors whitespace-nowrap ${
+                  isSmallMobile
+                    ? 'px-1.5 py-1 text-[0.65rem]'
+                    : 'py-0.5 px-1.5 sm:py-1 sm:px-2 h-[2.25rem] text-sm'
+                }`}
                 type="button"
                 onClick={handleInviteButton}
               >
-                <FaUserPlus className="mr-1 text-sm md:text-sm max-[639px]:text-xs" />
-                <span className="hidden md:inline">친구 초대</span>
-                <span className="md:hidden">친구 초대</span>
+                <FaUserPlus
+                  className={`mr-1 ${isSmallMobile ? 'w-2.5 h-2.5' : 'text-sm'}`}
+                />
+                <span className="shrink-0">친구 초대</span>
               </button>
             </div>
 
-            {/* 연도/월, 이전/다음달 */}
-            <div className="flex items-center justify-center my-2 gap-4 md:gap-8 sm:gap-2">
-              <button
-                className="p-1 text-lg md:text-3xl sm:p-0.5 sm:text-base max-[639px]:text-[0.9rem]"
-                onClick={handlePrevMonth}
-                aria-label="이전달"
-              >
-                <IoIosArrowBack className="text-xl md:text-2xl sm:text-base max-[639px]:text-[0.9rem]" />
-              </button>
-              <span className="font-semibold text-lg md:text-xl sm:text-base max-[639px]:text-[0.9rem]">
-                {group && group.shifts && group.shifts.length > 0
-                  ? group.shifts[0].date.substring(0, 4)
-                  : new Date().getFullYear()}
-                년{' '}
-                <span className="ml-1">
-                  {group && group.shifts && group.shifts.length > 0
-                    ? parseInt(group.shifts[0].date.substring(5, 7))
-                    : new Date().getMonth() + 1}
-                  월
-                </span>
-              </span>
-              <button
-                className="p-1 text-lg md:text-3xl sm:p-0.5 sm:text-base max-[639px]:text-[0.9rem]"
-                onClick={handleNextMonth}
-                aria-label="다음달"
-              >
-                <IoIosArrowForward className="text-xl md:text-2xl sm:text-base max-[639px]:text-[0.9rem]" />
-              </button>
-            </div>
-
-            {/* 이름순/근무순, 약속 날짜 정하기 */}
-            <div className="flex gap-2 mb-2 items-center">
-              <div className="flex items-center gap-0 text-gray-400 text-xs md:text-sm font-medium select-none">
+            {/* 이름순/근무순, 연도/월, 약속 날짜 정하기 - 한 줄에 배치 */}
+            <div className="flex flex-row gap-1 mb-2 items-center justify-between">
+              {/* 이름순/근무순 */}
+              <div className="flex items-center gap-0 text-gray-400 text-[0.6rem] md:text-xs lg:text-sm font-medium select-none shrink-0">
                 <span
-                  className={`cursor-pointer px-2 transition font-bold ${
+                  className={`cursor-pointer px-1 md:px-2 transition font-bold ${
                     sortByName ? 'text-gray-700' : 'text-gray-400'
                   }`}
                   onClick={() => handleSortToggle(true)}
                 >
                   이름순
                 </span>
-                <span className="mx-1 text-gray-300 text-xs md:text-base">
+                <span className="mx-0 md:mx-1 text-gray-300 text-[0.6rem] md:text-xs lg:text-base">
                   |
                 </span>
                 <span
-                  className={`cursor-pointer px-2 transition font-bold ${
+                  className={`cursor-pointer px-1 md:px-2 transition font-bold ${
                     !sortByName ? 'text-gray-700' : 'text-gray-400'
                   }`}
                   onClick={() => handleSortToggle(false)}
@@ -404,8 +381,47 @@ const GroupDetailPage = () => {
                   근무순
                 </span>
               </div>
+
+              {/* 연도/월, 이전/다음달 - MyShiftCalendar.tsx 스타일 참고 */}
+              <div className="flex items-center justify-center gap-1 md:gap-4">
+                <button
+                  onClick={handlePrevMonth}
+                  className="text-base-muted hover:text-base-foreground p-0"
+                >
+                  <IoIosArrowBack
+                    className={`${isSmallMobile ? 'w-5 h-5' : 'w-5 h-5 md:w-6 md:h-6'}`}
+                  />
+                </button>
+                <h2
+                  className={`text-base-foreground ${isSmallMobile ? 'text-[0.875rem]' : 'text-[0.875rem] md:text-[1rem]'} font-medium whitespace-nowrap`}
+                >
+                  {group && group.shifts && group.shifts.length > 0
+                    ? group.shifts[0].date.substring(0, 4)
+                    : new Date().getFullYear()}
+                  년{' '}
+                  {group && group.shifts && group.shifts.length > 0
+                    ? parseInt(group.shifts[0].date.substring(5, 7))
+                    : new Date().getMonth() + 1}
+                  월
+                </h2>
+                <button
+                  onClick={handleNextMonth}
+                  className="text-base-muted hover:text-base-foreground p-0"
+                >
+                  <IoIosArrowForward
+                    className={`${isSmallMobile ? 'w-5 h-5' : 'w-5 h-5 md:w-6 md:h-6'}`}
+                  />
+                </button>
+              </div>
+
+              {/* 약속 잡기 버튼 */}
               <button
-                className="ml-auto flex items-center gap-2 bg-primary text-white px-6 py-2 rounded-lg text-base md:text-lg font-bold shadow-lg hover:brightness-110 hover:scale-105 transition-all border-0 outline-none sm:px-4 sm:py-1.5 sm:text-sm max-[639px]:px-2 max-[639px]:py-1 max-[639px]:text-xs tracking-wide"
+                className={`
+               shadow-sm flex items-center justify-center gap-1 bg-primary text-white rounded-lg font-semibold transition-colors whitespace-nowrap ${
+                 isSmallMobile
+                   ? 'px-1.5 py-1 text-[0.65rem]'
+                   : 'py-0.5 px-1.5 lg:px-2 sm:py-1 sm:px-2 h-[2.25rem] text-sm min-w-[8rem]'
+               }`}
                 onClick={() => setModalStep('check')}
               >
                 <svg
@@ -414,7 +430,7 @@ const GroupDetailPage = () => {
                   viewBox="0 0 24 24"
                   strokeWidth={2}
                   stroke="currentColor"
-                  className="w-5 h-5 md:w-6 md:h-6"
+                  className={`${isSmallMobile ? 'w-2.5 h-2.5' : 'w-5 h-5'}`}
                 >
                   <path
                     strokeLinecap="round"
@@ -422,7 +438,7 @@ const GroupDetailPage = () => {
                     d="M6.75 3v2.25M17.25 3v2.25M3.75 7.5h16.5M4.5 19.5h15a.75.75 0 00.75-.75V7.5a.75.75 0 00-.75-.75h-15A.75.75 0 003.75 7.5v11.25c0 .414.336.75.75.75z"
                   />
                 </svg>
-                약속 잡기
+                <span className="shrink-0">약속 잡기</span>
               </button>
             </div>
 
