@@ -41,10 +41,10 @@ export const ErrorScreen = ({ navigation }: ErrorScreenProps) => {
 					</View>
 					<View className={"mb-[1.5rem]"}>
 						<StyledText className={"text-center"} style={styles.h1}>
-							페이지를 찾을 수 없습니다.
+							시스템 오류가 발생했습니다.
 						</StyledText>
 						<StyledText className={"text-center text-base-foreground/70"}>
-							요청하신 페이지를 찾을 수 없거나 접근 권한이 없습니다.
+							네트워크 연결 상태를 확인하거나, 잠시 후 다시 이용해 주세요.
 						</StyledText>
 					</View>
 					<View className={"justify-center items-center"}>
@@ -52,21 +52,10 @@ export const ErrorScreen = ({ navigation }: ErrorScreenProps) => {
 							color="tertiary"
 							size="lg"
 							width="long"
-							onPress={() => navigation.goBack()}
+							onPress={() => navigation.navigate("Landing")}
 							className="h-[3.5rem] sm:h-[3rem] bg-primary  w-full max-w-[23.2rem] mt-1 mb-1.5"
 						>
 							<StyledText className="text-[1.25rem] text-white">
-								이전 페이지로 돌아가기
-							</StyledText>
-						</Button>
-						<Button
-							color="tertiary"
-							size="lg"
-							width="long"
-							onPress={() => navigation.navigate("Landing")}
-							className="h-[3.5rem] sm:h-[3rem] bg-white border border-primary w-full max-w-[23.2rem] mt-1 mb-1.5"
-						>
-							<StyledText className="text-[1.25rem] text-primary-dark">
 								홈으로 가기
 							</StyledText>
 						</Button>
