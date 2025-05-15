@@ -117,7 +117,8 @@ public class WardScheduleService {
 			now.setName(nurse.getName());
 			now.setRole(nurse.getRole());
 			now.setGrade(nurse.getGrade());
-			now.setShiftType(nurse.getWardMember() == null ? ShiftType.ALL : nurse.getWardMember().getShiftType());
+			now.setShiftFlags(nurse.getWardMember() == null
+				? ShiftType.ALL.getFlag() : nurse.getWardMember().getShiftFlags());
 
 			// prevShifts 구하기 (기존 코드 유지)
 			if (prevNurseShifts == null) {
@@ -141,15 +142,20 @@ public class WardScheduleService {
 			.sorted(
 				Comparator.comparing((WardScheduleResponseDto.NurseShifts nurse) -> nurse.getRole() != Role.HN)
 					.thenComparing(nurse -> {
-						ShiftType shift = nurse.getShiftType();
-						if (shift == null) {
+						Integer shiftFlags = nurse.getShiftFlags();
+						if (shiftFlags == 0) {
 							return 2;
 						}
-						return switch (shift) {
-							case M -> 1;
-							case ALL -> 2;  // ALL이 두 번째
-							case N -> 4;    // N이 가장 아래
-							default -> 3;   // 기타 케이스는 ALL과 N 사이
+						return switch (shiftFlags) {
+							case 8-> 1;
+							case 7 -> 2;  // ALL이 두 번째
+							case 6 -> 3;
+							case 5 -> 4;
+							case 4 -> 5;
+							case 3 -> 6;
+							case 2 -> 7;
+							case 1 -> 8;    // N이 가장 아래
+							default -> 9;
 						};
 					})
 					.thenComparing(WardScheduleResponseDto.NurseShifts::getGrade,
@@ -512,7 +518,7 @@ public class WardScheduleService {
 				// 더미 WardMember 생성
 				WardMember dummyWardMember = WardMember.builder()
 					.member(deletedMember)
-					.shiftType(ShiftType.ALL)
+					.shiftFlags(ShiftType.ALL.getFlag())
 					.build();
 
 				wardMemberMap.put(memberId, dummyWardMember);
@@ -537,7 +543,7 @@ public class WardScheduleService {
 					nurseMember.getName(),
 					nurseShift.getShifts(),
 					nurseMember.getRole(),
-					nurse.getShiftType(),
+					nurse.getShiftFlags(),
 					nurseMember.getGrade()
 				);
 			})
@@ -552,16 +558,16 @@ public class WardScheduleService {
 
 				// 2. role이 같은 경우 shiftType으로 정렬 (M > All > N)
 				if (a.getRole() == b.getRole()) {
-					if (a.getShiftType() == ShiftType.M && b.getShiftType() != ShiftType.M) {
+					if (a.getShiftFlags() == ShiftType.M.getFlag() && b.getShiftFlags() != ShiftType.M.getFlag()) {
 						return -1;
 					}
-					if (a.getShiftType() != ShiftType.M && b.getShiftType() == ShiftType.M) {
+					if (a.getShiftFlags() != ShiftType.M.getFlag() && b.getShiftFlags() == ShiftType.M.getFlag()) {
 						return 1;
 					}
-					if (a.getShiftType() == ShiftType.ALL && b.getShiftType() == ShiftType.N) {
+					if (a.getShiftFlags() == ShiftType.ALL.getFlag() && b.getShiftFlags() == ShiftType.N.getFlag()) {
 						return -1;
 					}
-					if (a.getShiftType() == ShiftType.N && b.getShiftType() == ShiftType.ALL) {
+					if (a.getShiftFlags() == ShiftType.N.getFlag() && b.getShiftFlags() == ShiftType.ALL.getFlag()) {
 						return 1;
 					}
 				}
@@ -584,7 +590,8 @@ public class WardScheduleService {
 		// 해당 월의 근무표 불러오기
 		WardSchedule wardSchedule = wardScheduleRepository.findByWardIdAndYearAndMonth(ward.getWardId(),
 				yearMonth.year(), yearMonth.month())
-			.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "아직 해당 월의 근무표가 생성되지 않았습니다."));
+			.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,
+				"아직 해당 월의 근무표가 생성되지 않았습니다."));
 
 		// 모든 근무자의 듀티 기본값 초기화
 		String emptyShifts = yearMonth.initializeShifts();

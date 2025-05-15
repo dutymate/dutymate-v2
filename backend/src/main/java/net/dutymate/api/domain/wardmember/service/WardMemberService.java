@@ -47,7 +47,7 @@ public class WardMemberService {
 
 		// 멤버와 1:1 매핑 되어 있는 wardMember 정보 수정
 		member.getWardMember().updateWardMemberInfo(
-			nurseInfoRequestDto.getShift(),
+			nurseInfoRequestDto.getShiftFlags(),
 			nurseInfoRequestDto.getSkillLevel(),
 			nurseInfoRequestDto.getMemo(),
 			nurseInfoRequestDto.getRole(),

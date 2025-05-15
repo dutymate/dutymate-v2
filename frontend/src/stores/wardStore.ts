@@ -51,7 +51,7 @@ const useWardStore = create<WardStore>((set, get) => ({
 
       // API 호출
       await wardService.updateNurseInfo(memberId, {
-        shift: updatedData.shift,
+        shiftFlags: updatedData.shiftFlags,
         skillLevel: updatedData.skillLevel,
         memo: updatedData.memo,
         role: updatedData.role,

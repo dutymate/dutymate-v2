@@ -34,17 +34,17 @@ public class AllWardDutyResponseDto {
 		private String name;
 		private String shifts;
 		private Role role;
-		private ShiftType shiftType;    // role 필드 추가
+		private Integer shiftFlags;    // role 필드 추가
 		private Integer grade;  // grade 필드 추가
 
-		public static AllNurseShift of(Long memberId, String name, String shifts, Role role, ShiftType shiftType,
+		public static AllNurseShift of(Long memberId, String name, String shifts, Role role, Integer shiftFlags,
 			Integer grade) {
 			return AllNurseShift.builder()
 				.memberId(memberId)
 				.name(name)
 				.shifts(shifts)
 				.role(role)
-				.shiftType(shiftType)
+				.shiftFlags(shiftFlags)
 				.grade(grade)
 				.build();
 		}

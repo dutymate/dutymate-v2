@@ -28,7 +28,7 @@ export interface Nurse {
   /** 경력 */
   grade: number;
   /** 근무 유형 */
-  shift: 'D' | 'E' | 'N' | 'ALL' | 'M';
+  shiftFlags: number; // 비트마스킹: M=8, D=4, E=2, N=1, ALL=7
   /** 숙련도 */
   skillLevel: 'LOW' | 'MID' | 'HIGH';
   /** 메모 */
@@ -45,7 +45,7 @@ export interface Nurse {
  */
 export interface NurseUpdateRequest {
   /** 근무 유형 */
-  shift: 'D' | 'E' | 'N' | 'ALL' | 'M';
+  shiftFlags: number; // 비트마스킹: M=8, D=4, E=2, N=1, ALL=7
   /** 숙련도 */
   skillLevel: 'LOW' | 'MID' | 'HIGH';
   /** 메모 */
@@ -78,8 +78,25 @@ export type Role = 'HN' | 'RN';
 
 /**
  * 근무 유형 타입
+ * 비트마스킹으로 중복 선택 지원:
+ * M = 8
+ * D = 4
+ * E = 2
+ * N = 1
+ * ALL = 7 (D | E | N)
  */
-export type Shift = 'D' | 'E' | 'N' | 'ALL' | 'M';
+export type Shift = number;
+
+/**
+ * 근무 유형 상수
+ */
+export const ShiftValues = {
+  N: 1,
+  E: 2,
+  D: 4,
+  ALL: 7, // D | E | N
+  M: 8,
+};
 
 /**
  * 숙련도 타입

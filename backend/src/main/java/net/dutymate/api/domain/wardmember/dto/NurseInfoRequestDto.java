@@ -8,7 +8,7 @@ import lombok.Data;
 @Builder
 public class NurseInfoRequestDto {
 
-	private String shift;
+	private Integer shiftFlags;
 	private String skillLevel;
 	@Size(max = 200, message = "메모는 최대 200자입니다.")
 	private String memo;

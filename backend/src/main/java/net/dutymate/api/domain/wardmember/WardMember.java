@@ -56,10 +56,8 @@ public class WardMember {
 	@OneToMany(mappedBy = "wardMember", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<Request> requestList;
 
-	@Setter
-	@Enumerated(EnumType.STRING)
-	@Column(name = "shift")
-	private ShiftType shiftType;
+	@Column(nullable = false, columnDefinition = "int default 0")
+	private Integer shiftFlags;
 
 	@Column(length = 200)
 	private String memo;
@@ -76,10 +74,10 @@ public class WardMember {
 	@Column(columnDefinition = "tinyint(1)", nullable = false)
 	private Boolean isSynced;
 
-	public void updateWardMemberInfo(String shiftType, String skillLevel, String memo, String role,
+	public void updateWardMemberInfo(Integer shiftFlags, String skillLevel, String memo, String role,
 		String workIntensity) {
-		if (shiftType != null && !shiftType.isEmpty()) {
-			this.shiftType = ShiftType.valueOf(shiftType);
+		if (shiftFlags != null) {
+			this.shiftFlags = shiftFlags;
 		}
 		if (skillLevel != null && !skillLevel.isEmpty()) {
 			this.skillLevel = SkillLevel.valueOf(skillLevel);
@@ -104,13 +102,17 @@ public class WardMember {
 		member.setWardMember(this);
 	}
 
+	public void changeShiftFlags(Integer shiftFlags) {
+		this.shiftFlags = shiftFlags;
+	}
+
 	@PrePersist
 	protected void prePersist() {
-		if (this.shiftType == null) {
+		if (this.shiftFlags == null || this.shiftFlags == 0) {
 			if (this.member.getRole() == Role.HN) {
-				this.shiftType = ShiftType.M;
+				this.shiftFlags = ShiftType.M.getFlag();
 			} else {
-				this.shiftType = ShiftType.ALL;
+				this.shiftFlags = ShiftType.ALL.getFlag();
 			}
 		}
 		if (this.workIntensity == null) {

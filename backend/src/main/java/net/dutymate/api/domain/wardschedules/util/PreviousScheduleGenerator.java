@@ -2,6 +2,7 @@ package net.dutymate.api.domain.wardschedules.util;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import net.dutymate.api.domain.common.utils.YearMonth;
 import net.dutymate.api.domain.ward.Ward;
@@ -34,9 +35,9 @@ public class PreviousScheduleGenerator {
 			// 마지막 4일에 대한 근무 패턴 설정
 			// 간호사 ID에 따라 다양한 패턴 부여
 			Long memberId = wardMember.getMember().getMemberId();
-			ShiftType shiftType = wardMember.getShiftType();
+			Integer shiftFlags = wardMember.getShiftFlags();
 
-			if (shiftType == ShiftType.N) {
+			if (shiftFlags.equals(ShiftType.N.getFlag())) {
 				// 야간 전담 간호사 패턴 (9, 10번 간호사)
 				if (nightNurseCount == 0) {
 					// 첫번째 들어오는 사람: NOOO
@@ -53,7 +54,7 @@ public class PreviousScheduleGenerator {
 					shifts[startDay + 3] = 'N';
 					nightNurseCount = 0; // 카운터 리셋 (필요에 따라)
 				}
-			} else if (shiftType == ShiftType.M) {
+			} else if (shiftFlags.equals(ShiftType.M.getFlag())) {
 				// 수간호사 근무 패턴 (평일 주간, 주말 휴무)
 				for (int i = 0; i < 4; i++) {
 					int day = startDay + i;

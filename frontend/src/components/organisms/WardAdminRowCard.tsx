@@ -7,7 +7,7 @@ import DutyTooltip from '@/components/atoms/DutyTooltip';
 import { Dropdown } from '@/components/atoms/Dropdown';
 import { Icon, IconName } from '@/components/atoms/Icon';
 import RemoveNurseConfirmModal from '@/components/organisms/RemoveNurseConfirmModal';
-import { Nurse } from '@/services/wardService';
+import { Nurse, ShiftValues } from '@/services/wardService';
 import useUserAuthStore from '@/stores/userAuthStore';
 import useWardStore from '@/stores/wardStore';
 
@@ -18,11 +18,7 @@ interface WardAdminRowCardProps {
   onSelect?: (memberId: number) => void;
   useCustomDutyLabels?: boolean;
 }
-const WardAdminRowCard = ({
-  nurse,
-  onUpdate,
-  useCustomDutyLabels = false,
-}: WardAdminRowCardProps) => {
+const WardAdminRowCard = ({ nurse, onUpdate }: WardAdminRowCardProps) => {
   if (!nurse) {
     return null;
   }
@@ -205,17 +201,41 @@ const WardAdminRowCard = ({
   ) => {
     onUpdate(nurse.memberId, {
       workIntensity,
-      shift: nurse.shift || null,
+      shiftFlags: nurse.shiftFlags || null,
       skillLevel: nurse.skillLevel || null,
       memo: nurse.memo || '',
       role: nurse.role,
     });
     setOpenWorkIntensityDropdown(false);
   };
+  const handleShiftChange = (shiftValue: number) => {
+    let newShift;
 
-  const handleShiftChange = (shift: 'D' | 'E' | 'N' | 'M' | 'ALL') => {
+    // M 근무 값 (8)
+    const mShiftValue = ShiftValues.M;
+
+    // 현재 선택한 근무가 M인 경우
+    if (shiftValue === mShiftValue) {
+      if ((nurse.shiftFlags & mShiftValue) !== 0) {
+        // 이미 M이 선택되어 있으면 토글(해제)
+        newShift = nurse.shiftFlags & ~mShiftValue;
+      } else {
+        // M이 선택되어 있지 않으면 다른 근무 모두 해제하고 M만 선택
+        newShift = mShiftValue;
+      }
+    } else {
+      // M이 아닌 다른 근무를 선택한 경우
+      if ((nurse.shiftFlags & mShiftValue) !== 0) {
+        // M이 이미 선택되어 있으면 M 해제하고 선택한 근무 추가
+        newShift = (nurse.shiftFlags & ~mShiftValue) | shiftValue;
+      } else {
+        // 그냥 일반적인 토글 동작
+        newShift = nurse.shiftFlags ^ shiftValue;
+      }
+    }
+
     onUpdate(nurse.memberId, {
-      shift,
+      shiftFlags: newShift,
       skillLevel: nurse.skillLevel || null,
       memo: nurse.memo || '',
       role: nurse.role,
@@ -238,7 +258,7 @@ const WardAdminRowCard = ({
     if (memo !== nurse.memo) {
       onUpdate(nurse.memberId, {
         memo,
-        shift: nurse.shift || null,
+        shiftFlags: nurse.shiftFlags || null,
         skillLevel: nurse.skillLevel || null,
         role: nurse.role,
       });
@@ -331,41 +351,23 @@ const WardAdminRowCard = ({
     }
   };
 
-  const getDutyLabel = (duty: 'D' | 'N' | 'ALL' | 'M') => {
-    if (useCustomDutyLabels && duty === 'D') {
-      return {
-        label: 'D',
-        useSmallText: true,
-      };
-    }
-    if (duty === 'ALL') {
-      return {
-        label: 'All',
-        useSmallText: false,
-      };
-    }
-    if (duty === 'M') {
-      return {
-        label: 'M',
-        useSmallText: true,
-      };
-    }
+  const getDutyLabel = (duty: 'D' | 'E' | 'N' | 'M') => {
     return {
       label: duty,
-      useSmallText: false,
+      useSmallText: true,
     };
   };
 
-  const getDutyMessage = (duty: 'D' | 'N' | 'M' | 'ALL') => {
+  const getDutyMessage = (duty: 'D' | 'E' | 'N' | 'M') => {
     switch (duty) {
-      // case "D":
-      // 	return "평일 Day 근무만 해요.";
+      case 'D':
+        return 'Day 근무';
+      case 'E':
+        return 'Evening 근무';
       case 'N':
-        return 'Night 전담 근무자예요.';
-      case 'ALL':
-        return '평간호사예요.';
+        return 'Night 근무';
       case 'M':
-        return 'Mid 전담 근무자예요.';
+        return 'Mid 근무';
       default:
         return '';
     }
@@ -558,16 +560,18 @@ const WardAdminRowCard = ({
                 )}
               </div>
               <div className="flex gap-[0.5rem] w-[9.6875rem]">
-                {(['M', 'N', 'ALL'] as const).map((duty) => {
+                {(['M', 'D', 'E', 'N'] as const).map((duty) => {
                   const dutyDisplay = getDutyLabel(duty);
+                  const shiftValue = ShiftValues[duty];
+                  const isSelected = (nurse.shiftFlags & shiftValue) !== 0;
                   return (
                     <DutyTooltip key={duty} message={getDutyMessage(duty)}>
                       <DutyBadgeEng
                         type={duty}
                         size="md"
-                        variant={nurse.shift === duty ? 'filled' : 'outline'}
-                        onClick={() => handleShiftChange(duty)}
-                        isSelected={nurse.shift === duty}
+                        variant={isSelected ? 'filled' : 'outline'}
+                        onClick={() => handleShiftChange(shiftValue)}
+                        isSelected={isSelected}
                         customLabel={dutyDisplay.label}
                         useSmallText={dutyDisplay.useSmallText}
                       />

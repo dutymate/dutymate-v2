@@ -7,7 +7,6 @@ import net.dutymate.api.domain.common.utils.YearMonth;
 import net.dutymate.api.domain.request.Request;
 import net.dutymate.api.domain.request.RequestStatus;
 import net.dutymate.api.domain.wardmember.Role;
-import net.dutymate.api.domain.wardmember.ShiftType;
 import net.dutymate.api.domain.wardschedules.collections.WardSchedule;
 
 import lombok.Builder;
@@ -51,7 +50,7 @@ public class WardScheduleResponseDto {
 		private Role role;
 		private String prevShifts;
 		private String shifts;
-		private ShiftType shiftType;
+		private Integer shiftFlags;
 		private Integer grade;
 
 		public static NurseShifts of(WardSchedule.NurseShift nurseShift) {

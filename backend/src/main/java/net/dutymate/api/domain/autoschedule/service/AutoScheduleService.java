@@ -78,12 +78,12 @@ public class AutoScheduleService {
 
 		//나이트 전담 인원
 		List<WardMember> nightWardMembers = wardMembers.stream()
-			.filter(wm -> wm.getShiftType() == ShiftType.N)
+			.filter(wm -> wm.getShiftFlags() == ShiftType.N.getFlag())
 			.toList();
 
 		//주중 Mid 전담 인원
 		List<WardMember> midWardMembers = wardMembers.stream()
-			.filter(wm -> wm.getShiftType() == ShiftType.M)
+			.filter(wm -> wm.getShiftFlags() == ShiftType.M.getFlag())
 			.toList();
 
 		int nightWardMemberCount = nightWardMembers.size();
@@ -108,9 +108,9 @@ public class AutoScheduleService {
 		);
 
 		//HN 자동 로직에서 제거
-		wardMembers.removeIf(wm -> wm.getShiftType() == ShiftType.D
-			|| wm.getShiftType() == ShiftType.M
-			|| wm.getShiftType() == ShiftType.N);
+		wardMembers.removeIf(wm -> wm.getShiftFlags() == ShiftType.D.getFlag()
+			|| wm.getShiftFlags() == ShiftType.M.getFlag()
+			|| wm.getShiftFlags() == ShiftType.N.getFlag());
 
 		Map<Integer, Integer> dailyNightCount = new HashMap<>();
 		List<WardSchedule.NurseShift> newNightNurseShifts = new ArrayList<>();

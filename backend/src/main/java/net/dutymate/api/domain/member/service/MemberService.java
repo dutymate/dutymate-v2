@@ -763,7 +763,7 @@ public class MemberService {
 
 			// 5-1. 9번과 10번 간호사는 근무 유형을 Night로 설정
 			if (tempNurseSeq == 9 || tempNurseSeq == 10) {
-				tempWardMember.setShiftType(ShiftType.N);
+				tempWardMember.changeShiftFlags(ShiftType.N.getFlag());
 				addMemberToLists(tempMember, tempWardMember, ward, newMemberList, newWardMemberList);
 				continue;
 			}

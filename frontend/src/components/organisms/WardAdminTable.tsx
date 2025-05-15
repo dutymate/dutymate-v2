@@ -1,7 +1,4 @@
 import { toast } from 'react-toastify';
-
-import DutyTooltip from '@/components/atoms/DutyTooltip';
-import { Icon } from '@/components/atoms/Icon';
 import WardAdminRowCard from '@/components/organisms/WardAdminRowCard';
 import useWardStore from '@/stores/wardStore';
 import { Tooltip } from '@/components/atoms/Tooltip';
@@ -67,15 +64,22 @@ const WardAdminTable = ({}: WardAdminTableProps) => {
                   </div>
                   <div className="w-[11rem] pl-[3rem] flex items-center gap-[0.25rem]">
                     전담 근무
-                    <DutyTooltip message="자동생성 시 반영됩니다.">
-                      <div className="cursor-help relative z-20">
-                        <Icon
-                          name="alert"
-                          size={20}
-                          className="text-gray-400"
-                        />
-                      </div>
-                    </DutyTooltip>
+                    <Tooltip
+                      content={
+                        <div className="text-left">
+                          <p>전담 근무를 선택해 주세요.</p>
+                          <p className="mt-1">
+                            • MID: 다른 근무와 중복 배정 불가.
+                          </p>
+                        </div>
+                      }
+                      icon={{
+                        name: 'alert',
+                        size: 14,
+                        className:
+                          'text-gray-400 hover:text-gray-600 cursor-help',
+                      }}
+                    />
                   </div>
                 </div>
                 <div className="flex items-center gap-[1.5rem] flex-1 min-w-0">

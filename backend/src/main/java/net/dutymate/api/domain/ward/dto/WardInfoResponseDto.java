@@ -50,7 +50,7 @@ public class WardInfoResponseDto {
 		private Gender gender;
 		private Role role;
 		private Integer grade;
-		private ShiftType shift;
+		private Integer shiftFlags;
 		private SkillLevel skillLevel;
 		private String memo;
 		private Boolean isSynced;
@@ -65,7 +65,7 @@ public class WardInfoResponseDto {
 				.gender(member.getGender())
 				.role(member.getRole())
 				.grade(member.getGrade())
-				.shift(wardMember.getShiftType())
+				.shiftFlags(wardMember.getShiftFlags())
 				.skillLevel(wardMember.getSkillLevel())
 				.memo(wardMember.getMemo())
 				.isSynced(wardMember.getIsSynced())
