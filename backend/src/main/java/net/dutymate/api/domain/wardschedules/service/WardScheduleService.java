@@ -142,11 +142,10 @@ public class WardScheduleService {
 							return 2;
 						}
 						return switch (shift) {
-							case D -> 0;    // D가 가장 위
-							case ALL -> 1;  // ALL이 두 번째
-							case N -> 3;    // N이 가장 아래
-							case E -> 4;    // E는 N 다음
-							default -> 2;   // 기타 케이스는 ALL과 N 사이
+							case M -> 1;
+							case ALL -> 2;  // ALL이 두 번째
+							case N -> 4;    // N이 가장 아래
+							default -> 3;   // 기타 케이스는 ALL과 N 사이
 						};
 					})
 					.thenComparing(WardScheduleResponseDto.NurseShifts::getGrade,
