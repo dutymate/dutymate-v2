@@ -1,5 +1,6 @@
-import { Layout } from "@/layout/Layout";
+import { Card } from "@/components/card/Card";
 import { LoginForm } from "@/components/form/login/LoginForm";
+import { Layout } from "@/layout/Layout";
 import { LogoTemplate } from "@/templates/LogoTemplate";
 
 /**
@@ -18,7 +19,9 @@ export const LoginScreen = ({ navigation }: LoginScreenProps) => {
 	return (
 		<Layout>
 			<LogoTemplate>
-				<LoginForm navigation={navigation} />
+				<Card>
+					<LoginForm navigation={navigation} />
+				</Card>
 			</LogoTemplate>
 		</Layout>
 	);
