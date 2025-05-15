@@ -58,7 +58,7 @@ const MyShift = () => {
   const [isPlaceModalOpen, setIsPlaceModalOpen] = useState(false);
 
   // 추가된 activeTab state
-  const [activeTab, setActiveTab] = useState<'status' | 'calendar'>('status');
+  const [activeTab, setActiveTab] = useState<'status' | 'calendar'>('calendar');
 
   // 추가된 selectedDutyType state
   const [selectedDutyType, setSelectedDutyType] = useState<
@@ -159,14 +159,16 @@ const MyShift = () => {
 
   // 날짜 선택 시 해당 날짜의 근무 데이터 로딩
   const handleDateSelect = async (date: Date) => {
-    setLoading(true);
+    setSelectedDate(date);
+    setActiveTab('calendar'); // 날짜 클릭 시 캘린더 탭으로 전환
+
     try {
+      setLoading(true);
       const data = await dutyService.getMyDayDuty(
         date.getFullYear(),
         date.getMonth() + 1,
         date.getDate()
       );
-      setSelectedDate(date);
       setDayDutyData(data);
 
       const dutyType = convertDutyTypeSafe(data.myShift);

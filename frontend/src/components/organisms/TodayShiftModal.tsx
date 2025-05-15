@@ -23,7 +23,6 @@ import { useUserAuthStore } from '@/stores/userAuthStore';
 import { dutyService } from '@/services/dutyService';
 import JoinWardGuideModal from './JoinWardGuideModal';
 import ShiftColorPickerModal from './ShiftColorPickerModal';
-import PageLoadingSpinner from '../atoms/Loadingspinner';
 const weekDays = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'] as const;
 type WeekDay = (typeof weekDays)[number];
 
@@ -87,12 +86,12 @@ const TodayShiftModal = ({
   isMobile,
   onClose,
   onDateChange,
+  // schedulesByDate,
   setSchedulesByDate,
   activeTab,
   onTabChange,
   selectedDutyType,
   onDutyTypeChange,
-  fetchAllSchedulesForMonth,
   refreshMyDutyData,
   dutyColors: externalDutyColors,
 }: TodayShiftModalProps) => {
@@ -110,7 +109,6 @@ const TodayShiftModal = ({
 
   const [isColorModalOpen, setIsColorModalOpen] = useState(false);
   const [schedules, setSchedules] = useState<ScheduleType[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
 
   const dutyTypes = ['day', 'off', 'evening', 'night', 'mid'] as const;
   type DutyType = (typeof dutyTypes)[number];
@@ -388,27 +386,20 @@ const TodayShiftModal = ({
         mid: 'M',
       };
 
-      // 3. 현재 선택한 날짜의 근무 정보 가져오기
-      const dutyData = await dutyService.getMyDuty(year, month);
-
-      // 4. 현재 날짜에 해당하는 근무 정보 찾기
-      const dayIndex = day - 1;
-      if (dayIndex < 0 || dayIndex >= dutyData.shifts.length) {
-        toast.error('날짜 인덱스가 유효하지 않습니다.');
-        return;
-      }
-
-      // 5. 현재 해당 날짜의 근무 유형 확인
-      const currentShift = dutyData.shifts.charAt(dayIndex);
+      // 3. 새로운 근무 유형 정의
       const newShift = dutyTypeToShiftMap[type];
 
-      // 6. 같은 근무 유형을 다시 클릭했을 경우 삭제 (X로 설정)
+      // 4. 현재 날짜에 해당하는 근무 유형 찾기 (불필요한 API 호출 제거)
+      // 현재 표시된 날짜의 근무 정보는 dutyData.myShift에 이미 있음
+      const currentShift = dutyData.myShift;
+
+      // 5. 같은 근무 유형을 다시 클릭했을 경우 삭제 (X로 설정)
       let shiftToSend = newShift;
       if (currentShift === newShift) {
         shiftToSend = 'X'; // 같은 유형을 다시 클릭하면 삭제
       }
 
-      // 7. 업데이트 요청 데이터 생성 - EditMemberDutyRequestDto 형식으로 변경
+      // 6. 업데이트 요청 데이터 생성
       const updateData = {
         year,
         month,
@@ -416,23 +407,16 @@ const TodayShiftModal = ({
         shift: shiftToSend,
       };
 
-      // 8. API 호출로 근무표 업데이트
+      // 7. API 호출로 근무표 업데이트
       await dutyService.updateMyDuty(updateData);
 
-      // 9. 월 전체 일정 새로고침 (선택적)
-      if (typeof fetchAllSchedulesForMonth === 'function') {
-        await fetchAllSchedulesForMonth(year, month);
-      }
-
-      // 10. 전체 월간 근무 데이터 갱신 (부모 컴포넌트에서 전달된 함수가 있다면)
+      // 8. 월간 근무 데이터를 갱신하고 바로 다음 날짜로 이동
       if (typeof refreshMyDutyData === 'function') {
+        // 데이터 갱신 후
         await refreshMyDutyData();
-      } else {
-        // refreshMyDutyData가 없는 경우 현재 날짜 다시 선택해서 부분 갱신
-        onDateChange(new Date(date));
       }
 
-      // 11. 다음 날짜로 이동
+      // 9. 다음 날짜로 이동 (모든 경우에 수행)
       const nextDay = new Date(date);
       nextDay.setDate(date.getDate() + 1);
       onDateChange(nextDay);
@@ -446,30 +430,21 @@ const TodayShiftModal = ({
   const loadSchedules = async () => {
     if (!date) return;
 
-    setIsLoading(true);
     try {
       // calendarService의 fetchSchedules 함수 사용
       const fetchedSchedules = await fetchSchedules(date);
       setSchedules(fetchedSchedules);
     } catch (error) {
       toast.error('일정을 불러오는데 실패했습니다.');
-    } finally {
-      setIsLoading(false);
     }
   };
 
-  // 날짜가 변경될 때마다 일정 다시 가져오기
+  // 날짜가 변경될 때마다 일정 다시 가져오기 (지연 효과 추가)
   useEffect(() => {
     loadSchedules();
   }, [date]);
 
-  if (isLoading) {
-    return (
-      <div className="flex flex-col items-center justify-center p-4 py-10">
-        <PageLoadingSpinner />
-      </div>
-    );
-  }
+  // 로딩 스피너를 전체 컴포넌트 대신 내용 부분에만 표시하도록 변경
 
   const modalContent = (
     <div

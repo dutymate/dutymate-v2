@@ -328,7 +328,6 @@ public class WardScheduleService {
 		String nextShifts = getOrCreateMemberSchedule(member.getMemberId(), nextYearMonth).getShifts()
 			.substring(0, daysInAWeek);
 
-
 		// 3. 날짜 범위 계산
 		LocalDate firstDay = yearMonth.atDay(1); // 이번달 1일
 		LocalDate lastDay = yearMonth.atEndOfMonth(); // 이번달 말일
@@ -344,7 +343,7 @@ public class WardScheduleService {
 		List<MyDutyResponseDto.CalendarEvent> currentCalendar = new ArrayList<>();
 		List<MyDutyResponseDto.CalendarEvent> nextCalendar = new ArrayList<>();
 
-		for(Calendar calendar : calendars) {
+		for (Calendar calendar : calendars) {
 
 			LocalDate date = calendar.getDate();
 			MyDutyResponseDto.CalendarEvent event = new MyDutyResponseDto.CalendarEvent();
@@ -353,11 +352,11 @@ public class WardScheduleService {
 			event.setTitle(calendar.getTitle());
 			event.setColor(calendar.getColor());
 
-			if(date.isBefore(firstDay)){
+			if (date.isBefore(firstDay)) {
 				prevCalendar.add(event);
-			}else if(date.isAfter(lastDay)){
+			} else if (date.isAfter(lastDay)) {
 				nextCalendar.add(event);
-			}else{
+			} else {
 				currentCalendar.add(event);
 			}
 
