@@ -24,6 +24,7 @@ import org.springframework.web.server.ResponseStatusException;
 import net.dutymate.api.domain.common.utils.FileNameUtils;
 import net.dutymate.api.domain.common.utils.YearMonth;
 import net.dutymate.api.domain.group.GroupMember;
+import net.dutymate.api.domain.group.MeetingMessageType;
 import net.dutymate.api.domain.group.NurseGroup;
 import net.dutymate.api.domain.group.dto.GroupCreateRequestDto;
 import net.dutymate.api.domain.group.dto.GroupDetailResponseDto;
@@ -448,9 +449,14 @@ public class GroupService {
 						.build())
 					.toList();
 
+				// 근무자 리스트 기반 메세지 생성하기
+				List<String> duties = dutyList.stream().map(GroupMeetingResponseDto.MemberDutyDto::getDuty).toList();
+				String message = MeetingMessageType.resolve(duties).getMessage();
+
 				return GroupMeetingResponseDto.RecommendedDate.builder()
 					.date(date)
 					.score(score)
+					.message(message)
 					.memberList(dutyList)
 					.build();
 			})

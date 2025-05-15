@@ -17,6 +17,7 @@ public class GroupMeetingResponseDto {
 	public static class RecommendedDate {
 		private LocalDate date;
 		private Integer score;
+		private String message;
 		private List<MemberDutyDto> memberList;
 	}
 
