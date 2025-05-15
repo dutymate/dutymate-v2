@@ -12,7 +12,8 @@ type ButtonColor =
 	| "off"
 	| "muted"
 	| "secondary"
-	| "tertiary";
+	| "tertiary"
+	| "black";
 
 /**
  * ButtonProps는 Button 컴포넌트의 props 타입을 정의합니다.
@@ -123,6 +124,11 @@ const colorStyles: Record<
 		active: "bg-tertiary-bg text-tertiary",
 		hover: "hover:bg-tertiary hover:text-white",
 		pressed: "active:bg-tertiary-dark active:text-white",
+	},
+	black: {
+		active: "bg-black text-white",
+		hover: "hover:bg-black hover:text-white",
+		pressed: "active:bg-black active:text-white",
 	},
 };
 
