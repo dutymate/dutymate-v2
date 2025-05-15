@@ -4,6 +4,7 @@ import { IoIosArrowBack, IoIosArrowForward } from 'react-icons/io';
 import { Button } from '@/components/atoms/Button';
 import { DutyBadgeKor } from '@/components/atoms/DutyBadgeKor';
 import ReqShiftModal from '@/components/organisms/ReqShiftModal';
+import WorkCRUDModal from '@/components/organisms/WorkCRUDModal';
 import type { ScheduleType } from '@/services/calendarService';
 import { useHolidayStore } from '@/stores/holidayStore';
 import { useUserAuthStore } from '@/stores/userAuthStore';
@@ -52,8 +53,10 @@ const MyShiftCalendar = ({
   const [currentDate, setCurrentDate] = useState(new Date());
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1024); // lg 브레이크포인트
   const [isReqModalOpen, setIsReqModalOpen] = useState(false);
+  const [isWorkModalOpen, setIsWorkModalOpen] = useState(false);
   const fetchHolidays = useHolidayStore((state) => state.fetchHolidays);
   const { userInfo } = useUserAuthStore();
+  const hasWard = userInfo?.existMyWard;
 
   // dutyColors가 전달되지 않은 경우 기본값 설정
   const defaultDutyColors =
@@ -188,7 +191,9 @@ const MyShiftCalendar = ({
   };
 
   return (
-    <div className="bg-white rounded-[0.92375rem] shadow-[0_0_15px_rgba(0,0,0,0.1)] p-1 pt-4 sm:p-6 h-full">
+    <div
+      className={`bg-white rounded-[0.92375rem]   pt-4 sm:p-6 h-full${isMobile ? ' overflow-x-auto' : ''}`}
+    >
       <div className="grid grid-cols-3 items-center mb-4 px-2">
         {/* 왼쪽 - 빈 공간 */}
         <div className="col-start-1"></div>
@@ -218,28 +223,44 @@ const MyShiftCalendar = ({
           </button>
         </div>
 
-        {/* 오른쪽 - 근무 요청 버튼 */}
+        {/* 오른쪽 - 근무 요청/근무 입력 버튼 */}
         <div className="col-start-3 flex justify-end shrink-0">
-          <Button
-            color="primary"
-            text-size="md"
-            className={`whitespace-nowrap ${
-              isMobile ? 'px-2 py-2 text-xs' : 'py-0.5 px-1.5 sm:py-1 sm:px-2'
-            }`}
-            onClick={() => setIsReqModalOpen(true)}
-            size={isMobile ? 'xs' : 'register'}
-          >
-            <div className="flex items-center gap-1 relative group">
-              <span>근무 요청</span>
-            </div>
-          </Button>
+          {hasWard ? (
+            <Button
+              color="primary"
+              text-size="md"
+              className={`whitespace-nowrap ${
+                isMobile ? 'px-2 py-2 text-xs' : 'py-0.5 px-1.5 sm:py-1 sm:px-2'
+              }`}
+              onClick={() => setIsReqModalOpen(true)}
+              size={isMobile ? 'xs' : 'register'}
+            >
+              <div className="flex items-center gap-1 relative group">
+                <span>근무 요청</span>
+              </div>
+            </Button>
+          ) : (
+            <Button
+              color="primary"
+              text-size="md"
+              className={`whitespace-nowrap ${
+                isMobile ? 'px-2 py-2 text-xs' : 'py-0.5 px-1.5 sm:py-1 sm:px-2'
+              }`}
+              onClick={() => setIsWorkModalOpen(true)}
+              size={isMobile ? 'xs' : 'register'}
+            >
+              <div className="flex items-center gap-1 relative group">
+                <span>근무 입력</span>
+              </div>
+            </Button>
+          )}
         </div>
       </div>
 
-      <div className={`${isMobile ? '' : 'flex gap-[2rem]'}`}>
+      <div className={`${isMobile ? 'w-full' : ''}`}>
         <div
           className={`bg-white rounded-[1rem] ${
-            isMobile ? 'w-full p-[0.25rem]' : 'w-full p-[0.5rem]'
+            isMobile ? 'w-full ' : 'w-full p-[0.5rem]'
           }`}
         >
           {/* 달력 헤더 */}
@@ -293,8 +314,10 @@ const MyShiftCalendar = ({
                 <div
                   key={`prev-${day}`}
                   className={`${
-                    isMobile ? 'min-h-[5rem]' : 'min-h-[7.5rem]'
-                  } p-2 lg:p-3 relative bg-gray-50 cursor-not-allowed flex flex-col justify-between`}
+                    isMobile
+                      ? 'min-h-[5rem] p-[2px]'
+                      : 'min-h-[7.5rem] p-2 lg:p-3'
+                  } relative bg-gray-50 cursor-not-allowed flex flex-col justify-between`}
                 >
                   <span className={`${textColor} text-xs lg:text-sm`}>
                     {day}
@@ -308,7 +331,7 @@ const MyShiftCalendar = ({
               );
             })}
 
-            {/* 현재 달 날짜 - 고정 높이 */}
+            {/* 현재 달 날짜 */}
             {currentMonthDays.map((day) => {
               const isTodayDate = isToday(currentYear, currentMonth, day);
               const holidayName = getHolidayText(day);
@@ -342,8 +365,10 @@ const MyShiftCalendar = ({
                     onDateSelect(newDate);
                   }}
                   className={`${
-                    isMobile ? 'min-h-[5rem]' : 'min-h-[7.5rem]'
-                  } p-2 lg:p-3 relative cursor-pointer hover:bg-gray-50 flex flex-col ${
+                    isMobile
+                      ? 'min-h-[5rem] p-[2px]'
+                      : 'min-h-[7.5rem] p-2 lg:p-3'
+                  } relative cursor-pointer hover:bg-gray-50 flex flex-col ${
                     externalSelectedDate &&
                     externalSelectedDate.getDate() === day &&
                     externalSelectedDate.getMonth() === currentMonth - 1
@@ -352,9 +377,11 @@ const MyShiftCalendar = ({
                   }`}
                 >
                   {/* 날짜 표시 영역 */}
-                  <div className="relative flex flex-row items-center mb-1">
+                  <div
+                    className={`relative flex flex-row ${isMobile ? 'items-center' : 'items-start'} justify-start ${isMobile ? 'mb-0' : 'mb-1'}`}
+                  >
                     <span
-                      className={`w-6 h-6 lg:w-8 lg:h-8 flex items-center justify-center ${
+                      className={`${isMobile ? 'w-[1.1rem] h-[1.1rem]' : 'w-6 h-6'} lg:w-8 lg:h-8 flex items-center justify-center ${
                         isTodayDate ? 'bg-primary' : ''
                       } ${getDateStyle(
                         day,
@@ -364,7 +391,9 @@ const MyShiftCalendar = ({
                       {day}
                     </span>
                     {holidayName && (
-                      <span className="ml-1 text-[10px] lg:text-[11px] text-red-500 truncate max-w-[80%] line-clamp-1">
+                      <span
+                        className={`text-red-500 truncate max-w-[80%] line-clamp-1 ${isMobile ? 'ml-[2px] text-[0.55rem]' : 'ml-1 text-[10px] lg:text-[11px]'}`}
+                      >
                         {holidayName}
                       </span>
                     )}
@@ -437,8 +466,10 @@ const MyShiftCalendar = ({
                 <div
                   key={`next-${day}`}
                   className={`${
-                    isMobile ? 'min-h-[5rem]' : 'min-h-[7.5rem]'
-                  } p-2 lg:p-3 relative bg-gray-50 cursor-not-allowed flex flex-col justify-between`}
+                    isMobile
+                      ? 'min-h-[5rem] p-[2px]'
+                      : 'min-h-[7.5rem] p-2 lg:p-3'
+                  } relative bg-gray-50 cursor-not-allowed flex flex-col justify-between`}
                 >
                   <span className={`${textColor} text-xs lg:text-sm`}>
                     {day}
@@ -462,6 +493,13 @@ const MyShiftCalendar = ({
             <ReqShiftModal onClose={() => setIsReqModalOpen(false)} />
           </div>
         </div>
+      )}
+
+      {isWorkModalOpen && (
+        <WorkCRUDModal
+          open={isWorkModalOpen}
+          onClose={() => setIsWorkModalOpen(false)}
+        />
       )}
     </div>
   );

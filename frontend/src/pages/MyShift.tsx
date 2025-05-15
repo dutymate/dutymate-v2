@@ -256,9 +256,9 @@ const MyShift = () => {
         />
 
         {/* 메인 컨텐츠 영역 */}
-        <div className="flex-1 min-w-0 px-4 lg:px-8 py-6 h-screen lg:h-screen overflow-y-auto">
+        <div className="flex-1 min-w-0 px-0 py-6 lg:px-8 lg:py-6 h-screen lg:h-screen overflow-y-auto">
           {/* 모바일 헤더 */}
-          <div className="flex items-center gap-3 lg:hidden mb-4">
+          <div className="flex items-center gap-3 lg:hidden mb-4 px-4">
             <button
               onClick={() => setIsSidebarOpen(true)}
               className="p-2 hover:bg-gray-100 rounded-lg"

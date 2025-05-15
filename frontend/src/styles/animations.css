@@ -112,3 +112,18 @@
   animation: slideInOut 10s infinite;
   animation-delay: 5s;
 }
+
+@keyframes slideup {
+  0% {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-slideup {
+  animation: slideup 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
