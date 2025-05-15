@@ -1,7 +1,26 @@
 import { useCallback, useEffect, useMemo, useRef, useState, memo } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { debounce } from 'lodash';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import { MdDragIndicator } from 'react-icons/md';
 
 import DutyBadgeEng from '@/components/atoms/DutyBadgeEng';
 import FaultLayer from '@/components/atoms/FaultLayer';
@@ -63,6 +82,7 @@ interface ShiftAdminTableProps {
     prevShifts: string; // 이전 달 마지막 주 근무
     shifts: string; // 현재 달 근무
     isSynced?: boolean; // 추가된 속성
+    order?: number; // 간호사 표시 순서
   }[];
   invalidCnt: number; // 규칙 위반 수
   year: number; // 년도
@@ -77,6 +97,9 @@ interface ShiftAdminTableProps {
     message: string;
   }[];
   wardRequests: WardRequest[]; // 상위 컴포넌트에서 받아온 근무 요청 데이터
+  onUpdateNurseOrder?: (
+    nurseOrders: { memberId: number; order: number }[]
+  ) => Promise<void>; // 간호사 순서 업데이트 핸들러
 }
 
 // 근무 타입 정의 (D: 데이, E: 이브닝, N: 나이트, O: 오프, X: 미지정, ALL: 전체)
@@ -110,6 +133,60 @@ interface CellProps {
   highlightClass: string;
   isDimmed?: boolean;
 }
+
+// 드래그 가능한 행 컴포넌트
+interface SortableRowProps {
+  id: number;
+  children: React.ReactNode;
+}
+
+const SortableRow = memo(({ id, children }: SortableRowProps) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 10 : 0,
+    position: 'relative' as const,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  // children을 React.Children.map으로 순회하면서 첫 번째 td에 드래그 핸들 속성 추가
+  const childrenWithDragHandle = React.Children.map(
+    children,
+    (child, index) => {
+      // 첫 번째 td (드래그 핸들이 있는 셀)에만 listeners와 attributes 전달
+      if (index === 0 && React.isValidElement(child)) {
+        return React.cloneElement(child, {
+          ...child.props,
+          'data-drag-handle': true,
+          ...listeners,
+          ...attributes,
+        });
+      }
+      return child;
+    }
+  );
+
+  return (
+    <tr
+      ref={setNodeRef}
+      style={style}
+      className={`h-8 border-b border-gray-200 group ${isDragging ? 'bg-gray-100' : ''}`}
+    >
+      {childrenWithDragHandle}
+    </tr>
+  );
+});
+
+SortableRow.displayName = 'SortableRow';
 
 // 개별 근무 셀 컴포넌트 (성능 최적화를 위해 memo로 래핑)
 const DutyCell = memo(
@@ -199,6 +276,17 @@ const SpinnerOverlay = ({ isActive }: { isActive: boolean }) => {
   );
 };
 
+// 드래그 핸들 컴포넌트 추가
+const DragHandle = memo(() => {
+  return (
+    <div className="flex items-center justify-center cursor-grab active:cursor-grabbing p-1 text-gray-400 hover:text-gray-700 transition-colors">
+      <MdDragIndicator size={18} />
+    </div>
+  );
+});
+
+DragHandle.displayName = 'DragHandle';
+
 const ShiftAdminTable = memo(
   ({
     dutyData = [],
@@ -207,6 +295,7 @@ const ShiftAdminTable = memo(
     onUpdate,
     issues = [],
     wardRequests = [],
+    onUpdateNurseOrder,
   }: ShiftAdminTableProps) => {
     const [isRuleModalOpen, setIsRuleModalOpen] = useState(false);
     const [isAutoGenerateModalOpen, setIsAutoGenerateModalOpen] =
@@ -219,6 +308,99 @@ const ShiftAdminTable = memo(
     const [isRequestCheckModalOpen, setIsRequestCheckModalOpen] =
       useState(false);
     const requestCount = useRequestCountStore((state) => state.count);
+
+    // 정렬된 간호사 데이터 상태 추가
+    const [sortedNurses, setSortedNurses] = useState(dutyData);
+
+    // dutyData가 변경되면 sortedNurses 상태 업데이트
+    useEffect(() => {
+      // 기존 순서 정보가 있다면 정렬, 없으면 기존 순서 유지
+      const sortedData = [...dutyData].sort((a, b) => {
+        if (a.order !== undefined && b.order !== undefined) {
+          return a.order - b.order;
+        }
+        return 0;
+      });
+
+      setSortedNurses(sortedData);
+    }, [dutyData]);
+
+    // DnD 센서 설정
+    const sensors = useSensors(
+      useSensor(PointerSensor, {
+        activationConstraint: {
+          distance: 8, // 최소 드래그 거리 설정
+        },
+      }),
+      useSensor(KeyboardSensor, {
+        coordinateGetter: sortableKeyboardCoordinates,
+      })
+    );
+
+    // 드래그 종료 핸들러
+    const handleDragEnd = useCallback(
+      (event: DragEndEvent) => {
+        const { active, over } = event;
+
+        if (over && active.id !== over.id) {
+          // oldIndex와 newIndex 미리 계산
+          const oldIndex = sortedNurses.findIndex(
+            (n) => n.memberId === Number(active.id)
+          );
+          const newIndex = sortedNurses.findIndex(
+            (n) => n.memberId === Number(over.id)
+          );
+
+          if (oldIndex === -1 || newIndex === -1) return;
+
+          // 간호사 목록 업데이트
+          const newNurseOrder = arrayMove(
+            [...sortedNurses],
+            oldIndex,
+            newIndex
+          );
+          setSortedNurses(newNurseOrder);
+
+          // 근무 데이터도 함께 이동
+          setDuties((currentDuties) =>
+            arrayMove([...currentDuties], oldIndex, newIndex)
+          );
+
+          // 현재 선택된 셀도 행 이동에 맞게 조정
+          const selected = useShiftStore.getState().selectedCell;
+          if (selected) {
+            if (selected.row === oldIndex) {
+              // 드래그한 행 자체가 선택된 경우
+              useShiftStore
+                .getState()
+                .setSelectedCell({ row: newIndex, col: selected.col });
+            } else if (
+              (selected.row > oldIndex && selected.row <= newIndex) ||
+              (selected.row < oldIndex && selected.row >= newIndex)
+            ) {
+              // 이동 범위 내에 선택된 셀이 있는 경우
+              const newRow = selected.row + (selected.row > oldIndex ? -1 : 1);
+              useShiftStore
+                .getState()
+                .setSelectedCell({ row: newRow, col: selected.col });
+            }
+          }
+
+          // 백엔드에 새 순서 저장
+          if (onUpdateNurseOrder) {
+            const nurseOrders = newNurseOrder.map((nurse, index) => ({
+              memberId: nurse.memberId,
+              order: index,
+            }));
+
+            onUpdateNurseOrder(nurseOrders).catch(() => {
+              toast.error('간호사 순서 저장에 실패했습니다.');
+            });
+          }
+        }
+      },
+      [onUpdateNurseOrder, sortedNurses]
+    );
 
     useEffect(() => {
       const checkIsWeb = () => {
@@ -260,8 +442,8 @@ const ShiftAdminTable = memo(
 
     // Memoize heavy calculations
     const nurses = useMemo(
-      () => dutyData.map((nurse) => nurse.name),
-      [dutyData]
+      () => sortedNurses.map((nurse) => nurse.name),
+      [sortedNurses]
     );
 
     // duties 상태 초기화를 단순화
@@ -271,26 +453,26 @@ const ShiftAdminTable = memo(
     const [isResetDutyConfirmModalOpen, setIsResetDutyConfirmModalOpen] =
       useState(false);
 
-    // useEffect를 추가하여 dutyData 변경 시 duties 업데이트
+    // useEffect를 추가하여 sortedNurses 변경 시 duties 업데이트
     useEffect(() => {
-      if (!dutyData || !dutyData.length) {
+      if (!sortedNurses || !sortedNurses.length) {
         setDuties([]);
         return;
       }
 
       setDuties(
-        dutyData.map((nurse) => {
+        sortedNurses.map((nurse) => {
           if (!nurse.shifts || nurse.shifts.length === 0) {
             return Array(daysInMonth).fill('X');
           }
           return nurse.shifts.split('');
         })
       );
-    }, [dutyData, daysInMonth]);
+    }, [sortedNurses, daysInMonth]);
 
     const prevShifts = useMemo(
-      () => dutyData.map((nurse) => nurse.prevShifts.split('')),
-      [dutyData]
+      () => sortedNurses.map((nurse) => nurse.prevShifts.split('')),
+      [sortedNurses]
     );
 
     // requests state 제거하고 wardRequests prop 사용
@@ -331,7 +513,7 @@ const ShiftAdminTable = memo(
           return;
         }
 
-        const nurse = dutyData[nurseIndex];
+        const nurse = sortedNurses[nurseIndex];
         if (!nurse) {
           console.error('Nurse not found');
           return;
@@ -375,7 +557,7 @@ const ShiftAdminTable = memo(
         sendBatchRequest([...pendingRequests, request]);
       },
       [
-        dutyData,
+        sortedNurses,
         year,
         month,
         pendingRequests,
@@ -1264,267 +1446,308 @@ const ShiftAdminTable = memo(
               className={`min-w-[800px] relative ${isWeb ? '' : 'duty-table-content'}`}
             >
               <SpinnerOverlay isActive={isResetting} />
-              {/* 기존 테이블 내용을 여기에 복사 */}
-              <table className="w-full border-collapse">
-                {/* 기존 테이블 헤더와 내용 */}
-                <thead>
-                  <tr className="text-xs text-gray-600 border-b border-gray-200">
-                    <th className="p-0 text-center w-[90px] sm:w-24 border-r border-gray-200">
-                      <span className="block text-xs sm:text-sm px-0.5">
-                        이름
-                      </span>
-                    </th>
-                    <th className="p-0 text-center w-[90px] sm:w-24 border-r border-gray-200">
-                      <span className="block text-xs sm:text-sm px-0.5">
-                        이전 근무
-                      </span>
-                    </th>
-                    {Array.from({ length: daysInMonth }, (_, i) => {
-                      const day = i + 1;
-                      return (
-                        <th
-                          key={i}
-                          className={`p-0 text-center w-10 border-r border-gray-200 ${getWeekendStyle(
-                            day
-                          )}`}
-                        >
-                          {day}
+              {/* DndContext와 SortableContext 추가 */}
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEnd}
+              >
+                <SortableContext
+                  items={sortedNurses.map((nurse) => nurse.memberId)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  <table className="w-full border-collapse">
+                    {/* 기존 테이블 헤더와 내용 */}
+                    <thead>
+                      <tr className="text-xs text-gray-600 border-b border-gray-200">
+                        <th className="p-0 text-center w-6 border-r border-gray-200">
+                          {/* 드래그 핸들 헤더 셀 */}
                         </th>
-                      );
-                    })}
-                    <th className="p-0 text-center w-7 border-r border-gray-200">
-                      <div className="flex items-center justify-center">
-                        <div className="scale-[0.65]">
-                          <DutyBadgeEng type="D" size="sm" variant="filled" />
-                        </div>
-                      </div>
-                    </th>
-                    <th className="p-0 text-center w-7 border-r border-gray-200">
-                      <div className="flex items-center justify-center">
-                        <div className="scale-[0.65]">
-                          <DutyBadgeEng type="E" size="sm" variant="filled" />
-                        </div>
-                      </div>
-                    </th>
-                    <th className="p-0 text-center w-7 border-r border-gray-200">
-                      <div className="flex items-center justify-center">
-                        <div className="scale-[0.65]">
-                          <DutyBadgeEng type="N" size="sm" variant="filled" />
-                        </div>
-                      </div>
-                    </th>
-                    <th className="p-0 text-center w-7 border-r border-gray-200">
-                      <div className="flex items-center justify-center">
-                        <div className="scale-[0.65]">
-                          <DutyBadgeEng type="O" size="sm" variant="filled" />
-                        </div>
-                      </div>
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {nurses.map((name, i) => (
-                    <tr key={i} className="h-8 border-b border-gray-200 group">
-                      <td
-                        className={`p-0 text-center border-r border-gray-200 ${isHighlighted(i, -2)}`}
-                      >
-                        <span className="block text-xs sm:text-sm whitespace-nowrap overflow-hidden text-ellipsis">
-                          {name}
-                        </span>
-                      </td>
-                      <td
-                        className={`p-0 border-r border-gray-200 ${isHighlighted(i, -1)}`}
-                      >
-                        <div className="flex justify-center -space-x-1.5">
-                          {prevShifts[i].map((shift, index) => (
-                            <div key={index} className="scale-[0.65]">
+                        <th className="p-0 text-center w-[90px] sm:w-24 border-r border-gray-200">
+                          <span className="block text-xs sm:text-sm px-0.5">
+                            이름
+                          </span>
+                        </th>
+                        <th className="p-0 text-center w-[90px] sm:w-24 border-r border-gray-200">
+                          <span className="block text-xs sm:text-sm px-0.5">
+                            이전 근무
+                          </span>
+                        </th>
+                        {Array.from({ length: daysInMonth }, (_, i) => {
+                          const day = i + 1;
+                          return (
+                            <th
+                              key={i}
+                              className={`p-0 text-center w-10 border-r border-gray-200 ${getWeekendStyle(
+                                day
+                              )}`}
+                            >
+                              {day}
+                            </th>
+                          );
+                        })}
+                        <th className="p-0 text-center w-7 border-r border-gray-200">
+                          <div className="flex items-center justify-center">
+                            <div className="scale-[0.65]">
                               <DutyBadgeEng
-                                type={
-                                  shift as
-                                    | 'X'
-                                    | 'D'
-                                    | 'E'
-                                    | 'N'
-                                    | 'O'
-                                    | 'ALL'
-                                    | 'M'
-                                }
+                                type="D"
                                 size="sm"
-                                isSelected={false}
+                                variant="filled"
                               />
                             </div>
-                          ))}
-                        </div>
-                      </td>
-                      {Array.from({ length: daysInMonth }, (_, dayIndex) => {
-                        if (!duties[i] || !duties[i][dayIndex]) return null;
-
-                        const violations = issues.filter(
-                          (issue) =>
-                            issue.memberId === dutyData[i].memberId &&
-                            dayIndex + 1 >= issue.startDate &&
-                            dayIndex + 1 <= issue.endDate
-                        );
-
-                        const requestStatus = wardRequests.find((request) => {
-                          const requestDate = new Date(request.date);
-                          return (
-                            requestDate.getFullYear() === year &&
-                            requestDate.getMonth() + 1 === month &&
-                            requestDate.getDate() === dayIndex + 1 &&
-                            request.name === nurses[i]
-                          );
-                        });
-
-                        return (
-                          <DutyCell
-                            key={dayIndex}
-                            nurse={name}
-                            dayIndex={dayIndex}
-                            duty={duties[i][dayIndex] || 'X'}
-                            isSelected={
-                              selectedCell?.row === i &&
-                              selectedCell?.col === dayIndex
-                            }
-                            isDimmed={isResetting}
-                            violations={violations}
-                            requestStatus={requestStatus}
-                            isHovered={
-                              hoveredCell?.row === i &&
-                              hoveredCell?.day === dayIndex
-                            }
-                            onClick={() => handleCellClick(i, dayIndex)}
-                            onMouseEnter={() =>
-                              setHoveredCell({ row: i, day: dayIndex })
-                            }
-                            onMouseLeave={() => setHoveredCell(null)}
-                            highlightClass={isHighlighted(i, dayIndex)}
-                          />
-                        );
-                      })}
-                      <td
-                        className={`p-0 text-xs text-center border-r border-gray-200 ${isHighlighted(i, 31)}`}
-                      >
-                        {nurseDutyCounts[i]?.D || 0}
-                      </td>
-                      <td
-                        className={`p-0 text-xs text-center border-r border-gray-200 ${isHighlighted(i, 32)}`}
-                      >
-                        {nurseDutyCounts[i]?.E || 0}
-                      </td>
-                      <td
-                        className={`p-0 text-xs text-center border-r border-gray-200 ${isHighlighted(i, 33)}`}
-                      >
-                        {nurseDutyCounts[i]?.N || 0}
-                      </td>
-                      <td
-                        className={`p-0 text-xs text-center border-r border-gray-200 ${isHighlighted(i, 34)}`}
-                      >
-                        {nurseDutyCounts[i]?.O || 0}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-                {/* 통계 행들을 같은 테이블에 직접 추가 */}
-                <tbody>
-                  {['DAY', 'EVENING', 'NIGHT', 'OFF', 'TOTAL'].map(
-                    (text, i) => (
-                      <tr
-                        key={`empty-${i}`}
-                        className="text-[10px] h-6 border-b border-gray-200"
-                      >
-                        <td
-                          colSpan={2}
-                          className={`p-0 font-bold text-[11px] border-r border-gray-200 ${
-                            i === 0
-                              ? 'text-[#318F3D]'
-                              : i === 1
-                                ? 'text-[#E55656]'
-                                : i === 2
-                                  ? 'text-[#532FC8]'
-                                  : i === 3
-                                    ? 'text-[#726F5A]'
-                                    : 'text-black'
-                          }`}
-                        >
-                          <div className="flex items-center justify-center">
-                            <span translate="no">{text}</span>
                           </div>
-                        </td>
-                        {Array.from({ length: daysInMonth }, (_, j) => (
-                          <td
-                            key={j}
-                            className={`p-0 text-center text-[11px] border-r border-gray-200 ${
-                              selectedCell?.col === j
-                                ? i === 4
-                                  ? 'bg-duty-off-bg rounded-b-lg'
-                                  : 'bg-duty-off-bg'
-                                : ''
-                            }`}
-                          >
-                            <div className="flex items-center justify-center h-6">
-                              {i === 0 && (
-                                <span
-                                  className={getCountColor(
-                                    dutyCounts[j].D,
-                                    j + 1,
-                                    'D'
-                                  )}
-                                >
-                                  {dutyCounts[j].D}
-                                </span>
-                              )}
-                              {i === 1 && (
-                                <span
-                                  className={getCountColor(
-                                    dutyCounts[j].E,
-                                    j + 1,
-                                    'E'
-                                  )}
-                                >
-                                  {dutyCounts[j].E}
-                                </span>
-                              )}
-                              {i === 2 && (
-                                <span
-                                  className={getCountColor(
-                                    dutyCounts[j].N,
-                                    j + 1,
-                                    'N'
-                                  )}
-                                >
-                                  {dutyCounts[j].N}
-                                </span>
-                              )}
-                              {i === 3 && dutyCounts[j].O}
-                              {i === 4 && dutyCounts[j].total}
+                        </th>
+                        <th className="p-0 text-center w-7 border-r border-gray-200">
+                          <div className="flex items-center justify-center">
+                            <div className="scale-[0.65]">
+                              <DutyBadgeEng
+                                type="E"
+                                size="sm"
+                                variant="filled"
+                              />
                             </div>
-                          </td>
-                        ))}
-                        {/* 각 행의 마지막 4개 열을 차지하는 셀 */}
-                        {i === 0 && (
-                          <td
-                            rowSpan={5}
-                            colSpan={4}
-                            className="p-0 border-r border-gray-200"
-                          >
-                            <div className="flex justify-center items-center h-full">
-                              <div className="scale-[0.85]">
-                                <ProgressChecker
-                                  value={progress}
-                                  size={80}
-                                  strokeWidth={4}
-                                  showLabel={true}
-                                />
-                              </div>
+                          </div>
+                        </th>
+                        <th className="p-0 text-center w-7 border-r border-gray-200">
+                          <div className="flex items-center justify-center">
+                            <div className="scale-[0.65]">
+                              <DutyBadgeEng
+                                type="N"
+                                size="sm"
+                                variant="filled"
+                              />
                             </div>
-                          </td>
-                        )}
+                          </div>
+                        </th>
+                        <th className="p-0 text-center w-7 border-r border-gray-200">
+                          <div className="flex items-center justify-center">
+                            <div className="scale-[0.65]">
+                              <DutyBadgeEng
+                                type="O"
+                                size="sm"
+                                variant="filled"
+                              />
+                            </div>
+                          </div>
+                        </th>
                       </tr>
-                    )
-                  )}
-                </tbody>
-              </table>
+                    </thead>
+                    <tbody>
+                      {sortedNurses.map((nurse, i) => (
+                        <SortableRow key={nurse.memberId} id={nurse.memberId}>
+                          <td className="p-0 border-r border-gray-200 w-6">
+                            <DragHandle />
+                          </td>
+                          <td
+                            className={`p-0 text-center border-r border-gray-200 ${isHighlighted(i, -2)}`}
+                          >
+                            <span className="block text-xs sm:text-sm whitespace-nowrap overflow-hidden text-ellipsis">
+                              {nurse.name}
+                            </span>
+                          </td>
+                          <td
+                            className={`p-0 border-r border-gray-200 ${isHighlighted(i, -1)}`}
+                          >
+                            <div className="flex justify-center -space-x-1.5">
+                              {prevShifts[i].map((shift, index) => (
+                                <div key={index} className="scale-[0.65]">
+                                  <DutyBadgeEng
+                                    type={
+                                      shift as
+                                        | 'X'
+                                        | 'D'
+                                        | 'E'
+                                        | 'N'
+                                        | 'O'
+                                        | 'ALL'
+                                        | 'M'
+                                    }
+                                    size="sm"
+                                    isSelected={false}
+                                  />
+                                </div>
+                              ))}
+                            </div>
+                          </td>
+                          {Array.from(
+                            { length: daysInMonth },
+                            (_, dayIndex) => {
+                              if (!duties[i] || !duties[i][dayIndex])
+                                return null;
+
+                              const violations = issues.filter(
+                                (issue) =>
+                                  issue.memberId === nurse.memberId &&
+                                  dayIndex + 1 >= issue.startDate &&
+                                  dayIndex + 1 <= issue.endDate
+                              );
+
+                              const requestStatus = wardRequests.find(
+                                (request) => {
+                                  const requestDate = new Date(request.date);
+                                  return (
+                                    requestDate.getFullYear() === year &&
+                                    requestDate.getMonth() + 1 === month &&
+                                    requestDate.getDate() === dayIndex + 1 &&
+                                    request.name === nurse.name
+                                  );
+                                }
+                              );
+
+                              return (
+                                <DutyCell
+                                  key={dayIndex}
+                                  nurse={nurse.name}
+                                  dayIndex={dayIndex}
+                                  duty={duties[i][dayIndex] || 'X'}
+                                  isSelected={
+                                    selectedCell?.row === i &&
+                                    selectedCell?.col === dayIndex
+                                  }
+                                  isDimmed={isResetting}
+                                  violations={violations}
+                                  requestStatus={requestStatus}
+                                  isHovered={
+                                    hoveredCell?.row === i &&
+                                    hoveredCell?.day === dayIndex
+                                  }
+                                  onClick={() => handleCellClick(i, dayIndex)}
+                                  onMouseEnter={() =>
+                                    setHoveredCell({ row: i, day: dayIndex })
+                                  }
+                                  onMouseLeave={() => setHoveredCell(null)}
+                                  highlightClass={isHighlighted(i, dayIndex)}
+                                />
+                              );
+                            }
+                          )}
+                          <td
+                            className={`p-0 text-xs text-center border-r border-gray-200 ${isHighlighted(i, 31)}`}
+                          >
+                            {nurseDutyCounts[i]?.D || 0}
+                          </td>
+                          <td
+                            className={`p-0 text-xs text-center border-r border-gray-200 ${isHighlighted(i, 32)}`}
+                          >
+                            {nurseDutyCounts[i]?.E || 0}
+                          </td>
+                          <td
+                            className={`p-0 text-xs text-center border-r border-gray-200 ${isHighlighted(i, 33)}`}
+                          >
+                            {nurseDutyCounts[i]?.N || 0}
+                          </td>
+                          <td
+                            className={`p-0 text-xs text-center border-r border-gray-200 ${isHighlighted(i, 34)}`}
+                          >
+                            {nurseDutyCounts[i]?.O || 0}
+                          </td>
+                        </SortableRow>
+                      ))}
+                    </tbody>
+                    {/* 통계 행들을 같은 테이블에 직접 추가 */}
+                    <tbody>
+                      {['DAY', 'EVENING', 'NIGHT', 'OFF', 'TOTAL'].map(
+                        (text, i) => (
+                          <tr
+                            key={`empty-${i}`}
+                            className="text-[10px] h-6 border-b border-gray-200"
+                          >
+                            <td className="p-0 border-r border-gray-200 w-6"></td>
+                            <td
+                              colSpan={2}
+                              className={`p-0 font-bold text-[11px] border-r border-gray-200 ${
+                                i === 0
+                                  ? 'text-[#318F3D]'
+                                  : i === 1
+                                    ? 'text-[#E55656]'
+                                    : i === 2
+                                      ? 'text-[#532FC8]'
+                                      : i === 3
+                                        ? 'text-[#726F5A]'
+                                        : 'text-black'
+                              }`}
+                            >
+                              <div className="flex items-center justify-center">
+                                <span translate="no">{text}</span>
+                              </div>
+                            </td>
+                            {/* 날짜별 통계 추가 */}
+                            {Array.from({ length: daysInMonth }, (_, j) => (
+                              <td
+                                key={j}
+                                className={`p-0 text-center text-[11px] border-r border-gray-200 ${
+                                  selectedCell?.col === j
+                                    ? i === 4
+                                      ? 'bg-duty-off-bg rounded-b-lg'
+                                      : 'bg-duty-off-bg'
+                                    : ''
+                                }`}
+                              >
+                                <div className="flex items-center justify-center h-6">
+                                  {i === 0 && (
+                                    <span
+                                      className={getCountColor(
+                                        dutyCounts[j].D,
+                                        j + 1,
+                                        'D'
+                                      )}
+                                    >
+                                      {dutyCounts[j].D}
+                                    </span>
+                                  )}
+                                  {i === 1 && (
+                                    <span
+                                      className={getCountColor(
+                                        dutyCounts[j].E,
+                                        j + 1,
+                                        'E'
+                                      )}
+                                    >
+                                      {dutyCounts[j].E}
+                                    </span>
+                                  )}
+                                  {i === 2 && (
+                                    <span
+                                      className={getCountColor(
+                                        dutyCounts[j].N,
+                                        j + 1,
+                                        'N'
+                                      )}
+                                    >
+                                      {dutyCounts[j].N}
+                                    </span>
+                                  )}
+                                  {i === 3 && dutyCounts[j].O}
+                                  {i === 4 && dutyCounts[j].total}
+                                </div>
+                              </td>
+                            ))}
+                            {/* 각 행의 마지막 4개 열을 차지하는 셀 */}
+                            {i === 0 && (
+                              <td
+                                rowSpan={5}
+                                colSpan={4}
+                                className="p-0 border-r border-gray-200"
+                              >
+                                <div className="flex justify-center items-center h-full">
+                                  <div className="scale-[0.85]">
+                                    <ProgressChecker
+                                      value={progress}
+                                      size={80}
+                                      strokeWidth={4}
+                                      showLabel={true}
+                                    />
+                                  </div>
+                                </div>
+                              </td>
+                            )}
+                          </tr>
+                        )
+                      )}
+                    </tbody>
+                  </table>
+                </SortableContext>
+              </DndContext>
             </div>
           </div>
 
@@ -1566,287 +1789,321 @@ const ShiftAdminTable = memo(
                   <div
                     className={`min-w-[50rem] ${isWeb ? 'duty-table-content' : ''}`}
                   >
-                    <table className="relative w-full border-collapse z-10">
-                      <thead>
-                        <tr className="text-xs text-gray-600 border-b border-gray-200">
-                          <th className="p-0 text-center w-[90px] sm:w-24 border-r border-gray-200">
-                            <span className="block text-xs sm:text-sm px-0.5">
-                              이름
-                            </span>
-                          </th>
-                          <th className="p-0 text-center w-[90px] sm:w-24 border-r border-gray-200">
-                            <span className="block text-xs sm:text-sm px-0.5">
-                              이전 근무
-                            </span>
-                          </th>
-
-                          {Array.from({ length: daysInMonth }, (_, i) => {
-                            const day = i + 1;
-                            return (
-                              <th
-                                key={i}
-                                className={`p-0 text-center w-10 border-r border-gray-200 ${getWeekendStyle(
-                                  day
-                                )}`}
-                              >
-                                {day}
+                    {/* DndContext와 SortableContext 추가 */}
+                    <DndContext
+                      sensors={sensors}
+                      collisionDetection={closestCenter}
+                      onDragEnd={handleDragEnd}
+                    >
+                      <SortableContext
+                        items={sortedNurses.map((nurse) => nurse.memberId)}
+                        strategy={verticalListSortingStrategy}
+                      >
+                        <table className="relative w-full border-collapse z-10">
+                          <thead>
+                            <tr className="text-xs text-gray-600 border-b border-gray-200">
+                              <th className="p-0 text-center w-6 border-r border-gray-200">
+                                {/* 드래그 핸들 헤더 셀 */}
                               </th>
-                            );
-                          })}
-                          <th className="p-0 text-center w-7 border-r border-gray-200">
-                            <div className="flex items-center justify-center">
-                              <div className="scale-[0.65]">
-                                <DutyBadgeEng
-                                  type="D"
-                                  size="sm"
-                                  variant="filled"
-                                />
-                              </div>
-                            </div>
-                          </th>
-                          <th className="p-0 text-center w-7 border-r border-gray-200">
-                            <div className="flex items-center justify-center">
-                              <div className="scale-[0.65]">
-                                <DutyBadgeEng
-                                  type="E"
-                                  size="sm"
-                                  variant="filled"
-                                />
-                              </div>
-                            </div>
-                          </th>
-                          <th className="p-0 text-center w-7 border-r border-gray-200">
-                            <div className="flex items-center justify-center">
-                              <div className="scale-[0.65]">
-                                <DutyBadgeEng
-                                  type="N"
-                                  size="sm"
-                                  variant="filled"
-                                />
-                              </div>
-                            </div>
-                          </th>
-                          <th className="p-0 text-center w-7 border-r border-gray-200">
-                            <div className="flex items-center justify-center">
-                              <div className="scale-[0.65]">
-                                <DutyBadgeEng
-                                  type="O"
-                                  size="sm"
-                                  variant="filled"
-                                />
-                              </div>
-                            </div>
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {nurses.map((name, i) => (
-                          <tr
-                            key={i}
-                            className="h-8 border-b border-gray-200 group"
-                          >
-                            <td
-                              className={`p-0 text-center border-r border-gray-200 ${isHighlighted(i, -2)}`}
-                            >
-                              <span className="block text-xs sm:text-sm whitespace-nowrap overflow-hidden text-ellipsis">
-                                {name}
-                              </span>
-                            </td>
-                            <td
-                              className={`p-0 border-r border-gray-200 ${isHighlighted(i, -1)}`}
-                            >
-                              <div className="flex justify-center -space-x-1.5">
-                                {prevShifts[i].map((shift, index) => (
-                                  <div key={index} className="scale-[0.65]">
+                              <th className="p-0 text-center w-[90px] sm:w-24 border-r border-gray-200">
+                                <span className="block text-xs sm:text-sm px-0.5">
+                                  이름
+                                </span>
+                              </th>
+                              <th className="p-0 text-center w-[90px] sm:w-24 border-r border-gray-200">
+                                <span className="block text-xs sm:text-sm px-0.5">
+                                  이전 근무
+                                </span>
+                              </th>
+
+                              {Array.from({ length: daysInMonth }, (_, i) => {
+                                const day = i + 1;
+                                return (
+                                  <th
+                                    key={i}
+                                    className={`p-0 text-center w-10 border-r border-gray-200 ${getWeekendStyle(
+                                      day
+                                    )}`}
+                                  >
+                                    {day}
+                                  </th>
+                                );
+                              })}
+                              <th className="p-0 text-center w-7 border-r border-gray-200">
+                                <div className="flex items-center justify-center">
+                                  <div className="scale-[0.65]">
                                     <DutyBadgeEng
-                                      type={
-                                        shift as 'X' | 'D' | 'E' | 'N' | 'O'
-                                      }
+                                      type="D"
                                       size="sm"
-                                      isSelected={false}
+                                      variant="filled"
                                     />
                                   </div>
-                                ))}
-                              </div>
-                            </td>
-                            {Array.from(
-                              { length: daysInMonth },
-                              (_, dayIndex) => {
-                                if (!duties[i] || !duties[i][dayIndex])
-                                  return null;
+                                </div>
+                              </th>
+                              <th className="p-0 text-center w-7 border-r border-gray-200">
+                                <div className="flex items-center justify-center">
+                                  <div className="scale-[0.65]">
+                                    <DutyBadgeEng
+                                      type="E"
+                                      size="sm"
+                                      variant="filled"
+                                    />
+                                  </div>
+                                </div>
+                              </th>
+                              <th className="p-0 text-center w-7 border-r border-gray-200">
+                                <div className="flex items-center justify-center">
+                                  <div className="scale-[0.65]">
+                                    <DutyBadgeEng
+                                      type="N"
+                                      size="sm"
+                                      variant="filled"
+                                    />
+                                  </div>
+                                </div>
+                              </th>
+                              <th className="p-0 text-center w-7 border-r border-gray-200">
+                                <div className="flex items-center justify-center">
+                                  <div className="scale-[0.65]">
+                                    <DutyBadgeEng
+                                      type="O"
+                                      size="sm"
+                                      variant="filled"
+                                    />
+                                  </div>
+                                </div>
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {sortedNurses.map((nurse, i) => (
+                              <SortableRow
+                                key={nurse.memberId}
+                                id={nurse.memberId}
+                              >
+                                <td className="p-0 border-r border-gray-200 w-6">
+                                  <DragHandle />
+                                </td>
+                                <td
+                                  className={`p-0 text-center border-r border-gray-200 ${isHighlighted(i, -2)}`}
+                                >
+                                  <span className="block text-xs sm:text-sm whitespace-nowrap overflow-hidden text-ellipsis">
+                                    {nurse.name}
+                                  </span>
+                                </td>
+                                <td
+                                  className={`p-0 border-r border-gray-200 ${isHighlighted(i, -1)}`}
+                                >
+                                  <div className="flex justify-center -space-x-1.5">
+                                    {prevShifts[i].map((shift, index) => (
+                                      <div key={index} className="scale-[0.65]">
+                                        <DutyBadgeEng
+                                          type={
+                                            shift as 'X' | 'D' | 'E' | 'N' | 'O'
+                                          }
+                                          size="sm"
+                                          isSelected={false}
+                                        />
+                                      </div>
+                                    ))}
+                                  </div>
+                                </td>
+                                {Array.from(
+                                  { length: daysInMonth },
+                                  (_, dayIndex) => {
+                                    if (!duties[i] || !duties[i][dayIndex])
+                                      return null;
 
-                                const violations = issues.filter(
-                                  (issue) =>
-                                    issue.memberId === dutyData[i].memberId &&
-                                    dayIndex + 1 >= issue.startDate &&
-                                    dayIndex + 1 <= issue.endDate
-                                );
+                                    const violations = issues.filter(
+                                      (issue) =>
+                                        issue.memberId === nurse.memberId &&
+                                        dayIndex + 1 >= issue.startDate &&
+                                        dayIndex + 1 <= issue.endDate
+                                    );
 
-                                const requestStatus = wardRequests.find(
-                                  (request) => {
-                                    const requestDate = new Date(request.date);
+                                    const requestStatus = wardRequests.find(
+                                      (request) => {
+                                        const requestDate = new Date(
+                                          request.date
+                                        );
+                                        return (
+                                          requestDate.getFullYear() === year &&
+                                          requestDate.getMonth() + 1 ===
+                                            month &&
+                                          requestDate.getDate() ===
+                                            dayIndex + 1 &&
+                                          request.name === nurse.name
+                                        );
+                                      }
+                                    );
+
                                     return (
-                                      requestDate.getFullYear() === year &&
-                                      requestDate.getMonth() + 1 === month &&
-                                      requestDate.getDate() === dayIndex + 1 &&
-                                      request.name === nurses[i]
+                                      <DutyCell
+                                        key={dayIndex}
+                                        nurse={nurse.name}
+                                        dayIndex={dayIndex}
+                                        duty={duties[i][dayIndex] || 'X'}
+                                        isSelected={
+                                          selectedCell?.row === i &&
+                                          selectedCell?.col === dayIndex
+                                        }
+                                        isDimmed={isResetting || isLoading}
+                                        violations={violations}
+                                        requestStatus={requestStatus}
+                                        isHovered={
+                                          hoveredCell?.row === i &&
+                                          hoveredCell?.day === dayIndex
+                                        }
+                                        onClick={() =>
+                                          handleCellClick(i, dayIndex)
+                                        }
+                                        onMouseEnter={() =>
+                                          setHoveredCell({
+                                            row: i,
+                                            day: dayIndex,
+                                          })
+                                        }
+                                        onMouseLeave={() =>
+                                          setHoveredCell(null)
+                                        }
+                                        highlightClass={isHighlighted(
+                                          i,
+                                          dayIndex
+                                        )}
+                                      />
                                     );
                                   }
-                                );
-
-                                return (
-                                  <DutyCell
-                                    key={dayIndex}
-                                    nurse={name}
-                                    dayIndex={dayIndex}
-                                    duty={duties[i][dayIndex] || 'X'}
-                                    isSelected={
-                                      selectedCell?.row === i &&
-                                      selectedCell?.col === dayIndex
-                                    }
-                                    isDimmed={isResetting || isLoading}
-                                    violations={violations}
-                                    requestStatus={requestStatus}
-                                    isHovered={
-                                      hoveredCell?.row === i &&
-                                      hoveredCell?.day === dayIndex
-                                    }
-                                    onClick={() => handleCellClick(i, dayIndex)}
-                                    onMouseEnter={() =>
-                                      setHoveredCell({
-                                        row: i,
-                                        day: dayIndex,
-                                      })
-                                    }
-                                    onMouseLeave={() => setHoveredCell(null)}
-                                    highlightClass={isHighlighted(i, dayIndex)}
-                                  />
-                                );
-                              }
-                            )}
-                            <td
-                              className={`p-0 text-xs text-center border-r border-gray-200 ${isHighlighted(i, 31)}`}
-                            >
-                              {nurseDutyCounts[i]?.D || 0}
-                            </td>
-                            <td
-                              className={`p-0 text-xs text-center border-r border-gray-200 ${isHighlighted(i, 32)}`}
-                            >
-                              {nurseDutyCounts[i]?.E || 0}
-                            </td>
-                            <td
-                              className={`p-0 text-xs text-center border-r border-gray-200 ${isHighlighted(i, 33)}`}
-                            >
-                              {nurseDutyCounts[i]?.N || 0}
-                            </td>
-                            <td
-                              className={`p-0 text-xs text-center border-r border-gray-200 ${isHighlighted(i, 34)}`}
-                            >
-                              {nurseDutyCounts[i]?.O || 0}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                      {/* 통계 행들을 같은 테이블에 직접 추가 */}
-                      <tbody>
-                        {['DAY', 'EVENING', 'NIGHT', 'OFF', 'TOTAL'].map(
-                          (text, i) => (
-                            <tr
-                              key={`empty-${i}`}
-                              className="text-[10px] h-6 border-b border-gray-200"
-                            >
-                              <td
-                                colSpan={2}
-                                className={`p-0 font-bold text-[11px] border-r border-gray-200 ${
-                                  i === 0
-                                    ? 'text-[#318F3D]'
-                                    : i === 1
-                                      ? 'text-[#E55656]'
-                                      : i === 2
-                                        ? 'text-[#532FC8]'
-                                        : i === 3
-                                          ? 'text-[#726F5A]'
-                                          : 'text-black'
-                                }`}
-                              >
-                                <div className="flex items-center justify-center">
-                                  <span translate="no">{text}</span>
-                                </div>
-                              </td>
-                              {Array.from({ length: daysInMonth }, (_, j) => (
+                                )}
                                 <td
-                                  key={j}
-                                  className={`p-0 text-center text-[11px] border-r border-gray-200 ${
-                                    selectedCell?.col === j
-                                      ? i === 4
-                                        ? 'bg-duty-off-bg rounded-b-lg'
-                                        : 'bg-duty-off-bg'
-                                      : ''
-                                  }`}
+                                  className={`p-0 text-xs text-center border-r border-gray-200 ${isHighlighted(i, 31)}`}
                                 >
-                                  <div className="flex items-center justify-center h-6">
-                                    {i === 0 && (
-                                      <span
-                                        className={getCountColor(
-                                          dutyCounts[j].D,
-                                          j + 1,
-                                          'D'
-                                        )}
-                                      >
-                                        {dutyCounts[j].D}
-                                      </span>
-                                    )}
-                                    {i === 1 && (
-                                      <span
-                                        className={getCountColor(
-                                          dutyCounts[j].E,
-                                          j + 1,
-                                          'E'
-                                        )}
-                                      >
-                                        {dutyCounts[j].E}
-                                      </span>
-                                    )}
-                                    {i === 2 && (
-                                      <span
-                                        className={getCountColor(
-                                          dutyCounts[j].N,
-                                          j + 1,
-                                          'N'
-                                        )}
-                                      >
-                                        {dutyCounts[j].N}
-                                      </span>
-                                    )}
-                                    {i === 3 && dutyCounts[j].O}
-                                    {i === 4 && dutyCounts[j].total}
-                                  </div>
+                                  {nurseDutyCounts[i]?.D || 0}
                                 </td>
-                              ))}
-                              {/* 각 행의 마지막 4개 열을 차지하는 셀 */}
-                              {i === 0 && (
                                 <td
-                                  rowSpan={5}
-                                  colSpan={4}
-                                  className="p-0 border-r border-gray-200"
+                                  className={`p-0 text-xs text-center border-r border-gray-200 ${isHighlighted(i, 32)}`}
                                 >
-                                  <div className="flex justify-center items-center h-full">
-                                    <div className="scale-[0.85]">
-                                      <ProgressChecker
-                                        value={progress}
-                                        size={80}
-                                        strokeWidth={4}
-                                        showLabel={true}
-                                      />
+                                  {nurseDutyCounts[i]?.E || 0}
+                                </td>
+                                <td
+                                  className={`p-0 text-xs text-center border-r border-gray-200 ${isHighlighted(i, 33)}`}
+                                >
+                                  {nurseDutyCounts[i]?.N || 0}
+                                </td>
+                                <td
+                                  className={`p-0 text-xs text-center border-r border-gray-200 ${isHighlighted(i, 34)}`}
+                                >
+                                  {nurseDutyCounts[i]?.O || 0}
+                                </td>
+                              </SortableRow>
+                            ))}
+                          </tbody>
+                          {/* 통계 행들을 같은 테이블에 직접 추가 */}
+                          <tbody>
+                            {['DAY', 'EVENING', 'NIGHT', 'OFF', 'TOTAL'].map(
+                              (text, i) => (
+                                <tr
+                                  key={`empty-${i}`}
+                                  className="text-[10px] h-6 border-b border-gray-200"
+                                >
+                                  <td className="p-0 border-r border-gray-200 w-6"></td>
+                                  <td
+                                    colSpan={2}
+                                    className={`p-0 font-bold text-[11px] border-r border-gray-200 ${
+                                      i === 0
+                                        ? 'text-[#318F3D]'
+                                        : i === 1
+                                          ? 'text-[#E55656]'
+                                          : i === 2
+                                            ? 'text-[#532FC8]'
+                                            : i === 3
+                                              ? 'text-[#726F5A]'
+                                              : 'text-black'
+                                    }`}
+                                  >
+                                    <div className="flex items-center justify-center">
+                                      <span translate="no">{text}</span>
                                     </div>
-                                  </div>
-                                </td>
-                              )}
-                            </tr>
-                          )
-                        )}
-                      </tbody>
-                    </table>
+                                  </td>
+                                  {/* 날짜별 통계 추가 */}
+                                  {Array.from(
+                                    { length: daysInMonth },
+                                    (_, j) => (
+                                      <td
+                                        key={j}
+                                        className={`p-0 text-center text-[11px] border-r border-gray-200 ${
+                                          selectedCell?.col === j
+                                            ? i === 4
+                                              ? 'bg-duty-off-bg rounded-b-lg'
+                                              : 'bg-duty-off-bg'
+                                            : ''
+                                        }`}
+                                      >
+                                        <div className="flex items-center justify-center h-6">
+                                          {i === 0 && (
+                                            <span
+                                              className={getCountColor(
+                                                dutyCounts[j].D,
+                                                j + 1,
+                                                'D'
+                                              )}
+                                            >
+                                              {dutyCounts[j].D}
+                                            </span>
+                                          )}
+                                          {i === 1 && (
+                                            <span
+                                              className={getCountColor(
+                                                dutyCounts[j].E,
+                                                j + 1,
+                                                'E'
+                                              )}
+                                            >
+                                              {dutyCounts[j].E}
+                                            </span>
+                                          )}
+                                          {i === 2 && (
+                                            <span
+                                              className={getCountColor(
+                                                dutyCounts[j].N,
+                                                j + 1,
+                                                'N'
+                                              )}
+                                            >
+                                              {dutyCounts[j].N}
+                                            </span>
+                                          )}
+                                          {i === 3 && dutyCounts[j].O}
+                                          {i === 4 && dutyCounts[j].total}
+                                        </div>
+                                      </td>
+                                    )
+                                  )}
+                                  {/* 각 행의 마지막 4개 열을 차지하는 셀 */}
+                                  {i === 0 && (
+                                    <td
+                                      rowSpan={5}
+                                      colSpan={4}
+                                      className="p-0 border-r border-gray-200"
+                                    >
+                                      <div className="flex justify-center items-center h-full">
+                                        <div className="scale-[0.85]">
+                                          <ProgressChecker
+                                            value={progress}
+                                            size={80}
+                                            strokeWidth={4}
+                                            showLabel={true}
+                                          />
+                                        </div>
+                                      </div>
+                                    </td>
+                                  )}
+                                </tr>
+                              )
+                            )}
+                          </tbody>
+                        </table>
+                      </SortableContext>
+                    </DndContext>
                   </div>
                 </div>
               </div>

@@ -112,6 +112,12 @@ export interface AutoCreateResponse {
 
 export type SubscriptionPlan = 'monthly' | 'quarterly' | 'yearly';
 
+// 간호사 순서 업데이트 인터페이스 추가
+export interface NurseOrderUpdate {
+  memberId: number;
+  order: number;
+}
+
 // API 서비스
 export const dutyService = {
   /**
@@ -450,6 +456,25 @@ export const dutyService = {
       const response = await axiosInstance.put('/duty/color', colors);
       return response.data;
     } catch (error) {
+      if (axios.isAxiosError(error)) {
+        throw error.response?.data;
+      }
+      throw error;
+    }
+  },
+
+  /**
+   * 간호사 표시 순서 업데이트
+   * @param nurseOrders - 업데이트할 간호사 순서 배열
+   */
+  updateNurseOrder: async (nurseOrders: NurseOrderUpdate[]) => {
+    try {
+      const response = await axiosInstance.put('/duty/nurse-order', {
+        nurseOrders,
+      });
+      return response.data;
+    } catch (error) {
+      console.error('간호사 순서 업데이트 실패:', error);
       if (axios.isAxiosError(error)) {
         throw error.response?.data;
       }
