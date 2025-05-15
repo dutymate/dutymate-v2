@@ -36,6 +36,7 @@ const GroupDetailPage = () => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [groupMembers, setGroupMembers] = useState<ShiftMember[]>([]);
   const [inviteLink, setInviteLink] = useState<string>('');
+  const [originalShifts, setOriginalShifts] = useState<any[]>([]);
 
   // fetchGroupData 함수를 useCallback으로 래핑하여 의존성 관리
   const fetchGroupData = useCallback(async () => {
@@ -48,22 +49,24 @@ const GroupDetailPage = () => {
       const year = currentMonth.getFullYear();
       const month = currentMonth.getMonth() + 1;
 
-      // 정렬 기준 전달 (이름순/근무순)
-      const orderBy = sortByName ? 'name' : 'duty';
-
+      // 서버에서는 항상 이름순으로 데이터 요청 (정렬은 클라이언트에서 처리)
       const response = await groupService.getGroup(
         Number(groupId),
         year,
         month,
-        orderBy
+        'name'
       );
 
-      // 그룹 설정
+      // 원본 데이터 저장
       setGroup(response);
 
-      // 백엔드에서 받은 멤버 리스트의 순서 그대로 사용
+      // 원본 shifts 데이터 저장
       if (response.shifts && response.shifts.length > 0) {
-        // 배열 순서 그대로 가져오기
+        setOriginalShifts(JSON.parse(JSON.stringify(response.shifts)));
+      }
+
+      // 백엔드에서 받은 멤버 리스트 처리
+      if (response.shifts && response.shifts.length > 0) {
         const members = response.shifts[0].memberList.map((member) => ({
           memberId: member.memberId,
           name: member.name,
@@ -79,7 +82,48 @@ const GroupDetailPage = () => {
     } finally {
       setLoading(false);
     }
-  }, [groupId, currentMonth, sortByName, navigate]);
+  }, [groupId, currentMonth.getFullYear(), currentMonth.getMonth(), navigate]);
+
+  // 정렬 함수 - 클라이언트에서 처리
+  const sortShifts = useCallback(() => {
+    if (!group || !originalShifts.length) return;
+
+    // 원본 데이터의 복사본 생성
+    const sortedShifts = JSON.parse(JSON.stringify(originalShifts));
+
+    // 각 날짜별로 멤버 리스트를 정렬
+    sortedShifts.forEach((shift: any) => {
+      if (sortByName) {
+        // 이름순 정렬
+        shift.memberList.sort((a: any, b: any) => a.name.localeCompare(b.name));
+      } else {
+        // 근무순 정렬 (D, E, N, O, M, - 순서)
+        const dutyOrder = { D: 0, E: 1, N: 2, O: 3, M: 4, '-': 5 };
+        shift.memberList.sort((a: any, b: any) => {
+          const dutyA = a.duty || '-';
+          const dutyB = b.duty || '-';
+          const orderA = dutyOrder.hasOwnProperty(dutyA)
+            ? dutyOrder[dutyA as keyof typeof dutyOrder]
+            : 99;
+          const orderB = dutyOrder.hasOwnProperty(dutyB)
+            ? dutyOrder[dutyB as keyof typeof dutyOrder]
+            : 99;
+          return orderA - orderB;
+        });
+      }
+    });
+
+    // 정렬된 데이터로 그룹 업데이트
+    setGroup((prevGroup) => {
+      if (!prevGroup) return null;
+      return { ...prevGroup, shifts: sortedShifts };
+    });
+  }, [originalShifts, sortByName]);
+
+  // 정렬 기준이 변경될 때마다 정렬 함수 실행
+  useEffect(() => {
+    sortShifts();
+  }, [sortByName, sortShifts]);
 
   // 초기 로딩 및 파라미터 변경 시 데이터 가져오기
   useEffect(() => {
@@ -110,15 +154,12 @@ const GroupDetailPage = () => {
   }
   if (!group) return <div className="p-4">그룹을 찾을 수 없습니다.</div>;
 
-  // 월 변경 핸들러 수정 - 정렬 기준 초기화 추가
+  // 월 변경 핸들러 수정
   const handlePrevMonth = () => {
     // 이전 달로 변경
     setCurrentMonth(
       new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1)
     );
-    // 정렬 기준 이름순으로 초기화
-    setSortByName(true);
-    // useEffect에서 currentMonth, sortByName 변경 감지하여 fetchGroupData 호출
   };
 
   const handleNextMonth = () => {
@@ -126,15 +167,11 @@ const GroupDetailPage = () => {
     setCurrentMonth(
       new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1)
     );
-    // 정렬 기준 이름순으로 초기화
-    setSortByName(true);
-    // useEffect에서 currentMonth, sortByName 변경 감지하여 fetchGroupData 호출
   };
 
   // 정렬 변경 핸들러
   const handleSortToggle = (byName: boolean) => {
     setSortByName(byName);
-    // useEffect에서 sortByName 변경 감지하여 fetchGroupData 호출
   };
 
   // 듀티 데이터를 기반으로 캘린더 데이터 생성
@@ -443,29 +480,29 @@ const GroupDetailPage = () => {
             </div>
 
             {/* 캘린더 표 */}
-            <div className="overflow-x-auto">
-              <table className="min-w-full border-collapse">
+            <div className="overflow-x-auto w-full">
+              <table className="w-full border-collapse table-fixed">
                 <thead>
                   <tr>
-                    <th className="text-xs md:text-base text-red-500 font-normal w-1/7 text-center p-1">
+                    <th className="text-[0.65rem] md:text-xs lg:text-base text-red-500 font-normal w-1/7 text-center p-0.5">
                       SUN
                     </th>
-                    <th className="text-xs md:text-base text-gray-700 font-normal w-1/7 text-center p-1">
+                    <th className="text-[0.65rem] md:text-xs lg:text-base text-gray-700 font-normal w-1/7 text-center p-0.5">
                       MON
                     </th>
-                    <th className="text-xs md:text-base text-gray-700 font-normal w-1/7 text-center p-1">
+                    <th className="text-[0.65rem] md:text-xs lg:text-base text-gray-700 font-normal w-1/7 text-center p-0.5">
                       TUE
                     </th>
-                    <th className="text-xs md:text-base text-gray-700 font-normal w-1/7 text-center p-1">
+                    <th className="text-[0.65rem] md:text-xs lg:text-base text-gray-700 font-normal w-1/7 text-center p-0.5">
                       WED
                     </th>
-                    <th className="text-xs md:text-base text-gray-700 font-normal w-1/7 text-center p-1">
+                    <th className="text-[0.65rem] md:text-xs lg:text-base text-gray-700 font-normal w-1/7 text-center p-0.5">
                       THU
                     </th>
-                    <th className="text-xs md:text-base text-gray-700 font-normal w-1/7 text-center p-1">
+                    <th className="text-[0.65rem] md:text-xs lg:text-base text-gray-700 font-normal w-1/7 text-center p-0.5">
                       FRI
                     </th>
-                    <th className="text-xs md:text-base text-purple-500 font-normal w-1/7 text-center p-1">
+                    <th className="text-[0.65rem] md:text-xs lg:text-base text-purple-500 font-normal w-1/7 text-center p-0.5">
                       SAT
                     </th>
                   </tr>
@@ -476,7 +513,7 @@ const GroupDetailPage = () => {
                       {week.map((day, dayIndex) => (
                         <td
                           key={`date-${weekIndex}-${dayIndex}`}
-                          className={`align-top text-xs p-1 text-center border border-gray-100 ${
+                          className={`align-top text-[0.65rem] md:text-xs border border-gray-100 ${
                             day.isPrevMonth || day.isNextMonth
                               ? 'text-gray-400 bg-gray-50'
                               : dayIndex === 0
@@ -485,32 +522,47 @@ const GroupDetailPage = () => {
                                   ? 'text-purple-500'
                                   : 'text-gray-700'
                           } ${
-                            isMobile ? 'min-w-[70px] p-1' : 'min-w-[90px] p-2'
+                            isMobile
+                              ? 'min-w-[3.75rem] min-h-[5rem] p-0.5'
+                              : 'min-w-[5.625rem] p-2'
                           }`}
                           style={{ verticalAlign: 'top' }}
                         >
-                          <div className="font-bold mb-1 text-xs text-gray-400">
+                          <div className="font-medium text-[0.65rem] md:text-xs text-gray-400">
                             {day.date}
                           </div>
-                          <div className="flex flex-col gap-0.5 items-start">
+                          <div className="flex flex-col gap-0 md:gap-0.5 items-start">
                             {day.duties.map((dutyInfo, index) => (
                               <div
                                 key={`${day.date}-${
                                   dutyInfo.member.memberId || index
                                 }`}
-                                className="flex items-center justify-between w-full px-1"
+                                className="flex items-center justify-between w-full"
                               >
-                                <span
-                                  className={`text-xs md:text-sm font-semibold ${
-                                    day.isPrevMonth || day.isNextMonth
-                                      ? 'text-gray-300'
-                                      : 'text-gray-600'
-                                  } ${
-                                    isMobile ? 'truncate max-w-[48px]' : ''
-                                  } text-left`}
-                                >
-                                  {dutyInfo.member.name}
-                                </span>
+                                {isMobile ? (
+                                  <span
+                                    className={`text-[0.55rem] font-medium ${
+                                      day.isPrevMonth || day.isNextMonth
+                                        ? 'text-gray-300'
+                                        : 'text-gray-600'
+                                    } truncate w-[1.625rem] text-left`}
+                                    title={dutyInfo.member.name}
+                                  >
+                                    {dutyInfo.member.name.length > 3
+                                      ? `${dutyInfo.member.name.substring(0, 3)}`
+                                      : dutyInfo.member.name}
+                                  </span>
+                                ) : (
+                                  <span
+                                    className={`text-xs font-medium ${
+                                      day.isPrevMonth || day.isNextMonth
+                                        ? 'text-gray-300'
+                                        : 'text-gray-600'
+                                    } text-left`}
+                                  >
+                                    {dutyInfo.member.name}
+                                  </span>
+                                )}
                                 <div
                                   className={`flex-shrink-0 ${
                                     dutyInfo.duty ? '' : 'invisible'
@@ -518,7 +570,7 @@ const GroupDetailPage = () => {
                                     day.isPrevMonth || day.isNextMonth
                                       ? 'opacity-40'
                                       : ''
-                                  }`}
+                                  } ${isMobile ? 'scale-75 origin-right' : ''}`}
                                 >
                                   <DutyBadgeEng
                                     type={dutyInfo.duty as DutyType}
