@@ -7,20 +7,21 @@ import lombok.Getter;
 @Getter
 public enum MeetingMessageType {
 
-	ALL_OFF("모두 OFF 입니다! 하루 종일 약속이 가능해요!"),
-	OFF_AND_DAY_OR_MID("낮 근무자가 있어요. 저녁 약속이 좋아요!"),
-	OFF_AND_EVENING("저녁 근무자가 있어요. 점심 약속이 좋아요!"),
-	OFF_AND_NIGHT("저녁 약속은 가능하지만 점심은 피해주세요!"),
-	OFF_DAY_AND_NIGHT("저녁 약속이 가장 무난해요!"),
-	DAY_AND_EVENING("낮과 저녁 근무자가 겹쳐 약속이 어려워요!"),
-	NIGHT_AND_EVENING("점심 약속이 가장 무난해요!"),
-	MIXED_OR_COMPLEX("근무가 다양하게 섞여 있어 약속 잡기 어려울 수 있어요!"),
-	UNKNOWN("일부 근무 정보가 없어요. 정확한 추천이 어려워요!");
+	ALL_OFF(TimeSlotStatus.BEST, TimeSlotStatus.BEST),
+	OFF_AND_DAY_OR_MID(TimeSlotStatus.HARD, TimeSlotStatus.BEST),
+	OFF_AND_EVENING(TimeSlotStatus.OKAY, TimeSlotStatus.HARD),
+	OFF_AND_NIGHT(TimeSlotStatus.OKAY, TimeSlotStatus.OKAY),
+	OFF_DAY_AND_NIGHT(TimeSlotStatus.HARD, TimeSlotStatus.OKAY),
+	DAY_AND_EVENING(TimeSlotStatus.HARD, TimeSlotStatus.HARD),
+	NIGHT_AND_EVENING(TimeSlotStatus.OKAY, TimeSlotStatus.HARD),
+	MIXED_OR_COMPLEX(TimeSlotStatus.HARD, TimeSlotStatus.HARD);
 
-	private final String message;
+	private final TimeSlotStatus lunch;
+	private final TimeSlotStatus dinner;
 
-	MeetingMessageType(String message) {
-		this.message = message;
+	MeetingMessageType(TimeSlotStatus lunch, TimeSlotStatus dinner) {
+		this.lunch = lunch;
+		this.dinner = dinner;
 	}
 
 	public static MeetingMessageType resolve(List<String> duties) {
@@ -29,13 +30,8 @@ public enum MeetingMessageType {
 		boolean hasM = duties.contains("M");
 		boolean hasE = duties.contains("E");
 		boolean hasN = duties.contains("N");
-		boolean hasX = duties.contains("X");
 
 		boolean hasDayOrMid = hasD || hasM;
-
-		if (hasX) {
-			return MeetingMessageType.UNKNOWN;
-		}
 
 		if (hasO && !hasD && !hasM && !hasE && !hasN) {
 			return MeetingMessageType.ALL_OFF;
@@ -66,5 +62,9 @@ public enum MeetingMessageType {
 		}
 
 		return MeetingMessageType.MIXED_OR_COMPLEX;
+	}
+
+	public String getMessage() {
+		return "점심: " + lunch.getLabel() + " / 저녁: " + dinner.getLabel();
 	}
 }
