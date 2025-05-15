@@ -9,7 +9,8 @@ interface StyledTextInputProps extends TextInputProps {
 
 /**
  * StyledTextInput 컴포넌트는 TextInput 컴포넌트를 래핑하여 Pretendard 폰트를 사용합니다.
- * @param props
+ * @param className
+ * @param rest
  */
 export const StyledTextInput = ({
 	className,

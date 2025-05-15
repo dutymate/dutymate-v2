@@ -15,7 +15,7 @@ interface LoginFormProps {
 }
 
 /**
- * LoginForm은 로그인 폼 컴포넌트입니다.
+ * LoginForm 컴포넌트는 로그인 폼을 렌더링합니다.
  * @param navigation
  */
 export const LoginForm = ({ navigation }: LoginFormProps) => {

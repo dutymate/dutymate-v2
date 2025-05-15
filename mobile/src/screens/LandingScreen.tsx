@@ -8,7 +8,7 @@ import { Layout } from "@/layout/Layout";
 import { LogoTemplate } from "@/templates/LogoTemplate";
 
 /**
- * LandingScreen의 props 타입을 정의합니다.
+ * LandingScreenProps는 LandingScreen의 props 타입을 정의합니다.
  * navigation은 React Navigation의 navigation 객체입니다.
  */
 interface LandingScreenProps {

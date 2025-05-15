@@ -8,8 +8,7 @@ const logoWidth = screenWidth * 0.6;
 const logoHeight = logoWidth * 0.5;
 
 /**
- * LogoTemplate의 props 타입을 정의합니다.
- * children은 ReactNode 타입입니다.
+ * LogoTemplateProps는 LogoTemplate 템플릿의 props 타입을 정의합니다.
  */
 interface LogoTemplateProps {
 	children: React.ReactNode;

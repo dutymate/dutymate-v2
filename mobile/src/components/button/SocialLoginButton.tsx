@@ -7,7 +7,7 @@ import GoogleLogo from "assets/images/google-logo.png";
 import KakaoLogo from "assets/images/kakao-logo.png";
 
 /**
- * SocialLoginButton 컴포넌트의 props 타입을 정의합니다.
+ * SocialLoginButtonProps는 SocialLoginButton 컴포넌트의 props 타입을 정의합니다.
  */
 interface SocialLoginButtonProps {
 	social: "kakao" | "google";

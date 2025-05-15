@@ -3,7 +3,6 @@ import { Text, TextProps } from "react-native";
 
 /**
  * StyledTextProps는 StyledText 컴포넌트의 props 타입을 정의합니다.
- * TextProps를 상속받아 Text 컴포넌트의 모든 props를 사용할 수 있습니다.
  */
 interface StyledTextProps extends TextProps {
 	children: React.ReactNode;

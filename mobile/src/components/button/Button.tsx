@@ -56,7 +56,6 @@ const widthStyles: Record<ButtonWidth, Record<ButtonSize, string>> = {
 		xl: "w-full",
 		register: "w-[7rem]",
 	},
-
 	fit: {
 		xs: "w-fit",
 		sm: "w-full sm:w-fit",
@@ -65,7 +64,6 @@ const widthStyles: Record<ButtonWidth, Record<ButtonSize, string>> = {
 		xl: "w-full",
 		register: "w-fit",
 	},
-
 	full: {
 		xs: "w-full",
 		sm: "w-full",

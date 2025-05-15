@@ -5,10 +5,18 @@ import { StyledText } from "@/components/custom/StyledText";
 import { Layout } from "@/layout/Layout";
 import { Button } from "@/components/button/Button";
 
+/**
+ * ErrorScreenProps는 ErrorScreen 컴포넌트의 props 타입을 정의합니다.
+ * navigation은 React Navigation의 navigation 객체입니다.
+ */
 interface ErrorScreenProps {
 	navigation: any;
 }
 
+/**
+ * ErrorScreen은 오류 화면을 렌더링합니다.
+ * @param navigation
+ */
 export const ErrorScreen = ({ navigation }: ErrorScreenProps) => {
 	return (
 		<Layout isWaveBackground={false}>
