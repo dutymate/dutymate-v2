@@ -46,7 +46,7 @@ export const LandingScreen = ({ navigation }: LandingScreenProps) => {
 
 	return (
 		<Layout>
-			<LogoTemplate>
+			<LogoTemplate navigation={navigation}>
 				<View className={"mb-[1.5rem]"}>
 					<StyledText className={"text-center"} style={styles.h1}>
 						"듀티표의 마침표, 듀티메이트."

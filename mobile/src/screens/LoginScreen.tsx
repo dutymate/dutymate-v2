@@ -18,7 +18,7 @@ interface LoginScreenProps {
 export const LoginScreen = ({ navigation }: LoginScreenProps) => {
 	return (
 		<Layout>
-			<LogoTemplate>
+			<LogoTemplate navigation={navigation}>
 				<Card>
 					<LoginForm navigation={navigation} />
 				</Card>
