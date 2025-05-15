@@ -60,7 +60,7 @@ export const LoginForm = ({ navigation }: LoginFormProps) => {
 						<View className={"flex-grow h-[0.0625rem] bg-gray-200"}></View>
 						<StyledText
 							className={
-								"px-[0.75rem] text-[1rem] sm:text-[0.875rem] text-gray-500"
+								"px-[0.75rem] text-lg sm:text-[0.875rem] text-gray-500"
 							}
 						>
 							또는
@@ -75,7 +75,7 @@ export const LoginForm = ({ navigation }: LoginFormProps) => {
 				<View className={"mt-[1.125rem] gap-y-[0.625rem]"}>
 					<View>
 						{/*TODO: 회원가입 페이지로 이동*/}
-						<StyledText className={"text-center text-gray-600"}>
+						<StyledText className={"text-center text-lg text-gray-600"}>
 							계정이 없으신가요?{" "}
 							<StyledText
 								className={"text-primary-dark hover:underline"}
@@ -87,7 +87,7 @@ export const LoginForm = ({ navigation }: LoginFormProps) => {
 					</View>
 					<View>
 						{/*TODO: 비밀번호 찾기 페이지로 이동*/}
-						<StyledText className={"text-center text-gray-600"}>
+						<StyledText className={"text-center text-lg text-gray-600"}>
 							비밀번호를 잊으셨나요?{" "}
 							<StyledText
 								className={"text-primary-dark hover:underline"}
