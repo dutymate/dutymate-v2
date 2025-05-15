@@ -76,7 +76,7 @@ export const LandingScreen = ({ navigation }: LandingScreenProps) => {
 				</Button>
 				<View className={"w-full max-w-[23.2rem] mt-4 pt-4"}>
 					<StyledText
-						className={"text-center text-[1.125rem] text-gray-600 mb-[0.5rem]"}
+						className={"text-center text-lg text-gray-600 mb-[0.5rem]"}
 					>
 						사용법이 궁금하다면?{" "}
 						<StyledText
