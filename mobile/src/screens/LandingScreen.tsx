@@ -66,7 +66,7 @@ export const LandingScreen = ({ navigation }: LandingScreenProps) => {
 					color="tertiary"
 					size="lg"
 					width="long"
-					onPress={() => navigation.navigate("WebView")}
+					onPress={() => navigation.navigate("Login")}
 					className="h-[3.5rem] sm:h-[3rem] bg-primary hover:bg-primary-dark text-white w-full max-w-[23.2rem] mt-1 mb-1.5"
 					style={styles.shadowMd}
 				>
