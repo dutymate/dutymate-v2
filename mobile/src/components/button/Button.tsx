@@ -186,3 +186,44 @@ export const Button = React.forwardRef<View, ButtonProps>(
 		);
 	},
 );
+
+/**
+ * InputActionButtonProps는 InputActionButton 컴포넌트의 props 타입을 정의합니다.
+ */
+interface InputActionButtonProps {
+	children?: React.ReactNode;
+	inputType: "email" | "code";
+	disabled?: boolean;
+	onPress?: () => void;
+}
+
+/**
+ * InputActionButton 컴포넌트는 입력 필드에 대한 액션 버튼을 렌더링합니다.
+ * 입력 필드의 rightElement에 사용됩니다.
+ * @param children
+ * @param inputType
+ * @param disabled
+ * @param onPress
+ */
+export const InputActionButton = ({
+	children,
+	inputType,
+	disabled,
+	onPress,
+}: InputActionButtonProps) => {
+	const baseClassName = "py-1 rounded";
+	const className =
+		inputType === "email"
+			? `${baseClassName} bg-primary-20 px-3`
+			: `${baseClassName} bg-gray-300 px-2`;
+
+	return (
+		<TouchableOpacity
+			className={className}
+			disabled={disabled}
+			onPress={onPress}
+		>
+			{children}
+		</TouchableOpacity>
+	);
+};
