@@ -62,6 +62,8 @@ export const WebViewScreen = ({ navigation }: WebViewScreenProps) => {
 					onNavigationStateChange={(navState) =>
 						setCanGoBack(navState.canGoBack)
 					}
+					onError={() => navigation.navigate("Error")}
+					onHttpError={() => navigation.navigate("Error")}
 					allowsBackForwardNavigationGestures
 				/>
 			</SafeAreaView>
