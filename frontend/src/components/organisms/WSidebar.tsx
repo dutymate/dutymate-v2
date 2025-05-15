@@ -6,7 +6,7 @@ import { BiSolidUserPin } from 'react-icons/bi';
 import { FaHospital, FaCoffee } from 'react-icons/fa';
 import { HiOutlineUsers } from 'react-icons/hi2';
 import { IoIosChatboxes } from 'react-icons/io';
-import { PiLightbulbFilamentFill } from 'react-icons/pi';
+// import { PiLightbulbFilamentFill } from 'react-icons/pi';
 import { SlCalender } from 'react-icons/sl';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
@@ -52,7 +52,7 @@ const headNurseNavigation: NavigationItem[] = [
   { name: '병동 듀티표', href: '/team-shift', icon: HiOutlineUsers },
   { name: '커뮤니티', href: '/community', icon: IoIosChatboxes },
   { name: '친구 찾기', href: '/group', icon: FaCoffee },
-  { name: '튜토리얼', href: '/tutorial', icon: PiLightbulbFilamentFill },
+  // { name: '튜토리얼', href: '/tutorial', icon: PiLightbulbFilamentFill },
 ];
 
 // 평간호사용 네비게이션
@@ -61,7 +61,7 @@ const staffNurseNavigation: NavigationItem[] = [
   { name: '병동 듀티표', href: '/team-shift', icon: HiOutlineUsers },
   { name: '커뮤니티', href: '/community', icon: IoIosChatboxes },
   { name: '친구 찾기', href: '/group', icon: FaCoffee },
-  { name: '튜토리얼', href: '/tutorial', icon: PiLightbulbFilamentFill },
+  // { name: '튜토리얼', href: '/tutorial', icon: PiLightbulbFilamentFill },
 ];
 
 const NavigationItem = React.memo(
@@ -70,10 +70,10 @@ const NavigationItem = React.memo(
     const handleClick = (
       e: React.MouseEvent<HTMLAnchorElement, MouseEvent>
     ) => {
-      if (item.name === '튜토리얼') {
-        e.preventDefault();
-        window.open(import.meta.env.VITE_TUTORIAL_URL, '_blank');
-      }
+      // if (item.name === '튜토리얼') {
+      //   e.preventDefault();
+      //   window.open(import.meta.env.VITE_TUTORIAL_URL, '_blank');
+      // }
 
       if (
         isDemo &&
