@@ -45,6 +45,8 @@ const GroupInvitePage = () => {
           setError('그룹 참여에 실패했습니다. 다시 시도해주세요.');
           toast.error('그룹 참여에 실패했습니다.');
         }
+        // 실패 시에도 inviteToken 제거
+        localStorage.removeItem('inviteToken');
       } finally {
         setLoading(false);
         useLoadingStore.setState({ isLoading: false });
