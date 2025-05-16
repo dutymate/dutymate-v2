@@ -22,7 +22,7 @@ export const CreateWardForm = ({ navigation }: CreateWardFormProps) => {
 				<View className={"mb-[0.5rem] gap-y-4"}>
 					<Input
 						label={"병원명"}
-						placeholder={"병동명을 입력해주세요."}
+						placeholder={"병원명을 입력해주세요."}
 						value={""}
 						onChangeText={() => {}}
 						keyboardType={"default"}
