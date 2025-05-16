@@ -18,12 +18,16 @@ interface RequestCheckModalProps {
   isOpen: boolean;
   onClose: () => void;
   onAutoGenerate: () => void;
+  year: number;
+  month: number;
 }
 
 const RequestCheckModal = ({
   isOpen,
   onClose,
   onAutoGenerate,
+  year,
+  month,
 }: RequestCheckModalProps) => {
   const [requests, setRequests] = useState<WardRequest[]>([]);
   const [allRequests, setAllRequests] = useState<WardRequest[]>([]);
@@ -67,7 +71,7 @@ const RequestCheckModal = ({
     const fetchRequests = async () => {
       try {
         setIsLoading(true);
-        const data = await requestService.getWardRequests();
+        const data = await requestService.getWardRequestsByDate(year, month);
         setAllRequests(data);
         // 대기 중인 요청만 필터링
         const pendingRequests = data.filter(
@@ -84,7 +88,7 @@ const RequestCheckModal = ({
     if (isOpen) {
       fetchRequests();
     }
-  }, [isOpen]);
+  }, [isOpen, year, month]);
 
   const handleClose = () => {
     // GTM 이벤트 트래킹
@@ -153,13 +157,13 @@ const RequestCheckModal = ({
       {/* Modal */}
       <div
         ref={modalRef}
-        className="bg-white rounded-xl shadow-lg w-[90vw] max-w-[800px] max-h-[90vh] overflow-hidden relative z-50"
+        className="bg-white rounded-xl shadow-lg w-[calc(100%-2rem)] max-w-[800px] max-h-[90vh] overflow-hidden relative z-50"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="flex rounded-t-xl justify-between bg-primary-bg items-center px-[1rem] py-[0.75rem] border-b">
           <h2 className="text-base font-medium text-primary-dark">
-            요청 확인 및 자동 생성
+            대기 중인 요청 확인
           </h2>
           <button
             onClick={handleClose}
@@ -178,7 +182,7 @@ const RequestCheckModal = ({
             </div>
           ) : (
             <>
-              <div className="flex items-center justify-center gap-[0.25rem] py-[0.5rem] px-[0.25rem] rounded text-md text-base-dark mb-[0rem]">
+              <div className="flex items-center justify-center gap-[0.25rem] py-[0.5rem] px-[0.25rem] rounded text-sm sm:text-base text-base-dark mb-[0rem]">
                 {requestCount > 0 ? (
                   <span>
                     대기 중인 요청이 있습니다. 요청을 처리한 후 자동 생성을
@@ -195,11 +199,19 @@ const RequestCheckModal = ({
                 )}
               </div>
 
-              {/* 항상 테이블 표시, 하지만 HOLD 상태인 요청만 필터링하여 보여줌 */}
-              <ReqAdminTable requests={requests} />
+              {/* 요청이 있을 때만 테이블 표시 */}
+              {requests.length > 0 && (
+                <div className="overflow-x-auto -mx-[1rem] px-[1rem]">
+                  <ReqAdminTable
+                    requests={requests}
+                    hideDeleteButton={true}
+                    hideMonthNavigation={true}
+                  />
+                </div>
+              )}
 
-              {/* 항상 버튼 표시 (requestCount에 따라 활성화/비활성화) */}
-              <div className="flex justify-end mt-[0rem] mb-[1rem]">
+              {/* 버튼 영역 */}
+              <div className="flex justify-end mt-[1rem]">
                 <Button
                   onClick={handleStartAutoGenerate}
                   size="md"

@@ -18,6 +18,8 @@ import { FaPlus, FaTrash } from 'react-icons/fa';
 interface ReqAdminTableProps {
   requests?: WardRequest[];
   onCreateRequest?: () => void;
+  hideDeleteButton?: boolean;
+  hideMonthNavigation?: boolean;
 }
 
 export interface ReqAdminTableRef {
@@ -25,7 +27,15 @@ export interface ReqAdminTableRef {
 }
 
 const ReqAdminTable = forwardRef<ReqAdminTableRef, ReqAdminTableProps>(
-  ({ requests: propRequests, onCreateRequest }, ref) => {
+  (
+    {
+      requests: propRequests,
+      onCreateRequest,
+      hideDeleteButton = false,
+      hideMonthNavigation = false,
+    },
+    ref
+  ) => {
     const [requests, setRequests] = useState<WardRequest[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [searchTerm] = useState('');
@@ -269,47 +279,51 @@ const ReqAdminTable = forwardRef<ReqAdminTableRef, ReqAdminTableProps>(
 
             {/* 중앙 - 연월 표시 */}
             <div className="col-start-2 flex items-center justify-center gap-2 md:gap-4">
-              <button
-                onClick={handlePrevMonth}
-                className="p-1.5 hover:bg-gray-100 rounded-full transition-colors"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-4 w-4 sm:h-5 sm:w-5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
+              {!hideMonthNavigation && (
+                <button
+                  onClick={handlePrevMonth}
+                  className="p-1.5 hover:bg-gray-100 rounded-full transition-colors"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 19l-7-7 7-7"
-                  />
-                </svg>
-              </button>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4 sm:h-5 sm:w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 19l-7-7 7-7"
+                    />
+                  </svg>
+                </button>
+              )}
               <div className="text-sm sm:text-base lg:text-lg font-medium whitespace-nowrap">
                 {selectedDate.year}년 {selectedDate.month}월
               </div>
-              <button
-                onClick={handleNextMonth}
-                className="p-1.5 hover:bg-gray-100 rounded-full transition-colors"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-4 w-4 sm:h-5 sm:w-5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
+              {!hideMonthNavigation && (
+                <button
+                  onClick={handleNextMonth}
+                  className="p-1.5 hover:bg-gray-100 rounded-full transition-colors"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 5l7 7-7 7"
-                  />
-                </svg>
-              </button>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4 sm:h-5 sm:w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5l7 7-7 7"
+                    />
+                  </svg>
+                </button>
+              )}
             </div>
 
             {/* 오른쪽 - 요청생성 버튼 */}
@@ -383,13 +397,15 @@ const ReqAdminTable = forwardRef<ReqAdminTableRef, ReqAdminTableProps>(
                       </span>
                     </div>
                   </th>
-                  <th className="bg-base-muted-30 rounded-r-xl w-[2rem] lg:w-[2.5rem] p-[0.25rem]">
-                    <div className="flex justify-center">
-                      <span className="text-[0.75rem] lg:text-[0.875rem] text-gray-600 font-medium">
-                        삭제
-                      </span>
-                    </div>
-                  </th>
+                  {!hideDeleteButton && (
+                    <th className="bg-base-muted-30 rounded-r-xl w-[2rem] lg:w-[2.5rem] p-[0.25rem]">
+                      <div className="flex justify-center">
+                        <span className="text-[0.75rem] lg:text-[0.875rem] text-gray-600 font-medium">
+                          삭제
+                        </span>
+                      </div>
+                    </th>
+                  )}
                 </tr>
               </thead>
 
@@ -397,7 +413,17 @@ const ReqAdminTable = forwardRef<ReqAdminTableRef, ReqAdminTableProps>(
               <tbody>
                 {currentRequests.length === 0 ? (
                   <tr>
-                    <td colSpan={isMobile ? 5 : 6}>
+                    <td
+                      colSpan={
+                        isMobile
+                          ? hideDeleteButton
+                            ? 4
+                            : 5
+                          : hideDeleteButton
+                            ? 5
+                            : 6
+                      }
+                    >
                       <div className="flex items-center justify-center h-[25rem] text-gray-500">
                         요청 내역이 없습니다.
                       </div>
@@ -518,16 +544,18 @@ const ReqAdminTable = forwardRef<ReqAdminTableRef, ReqAdminTableProps>(
                           </div>
                         </div>
                       </td>
-                      <td className="w-[4rem] lg:w-[5rem] p-[0.25rem]">
-                        <div className="flex justify-center items-center h-full">
-                          <button
-                            onClick={() => handleDelete(request.requestId)}
-                            className="p-2 text-gray-400 hover:text-red-500 transition-colors"
-                          >
-                            <FaTrash className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </td>
+                      {!hideDeleteButton && (
+                        <td className="w-[4rem] lg:w-[5rem] p-[0.25rem]">
+                          <div className="flex justify-center items-center h-full">
+                            <button
+                              onClick={() => handleDelete(request.requestId)}
+                              className="p-2 text-gray-400 hover:text-red-500 transition-colors"
+                            >
+                              <FaTrash className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </td>
+                      )}
                     </tr>
                   ))
                 )}

@@ -17,8 +17,6 @@ import { useRequestCountStore } from '@/stores/requestCountStore';
 
 const DutyManagement = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [wardRequests, setWardRequests] = useState<WardRequest[]>([]);
-
   const { userInfo } = useUserAuthStore();
 
   const { dutyInfo, loading, error, fetchDutyInfo } = useShiftStore();
@@ -68,12 +66,21 @@ const DutyManagement = () => {
       urlMonth ? parseInt(urlMonth) : undefined
     );
 
-    // 요청 데이터 가져오기
+    // 현재 월의 요청 데이터 가져오기
     const fetchRequests = async () => {
       if (userInfo?.role === 'HN') {
         try {
-          const requests = await requestService.getWardRequests();
-          setWardRequests(requests);
+          const currentYear = urlYear
+            ? parseInt(urlYear)
+            : new Date().getFullYear();
+          const currentMonth = urlMonth
+            ? parseInt(urlMonth)
+            : new Date().getMonth() + 1;
+
+          const requests = await requestService.getWardRequestsByDate(
+            currentYear,
+            currentMonth
+          );
           // HOLD 상태의 요청만 카운트
           const pendingCount = requests.filter(
             (request: WardRequest) => request.status === 'HOLD'
@@ -154,7 +161,6 @@ const DutyManagement = () => {
               month={dutyInfo.month}
               onUpdate={fetchDutyInfo}
               issues={dutyInfo.issues}
-              wardRequests={wardRequests}
             />
             <div className="flex flex-col xl:flex-row gap-[1rem] w-full">
               <RuleCheckList />

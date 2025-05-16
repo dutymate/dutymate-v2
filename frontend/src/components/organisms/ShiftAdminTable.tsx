@@ -46,7 +46,7 @@ import {
   SubscriptionPlan,
   UnreflectedRequest,
 } from '@/services/dutyService';
-import { WardRequest } from '@/services/requestService';
+import { requestService, WardRequest } from '@/services/requestService';
 import { ruleService, WardRule } from '@/services/ruleService.ts';
 
 import useShiftStore from '@/stores/shiftStore';
@@ -95,7 +95,6 @@ interface ShiftAdminTableProps {
     endDateShift: string;
     message: string;
   }[];
-  wardRequests: WardRequest[]; // 상위 컴포넌트에서 받아온 근무 요청 데이터
 }
 
 // 근무 타입 정의 (D: 데이, E: 이브닝, N: 나이트, O: 오프, X: 미지정, ALL: 전체)
@@ -422,7 +421,6 @@ const ShiftAdminTable = memo(
     month,
     onUpdate,
     issues = [],
-    wardRequests = [],
   }: ShiftAdminTableProps) => {
     const [isRuleModalOpen, setIsRuleModalOpen] = useState(false);
     const [isAutoGenerateModalOpen, setIsAutoGenerateModalOpen] =
@@ -434,8 +432,27 @@ const ShiftAdminTable = memo(
     const [isFromAutoGenerate, setIsFromAutoGenerate] = useState(false);
     const [isRequestCheckModalOpen, setIsRequestCheckModalOpen] =
       useState(false);
+    const [wardRequests, setWardRequests] = useState<WardRequest[]>([]);
     const requestCount = useRequestCountStore((state) => state.count);
     const { userInfo } = useUserAuthStore(); // 로그인한 사용자 정보 가져오기
+
+    // Add wardRequests fetch effect
+    useEffect(() => {
+      const fetchWardRequests = async () => {
+        try {
+          const requests = await requestService.getWardRequestsByDate(
+            year,
+            month
+          );
+          setWardRequests(requests);
+        } catch (error) {
+          console.error('Failed to fetch ward requests:', error);
+          toast.error('근무 요청 내역을 불러오는데 실패했습니다.');
+        }
+      };
+
+      fetchWardRequests();
+    }, [year, month]);
 
     // 드래그 앤 드롭 상태 및 함수
     const [sortedDutyData, setSortedDutyData] = useState([...dutyData]);
@@ -1382,8 +1399,12 @@ const ShiftAdminTable = memo(
     ) => {
       if (!wardRules) return '';
 
-      const isWeekendDate = isSaturdayDay(day) || isSundayDay(day);
-      const targetCount = isWeekendDate
+      // 주말 또는 공휴일인지 확인
+      const isWeekendOrHoliday =
+        isSaturdayDay(day) || isSundayDay(day) || isHoliday(year, month, day);
+
+      // 주말/공휴일 또는 평일에 따라 다른 목표 인원수 적용
+      const targetCount = isWeekendOrHoliday
         ? {
             D: wardRules.wendDCnt,
             E: wardRules.wendECnt,
@@ -1396,6 +1417,7 @@ const ShiftAdminTable = memo(
           }[shiftType];
 
       if (count === targetCount) return 'text-green-600 font-medium';
+      if (count > targetCount) return 'text-blue-600 font-medium';
       return 'text-red-600 font-medium';
     };
 
@@ -2171,6 +2193,8 @@ const ShiftAdminTable = memo(
           isOpen={isRequestCheckModalOpen}
           onClose={handleRequestCheckModalClose}
           onAutoGenerate={handleRequestCheckModalConfirm}
+          year={year}
+          month={month}
         />
 
         {/* Add the UnreflectedRequestsModal */}
