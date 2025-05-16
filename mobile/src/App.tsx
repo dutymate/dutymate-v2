@@ -18,7 +18,7 @@ import { LandingScreen } from "@/screens/LandingScreen";
 import { LoginScreen } from "@/screens/LoginScreen";
 import { PasswordResetScreen } from "@/screens/PasswordResetScreen";
 import { WebViewScreen } from "@/screens/WebViewScreen";
-import { TestScreen } from "./screens/TestScreen";
+import { ExtraInfoScreen } from "./screens/ExtraInfoScreen";
 
 configureReanimatedLogger({
 	level: ReanimatedLogLevel.warn,
@@ -63,7 +63,7 @@ export default function App() {
 			<StatusBar style="auto" />
 			<NavigationContainer ref={navigationRef}>
 				<Stack.Navigator
-					initialRouteName={"Test"}
+					initialRouteName={"ExtraInfo"}
 					screenOptions={{ headerShown: false }}
 				>
 					<Stack.Screen name={"Error"} component={ErrorScreen} />
@@ -74,7 +74,7 @@ export default function App() {
 						component={PasswordResetScreen}
 					/>
 					<Stack.Screen name={"WebView"} component={WebViewScreen} />
-					<Stack.Screen name={"Test"} component={TestScreen} />
+					<Stack.Screen name={"ExtraInfo"} component={ExtraInfoScreen} />
 				</Stack.Navigator>
 			</NavigationContainer>
 		</>
