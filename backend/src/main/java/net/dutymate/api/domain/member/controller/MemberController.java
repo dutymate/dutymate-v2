@@ -52,7 +52,13 @@ public class MemberController {
 
 	@PostMapping
 	public ResponseEntity<?> signUp(@Valid @RequestBody SignUpRequestDto signUpRequestDto) {
-		LoginResponseDto loginResponseDto = memberService.signUp(signUpRequestDto);
+		LoginResponseDto loginResponseDto = memberService.signUp(signUpRequestDto, false);
+		return ResponseEntity.ok(loginResponseDto);
+	}
+
+	@PostMapping("/mobile")
+	public ResponseEntity<?> signUpMobile(@Valid @RequestBody SignUpRequestDto signUpRequestDto) {
+		LoginResponseDto loginResponseDto = memberService.signUp(signUpRequestDto, true);
 		return ResponseEntity.ok(loginResponseDto);
 	}
 
@@ -64,19 +70,37 @@ public class MemberController {
 
 	@PostMapping("/login")
 	public ResponseEntity<?> login(@Valid @RequestBody LoginRequestDto loginRequestDto) {
-		LoginResponseDto loginResponseDto = memberService.login(loginRequestDto);
+		LoginResponseDto loginResponseDto = memberService.login(loginRequestDto, false);
+		return ResponseEntity.ok(loginResponseDto);
+	}
+
+	@PostMapping("/login/mobile")
+	public ResponseEntity<?> loginMobile(@Valid @RequestBody LoginRequestDto loginRequestDto) {
+		LoginResponseDto loginResponseDto = memberService.login(loginRequestDto, true);
 		return ResponseEntity.ok(loginResponseDto);
 	}
 
 	@GetMapping("/login/kakao")
 	public ResponseEntity<?> kakaoLogin(@RequestParam String code) {
-		LoginResponseDto loginResponseDto = memberService.kakaoLogin(code);
+		LoginResponseDto loginResponseDto = memberService.kakaoLogin(code, false);
+		return ResponseEntity.ok(loginResponseDto);
+	}
+
+	@GetMapping("/login/kakao/mobile")
+	public ResponseEntity<?> kakaoLoginMobile(@RequestParam String code) {
+		LoginResponseDto loginResponseDto = memberService.kakaoLogin(code, false);
 		return ResponseEntity.ok(loginResponseDto);
 	}
 
 	@GetMapping("/login/google")
 	public ResponseEntity<?> googleLogin(@RequestParam String code) {
-		LoginResponseDto loginResponseDto = memberService.googleLogin(code);
+		LoginResponseDto loginResponseDto = memberService.googleLogin(code, false);
+		return ResponseEntity.ok(loginResponseDto);
+	}
+
+	@GetMapping("/login/google/mobile")
+	public ResponseEntity<?> googleLoginMobile(@RequestParam String code) {
+		LoginResponseDto loginResponseDto = memberService.googleLogin(code, false);
 		return ResponseEntity.ok(loginResponseDto);
 	}
 

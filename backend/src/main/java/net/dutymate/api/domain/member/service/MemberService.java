@@ -132,7 +132,7 @@ public class MemberService {
 	private long demoExpiration;
 
 	@Transactional
-	public LoginResponseDto signUp(SignUpRequestDto signUpRequestDto) {
+	public LoginResponseDto signUp(SignUpRequestDto signUpRequestDto, boolean isMobile) {
 		// 이메일이 @dutymate.demo로 끝나는지 확인
 		if (signUpRequestDto.getEmail().toLowerCase().endsWith(MemberService.DEMO_EMAIL_SUFFIX)) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "해당 이메일은 사용할 수 없습니다.");
@@ -156,7 +156,7 @@ public class MemberService {
 		newMember.setAutoGenCnt(DEFAULT_AUTO_GEN_CNT);
 		memberRepository.save(newMember);
 
-		return login(signUpRequestDto.toLoginRequestDto());
+		return login(signUpRequestDto.toLoginRequestDto(), isMobile);
 	}
 
 	// 회원가입 시, 이메일 중복 체크
@@ -169,7 +169,7 @@ public class MemberService {
 	}
 
 	@Transactional
-	public LoginResponseDto login(LoginRequestDto loginRequestDto) {
+	public LoginResponseDto login(LoginRequestDto loginRequestDto, boolean isMobile) {
 		// 이메일이 @dutymate.demo로 끝나는지 확인
 		if (loginRequestDto.getEmail().toLowerCase().endsWith(MemberService.DEMO_EMAIL_SUFFIX)) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "아이디 또는 비밀번호 오류입니다.");
@@ -200,7 +200,13 @@ public class MemberService {
 		}
 
 		// memberId로 AccessToken 생성
-		String accessToken = jwtUtil.createToken(member.getMemberId());
+		String accessToken;
+
+		if (isMobile) {
+			accessToken = jwtUtil.createMobileToken(member.getMemberId());
+		} else {
+			accessToken = jwtUtil.createToken(member.getMemberId());
+		}
 
 		boolean existAdditionalInfo =
 			member.getGrade() != null && member.getGender() != null && member.getRole() != null;
@@ -213,7 +219,7 @@ public class MemberService {
 	}
 
 	@Transactional
-	public LoginResponseDto kakaoLogin(String code) {
+	public LoginResponseDto kakaoLogin(String code, boolean isMobile) {
 		// KAKAO로부터 토큰 발급받아 유저 정보 확인
 		String kakaoAccessToken = getKakaoAccessToken(code);
 		KakaoUserResponseDto.KakaoAccount kakaoAccount = getKakaoUserInfo(kakaoAccessToken);
@@ -233,7 +239,13 @@ public class MemberService {
 		}
 
 		// memberId로 AccessToken 생성
-		String accessToken = jwtUtil.createToken(member.getMemberId());
+		String accessToken;
+
+		if (isMobile) {
+			accessToken = jwtUtil.createMobileToken(member.getMemberId());
+		} else {
+			accessToken = jwtUtil.createToken(member.getMemberId());
+		}
 
 		boolean existAdditionalInfo =
 			member.getGrade() != null && member.getGender() != null && member.getRole() != null;
@@ -246,7 +258,7 @@ public class MemberService {
 	}
 
 	@Transactional
-	public LoginResponseDto googleLogin(String code) {
+	public LoginResponseDto googleLogin(String code, boolean isMobile) {
 		// GOOGLE로부터 토큰 발급받아 유저 정보 확인
 		String googleIdToken = getGoogleIdToken(code);
 		GoogleUserResponseDto googleUserInfo = getGoogleUserInfo(googleIdToken);
@@ -259,7 +271,13 @@ public class MemberService {
 		checkAnotherSocialLogin(member, Provider.GOOGLE);
 
 		// memberId로 AccessToken 생성
-		String accessToken = jwtUtil.createToken(member.getMemberId());
+		String accessToken;
+
+		if (isMobile) {
+			accessToken = jwtUtil.createMobileToken(member.getMemberId());
+		} else {
+			accessToken = jwtUtil.createToken(member.getMemberId());
+		}
 
 		// Color 테이블에 아직 값이 없으면 기본 컬러값 저장
 		if (!colorRepository.existsByMember(member)) {

@@ -29,6 +29,8 @@ public class JwtUtil {
 	private long expiration;
 	@Value("${jwt.demo-expiration}")
 	private long demoExpiration;
+	@Value("${jwt.mobile-expiration}")
+	private long mobileExpiration;
 
 	// SecretKey 생성
 	private SecretKey getSigningKey() {
@@ -50,6 +52,16 @@ public class JwtUtil {
 		return Jwts.builder()
 			.issuedAt(new Date())
 			.expiration(new Date(System.currentTimeMillis() + demoExpiration))
+			.claim("memberId", memberId)
+			.signWith(getSigningKey())
+			.compact();
+	}
+
+	// 앱용 Access Token 생성(6개월 유효기간)
+	public String createMobileToken(Long memberId) {
+		return Jwts.builder()
+			.issuedAt(new Date())
+			.expiration(new Date(System.currentTimeMillis() + mobileExpiration))
 			.claim("memberId", memberId)
 			.signWith(getSigningKey())
 			.compact();

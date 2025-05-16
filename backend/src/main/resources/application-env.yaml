@@ -51,6 +51,7 @@ jwt:
   secret: ${JWT_SECRET}
   expiration: ${JWT_EXPIRATION}
   demo-expiration: ${JWT_EXPIRATION_DEMO}
+  mobile-expiration: ${JWT_EXPIRATION_MOBILE}
 
 # KAKAO 소셜 로그인 환경변수
 kakao:
