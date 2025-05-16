@@ -63,7 +63,7 @@ export default function App() {
 			<StatusBar style="auto" />
 			<NavigationContainer ref={navigationRef}>
 				<Stack.Navigator
-					initialRouteName={"ExtraInfo"}
+					initialRouteName={"Landing"}
 					screenOptions={{ headerShown: false }}
 				>
 					<Stack.Screen name={"Error"} component={ErrorScreen} />
