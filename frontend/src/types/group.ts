@@ -59,4 +59,8 @@ export interface RecommendedDate {
     name: string;
     duty: string;
   }[];
+  message?: {
+    lunch?: 'BEST' | 'OKAY' | 'HARD';
+    dinner?: 'BEST' | 'OKAY' | 'HARD';
+  };
 }

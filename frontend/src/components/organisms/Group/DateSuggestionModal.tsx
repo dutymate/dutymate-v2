@@ -40,10 +40,6 @@ const DateSuggestionModal: React.FC<DateSuggestionModalProps> = ({
 }) => {
   if (!open) return null;
 
-  // 모두 OFF인지 확인
-  const isAllOff = (memberList: { duty: string }[]) =>
-    memberList.every((m) => m.duty === 'O');
-
   const isMobile = useMediaQuery('(max-width: 1023px)');
   const [shareOpen, setShareOpen] = useState(false);
 
@@ -124,71 +120,140 @@ const DateSuggestionModal: React.FC<DateSuggestionModalProps> = ({
           id="date-suggestion-list"
           className={`space-y-2 ${isMobile ? 'mb-2' : 'mb-4'} overflow-y-auto max-h-[48vh] rounded-lg`}
         >
-          {recommendedDates.map((item) => {
-            // 날짜 파싱
-            const [year, month, day] = item.date.split('-').map(Number);
-            const dayOfWeek = getDayOfWeekKo(year, month, day);
-            const formattedDate = `${year}년 ${month}월 ${day}일 (${dayOfWeek})`;
+          {[...recommendedDates]
+            .sort((a, b) => {
+              const order = { BEST: 0, OKAY: 1, HARD: 2 };
+              return (
+                order[
+                  (a.message?.lunch || 'HARD') as 'BEST' | 'OKAY' | 'HARD'
+                ] -
+                order[(b.message?.lunch || 'HARD') as 'BEST' | 'OKAY' | 'HARD']
+              );
+            })
+            .map((item) => {
+              // 날짜 파싱
+              const [year, month, day] = item.date.split('-').map(Number);
+              const dayOfWeek = getDayOfWeekKo(year, month, day);
+              const formattedDate = `${year}년 ${month}월 ${day}일 (${dayOfWeek})`;
 
-            return (
-              <div
-                key={item.date}
-                className={`${isMobile ? 'p-3' : 'p-2'} bg-gray-100 rounded-lg mb-1`}
-              >
+              const lunchValue = (item.message?.lunch || 'HARD') as
+                | 'BEST'
+                | 'OKAY'
+                | 'HARD';
+              const dinnerValue = (item.message?.dinner || 'HARD') as
+                | 'BEST'
+                | 'OKAY'
+                | 'HARD';
+
+              return (
                 <div
-                  className={`${isMobile ? 'text-sm' : 'text-base'} font-bold ${isMobile ? 'mb-1' : 'mb-2'}`}
+                  key={item.date}
+                  className={`${isMobile ? 'p-3' : 'p-2'} bg-gray-100 rounded-lg mb-1`}
                 >
-                  {formattedDate}
-                </div>
-                {isAllOff(item.memberList) && (
-                  <div className="text-sm text-gray-500 mb-2">
-                    모두 OFF 입니다~!
+                  <div
+                    className={`flex items-center gap-2 ${isMobile ? 'text-sm' : 'text-base'} font-bold ${isMobile ? 'mb-1' : 'mb-2'}`}
+                  >
+                    <span>{formattedDate}</span>
+                    <span className="text-xs">
+                      {(() => {
+                        const priority = { BEST: 0, OKAY: 1, HARD: 2 };
+                        if (lunchValue === dinnerValue) {
+                          if (lunchValue === 'BEST') {
+                            return (
+                              <span style={{ color: '#F37C4C' }}>
+                                점심과 저녁 모두 추천해요
+                              </span>
+                            );
+                          } else if (lunchValue === 'OKAY') {
+                            return (
+                              <span style={{ color: '#F5A281' }}>
+                                점심과 저녁 모두 가능해요
+                              </span>
+                            );
+                          } else {
+                            return (
+                              <span style={{ color: '#F8CFC0' }}>
+                                점심과 저녁 모두 어려워요
+                              </span>
+                            );
+                          }
+                        }
+                        // 더 우선순위가 높은 쪽을 선택
+                        let bestType = '';
+                        let bestValue = '';
+                        if (priority[lunchValue] < priority[dinnerValue]) {
+                          bestType = 'lunch';
+                          bestValue = lunchValue;
+                        } else {
+                          bestType = 'dinner';
+                          bestValue = dinnerValue;
+                        }
+                        if (bestValue === 'BEST') {
+                          return bestType === 'lunch' ? (
+                            <span style={{ color: '#F37C4C' }}>
+                              점심을 추천해요
+                            </span>
+                          ) : (
+                            <span style={{ color: '#F37C4C' }}>
+                              저녁을 추천해요
+                            </span>
+                          );
+                        } else if (bestValue === 'OKAY') {
+                          return bestType === 'lunch' ? (
+                            <span style={{ color: '#F5A281' }}>
+                              점심이 가능해요
+                            </span>
+                          ) : (
+                            <span style={{ color: '#F5A281' }}>
+                              저녁이 가능해요
+                            </span>
+                          );
+                        } else {
+                          return bestType === 'lunch' ? (
+                            <span style={{ color: '#F8CFC0' }}>
+                              점심은 잡기 어려워요
+                            </span>
+                          ) : (
+                            <span style={{ color: '#F8CFC0' }}>
+                              저녁은 잡기 어려워요
+                            </span>
+                          );
+                        }
+                      })()}
+                    </span>
                   </div>
-                )}
-                <div className="flex flex-wrap gap-1 max-h-[3.5rem] overflow-hidden">
-                  {[...item.memberList]
-                    .sort((a, b) => a.name.localeCompare(b.name))
-                    .map((m) => (
-                      <span
-                        key={m.name}
-                        className={`px-2 py-0.5 rounded border border-base-muted font-semibold text-xs ${getBadgeBg(m.duty)}`}
-                        style={{ minWidth: 'fit-content' }}
-                      >
-                        <span className="text-base-foreground mr-0.5">
-                          {m.name}
-                        </span>{' '}
-                        <span className="text-xs">{m.duty}</span>
-                      </span>
-                    ))}
+                  <div className="flex flex-wrap gap-1 max-h-[3.5rem] overflow-hidden">
+                    {[...item.memberList]
+                      .sort((a, b) => a.name.localeCompare(b.name))
+                      .map((m) => (
+                        <span
+                          key={m.name}
+                          className={`px-2 py-0.5 rounded border border-base-muted font-semibold text-xs ${getBadgeBg(m.duty)}`}
+                          style={{ minWidth: 'fit-content' }}
+                        >
+                          <span className="text-base-foreground mr-0.5">
+                            {m.name}
+                          </span>{' '}
+                          <span className="text-xs">{m.duty}</span>
+                        </span>
+                      ))}
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
         </div>
         <button
-          className="w-full bg-primary text-white text-base font-bold py-2 rounded-lg shadow my-2 active:bg-primary-dark transition"
+          className="mt-4 w-full bg-[#fff4ee] text-[#f47056] border-[0.5px] border-[#f47056] hover:bg-primary py-2 rounded-lg font-bold"
           onClick={handleCalendarView}
         >
           캘린더에서 날짜 확인하기
         </button>
         <button
-          className="w-full bg-primary text-white text-base font-bold py-2 rounded-lg shadow my-2 active:bg-primary-dark transition"
+          className="mt-4 w-full bg-primary text-white hover:bg-primary-dark py-2 rounded-lg font-bold"
           onClick={handleDownloadImage}
         >
           사진으로 저장하기
         </button>
-        {/* 카카오 공유 기능 추후 추가 예정 */}
-        {/* <button
-          className="w-full bg-[#FEE500] text-[#3C1E1E] text-base font-bold py-2 rounded-lg shadow transition flex items-center justify-center gap-2"
-          // onClick={handleKakaoShare}
-        >
-          <img
-            src="/images/kakao_logo.png"
-            alt="카카오 아이콘"
-            className="w-[0.875rem] h-[0.875rem] sm:w-[1rem] sm:h-[1rem]"
-          />
-          <span>카카오톡으로 공유하기</span>
-        </button> */}
         <ShareDateModal open={shareOpen} onClose={() => setShareOpen(false)} />
       </div>
     </div>

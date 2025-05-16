@@ -72,7 +72,19 @@ const CheckMemberModal: React.FC<CheckMemberModalProps> = ({
         year,
         month
       );
-      setRecommendedDates(response.recommendedDateList);
+      const getRecommendationText = (memberList: { duty: string }[]) => {
+        // 모두 OFF면 BEST, 한 명이라도 D/E/M이면 OKAY, 그 외 HARD
+        if (memberList.every((m) => m.duty === 'O')) return 'BEST';
+        if (memberList.some((m) => ['D', 'E', 'M'].includes(m.duty)))
+          return 'OKAY';
+        return 'HARD';
+      };
+      setRecommendedDates(
+        response.recommendedDateList.map((item: RecommendedDate) => ({
+          ...item,
+          lunch: getRecommendationText(item.memberList),
+        }))
+      );
       setDateSuggestionOpen(true);
     } catch (error) {
       console.error('Error getting meeting date suggestions:', error);
