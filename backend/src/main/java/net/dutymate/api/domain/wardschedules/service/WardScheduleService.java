@@ -352,11 +352,7 @@ public class WardScheduleService {
 		for (Calendar calendar : calendars) {
 
 			LocalDate date = calendar.getDate();
-			MyDutyResponseDto.CalendarEvent event = new MyDutyResponseDto.CalendarEvent();
-
-			event.setDate(date);
-			event.setTitle(calendar.getTitle());
-			event.setColor(calendar.getColor());
+			MyDutyResponseDto.CalendarEvent event = MyDutyResponseDto.CalendarEvent.from(calendar);
 
 			if (date.isBefore(firstDay)) {
 				prevCalendar.add(event);

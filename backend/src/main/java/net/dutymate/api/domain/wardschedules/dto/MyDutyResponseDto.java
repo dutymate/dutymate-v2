@@ -1,8 +1,10 @@
 package net.dutymate.api.domain.wardschedules.dto;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
+import net.dutymate.api.domain.calendar.Calendar;
 import net.dutymate.api.domain.common.utils.YearMonth;
 
 import lombok.Builder;
@@ -40,9 +42,24 @@ public class MyDutyResponseDto {
 	}
 
 	@Data
+	@Builder
 	public static class CalendarEvent {
 		private LocalDate date;
 		private String title;
 		private String color;
+		private Boolean isAllDay;
+		private LocalDateTime startTime;
+		private LocalDateTime endTime;
+
+		public static CalendarEvent from(Calendar calendar) {
+			return CalendarEvent.builder()
+				.date(calendar.getDate())
+				.title(calendar.getTitle())
+				.color(calendar.getColor())
+				.isAllDay(calendar.getIsAllDay())
+				.startTime(calendar.getStartTime())
+				.endTime(calendar.getEndTime())
+				.build();
+		}
 	}
 }
