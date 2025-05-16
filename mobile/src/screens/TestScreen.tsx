@@ -1,56 +1,40 @@
-import Constants from "expo-constants";
+import { View } from "react-native";
+import { useState } from "react";
 
-import { Linking, Platform, StyleSheet, View } from "react-native";
-
-import { Button } from "@/components/button/Button";
-import { StyledText } from "@/components/custom/StyledText";
+import { DropdownComponent } from "@/components/dropdown/Dropdown";
 import { Layout } from "@/layout/Layout";
 import { LogoTemplate } from "@/templates/LogoTemplate";
+import { StyledText } from "@/components/custom/StyledText";
 
-/**
- * LandingScreen의 props 타입을 정의합니다.
- * navigation은 React Navigation의 navigation 객체입니다.
- */
-interface LandingScreenProps {
-	navigation: any;
-}
+const data = [
+	{ label: '옵션 1', value: '1' },
+	{ label: '옵션 2', value: '2' },
+];
 
-/**
- * LandingScreen은 앱의 시작 화면입니다.
- * @param navigation
- */
-export const TestScreen = ({ navigation }: LandingScreenProps) => {
+export const TestScreen = () => {
+	const [selectedValue, setSelectedValue] = useState<string | null>(null);
+
+	const handleChange = (value: string) => {
+		setSelectedValue(value);
+	};
 	
-
-
 	return (
 		<Layout>
 			<LogoTemplate>
 				<View>
-                    <StyledText className={"text"}>야호</StyledText>
-                </View>
+                    <StyledText>
+                        간호사 연차
+                    </StyledText>
+					<DropdownComponent
+						label="연차를 선택해주세요."
+						data={data}
+						value={selectedValue}
+						onChange={handleChange}
+                        required
+					/>
+				</View>
 			</LogoTemplate>
 		</Layout>
 	);
 };
 
-const styles = StyleSheet.create({
-	h1: {
-		fontSize: 20,
-		fontWeight: 900,
-		marginBottom: 16,
-	},
-	shadowMd: {
-		...Platform.select({
-			ios: {
-				shadowColor: "#000",
-				shadowOffset: { width: 0, height: 4 },
-				shadowOpacity: 0.1,
-				shadowRadius: 6,
-			},
-			android: {
-				elevation: 4,
-			},
-		}),
-	},
-});
