@@ -70,12 +70,11 @@ export const LoginForm = ({ navigation }: LoginFormProps) => {
 			</View>
 			<View className={"mt-[1.125rem] gap-y-[0.625rem]"}>
 				<View>
-					{/*TODO: 회원가입 페이지로 이동*/}
 					<StyledText className={"text-center text-lg text-gray-600"}>
 						계정이 없으신가요?{" "}
 						<StyledText
 							className={"text-primary-dark hover:underline"}
-							onPress={() => navigation.navigate("WebView")}
+							onPress={() => navigation.navigate("Signup")}
 						>
 							회원가입
 						</StyledText>

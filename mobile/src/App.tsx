@@ -18,6 +18,7 @@ import { ExtraInfoScreen } from "@/screens/ExtraInfoScreen";
 import { LandingScreen } from "@/screens/LandingScreen";
 import { LoginScreen } from "@/screens/LoginScreen";
 import { PasswordResetScreen } from "@/screens/PasswordResetScreen";
+import { SignupScreen } from "@/screens/SignupScreen";
 import { WebViewScreen } from "@/screens/WebViewScreen";
 
 configureReanimatedLogger({
@@ -74,6 +75,7 @@ export default function App() {
 						name={"PasswordReset"}
 						component={PasswordResetScreen}
 					/>
+					<Stack.Screen name={"Signup"} component={SignupScreen} />
 					<Stack.Screen name={"WebView"} component={WebViewScreen} />
 				</Stack.Navigator>
 			</NavigationContainer>
