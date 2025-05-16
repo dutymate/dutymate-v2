@@ -208,6 +208,7 @@ const WardAdminRowCard = ({ nurse, onUpdate }: WardAdminRowCardProps) => {
     });
     setOpenWorkIntensityDropdown(false);
   };
+
   const handleShiftChange = (shiftValue: number) => {
     let newShift;
 
@@ -219,6 +220,12 @@ const WardAdminRowCard = ({ nurse, onUpdate }: WardAdminRowCardProps) => {
       if ((nurse.shiftFlags & mShiftValue) !== 0) {
         // 이미 M이 선택되어 있으면 토글(해제)
         newShift = nurse.shiftFlags & ~mShiftValue;
+
+        // 해제 후 아무 것도 선택되지 않았다면 경고
+        if (newShift === 0) {
+          toast.warning('최소 하나 이상의 근무를 선택해주세요.');
+          return;
+        }
       } else {
         // M이 선택되어 있지 않으면 다른 근무 모두 해제하고 M만 선택
         newShift = mShiftValue;
@@ -231,6 +238,12 @@ const WardAdminRowCard = ({ nurse, onUpdate }: WardAdminRowCardProps) => {
       } else {
         // 그냥 일반적인 토글 동작
         newShift = nurse.shiftFlags ^ shiftValue;
+
+        // 해제 후 아무 것도 선택되지 않았다면 경고
+        if (newShift === 0) {
+          toast.warning('최소 하나 이상의 근무를 선택해주세요.');
+          return;
+        }
       }
     }
 
