@@ -75,7 +75,7 @@ export const ExtraInfoForm = ({ navigation }: ExtraInfoFormProps) => {
 		// 	setCareerError("연차를 선택해주세요.");
 		// 	return;
 		// }
-		navigation.navigate("WebView");
+		navigation.navigate("CreateWard");
 	};
 
 	return (

@@ -13,6 +13,7 @@ import {
 } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 
+import { CreateWardScreen } from "@/screens/CreateWardScreen";
 import { ErrorScreen } from "@/screens/ErrorScreen";
 import { ExtraInfoScreen } from "@/screens/ExtraInfoScreen";
 import { LandingScreen } from "@/screens/LandingScreen";
@@ -67,6 +68,7 @@ export default function App() {
 					initialRouteName={"Landing"}
 					screenOptions={{ headerShown: false }}
 				>
+					<Stack.Screen name={"CreateWard"} component={CreateWardScreen} />
 					<Stack.Screen name={"Error"} component={ErrorScreen} />
 					<Stack.Screen name={"ExtraInfo"} component={ExtraInfoScreen} />
 					<Stack.Screen name={"Landing"} component={LandingScreen} />
