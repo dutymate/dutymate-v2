@@ -82,14 +82,13 @@ export const LoginForm = ({ navigation }: LoginFormProps) => {
 					</StyledText>
 				</View>
 				<View>
-					{/*TODO: 비밀번호 찾기 페이지로 이동*/}
 					<StyledText className={"text-center text-lg text-gray-600"}>
 						비밀번호를 잊으셨나요?{" "}
 						<StyledText
 							className={"text-primary-dark hover:underline"}
-							onPress={() => navigation.navigate("WebView")}
+							onPress={() => navigation.navigate("PasswordReset")}
 						>
-							비밀번호 찾기
+							비밀번호 재설정
 						</StyledText>
 					</StyledText>
 				</View>
