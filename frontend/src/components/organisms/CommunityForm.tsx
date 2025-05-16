@@ -12,6 +12,9 @@ import boardService, {
 import useUserAuthStore from '@/stores/userAuthStore';
 import { formatTimeAgo } from '@/utils/dateUtils';
 
+// 상단에 고정할 게시글 ID
+const PINNED_POST_ID = 21;
+
 interface CommunityFormProps {
   onWrite: () => void;
   onPostClick: (post: any) => void;
@@ -49,7 +52,15 @@ const CommunityForm = ({ onWrite, onPostClick }: CommunityFormProps) => {
   const fetchPosts = (category: string) =>
     boardService.getAllPosts(
       category,
-      (data) => setPosts(data),
+      (data) => {
+        // 게시글을 정렬하여 PINNED_POST_ID를 상단에 배치
+        const sortedPosts = [...data].sort((a, b) => {
+          if (a.boardId === PINNED_POST_ID) return -1;
+          if (b.boardId === PINNED_POST_ID) return 1;
+          return 0;
+        });
+        setPosts(sortedPosts);
+      },
       (error) => console.error(error)
     );
 
@@ -154,7 +165,11 @@ const CommunityForm = ({ onWrite, onPostClick }: CommunityFormProps) => {
             posts.map((post) => (
               <div
                 key={post.boardId}
-                className="p-4 border border-gray-200 rounded-lg hover:border-primary-dark cursor-pointer transition-colors"
+                className={`p-4 border rounded-lg hover:border-primary-dark cursor-pointer transition-colors ${
+                  post.boardId === PINNED_POST_ID
+                    ? 'border-primary-20 bg-primary-light/5'
+                    : 'border-gray-200'
+                }`}
                 onClick={() => handlePostClick(post)}
               >
                 <div className="flex gap-4">
@@ -181,6 +196,14 @@ const CommunityForm = ({ onWrite, onPostClick }: CommunityFormProps) => {
                         {post.nickname}
                       </span>
                       <span className="text-gray-400 text-sm">·</span>
+                      {post.boardId === PINNED_POST_ID && (
+                        <>
+                          <span className="px-2 py-0.5 bg-primary-20 text-primary-dark rounded text-xs font-medium">
+                            공지
+                          </span>
+                          <span className="text-gray-400 text-sm">·</span>
+                        </>
+                      )}
                       <span className="text-gray-600 text-xs sm:text-sm">
                         {post.category === 'DAILY'
                           ? '일상글'
