@@ -14,11 +14,11 @@ import {
 import { createStackNavigator } from "@react-navigation/stack";
 
 import { ErrorScreen } from "@/screens/ErrorScreen";
+import { ExtraInfoScreen } from "@/screens/ExtraInfoScreen";
 import { LandingScreen } from "@/screens/LandingScreen";
 import { LoginScreen } from "@/screens/LoginScreen";
 import { PasswordResetScreen } from "@/screens/PasswordResetScreen";
 import { WebViewScreen } from "@/screens/WebViewScreen";
-import { ExtraInfoScreen } from "./screens/ExtraInfoScreen";
 
 configureReanimatedLogger({
 	level: ReanimatedLogLevel.warn,
@@ -67,6 +67,7 @@ export default function App() {
 					screenOptions={{ headerShown: false }}
 				>
 					<Stack.Screen name={"Error"} component={ErrorScreen} />
+					<Stack.Screen name={"ExtraInfo"} component={ExtraInfoScreen} />
 					<Stack.Screen name={"Landing"} component={LandingScreen} />
 					<Stack.Screen name={"Login"} component={LoginScreen} />
 					<Stack.Screen
@@ -74,7 +75,6 @@ export default function App() {
 						component={PasswordResetScreen}
 					/>
 					<Stack.Screen name={"WebView"} component={WebViewScreen} />
-					<Stack.Screen name={"ExtraInfo"} component={ExtraInfoScreen} />
 				</Stack.Navigator>
 			</NavigationContainer>
 		</>

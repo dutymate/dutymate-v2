@@ -1,7 +1,7 @@
 import { View } from "react-native";
 
 import { Card } from "@/components/card/Card";
-import { ExtraInfoForm } from "@/components/form/extraInfo/ExtraInfoForm";
+import { ExtraInfoForm } from "@/components/form/extrainfo/ExtraInfoForm";
 import { Layout } from "@/layout/Layout";
 import { LogoTemplate } from "@/templates/LogoTemplate";
 

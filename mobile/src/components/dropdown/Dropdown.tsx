@@ -2,8 +2,12 @@ import React, { useMemo, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { Dropdown } from "react-native-element-dropdown";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
-import { StyledText } from "../custom/StyledText";
 
+import { StyledText } from "@/components/custom/StyledText";
+
+/**
+ * DropdownProps는 DropdownComponent의 props 타입을 정의합니다.
+ */
 interface DropdownProps {
 	label?: string;
 	placeholder?: string;
@@ -16,6 +20,16 @@ interface DropdownProps {
 	optional?: boolean;
 }
 
+/**
+ * DropdownComponent는 드롭다운 컴포넌트를 렌더링합니다.
+ * @param label
+ * @param placeholder
+ * @param data
+ * @param value
+ * @param onChange
+ * @param error
+ * @param disabled
+ */
 export const DropdownComponent = ({
 	label,
 	placeholder,

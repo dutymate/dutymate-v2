@@ -1,6 +1,10 @@
 import { View, TouchableOpacity } from "react-native";
+
 import { StyledText } from "@/components/custom/StyledText";
 
+/**
+ * RoleOption은 RoleCard의 각 옵션을 정의합니다.
+ */
 interface RoleOption {
 	value: "RN" | "HN";
 	title: string;
@@ -8,12 +12,21 @@ interface RoleOption {
 	icon: string;
 }
 
+/**
+ * RoleCardProps는 RoleCard 컴포넌트의 props 타입을 정의합니다.
+ */
 interface RoleCardProps {
 	option: RoleOption;
 	selected: boolean;
 	onPress: () => void;
 }
 
+/**
+ * RoleCard 컴포넌트는 역할 카드 컴포넌트를 렌더링합니다.
+ * @param option
+ * @param selected
+ * @param onPress
+ */
 export const RoleCard = ({ option, selected, onPress }: RoleCardProps) => {
 	return (
 		<TouchableOpacity

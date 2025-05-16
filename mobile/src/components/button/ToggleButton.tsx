@@ -1,12 +1,19 @@
 import React from "react";
 import { TouchableOpacity, View } from "react-native";
+
 import { StyledText } from "@/components/custom/StyledText";
 
+/**
+ * ToggleButtonOption은 ToggleButton의 각 옵션을 정의합니다.
+ */
 interface ToggleButtonOption {
 	text: string;
 	icon?: string;
 }
 
+/**
+ * ToggleButtonProps는 ToggleButton 컴포넌트의 props 타입을 정의합니다.
+ */
 interface ToggleButtonProps {
 	options: ToggleButtonOption[];
 	selectedIndex: number;
@@ -14,6 +21,12 @@ interface ToggleButtonProps {
 	variant?: "default" | "request" | "gender";
 }
 
+/**
+ * ToggleButton 컴포넌트는 여러 옵션 중 하나를 선택할 수 있는 버튼을 렌더링합니다.
+ * @param options
+ * @param selectedIndex
+ * @param onChange
+ */
 export const ToggleButton = ({
 	options,
 	selectedIndex,
