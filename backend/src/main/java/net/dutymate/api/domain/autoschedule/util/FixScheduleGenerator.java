@@ -5,12 +5,31 @@ import java.util.Map;
 import org.springframework.stereotype.Component;
 
 import net.dutymate.api.domain.common.utils.YearMonth;
+import net.dutymate.api.domain.wardmember.ShiftType;
 
 @Component
 public class FixScheduleGenerator {
 
 	/**
+	 * 중간(Mid) 근무 일정을 생성합니다. 주말은 휴무(O)로, 평일은 M으로 설정합니다.
+	 *
+	 * @param yearMonth 연월 정보
+	 * @return 생성된 중간 근무 일정 문자열
+	 */
+	public String midShiftBuilder(YearMonth yearMonth) {
+		StringBuilder schedule = new StringBuilder();
+		int daysInMonth = yearMonth.daysInMonth();
+
+		for (int day = 1; day <= daysInMonth; day++) {
+			schedule.append(yearMonth.isWeekend(day) ? 'O' : 'M');
+		}
+
+		return schedule.toString();
+	}
+
+	/**
 	 * 야간 근무 일정을 생성합니다 (기본 NNNOOO 패턴 사용).
+	 * 이 메서드는 더 이상 직접 쓰이지 않지만 하위 호환성을 위해 유지합니다.
 	 *
 	 * @param daysInMonth 해당 월의 일수
 	 * @param rotation 간호사의 로테이션 번호
@@ -41,6 +60,7 @@ public class FixScheduleGenerator {
 
 	/**
 	 * 이전 달 패턴을 고려하여 연속적인 야간 근무 일정을 생성합니다.
+	 * 이 메서드는 더 이상 직접 쓰이지 않지만 하위 호환성을 위해 유지합니다.
 	 *
 	 * @param daysInMonth 해당 월의 일수
 	 * @param prevPattern 이전 달 패턴 (null 또는 빈 문자열이면 기본 패턴 사용)
@@ -125,22 +145,4 @@ public class FixScheduleGenerator {
 
 		return schedule.toString();
 	}
-
-	/**
-	 * 중간(Mid) 근무 일정을 생성합니다. 주말은 휴무(O)로, 평일은 M으로 설정합니다.
-	 *
-	 * @param yearMonth 연월 정보
-	 * @return 생성된 중간 근무 일정 문자열
-	 */
-	public String midShiftBuilder(YearMonth yearMonth) {
-		StringBuilder schedule = new StringBuilder();
-		int daysInMonth = yearMonth.daysInMonth();
-
-		for (int day = 1; day <= daysInMonth; day++) {
-			schedule.append(yearMonth.isWeekend(day) ? 'O' : 'M');
-		}
-
-		return schedule.toString();
-	}
-
 }

@@ -37,10 +37,8 @@ import lombok.RequiredArgsConstructor;
 public class AutoScheduleService {
 
 	private final WardMemberRepository wardMemberRepository;
-
 	private final WardScheduleRepository wardScheduleRepository;
 	private final RequestRepository requestRepository;
-
 	private final NurseScheduler nurseScheduler;
 	private final FixScheduleGenerator fixScheduleGenerator;
 
@@ -57,11 +55,13 @@ public class AutoScheduleService {
 					.isSuccess(false)
 					.build());
 		}
-		//전월 달 근무 호출
+
+		// 전월 달 근무 호출
 		YearMonth prevYearMonth = yearMonth.prevYearMonth();
 		WardSchedule prevWardSchedule = wardScheduleRepository
 			.findByWardIdAndYearAndMonth(wardId, prevYearMonth.year(), prevYearMonth.month())
 			.orElse(null);
+
 		// 전달 듀티표 가져오기
 		List<WardSchedule.NurseShift> prevNurseShifts;
 		if (prevWardSchedule != null) {
@@ -71,25 +71,25 @@ public class AutoScheduleService {
 		}
 
 		Rule rule = member.getWardMember().getWard().getRule();
-		List<WardMember> wardMembers = wardMemberRepository.findAllByWard(member.getWardMember().getWard());
+		List<WardMember> allWardMembers = wardMemberRepository.findAllByWard(member.getWardMember().getWard());
 		WardSchedule wardSchedule = wardScheduleRepository.findByWardIdAndYearAndMonth(wardId, yearMonth.year(),
 				yearMonth.month())
 			.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "근무 일정을 찾을 수 없습니다."));
 
-		//나이트 전담 인원
-		List<WardMember> nightWardMembers = wardMembers.stream()
-			.filter(wm -> wm.getShiftFlags() == ShiftType.N.getFlag())
-			.toList();
-
-		//주중 Mid 전담 인원
-		List<WardMember> midWardMembers = wardMembers.stream()
+		// Mid 전담 인원만 따로 분리 (자동생성에서 제외)
+		List<WardMember> midWardMembers = allWardMembers.stream()
 			.filter(wm -> wm.getShiftFlags() == ShiftType.M.getFlag())
 			.toList();
 
-		int nightWardMemberCount = nightWardMembers.size();
-		int wardMemberCount = wardMembers.size();
-		int neededNurseCount = nurseScheduler.neededNurseCount(yearMonth, rule, nightWardMemberCount)
-			+ midWardMembers.size();
+		// 자동 생성에 포함될 간호사들 (Mid 제외한 모든 간호사)
+		List<WardMember> regularWardMembers = new ArrayList<>(allWardMembers);
+		regularWardMembers.removeIf(wm -> wm.getShiftFlags() == ShiftType.M.getFlag());
+
+		int wardMemberCount = regularWardMembers.size();
+
+		// Night 전담 간호사 수는 따로 계산하지 않음 (통합 로직에 포함됨)
+		int neededNurseCount = nurseScheduler.neededNurseCount(yearMonth, rule, 0)
+			+ midWardMembers.size() -5;
 
 		if (wardMemberCount < neededNurseCount && !force) {
 			AutoScheduleNurseCountResponseDto responseDto = new AutoScheduleNurseCountResponseDto(
@@ -98,6 +98,7 @@ public class AutoScheduleService {
 			return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE)
 				.body(responseDto);
 		}
+
 		Long memberId = member.getMemberId();
 
 		List<Request> acceptedRequests = requestRepository.findAcceptedWardRequestsByYearMonth(
@@ -107,64 +108,38 @@ public class AutoScheduleService {
 			RequestStatus.ACCEPTED
 		);
 
-		//HN 자동 로직에서 제거
-		wardMembers.removeIf(wm -> wm.getShiftFlags() == ShiftType.D.getFlag()
-			|| wm.getShiftFlags() == ShiftType.M.getFlag()
-			|| wm.getShiftFlags() == ShiftType.N.getFlag());
-
 		Map<Integer, Integer> dailyNightCount = new HashMap<>();
-		List<WardSchedule.NurseShift> newNightNurseShifts = new ArrayList<>();
 		Map<Long, String> prevSchedulesMap = nurseScheduler.getPreviousMonthSchedules(prevNurseShifts);
 
-		if (!nightWardMembers.isEmpty()) {
-			for (int rotation = 0; rotation < nightWardMembers.size(); rotation++) {
-				WardMember wm = nightWardMembers.get(rotation);
-				String prevShifts = prevSchedulesMap.get(wm.getMember().getMemberId());
+		// 각 간호사의 ShiftFlags를 Map으로 변환하여 전달
+		Map<Long, Integer> nurseShiftFlags = regularWardMembers.stream()
+			.collect(Collectors.toMap(
+				wm -> wm.getMember().getMemberId(),
+				WardMember::getShiftFlags
+			));
 
-				//기존 generateNightSchedule 사용
-				String shifts;
-				if (prevShifts == null || prevShifts.isEmpty() || "XXXX".equals(prevShifts)) {
-					shifts = fixScheduleGenerator.generateNightSchedule(
-						yearMonth.daysInMonth(),
-						rotation,
-						nightWardMembers.size(),
-						dailyNightCount
-					);
-				} else {
-					// 유효한 이전 달 패턴이 있는 경우 연속성을 고려한 메서드 사용
-					shifts = fixScheduleGenerator.generateContinuousNightSchedule(
-						yearMonth.daysInMonth(),
-						prevShifts,
-						dailyNightCount
-					);
-				}
-
-				WardSchedule.NurseShift newNurseShift = WardSchedule.NurseShift.builder()
-					.memberId(wm.getMember().getMemberId())
-					.shifts(shifts)
-					.build();
-
-				newNightNurseShifts.add(newNurseShift);
-			}
-		}
-		Map<Long, WorkIntensity> workIntensities = wardMembers.stream()
+		// 간호사들의 WorkIntensity 정보 수집
+		Map<Long, WorkIntensity> workIntensities = regularWardMembers.stream()
 			.collect(Collectors.toMap(
 				wm -> wm.getMember().getMemberId(),
 				WardMember::getWorkIntensity,
-				(a, b) -> a // 중복 키가 있을 경우 첫 번째 값 유지
+				(a, b) -> a  // 중복 키 처리
 			));
 
+		// 통합된 자동 스케줄 생성 (Night 근무자 포함)
 		WardSchedule updateWardSchedule = nurseScheduler.generateSchedule(
-			wardSchedule, rule, wardMembers,
+			wardSchedule, rule, regularWardMembers,
 			prevNurseShifts, yearMonth, memberId,
 			acceptedRequests, dailyNightCount,
-			reinforcementRequestIds, workIntensities // 워크 인텐시티 추가
+			reinforcementRequestIds, workIntensities,
+			nurseShiftFlags  // 새로 추가된 파라미터
 		);
 
 		List<WardSchedule.NurseShift> updatedShifts = new ArrayList<>(updateWardSchedule.getDuties()
 			.get(updateWardSchedule.getNowIdx())
 			.getDuty());
 
+		// Mid 전담 간호사들만 별도 처리
 		for (WardMember wm : midWardMembers) {
 			WardSchedule.NurseShift newNurseShift = WardSchedule.NurseShift.builder()
 				.memberId(wm.getMember().getMemberId())
@@ -172,11 +147,6 @@ public class AutoScheduleService {
 				.build();
 
 			updatedShifts.add(newNurseShift);
-		}
-
-		//야간 근무자 duty표 생성
-		for (WardSchedule.NurseShift newShift : newNightNurseShifts) {
-			updatedShifts.add(newShift);
 		}
 
 		WardSchedule.Duty currentDuty = updateWardSchedule.getDuties().get(updateWardSchedule.getNowIdx());
