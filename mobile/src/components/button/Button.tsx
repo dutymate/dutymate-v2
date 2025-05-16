@@ -235,7 +235,6 @@ interface AuthCodeSendButtonProps {
 	className?: string;
 	children?: React.ReactNode;
 	onPress?: () => void;
-	disabled?: boolean;
 }
 
 /**
@@ -243,19 +242,16 @@ interface AuthCodeSendButtonProps {
  * @param className
  * @param children
  * @param onPress
- * @param disabled
  */
 export const AuthCodeSendButton = ({
 	className,
 	children,
 	onPress,
-	disabled,
 }: AuthCodeSendButtonProps) => {
 	return (
 		<TouchableOpacity
 			className={`w-full px-[0.75rem] py-[0.6rem] sm:py-[0.5rem] bg-primary-20 rounded-md ${className}`}
 			onPress={onPress}
-			disabled={disabled}
 		>
 			{children}
 		</TouchableOpacity>
