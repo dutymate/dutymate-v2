@@ -223,7 +223,7 @@ const LoginForm = ({ onRequireVerification }: LoginFormProps) => {
             to="/password-reset"
             className="text-primary-dark hover:underline"
           >
-            비밀번호 찾기
+            비밀번호 재설정
           </Link>
         </div>
       </div>
