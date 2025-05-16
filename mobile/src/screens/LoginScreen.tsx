@@ -21,6 +21,7 @@ export const LoginScreen = ({ navigation }: LoginScreenProps) => {
 			<LogoTemplate navigation={navigation}>
 				<Card>
 					<LoginForm navigation={navigation} />
+					{/*<LoginEmailVerificationForm navigation={navigation} />*/}
 				</Card>
 			</LogoTemplate>
 		</Layout>
