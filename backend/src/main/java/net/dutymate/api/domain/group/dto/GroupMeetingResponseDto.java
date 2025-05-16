@@ -3,6 +3,8 @@ package net.dutymate.api.domain.group.dto;
 import java.time.LocalDate;
 import java.util.List;
 
+import net.dutymate.api.domain.group.TimeSlotStatus;
+
 import lombok.Builder;
 import lombok.Data;
 
@@ -17,7 +19,7 @@ public class GroupMeetingResponseDto {
 	public static class RecommendedDate {
 		private LocalDate date;
 		private Integer score;
-		private String message;
+		private TimeSlotMessage message;
 		private List<MemberDutyDto> memberList;
 	}
 
@@ -27,5 +29,12 @@ public class GroupMeetingResponseDto {
 		private Long memberId;
 		private String name;
 		private String duty;
+	}
+
+	@Data
+	@Builder
+	public static class TimeSlotMessage {
+		private TimeSlotStatus lunch;
+		private TimeSlotStatus dinner;
 	}
 }

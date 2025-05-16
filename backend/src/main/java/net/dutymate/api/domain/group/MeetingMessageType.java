@@ -63,8 +63,4 @@ public enum MeetingMessageType {
 
 		return MeetingMessageType.MIXED_OR_COMPLEX;
 	}
-
-	public String getMessage() {
-		return "점심: " + lunch.getLabel() + " / 저녁: " + dinner.getLabel();
-	}
 }

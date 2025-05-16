@@ -451,7 +451,12 @@ public class GroupService {
 
 				// 근무자 리스트 기반 메세지 생성하기
 				List<String> duties = dutyList.stream().map(GroupMeetingResponseDto.MemberDutyDto::getDuty).toList();
-				String message = MeetingMessageType.resolve(duties).getMessage();
+				MeetingMessageType messageType = MeetingMessageType.resolve(duties);
+
+				GroupMeetingResponseDto.TimeSlotMessage message = GroupMeetingResponseDto.TimeSlotMessage.builder()
+					.lunch(messageType.getLunch())
+					.dinner(messageType.getDinner())
+					.build();
 
 				return GroupMeetingResponseDto.RecommendedDate.builder()
 					.date(date)
