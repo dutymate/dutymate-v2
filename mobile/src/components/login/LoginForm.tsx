@@ -1,10 +1,9 @@
 import { View } from "react-native";
 
-import { Button } from "@/components/button/Button";
-import { SocialLoginButton } from "@/components/button/SocialLoginButton";
-import { StyledText } from "@/components/custom/StyledText";
-import { Input } from "@/components/input/Input";
-
+import { Button } from "@/components/common/Button";
+import { Input } from "@/components/common/Input";
+import { StyledText } from "@/components/common/StyledText";
+import { SocialLoginButton } from "@/components/login/SocialLoginButton";
 /**
  * LoginFormProps는 LoginScreen의 props 타입을 정의합니다.
  * navigation은 React Navigation의 navigation 객체입니다.

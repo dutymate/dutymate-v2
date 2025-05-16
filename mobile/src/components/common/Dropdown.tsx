@@ -3,7 +3,7 @@ import { StyleSheet, View } from "react-native";
 import { Dropdown } from "react-native-element-dropdown";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 
-import { StyledText } from "@/components/custom/StyledText";
+import { StyledText } from "@/components/common/StyledText";
 
 /**
  * DropdownProps는 DropdownComponent의 props 타입을 정의합니다.

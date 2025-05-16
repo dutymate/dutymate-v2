@@ -1,6 +1,6 @@
 import { View, TouchableOpacity } from "react-native";
 
-import { StyledText } from "@/components/custom/StyledText";
+import { StyledText } from "@/components/common/StyledText";
 
 /**
  * RoleOption은 RoleCard의 각 옵션을 정의합니다.

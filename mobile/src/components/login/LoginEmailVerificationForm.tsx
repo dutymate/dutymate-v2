@@ -1,8 +1,8 @@
 import { StyleSheet, View } from "react-native";
 
-import { Button, InputActionButton } from "@/components/button/Button";
-import { StyledText } from "@/components/custom/StyledText";
-import { Input } from "@/components/input/Input";
+import { Button, InputActionButton } from "@/components/common/Button";
+import { StyledText } from "@/components/common/StyledText";
+import { Input } from "@/components/common/Input";
 
 /**
  * LoginEmailVerificationFormProps는 LoginEmailVerificationForm 컴포넌트의 props 타입을 정의합니다.

@@ -1,7 +1,7 @@
 import { View, Pressable } from "react-native";
 import Icon from "react-native-vector-icons/MaterialIcons";
 
-import { StyledText } from "@/components/custom/StyledText";
+import { StyledText } from "@/components/common/StyledText";
 
 /**
  * AgreementCheckboxProps는 AgreementCheckbox 컴포넌트의 props 타입을 정의합니다.

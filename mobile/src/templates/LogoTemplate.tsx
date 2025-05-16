@@ -1,7 +1,7 @@
 import React from "react";
 import { Dimensions, View } from "react-native";
 
-import Logo from "../../assets/images/text-logo.svg";
+import Logo from "assets/images/text-logo.svg";
 
 const screenWidth = Dimensions.get("window").width;
 const logoWidth = screenWidth * 0.6;

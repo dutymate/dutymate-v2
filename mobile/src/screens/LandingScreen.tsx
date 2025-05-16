@@ -2,8 +2,8 @@ import Constants from "expo-constants";
 
 import { Linking, Platform, StyleSheet, View } from "react-native";
 
-import { Button } from "@/components/button/Button";
-import { StyledText } from "@/components/custom/StyledText";
+import { Button } from "@/components/common/Button";
+import { StyledText } from "@/components/common/StyledText";
 import { Layout } from "@/layout/Layout";
 import { LogoTemplate } from "@/templates/LogoTemplate";
 

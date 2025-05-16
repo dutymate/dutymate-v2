@@ -1,8 +1,8 @@
 import { View } from "react-native";
 
-import { AuthCodeSendButton, Button } from "@/components/button/Button";
-import { StyledText } from "@/components/custom/StyledText";
-import { Input } from "@/components/input/Input";
+import { AuthCodeSendButton, Button } from "@/components/common/Button";
+import { Input } from "@/components/common/Input";
+import { StyledText } from "@/components/common/StyledText";
 
 /**
  * PasswordResetFormProps는 PasswordResetForm의 props 타입을 정의합니다.

@@ -1,5 +1,5 @@
-import { Card } from "@/components/card/Card";
-import { LoginForm } from "@/components/form/login/LoginForm";
+import { Card } from "@/components/common/Card";
+import { LoginForm } from "@/components/login/LoginForm";
 import { Layout } from "@/layout/Layout";
 import { LogoTemplate } from "@/templates/LogoTemplate";
 

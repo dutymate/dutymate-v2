@@ -1,7 +1,7 @@
 import React from "react";
 import { TouchableOpacity, View } from "react-native";
 
-import { StyledText } from "@/components/custom/StyledText";
+import { StyledText } from "@/components/common/StyledText";
 
 /**
  * ToggleButtonOption은 ToggleButton의 각 옵션을 정의합니다.

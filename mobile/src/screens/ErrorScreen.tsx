@@ -1,9 +1,9 @@
 import { StyleSheet, View } from "react-native";
 import Svg, { Path } from "react-native-svg";
 
-import { StyledText } from "@/components/custom/StyledText";
+import { Button } from "@/components/common/Button";
+import { StyledText } from "@/components/common/StyledText";
 import { Layout } from "@/layout/Layout";
-import { Button } from "@/components/button/Button";
 
 /**
  * ErrorScreenProps는 ErrorScreen 컴포넌트의 props 타입을 정의합니다.

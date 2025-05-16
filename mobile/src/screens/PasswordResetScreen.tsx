@@ -1,5 +1,5 @@
-import { Card } from "@/components/card/Card";
-import { PasswordResetForm } from "@/components/form/password/PasswordResetForm";
+import { Card } from "@/components/common/Card";
+import { PasswordResetForm } from "@/components/passwordReset/PasswordResetForm";
 import { Layout } from "@/layout/Layout";
 import { LogoTemplate } from "@/templates/LogoTemplate";
 

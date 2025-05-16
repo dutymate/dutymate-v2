@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { View } from "react-native";
 
-import { Button } from "@/components/button/Button";
-import { ToggleButton } from "@/components/button/ToggleButton";
-import { StyledText } from "@/components/custom/StyledText";
-import { DropdownComponent } from "@/components/dropdown/Dropdown";
-import { RoleCard } from "@/components/extrainfo/RoleCard";
+import { Button } from "@/components/common/Button";
+import { DropdownComponent } from "@/components/common/Dropdown";
+import { StyledText } from "@/components/common/StyledText";
+import { ToggleButton } from "@/components/extraInfo/ToggleButton";
+import { RoleCard } from "@/components/extraInfo/RoleCard";
 
 /**
  * ExtraInfoForm 컴포넌트는 사용자의 추가 정보를 입력받는 폼을 렌더링합니다.

@@ -1,7 +1,7 @@
 import { TouchableOpacity, View } from "react-native";
 
-import { CustomImage } from "@/components/custom/CustomImage";
-import { StyledText } from "@/components/custom/StyledText";
+import { CustomImage } from "@/components/common/CustomImage";
+import { StyledText } from "@/components/common/StyledText";
 
 import GoogleLogo from "assets/images/google-logo.png";
 import KakaoLogo from "assets/images/kakao-logo.png";

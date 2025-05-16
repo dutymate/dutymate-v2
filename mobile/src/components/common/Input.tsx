@@ -2,8 +2,8 @@ import React from "react";
 import { TextInputProps, View } from "react-native";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 
-import { StyledText } from "@/components/custom/StyledText";
-import { StyledTextInput } from "@/components/custom/StyledTextInput";
+import { StyledText } from "@/components/common/StyledText";
+import { StyledTextInput } from "@/components/common/StyledTextInput";
 
 /**
  * InputProps는 Input 컴포넌트의 props 타입을 정의합니다.

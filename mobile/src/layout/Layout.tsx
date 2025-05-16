@@ -1,7 +1,7 @@
 import React from "react";
 import { View } from "react-native";
 
-import { WaveBackground } from "@/components/background/WaveBackground";
+import { WaveBackground } from "@/components/common/WaveBackground";
 
 /**
  * LayoutProps는 Layout 컴포넌트의 props 타입을 정의합니다.
