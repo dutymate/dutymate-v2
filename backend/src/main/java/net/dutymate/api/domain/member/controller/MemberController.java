@@ -88,7 +88,7 @@ public class MemberController {
 
 	@GetMapping("/login/kakao/mobile")
 	public ResponseEntity<?> kakaoLoginMobile(@RequestParam String code) {
-		LoginResponseDto loginResponseDto = memberService.kakaoLogin(code, false);
+		LoginResponseDto loginResponseDto = memberService.kakaoLogin(code, true);
 		return ResponseEntity.ok(loginResponseDto);
 	}
 
@@ -100,7 +100,7 @@ public class MemberController {
 
 	@GetMapping("/login/google/mobile")
 	public ResponseEntity<?> googleLoginMobile(@RequestParam String code) {
-		LoginResponseDto loginResponseDto = memberService.googleLogin(code, false);
+		LoginResponseDto loginResponseDto = memberService.googleLogin(code, true);
 		return ResponseEntity.ok(loginResponseDto);
 	}
 
