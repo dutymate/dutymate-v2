@@ -12,6 +12,7 @@ import {
 import { useEmailVerification } from '@/hooks/useEmailVerification';
 import userService from '@/services/userService';
 import useUserAuthStore from '@/stores/userAuthStore';
+import { validateName } from '@/utils/validation';
 
 interface SignupData {
   email: string;
@@ -91,6 +92,11 @@ const SignupForm = () => {
     } else if (name === 'passwordConfirm') {
       if (value.trim() !== signupData.password.trim())
         errorMessage = '비밀번호가 일치하지 않습니다.';
+    } else if (name === 'name') {
+      const nameValidation = validateName(value.trim());
+      if (!nameValidation.isValid) {
+        errorMessage = nameValidation.message;
+      }
     }
     setError((prevError) => ({ ...prevError, [name]: errorMessage }));
   };
@@ -127,6 +133,12 @@ const SignupForm = () => {
     if (!signupData.name.trim()) {
       newErrors.name = '이름을 입력해 주세요.';
       isValid = false;
+    } else {
+      const nameValidation = validateName(signupData.name.trim());
+      if (!nameValidation.isValid) {
+        newErrors.name = nameValidation.message;
+        isValid = false;
+      }
     }
     if (!isAgreed) {
       toast.error('개인정보 수집 및 이용에 동의해주세요.');

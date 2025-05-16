@@ -11,6 +11,7 @@ import { ApiErrorResponse, profileService } from '@/services/profileService';
 import useProfileStore from '@/stores/profileStore';
 import useUserAuthStore from '@/stores/userAuthStore';
 import { wardService } from '@/services/wardService';
+import { validateNickname } from '@/utils/validation';
 
 const MypageProfile = () => {
   const navigate = useNavigate();
@@ -107,6 +108,17 @@ const MypageProfile = () => {
       if (nickname === profile?.nickname) {
         setNicknameStatus({ isValid: null, message: '' });
         setIsAvailable(nameStatus.isValid);
+        return;
+      }
+
+      // 먼저 닉네임 유효성 검사
+      const nicknameValidation = validateNickname(nickname);
+      if (!nicknameValidation.isValid) {
+        setNicknameStatus({
+          isValid: false,
+          message: nicknameValidation.message,
+        });
+        setIsAvailable(false);
         return;
       }
 

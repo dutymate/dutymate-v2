@@ -217,10 +217,10 @@ const RequestCheckModal = ({
                   size="md"
                   color="primary"
                   disabled={requestCount > 0}
-                  className="!h-[2.5rem]"
+                  className="!h-[2.25rem]"
                   id="start-auto-generate-button"
                 >
-                  자동 생성 시작
+                  자동 생성
                 </Button>
               </div>
             </>

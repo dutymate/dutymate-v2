@@ -341,7 +341,7 @@ const ReqAdminTable = forwardRef<ReqAdminTableRef, ReqAdminTableProps>(
               >
                 <div className="flex items-center gap-1 relative group">
                   <FaPlus className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'}`} />
-                  <span>요청생성</span>
+                  <span>요청 생성</span>
                 </div>
               </Button>
             </div>
