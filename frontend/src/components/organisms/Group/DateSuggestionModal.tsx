@@ -115,7 +115,9 @@ const DateSuggestionModal: React.FC<DateSuggestionModalProps> = ({
         >
           ×
         </button>
-        <div className="text-lg font-semibold text-center">
+        <div
+          className={`text-lg font-semibold text-center ${isMobile ? 'my-1' : 'mt-0 mb-2'}`}
+        >
           추천 날짜 리스트
         </div>
         <div
@@ -164,13 +166,13 @@ const DateSuggestionModal: React.FC<DateSuggestionModalProps> = ({
           })}
         </div>
         <button
-          className="w-full bg-gray-700 text-white text-base font-bold py-2 rounded-lg shadow my-2 active:bg-gray-800 transition"
+          className="w-full bg-primary text-white text-base font-bold py-2 rounded-lg shadow my-2 active:bg-primary-dark transition"
           onClick={handleCalendarView}
         >
           캘린더에서 날짜 확인하기
         </button>
         <button
-          className="w-full bg-gray-700 text-white text-base font-bold py-2 rounded-lg shadow my-2 active:bg-gray-800 transition"
+          className="w-full bg-primary text-white text-base font-bold py-2 rounded-lg shadow my-2 active:bg-primary-dark transition"
           onClick={handleDownloadImage}
         >
           사진으로 저장하기
