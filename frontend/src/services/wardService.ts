@@ -454,10 +454,14 @@ export const wardService = {
 
   connectWithEnterMember: (
     enterMemberId: number,
-    memberId: { memberId: number }
+    tempMemberId: number,
+    appliedShifts: string
   ) => {
     return axiosInstance
-      .post(`/ward/member/${enterMemberId}/link`, { memberId })
+      .post(`/ward/member/${enterMemberId}/link`, {
+        tempMemberId,
+        appliedShifts,
+      })
       .then((response) => response.data)
       .catch((error) => {
         if (error.code === 'ERR_NETWORK') {
@@ -476,9 +480,35 @@ export const wardService = {
       });
   },
 
-  addNurseWithoutConnect: (enterMemberId: number) => {
+  addNurseWithoutConnect: (enterMemberId: number, appliedShifts: string) => {
     return axiosInstance
-      .post(`/ward/member/${enterMemberId}`)
+      .post(`/ward/member/${enterMemberId}`, { appliedShifts })
+      .then((response) => response.data)
+      .catch((error) => {
+        if (error.code === 'ERR_NETWORK') {
+          throw new Error('서버 연결 실패');
+        }
+        if (error.response) {
+          switch (error.response.status) {
+            case 401:
+              window.location.href = '/login';
+              break;
+            default:
+              throw error;
+          }
+        }
+        throw error;
+      });
+  },
+
+  /**
+   * 입장 멤버 듀티 vs 병동(임시멤버) 듀티 비교 조회
+   */
+  getShiftComparison: (enterMemberId: number, tempMemberId?: number | null) => {
+    return axiosInstance
+      .get(`/ward/member/${enterMemberId}/shifts`, {
+        params: tempMemberId != null ? { 'temp-member-id': tempMemberId } : {},
+      })
       .then((response) => response.data)
       .catch((error) => {
         if (error.code === 'ERR_NETWORK') {

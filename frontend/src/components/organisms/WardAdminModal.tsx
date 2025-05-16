@@ -151,7 +151,7 @@ export const NurseAssignModal = ({
   onClose,
   fetchNurses,
 }: NurseAssignModalProps) => {
-  const [selectedNurse, setSelectedNurse] = useState<number | null>(null);
+  const [selectedNurse] = useState<number | null>(null);
   const [tempNurses, setTempNurses] = useState<TempNurse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isConnect, setIsConnect] = useState(false);
@@ -176,37 +176,18 @@ export const NurseAssignModal = ({
   }, []);
 
   // 임시 간호사와 연동하기
-  const handleConnect = async (tempNurse: any) => {
-    try {
-      await wardService.connectWithEnterMember(
-        nurse.memberId,
-        tempNurse.memberId
-      );
-
-      // 성공적으로 연동된 경우, 임시 간호사 목록에서 제거
-      setTempNurses((prev) =>
-        prev.filter((n) => n.memberId !== tempNurse.memberId)
-      );
-
-      setSelectedNurse(tempNurse.memberId);
-      onClose();
-
-      // 실제 간호사 목록을 다시 불러오기
-      fetchNurses();
-      window.location.reload();
-    } catch (error) {
-      toast.error('연동에 실패했습니다.');
-    }
+  const handleConnect = async () => {
+    setIsAddNurseConfirmModalOpen(false);
+    onClose();
+    fetchNurses();
+    window.location.reload();
   };
 
   // 입장 대기 간호사 승인 후, 연동하지 않고 추가하기
   const handleAddNurseWithoutSynced = async () => {
     try {
-      await wardService.addNurseWithoutConnect(nurse.memberId);
-
+      setIsAddNurseConfirmModalOpen(false);
       onClose();
-
-      // 실제 간호사 목록을 다시 불러오기
       fetchNurses();
       window.location.reload();
     } catch (error) {
@@ -354,16 +335,16 @@ export const NurseAssignModal = ({
         isOpen={isAddNurseConfirmModalOpen}
         onClose={() => setIsAddNurseConfirmModalOpen(false)}
         onConfirm={
-          isConnect
-            ? () => handleConnect(tempNurse)
-            : handleAddNurseWithoutSynced
+          isConnect ? () => handleConnect() : handleAddNurseWithoutSynced
         }
         isConnect={isConnect}
         message={
           isConnect
-            ? `간호사 ${nurse.name} 님과 연동하시겠습니까?`
-            : '임시 간호사와 연동하지 않고 추가하시겠습니까?'
+            ? `간호사 ${nurse.name} 님과 연동하시겠어요?`
+            : '임시 간호사와 연동하지 않고 추가하시겠어요?'
         }
+        enterMemberId={nurse.memberId}
+        tempMemberId={tempNurse?.memberId ?? 0}
       />
     </div>
   );
