@@ -2,7 +2,7 @@ import { FaCrown } from 'react-icons/fa';
 import useMediaQuery from '@/hooks/useMediaQuery';
 import DateSuggestionModal from './DateSuggestionModal';
 import ShareDateModal from './ShareDateModal';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { getGroupMeetingDate } from '@/services/groupService';
 import { GroupMember, RecommendedDate } from '@/types/group';
 
@@ -10,9 +10,11 @@ interface CheckMemberModalProps {
   open: boolean;
   onClose: () => void;
   members: GroupMember[];
-  selectedMembers: string[];
-  setSelectedMembers: (names: string[]) => void;
+  selectedMembers: number[];
+  setSelectedMembers: (ids: number[]) => void;
   groupId: number;
+  highlightDates: (dates: string[]) => void;
+  currentMonth: Date;
 }
 
 const CheckMemberModal: React.FC<CheckMemberModalProps> = ({
@@ -22,6 +24,8 @@ const CheckMemberModal: React.FC<CheckMemberModalProps> = ({
   selectedMembers,
   setSelectedMembers,
   groupId,
+  highlightDates,
+  currentMonth,
 }) => {
   const isMobile = useMediaQuery('(max-width: 1023px)');
   const [dateSuggestionOpen, setDateSuggestionOpen] = useState(false);
@@ -31,20 +35,26 @@ const CheckMemberModal: React.FC<CheckMemberModalProps> = ({
   );
   const [isLoading, setIsLoading] = useState(false);
 
+  useEffect(() => {
+    if (open && members.length > 0) {
+      setSelectedMembers(members.map((m) => m.memberId));
+    }
+  }, [open, members, setSelectedMembers]);
+
   if (!open) return null;
 
-  const handleToggle = (name: string) => {
-    if (selectedMembers.includes(name)) {
-      setSelectedMembers(selectedMembers.filter((n) => n !== name));
+  const handleToggle = (memberId: number) => {
+    if (selectedMembers.includes(memberId)) {
+      setSelectedMembers(selectedMembers.filter((id) => id !== memberId));
     } else {
-      setSelectedMembers([...selectedMembers, name]);
+      setSelectedMembers([...selectedMembers, memberId]);
     }
   };
 
   const handleNext = async () => {
     // 선택된 멤버들의 memberId를 수집
     const selectedMemberIds = members
-      .filter((member) => selectedMembers.includes(member.name))
+      .filter((member) => selectedMembers.includes(member.memberId))
       .map((member) => member.memberId);
 
     if (selectedMemberIds.length === 0) {
@@ -54,9 +64,14 @@ const CheckMemberModal: React.FC<CheckMemberModalProps> = ({
 
     setIsLoading(true);
     try {
-      const response = await getGroupMeetingDate(groupId, {
-        groupMemberIds: selectedMemberIds,
-      });
+      const year = currentMonth.getFullYear();
+      const month = currentMonth.getMonth() + 1;
+      const response = await getGroupMeetingDate(
+        groupId,
+        { groupMemberIds: selectedMemberIds },
+        year,
+        month
+      );
       setRecommendedDates(response.recommendedDateList);
       setDateSuggestionOpen(true);
     } catch (error) {
@@ -100,13 +115,13 @@ const CheckMemberModal: React.FC<CheckMemberModalProps> = ({
               className={`
                 flex items-center px-4 py-1.5 rounded-xl border text-sm font-semibold transition
                 ${
-                  selectedMembers.includes(m.name)
+                  selectedMembers.includes(m.memberId)
                     ? 'bg-yellow-100 border-yellow-300 text-yellow-800'
                     : 'bg-white border-gray-300 text-gray-500'
                 }
               `}
               style={{ minWidth: 75 }}
-              onClick={() => handleToggle(m.name)}
+              onClick={() => handleToggle(m.memberId)}
             >
               {m.isLeader && (
                 <FaCrown className="mr-1 text-yellow-400 text-base" />
@@ -124,9 +139,17 @@ const CheckMemberModal: React.FC<CheckMemberModalProps> = ({
         </button>
         <DateSuggestionModal
           open={dateSuggestionOpen}
-          onClose={() => setDateSuggestionOpen(false)}
+          onClose={() => {
+            setDateSuggestionOpen(false);
+            onClose();
+          }}
           onShareClick={() => setShareOpen(true)}
           recommendedDates={recommendedDates}
+          onHighlightDates={(dates) => {
+            highlightDates(dates);
+            setDateSuggestionOpen(false);
+            onClose();
+          }}
         />
         <ShareDateModal open={shareOpen} onClose={() => setShareOpen(false)} />
       </div>

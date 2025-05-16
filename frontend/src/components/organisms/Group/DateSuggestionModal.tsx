@@ -10,6 +10,7 @@ interface DateSuggestionModalProps {
   onClose: () => void;
   onShareClick: () => void;
   recommendedDates: RecommendedDate[];
+  onHighlightDates?: (dates: string[]) => void;
 }
 
 const getBadgeBg = (duty: string) => {
@@ -35,6 +36,7 @@ const DateSuggestionModal: React.FC<DateSuggestionModalProps> = ({
   open,
   onClose,
   recommendedDates,
+  onHighlightDates,
 }) => {
   if (!open) return null;
 
@@ -82,6 +84,13 @@ const DateSuggestionModal: React.FC<DateSuggestionModalProps> = ({
     }
   };
 
+  const handleCalendarView = () => {
+    if (onHighlightDates) {
+      onHighlightDates(recommendedDates.map((date) => date.date));
+    }
+    onClose();
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-end lg:items-center justify-center bg-black/30">
       <div className="absolute inset-0" onClick={onClose} />
@@ -106,10 +115,12 @@ const DateSuggestionModal: React.FC<DateSuggestionModalProps> = ({
         >
           ×
         </button>
-        <div className="text-lg font-semibold my-4">추천 날짜 리스트</div>
+        <div className="text-lg font-semibold text-center">
+          추천 날짜 리스트
+        </div>
         <div
           id="date-suggestion-list"
-          className="space-y-5 mb-6 overflow-y-auto max-h-[48vh] rounded-lg"
+          className={`space-y-2 ${isMobile ? 'mb-2' : 'mb-4'} overflow-y-auto max-h-[48vh] rounded-lg`}
         >
           {recommendedDates.map((item) => {
             // 날짜 파싱
@@ -118,32 +129,46 @@ const DateSuggestionModal: React.FC<DateSuggestionModalProps> = ({
             const formattedDate = `${year}년 ${month}월 ${day}일 (${dayOfWeek})`;
 
             return (
-              <div key={item.date}>
-                <div className="text-base font-bold mb-2">{formattedDate}</div>
+              <div
+                key={item.date}
+                className={`${isMobile ? 'p-3' : 'p-2'} bg-gray-100 rounded-lg mb-1`}
+              >
+                <div
+                  className={`${isMobile ? 'text-sm' : 'text-base'} font-bold ${isMobile ? 'mb-1' : 'mb-2'}`}
+                >
+                  {formattedDate}
+                </div>
                 {isAllOff(item.memberList) && (
                   <div className="text-sm text-gray-500 mb-2">
                     모두 OFF 입니다~!
                   </div>
                 )}
-                <div className="flex flex-wrap gap-2">
-                  {item.memberList.map((m) => (
-                    <span
-                      key={m.name}
-                      className={`px-3 py-1.5 rounded-lg border border-base-muted font-semibold text-sm ${getBadgeBg(
-                        m.duty
-                      )}`}
-                    >
-                      <span className="text-base-foreground mr-0.75">
-                        {m.name}
-                      </span>{' '}
-                      <span className="text-md">{m.duty}</span>
-                    </span>
-                  ))}
+                <div className="flex flex-wrap gap-1 max-h-[3.5rem] overflow-hidden">
+                  {[...item.memberList]
+                    .sort((a, b) => a.name.localeCompare(b.name))
+                    .map((m) => (
+                      <span
+                        key={m.name}
+                        className={`px-2 py-0.5 rounded border border-base-muted font-semibold text-xs ${getBadgeBg(m.duty)}`}
+                        style={{ minWidth: 'fit-content' }}
+                      >
+                        <span className="text-base-foreground mr-0.5">
+                          {m.name}
+                        </span>{' '}
+                        <span className="text-xs">{m.duty}</span>
+                      </span>
+                    ))}
                 </div>
               </div>
             );
           })}
         </div>
+        <button
+          className="w-full bg-gray-700 text-white text-base font-bold py-2 rounded-lg shadow my-2 active:bg-gray-800 transition"
+          onClick={handleCalendarView}
+        >
+          캘린더에서 날짜 확인하기
+        </button>
         <button
           className="w-full bg-gray-700 text-white text-base font-bold py-2 rounded-lg shadow my-2 active:bg-gray-800 transition"
           onClick={handleDownloadImage}

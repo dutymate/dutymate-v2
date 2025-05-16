@@ -221,12 +221,20 @@ export const updateGroupRandomImage = async (groupId: number) => {
 // 그룹 약속 날짜 정하기
 export const getGroupMeetingDate = async (
   groupId: number,
-  data: { groupMemberIds: number[] }
+  data: { groupMemberIds: number[] },
+  year?: number,
+  month?: number
 ) => {
   try {
     const response = await axiosInstance.post(
       `/group/${groupId}/meeting-date`,
-      data
+      data,
+      {
+        params: {
+          year,
+          month,
+        },
+      }
     );
     return response.data;
   } catch (error) {

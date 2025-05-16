@@ -29,7 +29,7 @@ const GroupMemberPage = () => {
     number | undefined
   >(undefined);
   const [members, setMembers] = useState<GroupMember[]>([]);
-  const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
+  const [selectedMembers, setSelectedMembers] = useState<number[]>([]);
   const [inviteLink, setInviteLink] = useState<string>('');
 
   // 그룹 정보 가져오기
@@ -65,7 +65,7 @@ const GroupMemberPage = () => {
           }));
 
           setMembers(memberList);
-          setSelectedMembers(memberList.map((m: GroupMember) => m.name));
+          setSelectedMembers(memberList.map((m: GroupMember) => m.memberId));
         }
       } catch (error: any) {
         console.error('Failed to fetch group data:', error);
@@ -122,7 +122,7 @@ const GroupMemberPage = () => {
 
       // 3. members 배열 동기화
       setMembers(updatedMembers);
-      setSelectedMembers(updatedMembers.map((m: GroupMember) => m.name));
+      setSelectedMembers(updatedMembers.map((m: GroupMember) => m.memberId));
       setRemoveModalOpen(false);
       setRemoveTargetMember(undefined);
 
@@ -314,6 +314,8 @@ const GroupMemberPage = () => {
           selectedMembers={selectedMembers}
           setSelectedMembers={setSelectedMembers}
           groupId={Number(groupId)}
+          highlightDates={() => {}}
+          currentMonth={new Date()}
         />
         <EditGroupModal
           open={editModalOpen}

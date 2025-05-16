@@ -37,6 +37,7 @@ const GroupDetailPage = () => {
   const [groupMembers, setGroupMembers] = useState<ShiftMember[]>([]);
   const [inviteLink, setInviteLink] = useState<string>('');
   const [originalShifts, setOriginalShifts] = useState<any[]>([]);
+  const [highlightedDates, setHighlightedDates] = useState<string[]>([]);
 
   // fetchGroupData 함수를 useCallback으로 래핑하여 의존성 관리
   const fetchGroupData = useCallback(async () => {
@@ -131,12 +132,12 @@ const GroupDetailPage = () => {
   }, [fetchGroupData]);
 
   // 멤버 배열 및 선택 상태 선언
-  const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
+  const [selectedMembers, setSelectedMembers] = useState<number[]>([]);
 
   // 선택된 멤버 업데이트
   useEffect(() => {
     if (groupMembers.length > 0) {
-      setSelectedMembers(groupMembers.map((m) => m.name));
+      setSelectedMembers(groupMembers.map((m) => m.memberId));
     }
   }, [groupMembers]);
 
@@ -144,6 +145,10 @@ const GroupDetailPage = () => {
   useEffect(() => {
     useLoadingStore.setState({ isLoading: loading });
   }, [loading]);
+
+  const handleHighlightDates = (dates: string[]) => {
+    setHighlightedDates(dates);
+  };
 
   if (loading) {
     return (
@@ -497,19 +502,28 @@ const GroupDetailPage = () => {
                     {week.map((day, dayIndex) => (
                       <td
                         key={`date-${weekIndex}-${dayIndex}`}
-                        className={`align-top text-[0.65rem] md:text-xs border border-gray-100 ${
-                          day.isPrevMonth || day.isNextMonth
-                            ? 'text-gray-400 bg-gray-50'
-                            : dayIndex === 0
-                              ? 'text-red-500'
-                              : dayIndex === 6
-                                ? 'text-purple-500'
-                                : 'text-gray-700'
-                        } ${
-                          isMobile
-                            ? 'min-w-[3.75rem] min-h-[5rem] p-0.5'
-                            : 'min-w-[5.625rem] p-2'
-                        }`}
+                        className={`
+                            align-top text-[0.65rem] md:text-xs border border-gray-100
+                            ${
+                              day.isPrevMonth || day.isNextMonth
+                                ? 'text-gray-400 bg-gray-50'
+                                : dayIndex === 0
+                                  ? 'text-red-500'
+                                  : dayIndex === 6
+                                    ? 'text-purple-500'
+                                    : 'text-gray-700'
+                            }
+                            ${
+                              isMobile
+                                ? 'min-w-[3.75rem] min-h-[5rem] p-0.5'
+                                : 'min-w-[5.625rem] p-2'
+                            }
+                            ${
+                              highlightedDates.includes(day.dateStr || '')
+                                ? 'border-2 border-orange-400'
+                                : ''
+                            }
+                          `}
                         style={{ verticalAlign: 'top' }}
                       >
                         <div className="font-medium text-[0.65rem] md:text-xs text-gray-400">
@@ -722,19 +736,28 @@ const GroupDetailPage = () => {
                       {week.map((day, dayIndex) => (
                         <td
                           key={`date-${weekIndex}-${dayIndex}`}
-                          className={`align-top text-[0.65rem] md:text-xs border border-gray-100 ${
-                            day.isPrevMonth || day.isNextMonth
-                              ? 'text-gray-400 bg-gray-50'
-                              : dayIndex === 0
-                                ? 'text-red-500'
-                                : dayIndex === 6
-                                  ? 'text-purple-500'
-                                  : 'text-gray-700'
-                          } ${
-                            isMobile
-                              ? 'min-w-[3.75rem] min-h-[5rem] p-0.5'
-                              : 'min-w-[5.625rem] p-2'
-                          }`}
+                          className={`
+                              align-top text-[0.65rem] md:text-xs border border-gray-100
+                              ${
+                                day.isPrevMonth || day.isNextMonth
+                                  ? 'text-gray-400 bg-gray-50'
+                                  : dayIndex === 0
+                                    ? 'text-red-500'
+                                    : dayIndex === 6
+                                      ? 'text-purple-500'
+                                      : 'text-gray-700'
+                              }
+                              ${
+                                isMobile
+                                  ? 'min-w-[3.75rem] min-h-[5rem] p-0.5'
+                                  : 'min-w-[5.625rem] p-2'
+                              }
+                              ${
+                                highlightedDates.includes(day.dateStr || '')
+                                  ? 'border-2 border-orange-400'
+                                  : ''
+                              }
+                            `}
                           style={{ verticalAlign: 'top' }}
                         >
                           <div className="font-medium text-[0.65rem] md:text-xs text-gray-400">
@@ -811,6 +834,8 @@ const GroupDetailPage = () => {
             selectedMembers={selectedMembers}
             setSelectedMembers={setSelectedMembers}
             groupId={Number(groupId)}
+            highlightDates={handleHighlightDates}
+            currentMonth={currentMonth}
           />
         )}
         {modalStep === 'date' && (
@@ -819,6 +844,7 @@ const GroupDetailPage = () => {
             onClose={() => setModalStep('none')}
             onShareClick={() => setModalStep('share')}
             recommendedDates={[]}
+            onHighlightDates={handleHighlightDates}
           />
         )}
         {modalStep === 'share' && (
