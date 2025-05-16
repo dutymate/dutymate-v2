@@ -28,6 +28,7 @@ public class WebConfig implements WebMvcConfigurer {
 		"/api/member/demo",
 		"/api/news",
 		"/api/holiday/update",
+		"/api/log/**"
 	};
 
 	@Override

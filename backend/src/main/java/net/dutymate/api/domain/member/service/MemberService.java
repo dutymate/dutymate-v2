@@ -38,6 +38,7 @@ import net.dutymate.api.domain.member.dto.GoogleTokenResponseDto;
 import net.dutymate.api.domain.member.dto.GoogleUserResponseDto;
 import net.dutymate.api.domain.member.dto.KakaoTokenResponseDto;
 import net.dutymate.api.domain.member.dto.KakaoUserResponseDto;
+import net.dutymate.api.domain.member.dto.LoginLog;
 import net.dutymate.api.domain.member.dto.LoginRequestDto;
 import net.dutymate.api.domain.member.dto.LoginResponseDto;
 import net.dutymate.api.domain.member.dto.MypageEditRequestDto;
@@ -102,6 +103,7 @@ public class MemberService {
 	private final RequestRepository requestRepository;
 	private final MemberScheduleRepository memberScheduleRepository;
 	private final ColorRepository colorRepository;
+	private final LoginLogService loginLogService;
 
 	@Value("${kakao.client.id}")
 	private String kakaoClientId;
@@ -172,6 +174,7 @@ public class MemberService {
 	public LoginResponseDto login(LoginRequestDto loginRequestDto, boolean isMobile) {
 		// 이메일이 @dutymate.demo로 끝나는지 확인
 		if (loginRequestDto.getEmail().toLowerCase().endsWith(MemberService.DEMO_EMAIL_SUFFIX)) {
+			loginLogService.pushLoginLog(LoginLog.of(null, false, "데모 계정으로 로그인 시도"));
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "아이디 또는 비밀번호 오류입니다.");
 		}
 
@@ -215,6 +218,8 @@ public class MemberService {
 
 		boolean sentWardCode = enterWaitingRepository.existsByMember(member);
 
+		loginLogService.pushLoginLog(LoginLog.of(member, true, null));
+
 		return LoginResponseDto.of(member, accessToken, existAdditionalInfo, existMyWard, sentWardCode, false);
 	}
 
@@ -254,6 +259,8 @@ public class MemberService {
 
 		boolean sentWardCode = enterWaitingRepository.existsByMember(member);
 
+		loginLogService.pushLoginLog(LoginLog.of(member, true, null));
+
 		return LoginResponseDto.of(member, accessToken, existAdditionalInfo, existMyWard, sentWardCode, false);
 	}
 
@@ -292,6 +299,8 @@ public class MemberService {
 		boolean existMyWard = wardMemberRepository.existsByMember(member);
 
 		boolean sentWardCode = enterWaitingRepository.existsByMember(member);
+
+		loginLogService.pushLoginLog(LoginLog.of(member, true, null));
 
 		return LoginResponseDto.of(member, accessToken, existAdditionalInfo, existMyWard, sentWardCode, false);
 	}
