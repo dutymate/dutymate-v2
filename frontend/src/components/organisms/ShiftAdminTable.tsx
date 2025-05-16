@@ -505,6 +505,36 @@ const ShiftAdminTable = memo(
       }
     }, [dutyData, loadNurseOrderFromStorage]);
 
+    // 초기화 또는 자동생성이 완료될 때 실행하는 핸들러
+    const handleDutyUpdate = useCallback(async () => {
+      // 현재 페이지의 데이터를 다시 로드
+      try {
+        await onUpdate(year, month);
+
+        // 토스트 메시지 제거
+        // toast.success('근무 데이터가 업데이트되었습니다.');
+      } catch (error) {
+        console.error('데이터 업데이트 실패:', error);
+      }
+    }, [year, month, onUpdate]);
+
+    const resetDutyConfirmed = async () => {
+      setIsResetDutyConfirmModalOpen(false);
+      setIsResetting(true);
+      try {
+        await dutyService.resetDuty(year, month);
+
+        // 초기화된 데이터를 가져와 즉시 표시
+        await handleDutyUpdate();
+
+        toast.success('초기화되었습니다.');
+      } catch (error) {
+        toast.error('초기화에 실패하였습니다.');
+      } finally {
+        setIsResetting(false);
+      }
+    };
+
     // 드래그 앤 드롭 센서 설정
     const sensors = useSensors(
       useSensor(TouchSensor, {
@@ -1018,24 +1048,6 @@ const ShiftAdminTable = memo(
       setIsResetDutyConfirmModalOpen(true);
     };
 
-    const resetDutyConfirmed = async () => {
-      setIsResetDutyConfirmModalOpen(false);
-      setIsResetting(true);
-      try {
-        // const data = await dutyService.resetDuty(year, month); // The service call is still needed to reset backend data.
-        await dutyService.resetDuty(year, month);
-        // useShiftStore.getState().setDutyInfo(data); // This line was already removed.
-
-        await onUpdate(year, month); // Rely on this to refresh data via props
-
-        toast.success('초기화되었습니다.');
-      } catch (error) {
-        toast.error('초기화에 실패하였습니다.');
-      } finally {
-        setIsResetting(false);
-      }
-    };
-
     const navigate = useNavigate();
     const [isDemoSignupModalOpen, setIsDemoSignupModalOpen] = useState(false);
     const isDemo = userInfo?.isDemo;
@@ -1156,8 +1168,8 @@ const ShiftAdminTable = memo(
         // API 호출
         const response = await dutyService.autoCreateDuty(year, month);
 
-        // 화면 갱신
-        await onUpdate(year, month);
+        // 자동생성 결과를 즉시 표시하기 위해 데이터 업데이트
+        await handleDutyUpdate();
 
         // 반영되지 않은 요청이 있는 경우 모달 표시
         if (
@@ -1227,8 +1239,8 @@ const ShiftAdminTable = memo(
         // 강제 자동생성 API 호출
         const response = await dutyService.autoCreateDuty(year, month, true);
 
-        // 화면 갱신
-        await onUpdate(year, month);
+        // 자동생성 결과를 즉시 표시하기 위해 데이터 업데이트
+        await handleDutyUpdate();
 
         // 반영되지 않은 요청이 있는 경우 모달 표시
         if (
@@ -1546,8 +1558,8 @@ const ShiftAdminTable = memo(
           selectedRequestIds
         );
 
-        // 화면 갱신
-        await onUpdate(year, month);
+        // 자동생성 결과를 즉시 표시하기 위해 데이터 업데이트
+        await handleDutyUpdate();
 
         // 반영되지 않은 요청이 있는 경우 모달 표시
         if (
