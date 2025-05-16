@@ -208,7 +208,7 @@ const GroupMemberPage = () => {
           <div className="flex mb-3">
             <button
               onClick={() => navigate(-1)}
-              className="text-foreground text-sm sm:text-base"
+              className="text-foreground text-sm sm:text-base pl-3"
             >
               ← 목록으로
             </button>

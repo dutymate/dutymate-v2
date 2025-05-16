@@ -34,7 +34,7 @@ export default function GroupLayout({
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
       />
-      <div className="flex-1 min-w-0 px-4 lg:px-8 py-6 overflow-y-auto">
+      <div className="flex-1 min-w-0 px-0 py-0 sm:px-4 sm:py-6 lg:px-8 overflow-y-auto">
         <div className="hidden lg:block mb-3">
           <Title
             title={title || '친구 찾기'}
@@ -43,7 +43,7 @@ export default function GroupLayout({
             }
           />
         </div>
-        <div className="flex items-center gap-3 lg:hidden mb-4">
+        <div className="flex items-center gap-3 lg:hidden mb-4 px-4 pt-4">
           <button
             onClick={() => setIsSidebarOpen(true)}
             className="p-2 hover:bg-gray-100 rounded-lg"
@@ -57,7 +57,7 @@ export default function GroupLayout({
             </p>
           </div>
         </div>
-        <div className="w-full max-w-[758px] pt-2">{children}</div>
+        <div className="w-full max-w-[758px] ">{children}</div>
       </div>
     </div>
   );

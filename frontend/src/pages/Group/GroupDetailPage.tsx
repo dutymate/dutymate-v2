@@ -350,54 +350,38 @@ const GroupDetailPage = () => {
         title="함께 보는 근무표"
         subtitle="모두의 스케줄을 한눈에 확인하세요"
       >
-        <div className="space-y-3">
-          {/* ← 목록으로 버튼 */}
-          <div className="flex mb-3">
+        {/* 모바일: 그룹 정보 박스 */}
+        <div className="bg-white rounded-none sm:rounded-xl shadow flex items-center justify-between gap-2 px-4 py-2 mb-0 sm:gap-4 sm:px-4 sm:py-4 block sm:hidden">
+          <div className="min-w-0 flex flex-row items-center gap-1 truncate">
+            <span className="font-medium text-sm truncate max-w-[60%]">
+              {group.groupName}
+            </span>
+            <span className="text-xs text-gray-400 truncate max-w-[40%]">
+              {group.groupDescription || '그룹 설명이 없습니다.'}
+            </span>
             <button
-              onClick={() => navigate('/group')}
-              className="text-foreground text-sm md:text-base px-3 py-1 sm:text-xs sm:px-2 sm:py-0.5"
+              className="p-1 rounded-md hover:bg-gray-100 sm:p-2 ml-1"
+              onClick={() => navigate(`/group/${groupId}/member`)}
             >
-              ← 목록으로
+              <FaCog className="text-gray-400 text-base sm:text-lg" />
             </button>
           </div>
-          {/* 주요 컨텐츠를 흰색 네모 상자에 담기 */}
-          <div className="bg-white rounded-xl shadow p-4">
-            {/* 상단: 그룹명, 설정, 초대 */}
-            <div className="flex items-center justify-between mb-1">
-              <div className="lg:ml-4">
-                <div className="flex items-center gap-2 sm:gap-1">
-                  <span className="text-lg md:text-xl font-bold max-[639px]:text-base">
-                    {group.groupName}
-                  </span>
-                  <FaCog
-                    className="text-gray-400 cursor-pointer text-lg md:text-2xl ml-2 md:ml-4 sm:text-base"
-                    onClick={() => navigate(`/group/${groupId}/member`)}
-                  />
-                </div>
-                <div className="text-gray-400 text-xs md:text-sm">
-                  {group.groupDescription}
-                </div>
-              </div>
-              <button
-                className={`flex items-center border border-primary text-primary rounded-lg font-semibold bg-white hover:bg-primary-50 transition-colors whitespace-nowrap ${
-                  isSmallMobile
-                    ? 'px-1.5 py-1 text-[0.65rem]'
-                    : 'py-0.5 px-1.5 sm:py-1 sm:px-2 h-[2.25rem] text-sm'
-                }`}
-                type="button"
-                onClick={handleInviteButton}
-              >
-                <FaUserPlus
-                  className={`mr-1 ${isSmallMobile ? 'w-2.5 h-2.5' : 'text-sm'}`}
-                />
-                <span className="shrink-0">친구 초대</span>
-              </button>
-            </div>
-
-            {/* 이름순/근무순, 연도/월, 약속 날짜 정하기 - 한 줄에 배치 */}
-            <div className="flex flex-row gap-1 mb-2 items-center justify-between">
-              {/* 이름순/근무순 */}
-              <div className="flex items-center gap-0 text-gray-400 text-[0.6rem] md:text-xs lg:text-sm font-medium select-none shrink-0">
+          <button
+            className="flex items-center border border-primary text-primary rounded-md font-semibold bg-white hover:bg-primary-50 transition-colors whitespace-nowrap px-1.5 py-1 text-xs"
+            type="button"
+            onClick={handleInviteButton}
+          >
+            <FaUserPlus className="mr-1 w-3 h-3" />
+            <span className="shrink-0">친구 초대</span>
+          </button>
+        </div>
+        {/* 모바일: 캘린더 박스 */}
+        <div className="block sm:hidden bg-white rounded-none sm:rounded-xl shadow p-0 mt-0">
+          {/* 모바일: 이름순/근무순, 연도/월, 약속 날짜 정하기 - 한 줄에 배치 */}
+          <div className="flex flex-row items-center gap-1 mb-2 px-4">
+            {/* 이름순/근무순 - 왼쪽 */}
+            <div className="shrink-0">
+              <div className="flex items-center gap-0 text-gray-400 text-[0.6rem] md:text-xs lg:text-sm font-medium select-none">
                 <span
                   className={`cursor-pointer px-1 md:px-2 transition font-bold ${
                     sortByName ? 'text-gray-700' : 'text-gray-400'
@@ -418,9 +402,10 @@ const GroupDetailPage = () => {
                   근무순
                 </span>
               </div>
-
-              {/* 연도/월, 이전/다음달 - MyShiftCalendar.tsx 스타일 참고 */}
-              <div className="flex items-center justify-center gap-1 md:gap-4">
+            </div>
+            {/* 연도/월, 이전/다음달 - 가운데 */}
+            <div className="flex-1 flex justify-center items-center">
+              <div className="flex items-center gap-1 md:gap-4 justify-center">
                 <button
                   onClick={handlePrevMonth}
                   className="text-base-muted hover:text-base-foreground p-0"
@@ -450,37 +435,261 @@ const GroupDetailPage = () => {
                   />
                 </button>
               </div>
-
-              {/* 약속 잡기 버튼 */}
-              <button
-                className={`
-               shadow-sm flex items-center justify-center gap-1 bg-primary text-white rounded-lg font-semibold transition-colors whitespace-nowrap ${
-                 isSmallMobile
-                   ? 'px-1.5 py-1 text-[0.65rem]'
-                   : 'py-0.5 px-1.5 lg:px-2 sm:py-1 sm:px-2 h-[2.25rem] text-sm min-w-[8rem]'
-               }`}
-                onClick={() => setModalStep('check')}
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={2}
-                  stroke="currentColor"
-                  className={`${isSmallMobile ? 'w-2.5 h-2.5' : 'w-5 h-5'}`}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M6.75 3v2.25M17.25 3v2.25M3.75 7.5h16.5M4.5 19.5h15a.75.75 0 00.75-.75V7.5a.75.75 0 00-.75-.75h-15A.75.75 0 003.75 7.5v11.25c0 .414.336.75.75.75z"
-                  />
-                </svg>
-                <span className="shrink-0">약속 잡기</span>
-              </button>
             </div>
+            {/* 약속잡기 버튼 - 모바일만 ml-2 */}
+            <button
+              className={`ml-2 shadow-sm flex items-center justify-center gap-1 bg-primary text-white rounded-md font-semibold transition-colors whitespace-nowrap px-1.5 py-1 text-xs ${
+                isSmallMobile
+                  ? 'text-[0.65rem]'
+                  : 'py-0.5 px-1.5 lg:px-2 sm:py-1 sm:px-2 h-[2.25rem] text-sm min-w-[8rem]'
+              }`}
+              onClick={() => setModalStep('check')}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={2}
+                stroke="currentColor"
+                className={`${isSmallMobile ? 'w-2.5 h-2.5' : 'w-5 h-5'}`}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M6.75 3v2.25M17.25 3v2.25M3.75 7.5h16.5M4.5 19.5h15a.75.75 0 00.75-.75V7.5a.75.75 0 00-.75-.75h-15A.75.75 0 003.75 7.5v11.25c0 .414.336.75.75.75z"
+                />
+              </svg>
+              <span className="shrink-0">약속 잡기</span>
+            </button>
+          </div>
 
+          {/* 캘린더 표 */}
+          <div className="overflow-x-auto w-full">
+            <table className="w-full border-collapse table-fixed">
+              <thead>
+                <tr>
+                  <th className="text-[0.65rem] md:text-xs lg:text-base text-red-500 font-normal w-1/7 text-center p-0.5">
+                    SUN
+                  </th>
+                  <th className="text-[0.65rem] md:text-xs lg:text-base text-gray-700 font-normal w-1/7 text-center p-0.5">
+                    MON
+                  </th>
+                  <th className="text-[0.65rem] md:text-xs lg:text-base text-gray-700 font-normal w-1/7 text-center p-0.5">
+                    TUE
+                  </th>
+                  <th className="text-[0.65rem] md:text-xs lg:text-base text-gray-700 font-normal w-1/7 text-center p-0.5">
+                    WED
+                  </th>
+                  <th className="text-[0.65rem] md:text-xs lg:text-base text-gray-700 font-normal w-1/7 text-center p-0.5">
+                    THU
+                  </th>
+                  <th className="text-[0.65rem] md:text-xs lg:text-base text-gray-700 font-normal w-1/7 text-center p-0.5">
+                    FRI
+                  </th>
+                  <th className="text-[0.65rem] md:text-xs lg:text-base text-purple-500 font-normal w-1/7 text-center p-0.5">
+                    SAT
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {weeks.map((week, weekIndex) => (
+                  <tr key={`week-${weekIndex}`}>
+                    {week.map((day, dayIndex) => (
+                      <td
+                        key={`date-${weekIndex}-${dayIndex}`}
+                        className={`align-top text-[0.65rem] md:text-xs border border-gray-100 ${
+                          day.isPrevMonth || day.isNextMonth
+                            ? 'text-gray-400 bg-gray-50'
+                            : dayIndex === 0
+                              ? 'text-red-500'
+                              : dayIndex === 6
+                                ? 'text-purple-500'
+                                : 'text-gray-700'
+                        } ${
+                          isMobile
+                            ? 'min-w-[3.75rem] min-h-[5rem] p-0.5'
+                            : 'min-w-[5.625rem] p-2'
+                        }`}
+                        style={{ verticalAlign: 'top' }}
+                      >
+                        <div className="font-medium text-[0.65rem] md:text-xs text-gray-400">
+                          {day.date}
+                        </div>
+                        <div className="flex flex-col gap-0 md:gap-0.5 items-start">
+                          {day.duties.map((dutyInfo, index) => (
+                            <div
+                              key={`${day.date}-${
+                                dutyInfo.member.memberId || index
+                              }`}
+                              className="flex items-center justify-between w-full"
+                            >
+                              {isMobile ? (
+                                <span
+                                  className={`text-[0.55rem] font-medium ${
+                                    day.isPrevMonth || day.isNextMonth
+                                      ? 'text-gray-300'
+                                      : 'text-gray-600'
+                                  } truncate w-[1.625rem] text-left`}
+                                  title={dutyInfo.member.name}
+                                >
+                                  {dutyInfo.member.name.length > 3
+                                    ? `${dutyInfo.member.name.substring(0, 3)}`
+                                    : dutyInfo.member.name}
+                                </span>
+                              ) : (
+                                <span
+                                  className={`text-xs font-medium ${
+                                    day.isPrevMonth || day.isNextMonth
+                                      ? 'text-gray-300'
+                                      : 'text-gray-600'
+                                  } text-left`}
+                                >
+                                  {dutyInfo.member.name}
+                                </span>
+                              )}
+                              <div
+                                className={`flex-shrink-0 ${
+                                  dutyInfo.duty ? '' : 'invisible'
+                                } ${
+                                  day.isPrevMonth || day.isNextMonth
+                                    ? 'opacity-40'
+                                    : ''
+                                } ${isMobile ? 'scale-75 origin-right' : ''}`}
+                              >
+                                <DutyBadgeEng
+                                  type={dutyInfo.duty as DutyType}
+                                  size="xs"
+                                  variant="outline"
+                                  useSmallText
+                                  useCustomColors
+                                />
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* 데스크톱: 통합 흰색 박스 */}
+        <div className="hidden sm:block bg-white rounded-xl shadow p-4">
+          {/* 모든 요소를 하나의 div로 묶어서 배치 */}
+          <div className="flex flex-col">
+            {/* 그룹명/설정/설명 */}
+            <div className="flex flex-row items-center justify-between">
+              <div className="flex items-center min-w-0">
+                <span className="font-medium text-base truncate max-w-[16rem]">
+                  {group.groupName}
+                </span>
+                <button
+                  className="p-1.5 rounded-md hover:bg-gray-100 sm:p-2 ml-1"
+                  onClick={() => navigate(`/group/${groupId}/member`)}
+                >
+                  <FaCog className="text-gray-400 text-lg sm:text-xl" />
+                </button>
+              </div>
+            </div>
+            <span className="text-xs text-gray-400 truncate max-w-[20rem] mt-0">
+              {group.groupDescription || '그룹 설명이 없습니다.'}
+            </span>
+            {/* 이름순/근무순, 날짜, 버튼들 */}
+            <div className="flex flex-row items-center w-full mt-1">
+              {/* 이름순/근무순 - 왼쪽 */}
+              <div className="shrink-0 pl-2 flex items-center">
+                <div className="flex items-center gap-0 text-gray-400 text-[0.6rem] md:text-xs lg:text-sm font-medium select-none">
+                  <span
+                    className={`cursor-pointer px-1 md:px-2 transition font-bold ${
+                      sortByName ? 'text-gray-700' : 'text-gray-400'
+                    }`}
+                    onClick={() => handleSortToggle(true)}
+                  >
+                    이름순
+                  </span>
+                  <span className="mx-0 md:mx-1 text-gray-300 text-[0.6rem] md:text-xs lg:text-base">
+                    |
+                  </span>
+                  <span
+                    className={`cursor-pointer px-1 md:px-2 transition font-bold ${
+                      !sortByName ? 'text-gray-700' : 'text-gray-400'
+                    }`}
+                    onClick={() => handleSortToggle(false)}
+                  >
+                    근무순
+                  </span>
+                </div>
+              </div>
+              {/* 날짜/월 - 가운데 */}
+              <div className="flex-1 flex justify-center items-center">
+                <div className="flex items-center gap-1 md:gap-4 justify-center">
+                  <button
+                    onClick={handlePrevMonth}
+                    className="text-base-muted hover:text-base-foreground p-0"
+                  >
+                    <IoIosArrowBack
+                      className={`${isSmallMobile ? 'w-5 h-5' : 'w-5 h-5 md:w-6 md:h-6'}`}
+                    />
+                  </button>
+                  <h2
+                    className={`text-base-foreground ${isSmallMobile ? 'text-[0.875rem]' : 'text-[0.875rem] md:text-[1rem]'} font-medium whitespace-nowrap`}
+                  >
+                    {group && group.shifts && group.shifts.length > 0
+                      ? group.shifts[0].date.substring(0, 4)
+                      : new Date().getFullYear()}
+                    년{' '}
+                    {group && group.shifts && group.shifts.length > 0
+                      ? parseInt(group.shifts[0].date.substring(5, 7))
+                      : new Date().getMonth() + 1}
+                    월
+                  </h2>
+                  <button
+                    onClick={handleNextMonth}
+                    className="text-base-muted hover:text-base-foreground p-0"
+                  >
+                    <IoIosArrowForward
+                      className={`${isSmallMobile ? 'w-5 h-5' : 'w-5 h-5 md:w-6 md:h-6'}`}
+                    />
+                  </button>
+                </div>
+              </div>
+              {/* 버튼들 - 오른쪽 세로 정렬 */}
+              <div className="flex flex-col items-end gap-1 ml-2">
+                <button
+                  className="flex items-center border border-primary text-primary rounded-md font-semibold bg-white hover:bg-primary-50 transition-colors whitespace-nowrap px-3 py-1.5 text-sm"
+                  type="button"
+                  onClick={handleInviteButton}
+                >
+                  <FaUserPlus className="mr-1.5 w-4 h-4" />
+                  <span className="shrink-0">친구 초대</span>
+                </button>
+                <button
+                  className="shadow-sm flex items-center justify-center gap-1 bg-primary text-white rounded-md font-semibold transition-colors whitespace-nowrap px-3 py-1.5 text-sm min-w-[8rem]"
+                  onClick={() => setModalStep('check')}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={2}
+                    stroke="currentColor"
+                    className="w-5 h-5"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M6.75 3v2.25M17.25 3v2.25M3.75 7.5h16.5M4.5 19.5h15a.75.75 0 00.75-.75V7.5a.75.75 0 00-.75-.75h-15A.75.75 0 003.75 7.5v11.25c0 .414.336.75.75.75z"
+                    />
+                  </svg>
+                  <span className="shrink-0">약속 잡기</span>
+                </button>
+              </div>
+            </div>
             {/* 캘린더 표 */}
-            <div className="overflow-x-auto w-full">
+            <div className="overflow-x-auto w-full mt-2">
               <table className="w-full border-collapse table-fixed">
                 <thead>
                   <tr>

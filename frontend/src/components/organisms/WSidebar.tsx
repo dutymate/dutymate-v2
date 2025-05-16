@@ -50,8 +50,8 @@ const headNurseNavigation: NavigationItem[] = [
   { name: '요청 근무 관리', href: '/req-admin', icon: AiFillSchedule },
   { name: '나의 듀티표', href: '/my-shift', icon: BiSolidUserPin },
   { name: '병동 듀티표', href: '/team-shift', icon: HiOutlineUsers },
-  { name: '커뮤니티', href: '/community', icon: IoIosChatboxes },
   { name: '친구 찾기', href: '/group', icon: FaCoffee },
+  { name: '커뮤니티', href: '/community', icon: IoIosChatboxes },
   // { name: '튜토리얼', href: '/tutorial', icon: PiLightbulbFilamentFill },
 ];
 
@@ -59,8 +59,8 @@ const headNurseNavigation: NavigationItem[] = [
 const staffNurseNavigation: NavigationItem[] = [
   { name: '나의 듀티표', href: '/my-shift', icon: BiSolidUserPin },
   { name: '병동 듀티표', href: '/team-shift', icon: HiOutlineUsers },
-  { name: '커뮤니티', href: '/community', icon: IoIosChatboxes },
   { name: '친구 찾기', href: '/group', icon: FaCoffee },
+  { name: '커뮤니티', href: '/community', icon: IoIosChatboxes },
   // { name: '튜토리얼', href: '/tutorial', icon: PiLightbulbFilamentFill },
 ];
 
