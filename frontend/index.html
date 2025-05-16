@@ -7,17 +7,277 @@
     <meta name="google" content="notranslate" />
     <title>듀티메이트</title>
 
-    <!-- 카카오톡 인앱브라우저 감지 및 리다이렉트 -->
+    <!-- 인앱 브라우저 감지 및 리다이렉트 -->
     <script>
-      function isKakaoTalkInAppBrowser() {
-        const userAgent = navigator.userAgent.toLowerCase();
-        return userAgent.includes('kakaotalk');
-      }
+      (function(d, ua, l) {
+        // 인앱 브라우저 처리가 이미 시도됐는지 확인 (세션 스토리지 사용)
+        const inappHandled = sessionStorage.getItem('inappHandled');
+        const currentTime = new Date().getTime();
+        const lastHandleTime = parseInt(sessionStorage.getItem('lastHandleTime') || '0');
+        
+        // 마지막 처리 후 10초가 지났는지 확인 (반복 처리 방지)
+        const timeThreshold = 10 * 1000; // 10초
+        const shouldHandle = !inappHandled || (currentTime - lastHandleTime) > timeThreshold;
 
-      if (isKakaoTalkInAppBrowser()) {
-        const target_url = window.location.href;
-        location.href = 'kakaotalk://web/openExternal?url=' + encodeURIComponent(target_url);
-      }
+        // 플랫폼과 앱 감지
+        const isAndroid = /android/i.test(ua);
+        const isIOS = /i(?:phone|pad)/i.test(ua);
+        const isKakao = /(?:iphone|ipad|android).* kakaotalk/i.test(ua);
+        const isInstagram = /instagram/i.test(ua);
+
+        // 안내 메시지 표시 함수
+        function showMessage() {
+          const existingBg = d.querySelector('.__inappBg__');
+          if (existingBg) {
+            return;
+          }
+
+          // 카카오톡은 메시지 표시하지 않음
+          if (isKakao) {
+            return;
+          }
+          
+          const bg = d.createElement('div'), box = d.createElement('div'), style = d.createElement('style');
+          bg.className = '__inappBg__';
+          box.className = '__inappBox__';
+          
+          // 플랫폼과 앱에 따른 메시지 설정
+          const menuIcon = '⋮';
+          const menuText = isAndroid ? '"다른 브라우저에서 열기"' : '"외부 브라우저에서 열기"';
+          const menuIconStyle = isInstagram ? 'transform: rotate(90deg);' : 'transform: none;';
+          
+          // 메시지 박스
+          box.innerHTML = `
+            <div class="__inappHeader__">
+              <div class="__inappIcon__">✨</div>
+              <h3 class="__inappTitle__">듀티메이트가 기다리고 있어요!</h3>
+            </div>
+            <div class="__inappContent__">
+              <p>아쉽게도 인앱 브라우저에서는<br>모든 기능을 즐기기 어려워요 😢</p>
+              <div class="__inappGuide__">
+                <p class="__inappHighlightBox__">
+                  오른쪽 상단의 <span class="__inappHilite__ __inappMenuIcon__">${menuIcon}</span> 메뉴를 클릭!<br>
+                  <span class="__inappHilite__">${menuText}</span>를 클릭해주세요!
+                </p>
+                <p class="__inappMenuGuide__">
+                  <span class="__inappHilite__">외부 브라우저</span>를 통해<br>
+                  <span class="__inappHilite__">더 빠르고 편하게</span> 이용할 수 있어요!
+                </p>
+                <div class="__inappArrow__">👆</div>
+              </div>
+            </div>
+          `;
+          
+          // CSS
+          style.innerHTML = `
+            .__inappBg__ { 
+              position: fixed; 
+              top: 0; 
+              left: 0; 
+              width: 100vw; 
+              height: 100vh; 
+              z-index: 1000; 
+              background: rgba(0, 0, 0, 0.6); 
+            } 
+            
+            .__inappBox__ { 
+              position: fixed;
+              width: 100vw;
+              height: 100vh;
+              top: 0;
+              left: 0;
+              z-index: 1001;
+              background: #FFFFFF; 
+              color: #4D4D4D; 
+              display: flex;
+              flex-direction: column;
+              justify-content: center;
+              align-items: center;
+              animation: __inappSlideUp__ 0.3s ease-out;
+            }
+            
+            @keyframes __inappSlideUp__ {
+              from { opacity: 0; }
+              to { opacity: 1; }
+            }
+            
+            .__inappHeader__ {
+              padding: 20px 20px 0;
+              text-align: center;
+            }
+            
+            .__inappIcon__ {
+              font-size: 32px;
+              margin-bottom: 8px;
+            }
+            
+            .__inappTitle__ {
+              font-size: 20px;
+              font-weight: 600;
+              color: #4D4D4D;
+              margin: 0 0 16px;
+            }
+            
+            .__inappContent__ {
+              padding: 0 20px 20px;
+              text-align: center;
+              font-size: 16px;
+              line-height: 1.6;
+            }
+            
+            .__inappGuide__ {
+              margin-top: 24px;
+              font-size: 15px;
+              color: #666;
+              position: relative;
+            }
+
+            .__inappHighlightBox__ {
+              background: #FEF6F2;
+              border-radius: 12px;
+              padding: 16px;
+              margin-bottom: 16px;
+              font-size: 16px;
+              line-height: 1.6;
+            }
+            
+            .__inappHilite__ { 
+              font-weight: 600; 
+              color: #F5A281;
+            }
+
+            .__inappMenuIcon__ {
+              font-size: 20px;
+              font-weight: 900;
+              background: #F5A281;
+              color: white;
+              padding: 4px 8px;
+              border-radius: 6px;
+              display: inline-block;
+              line-height: 1;
+              vertical-align: middle;
+              text-shadow: 0 0 1px rgba(0, 0, 0, 0.2);
+              letter-spacing: -1px;
+              font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+              ${menuIconStyle}
+            }
+
+            .__inappMenuGuide__ {
+              font-size: 14px;
+              color: #666;
+            }
+
+            .__inappArrow__ {
+              position: fixed;
+              top: 20px;
+              right: 10px;
+              font-size: 40px;
+              animation: __inappArrowBounce__ 1.5s infinite;
+            }
+
+            @keyframes __inappArrowBounce__ {
+              0%, 100% { transform: translateY(0); }
+              50% { transform: translateY(-10px); }
+            }
+          `;
+          
+          d.body.appendChild(bg);
+          d.body.appendChild(box);
+          d.body.appendChild(style);
+          
+          // 배경 클릭으로 닫기 (3번 클릭)
+          let click = 3;
+          bg.addEventListener('click', () => {
+            click--;
+            if(!click) {
+              if (d.body.contains(bg)) d.body.removeChild(bg);
+              if (d.body.contains(box)) d.body.removeChild(box);
+              if (d.body.contains(style)) d.body.removeChild(style);
+            }
+          });
+        }
+        
+        // 카카오톡 인앱 브라우저 감지
+        if (isKakao && shouldHandle) {
+          // 기존 카카오톡 처리 방식 유지
+          sessionStorage.setItem('inappHandled', 'true');
+          sessionStorage.setItem('lastHandleTime', currentTime.toString());
+          
+          // 딜레이 추가 - 연속 리디렉션 방지
+          setTimeout(() => {
+            // URL에 불필요한 파라미터가 있다면 제거
+            let cleanUrl = l.href;
+            try {
+              const url = new URL(l.href);
+              url.searchParams.delete('inapp_handled');
+              cleanUrl = url.toString();
+            } catch (e) {
+              console.error("URL 처리 오류:", e);
+            }
+            
+            location.href = 'kakaotalk://web/openExternal?url=' + encodeURIComponent(cleanUrl);
+          }, 100);
+          return;
+        }
+        
+        // 다른 인앱 브라우저 처리
+        function setLink(url) {
+          // 이미 처리되었는지 확인
+          if (!shouldHandle) {
+            // 이미 처리된 경우 안내 메시지만 표시
+            setTimeout(() => {
+              if (!d.querySelector('.__inappBg__')) {
+                showMessage();
+              }
+            }, 1000);
+            return;
+          }
+          
+          // 처리 상태 저장
+          sessionStorage.setItem('inappHandled', 'true');
+          sessionStorage.setItem('lastHandleTime', currentTime.toString());
+          
+          // 안내 메시지 표시
+          setTimeout(showMessage, 1000);
+          
+          // 클린 URL 만들기 - 중복 파라미터 방지
+          let cleanUrl = url;
+          try {
+            const urlObj = new URL(url);
+            urlObj.searchParams.delete('inapp_handled');
+            // 처리 흔적 추가
+            urlObj.searchParams.set('inapp_handled', 'true');
+            cleanUrl = urlObj.toString();
+          } catch (e) {
+            console.error("URL 처리 오류:", e);
+          }
+          
+          // URL 변경 전 약간의 지연 추가
+          setTimeout(() => {
+            window.location.href = cleanUrl;
+          }, 300);
+        }
+
+        if(/(?:iphone|ipad|android).* line\//i.test(ua)) {
+          setLink(l.href + (/\?/.test(l.href) ? '&' : '?') + 'openExternalBrowser=1');
+        } else if(/inapp|naver|snapchat|wirtschaftswoche|thunderbird|instagram|everytimeapp|whatsapp|electron|wadiz|aliapp|zumapp|kakaostory|band|twitter|daumapps|daumdevice\/mobile|fb_iab|fb4a|fban|fbios|fbss|trill/i.test(ua)) {
+          if (isAndroid) {
+            setLink(l.href.replace(/^(https?):\/\/(.*)$/, 'intent://$2#Intent;scheme=$1;package=com.android.chrome;end'));
+          } else if (isIOS) {
+            // 이미 처리된 경우 메시지만 표시
+            if (!shouldHandle) {
+              setTimeout(() => {
+                if (!d.querySelector('.__inappBg__')) {
+                  showMessage();
+                }
+              }, 1000);
+              return;
+            }
+            // 새 처리
+            setLink(l.href.replace(/^http/, 'googlechrome')); // 아이폰에 크롬이 설치되어 있다면 크롬이라도 열기.
+          }
+        }
+      })(document, navigator.userAgent, location);
     </script>
 
     <!-- HTML Meta Tags -->
