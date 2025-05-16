@@ -3,6 +3,8 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/atoms/Button';
 import RuleEditModal from '@/components/organisms/RuleEditModal';
 import { WardRule } from '@/services/ruleService';
+import useWardStore from '@/stores/wardStore';
+import { ShiftValues } from '@/services/wardService';
 
 // GA4 타입 선언 (전역 Window 타입에 gtag 추가)
 declare global {
@@ -62,6 +64,14 @@ const AutoGenerateConfirmModal = ({
   const [isRuleEditModalOpen, setIsRuleEditModalOpen] = useState(false);
   // 업데이트된 규칙 상태 관리
   const [updatedRules, setUpdatedRules] = useState<WardRule | null>(null);
+  // wardInfo 상태 가져오기
+  const wardInfo = useWardStore((state) => state.wardInfo);
+
+  // M 근무(shiftFlags & 8) 간호사 수 계산 - 비트마스킹으로 M 비트가 설정되었는지 확인
+  const mShiftNursesCount =
+    wardInfo?.nurses?.filter(
+      (nurse) => (nurse.shiftFlags & ShiftValues.M) === ShiftValues.M
+    )?.length || 0;
 
   // 모바일 여부 확인
   useEffect(() => {
@@ -232,7 +242,7 @@ const AutoGenerateConfirmModal = ({
           {/* 헤더 */}
           <div className="flex rounded-t-xl justify-between bg-primary-bg items-center px-[1rem] py-[0.25rem] border-b">
             <h2 className="text-sm font-medium text-primary-dark">
-              병동 듀티 규칙 확인
+              병동 규칙 확인
             </h2>
             <button
               onClick={handleClose}
@@ -245,72 +255,95 @@ const AutoGenerateConfirmModal = ({
 
           {/* 내용 */}
           <div className="p-[1rem]">
-            <div className="space-y-[0.5rem]">
-              {/* 안내 멘트 */}
-              <div className="flex items-center justify-center gap-[0.25rem] py-[0.5rem] px-[0.25rem] bg-gray-50 rounded font-bold text-sm text-primary">
-                <span>병동 듀티 규칙을 확인해주세요.</span>
-              </div>
+            {/* 안내 멘트 */}
+            <div className="flex items-center justify-center gap-[0.25rem] py-[0.5rem] px-[0.25rem] mb-3 bg-gray-50 rounded font-bold text-sm text-primary">
+              <span>병동 듀티 규칙을 확인해주세요.</span>
+            </div>
 
-              {/* 평일 근무자 수 */}
-              <div className="flex items-center justify-between py-[0.1rem] border-b">
-                <span className="text-sm text-foreground">평일 근무자 수</span>
-                <div className="flex items-center gap-2">
+            {/* 섹션 1: 근무자 수 설정 */}
+            <div className="mb-3">
+              <h3 className="text-xs font-semibold text-gray-500 mb-2 uppercase">
+                근무자 수 설정
+              </h3>
+              <div className="bg-gray-50 rounded-md p-2 space-y-2">
+                {/* 평일 근무자 수 */}
+                <div className="flex items-center justify-between py-[0.5rem]">
+                  <span className="text-sm text-foreground">
+                    평일 근무자 수
+                  </span>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-duty-day">D</span>
-                    <span className="text-sm w-[1.5rem] text-center">
-                      {currentRules.wdayDCnt}명
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-duty-evening">
-                      E
-                    </span>
-                    <span className="text-sm w-[1.5rem] text-center">
-                      {currentRules.wdayECnt}명
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-duty-night">
-                      N
-                    </span>
-                    <span className="text-sm w-[1.5rem] text-center">
-                      {currentRules.wdayNCnt}명
-                    </span>
+                    {/* M 전담 근무자 수 표시 */}
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-duty-mid">
+                        M
+                      </span>
+                      <span className="text-sm w-[1.5rem] text-center">
+                        {mShiftNursesCount}명
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-duty-day">
+                        D
+                      </span>
+                      <span className="text-sm w-[1.5rem] text-center">
+                        {currentRules.wdayDCnt}명
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-duty-evening">
+                        E
+                      </span>
+                      <span className="text-sm w-[1.5rem] text-center">
+                        {currentRules.wdayECnt}명
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-duty-night">
+                        N
+                      </span>
+                      <span className="text-sm w-[1.5rem] text-center">
+                        {currentRules.wdayNCnt}명
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* 주말 근무자 수 */}
-              <div className="flex items-center justify-between py-[0.5rem] border-b">
-                <span className="text-sm text-foreground">주말 근무자 수</span>
-                <div className="flex items-center gap-2">
+                {/* 주말 근무자 수 */}
+                <div className="flex items-center justify-between py-[0.1rem]">
+                  <span className="text-sm text-foreground">
+                    주말 근무자 수
+                  </span>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-duty-day">D</span>
-                    <span className="text-sm w-[1.5rem] text-center">
-                      {currentRules.wendDCnt}명
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-duty-evening">
-                      E
-                    </span>
-                    <span className="text-sm w-[1.5rem] text-center">
-                      {currentRules.wendECnt}명
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-duty-night">
-                      N
-                    </span>
-                    <span className="text-sm w-[1.5rem] text-center">
-                      {currentRules.wendNCnt}명
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-duty-day">
+                        D
+                      </span>
+                      <span className="text-sm w-[1.5rem] text-center">
+                        {currentRules.wendDCnt}명
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-duty-evening">
+                        E
+                      </span>
+                      <span className="text-sm w-[1.5rem] text-center">
+                        {currentRules.wendECnt}명
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-duty-night">
+                        N
+                      </span>
+                      <span className="text-sm w-[1.5rem] text-center">
+                        {currentRules.wendNCnt}명
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
 
               {/* 전담 근무 설정 버튼 */}
-              <div className="flex items-center justify-end py-[0.5rem] border-b">
+              <div className="flex items-center justify-end mt-1">
                 <div className="relative group">
                   <button
                     onClick={handleAssignDedicated}
@@ -324,49 +357,60 @@ const AutoGenerateConfirmModal = ({
                   </div>
                 </div>
               </div>
+            </div>
 
-              {/* 연속 근무 규칙 */}
-              <div className="flex items-center justify-between py-[0.5rem] border-b">
-                <span className="text-sm text-foreground">
-                  연속 근무 수 최대
-                </span>
-                <div className="flex items-center gap-1.5">
-                  <span className="text-sm">
-                    {currentRules.maxShift}일 이하
+            {/* 섹션 2: 근무 규칙 설정 */}
+            <div>
+              <h3 className="text-xs font-semibold text-gray-500 mb-2 uppercase">
+                근무 규칙 설정
+              </h3>
+              <div className="bg-gray-50 rounded-md p-2 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-foreground">
+                    연속 근무 수 최대
                   </span>
-                  <span
-                    className={`text-xs ml-2 ${getFontWeight(currentRules.prioMaxShift)}`}
-                  >
-                    {getPriorityText(currentRules.prioMaxShift)}
-                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-sm font-medium">
+                      {currentRules.maxShift}일 이하
+                    </span>
+                    <span
+                      className={`text-xs ml-2 px-2 py-0.5 rounded-full bg-primary/10 ${getFontWeight(currentRules.prioMaxShift)}`}
+                    >
+                      {getPriorityText(currentRules.prioMaxShift)}
+                    </span>
+                  </div>
                 </div>
-              </div>
 
-              <div className="flex items-center justify-between py-[0.5rem] border-b">
-                <span className="text-sm text-foreground">
-                  나이트 연속 최대
-                </span>
-                <div className="flex items-center gap-1.5">
-                  <span className="text-sm">{currentRules.maxN}일 이하</span>
-                  <span
-                    className={`text-xs ml-2 ${getFontWeight(currentRules.prioMaxN)}`}
-                  >
-                    {getPriorityText(currentRules.prioMaxN)}
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-foreground">
+                    나이트 연속 최대
                   </span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-sm font-medium">
+                      {currentRules.maxN}일 이하
+                    </span>
+                    <span
+                      className={`text-xs ml-2 px-2 py-0.5 rounded-full bg-primary/10 ${getFontWeight(currentRules.prioMaxN)}`}
+                    >
+                      {getPriorityText(currentRules.prioMaxN)}
+                    </span>
+                  </div>
                 </div>
-              </div>
 
-              <div className="flex items-center justify-between py-[0.5rem] border-b">
-                <span className="text-sm text-foreground">
-                  나이트 연속 최소
-                </span>
-                <div className="flex items-center gap-1.5">
-                  <span className="text-sm">{currentRules.minN}일 이상</span>
-                  <span
-                    className={`text-xs ml-2 ${getFontWeight(currentRules.prioMinN)}`}
-                  >
-                    {getPriorityText(currentRules.prioMinN)}
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-foreground">
+                    나이트 연속 최소
                   </span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-sm font-medium">
+                      {currentRules.minN}일 이상
+                    </span>
+                    <span
+                      className={`text-xs ml-2 px-2 py-0.5 rounded-full bg-primary/10 ${getFontWeight(currentRules.prioMinN)}`}
+                    >
+                      {getPriorityText(currentRules.prioMinN)}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>

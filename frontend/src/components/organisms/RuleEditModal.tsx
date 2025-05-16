@@ -3,6 +3,8 @@ import { toast } from 'react-toastify';
 
 import { Button } from '@/components/atoms/Button';
 import { ruleService } from '@/services/ruleService';
+import useWardStore from '@/stores/wardStore';
+import { ShiftValues } from '@/services/wardService';
 
 interface RuleEditModalProps {
   onClose: () => void;
@@ -55,6 +57,13 @@ const RuleEditModal = ({
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
+  const wardInfo = useWardStore((state) => state.wardInfo);
+
+  // M 근무(shiftFlags & 8) 간호사 수 계산 - 비트마스킹으로 M 비트가 설정되었는지 확인
+  const mShiftNursesCount =
+    wardInfo?.nurses?.filter(
+      (nurse) => (nurse.shiftFlags & ShiftValues.M) === ShiftValues.M
+    )?.length || 0;
 
   // 외부 클릭 감지
   useEffect(() => {
@@ -69,6 +78,20 @@ const RuleEditModal = ({
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [onClose]);
+
+  // 병동 정보 동기화
+  useEffect(() => {
+    // 병동 정보가 없거나 오래된 경우 동기화
+    const syncWardInfo = async () => {
+      try {
+        await useWardStore.getState().syncWithServer();
+      } catch (error) {
+        console.error('병동 정보 동기화 실패:', error);
+      }
+    };
+
+    syncWardInfo();
+  }, []);
 
   useEffect(() => {
     const fetchRules = async () => {
@@ -158,7 +181,9 @@ const RuleEditModal = ({
       >
         {/* 헤더 */}
         <div className="flex rounded-t-xl justify-between bg-primary-bg items-center px-[1rem] py-[0.25rem] border-b">
-          <h2 className="text-sm font-medium text-primary-dark">규칙 설정</h2>
+          <h2 className="text-sm font-medium text-primary-dark">
+            병동 규칙 설정
+          </h2>
           <button
             onClick={onClose}
             className="text-primary hover:text-primary/80"
@@ -189,260 +214,347 @@ const RuleEditModal = ({
               <>
                 <div className="space-y-[0.5rem]">
                   {/* 자동 적용 규칙 안내 */}
-                  <div className="flex items-center justify-center gap-[0.25rem] py-[0.5rem] px-[0.25rem] bg-gray-50 rounded font-bold text-xs text-primary">
+                  <div className="flex items-center justify-center gap-[0.25rem] py-[0.5rem] px-[0.25rem] mb-3 bg-gray-50 rounded font-bold text-sm text-primary">
                     <span>ND, ED, NE, NOD 규칙은 자동 적용됩니다.</span>
                   </div>
 
-                  {/* 평일 근무자 수 */}
-                  <div className="flex items-center justify-between py-[0.375rem] border-b">
-                    <span className="text-sm text-foreground">
-                      평일 근무자 수
-                    </span>
-                    <div className="flex items-center gap-2">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium text-duty-day">
-                          D
+                  {/* 섹션 1: 근무자 수 설정 */}
+                  <div className="mb-3">
+                    <h3 className="text-xs font-semibold text-gray-500 mb-2 uppercase">
+                      근무자 수 설정
+                    </h3>
+                    <div className="bg-gray-50 rounded-md p-2 space-y-3">
+                      {/* 평일 근무자 수 */}
+                      <div className="flex items-center justify-between py-[0.1rem]">
+                        <span className="text-sm text-foreground">
+                          평일 근무자 수
                         </span>
-                        <select
-                          value={rules.wdayDCnt}
-                          onChange={(e) =>
-                            handleChange('wdayDCnt', Number(e.target.value))
-                          }
-                          className="
-                          appearance-none
-                          border rounded
-                          px-2 py-0.5
-                          text-sm
-                          bg-white
-                          w-12
-                          text-foreground
-                          text-center
-                          cursor-pointer
-                          hover:border-primary
-                          focus:outline-none
-                          focus:ring-1
-                          focus:ring-primary
-                          focus:border-primary
-                        "
-                        >
-                          {[...Array(6)].map((_, i) => (
-                            <option key={i} value={i} className="text-center">
-                              {i}
-                            </option>
-                          ))}
-                        </select>
+                        <div className="flex items-center gap-2">
+                          {/* M 전담 근무자 수 표시 (읽기 전용) */}
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium text-duty-mid">
+                              M
+                            </span>
+                            <div className="relative group">
+                              <div className="appearance-none border rounded px-2 py-0.5 text-sm bg-gray-100 w-[1.5rem] text-foreground text-center">
+                                {mShiftNursesCount}
+                              </div>
+                              <div className="absolute left-1/2 -translate-x-1/2 top-full mt-1 px-3 py-1 bg-gray-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 whitespace-nowrap transition-opacity z-50">
+                                전담 근무는 병동 관리 페이지에서만 설정
+                                가능합니다
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium text-duty-day">
+                              D
+                            </span>
+                            <select
+                              value={rules.wdayDCnt}
+                              onChange={(e) =>
+                                handleChange('wdayDCnt', Number(e.target.value))
+                              }
+                              className="
+                              appearance-none
+                              border rounded
+                              px-2 py-0.5
+                              text-sm
+                              bg-white
+                              w-[1.75rem]
+                              text-foreground
+                              text-center
+                              cursor-pointer
+                              hover:border-primary
+                              focus:outline-none
+                              focus:ring-1
+                              focus:ring-primary
+                              focus:border-primary
+                            "
+                            >
+                              {[...Array(6)].map((_, i) => (
+                                <option
+                                  key={i}
+                                  value={i}
+                                  className="text-center"
+                                >
+                                  {i}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium text-duty-evening">
+                              E
+                            </span>
+                            <select
+                              value={rules.wdayECnt}
+                              onChange={(e) =>
+                                handleChange('wdayECnt', Number(e.target.value))
+                              }
+                              className="
+                              appearance-none
+                              border rounded
+                              px-2 py-0.5
+                              text-sm
+                              bg-white
+                              w-[1.75rem]
+                              text-foreground
+                              text-center
+                              cursor-pointer
+                              hover:border-primary
+                              focus:outline-none
+                              focus:ring-1
+                              focus:ring-primary
+                              focus:border-primary
+                            "
+                            >
+                              {[...Array(6)].map((_, i) => (
+                                <option
+                                  key={i}
+                                  value={i}
+                                  className="text-center"
+                                >
+                                  {i}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium text-duty-night">
+                              N
+                            </span>
+                            <select
+                              value={rules.wdayNCnt}
+                              onChange={(e) =>
+                                handleChange('wdayNCnt', Number(e.target.value))
+                              }
+                              className="
+                              appearance-none
+                              border rounded
+                              px-2 py-0.5
+                              text-sm
+                              bg-white
+                              w-[1.75rem]
+                              text-foreground
+                              text-center
+                              cursor-pointer
+                              hover:border-primary
+                              focus:outline-none
+                              focus:ring-1
+                              focus:ring-primary
+                              focus:border-primary
+                            "
+                            >
+                              {[...Array(6)].map((_, i) => (
+                                <option
+                                  key={i}
+                                  value={i}
+                                  className="text-center"
+                                >
+                                  {i}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium text-duty-evening">
-                          E
+
+                      {/* 주말 근무자 수 */}
+                      <div className="flex items-center justify-between py-[0.1rem]">
+                        <span className="text-sm text-foreground">
+                          주말 근무자 수
                         </span>
-                        <select
-                          value={rules.wdayECnt}
-                          onChange={(e) =>
-                            handleChange('wdayECnt', Number(e.target.value))
-                          }
-                          className="
-                          appearance-none
-                          border rounded
-                          px-2 py-0.5
-                          text-sm
-                          bg-white
-                          w-12
-                          text-foreground
-                          text-center
-                          cursor-pointer
-                          hover:border-primary
-                          focus:outline-none
-                          focus:ring-1
-                          focus:ring-primary
-                          focus:border-primary
-                        "
-                        >
-                          {[...Array(6)].map((_, i) => (
-                            <option key={i} value={i} className="text-center">
-                              {i}
-                            </option>
-                          ))}
-                        </select>
+                        <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium text-duty-day">
+                              D
+                            </span>
+                            <select
+                              value={rules.wendDCnt}
+                              onChange={(e) =>
+                                handleChange('wendDCnt', Number(e.target.value))
+                              }
+                              className="
+                              appearance-none
+                              border rounded
+                              px-2 py-0.5
+                              text-sm
+                              bg-white
+                              w-[1.75rem]
+                              text-foreground
+                              text-center
+                              cursor-pointer
+                              hover:border-primary
+                              focus:outline-none
+                              focus:ring-1
+                              focus:ring-primary
+                              focus:border-primary
+                            "
+                            >
+                              {[...Array(6)].map((_, i) => (
+                                <option
+                                  key={i}
+                                  value={i}
+                                  className="text-center"
+                                >
+                                  {i}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium text-duty-evening">
+                              E
+                            </span>
+                            <select
+                              value={rules.wendECnt}
+                              onChange={(e) =>
+                                handleChange('wendECnt', Number(e.target.value))
+                              }
+                              className="
+                              appearance-none
+                              border rounded
+                              px-2 py-0.5
+                              text-sm
+                              bg-white
+                              w-[1.75rem]
+                              text-foreground
+                              text-center
+                              cursor-pointer
+                              hover:border-primary
+                              focus:outline-none
+                              focus:ring-1
+                              focus:ring-primary
+                              focus:border-primary
+                            "
+                            >
+                              {[...Array(6)].map((_, i) => (
+                                <option
+                                  key={i}
+                                  value={i}
+                                  className="text-center"
+                                >
+                                  {i}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium text-duty-night">
+                              N
+                            </span>
+                            <select
+                              value={rules.wendNCnt}
+                              onChange={(e) =>
+                                handleChange('wendNCnt', Number(e.target.value))
+                              }
+                              className="
+                              appearance-none
+                              border rounded
+                              px-2 py-0.5
+                              text-sm
+                              bg-white
+                              w-[1.75rem]
+                              text-foreground
+                              text-center
+                              cursor-pointer
+                              hover:border-primary
+                              focus:outline-none
+                              focus:ring-1
+                              focus:ring-primary
+                              focus:border-primary
+                            "
+                            >
+                              {[...Array(6)].map((_, i) => (
+                                <option
+                                  key={i}
+                                  value={i}
+                                  className="text-center"
+                                >
+                                  {i}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium text-duty-night">
-                          N
-                        </span>
-                        <select
-                          value={rules.wdayNCnt}
-                          onChange={(e) =>
-                            handleChange('wdayNCnt', Number(e.target.value))
-                          }
-                          className="
-                          appearance-none
-                          border rounded
-                          px-2 py-0.5
-                          text-sm
-                          bg-white
-                          w-12
-                          text-foreground
-                          text-center
-                          cursor-pointer
-                          hover:border-primary
-                          focus:outline-none
-                          focus:ring-1
-                          focus:ring-primary
-                          focus:border-primary
-                        "
+                    </div>
+
+                    {/* 전담 근무 설정 버튼 */}
+                    <div className="flex items-center justify-end mt-1">
+                      <div className="relative group">
+                        <button
+                          onClick={() => (window.location.href = '/ward-admin')}
+                          className="px-3 py-1 text-xs bg-primary text-white rounded-md hover:bg-primary-dark transition-colors"
                         >
-                          {[...Array(6)].map((_, i) => (
-                            <option key={i} value={i} className="text-center">
-                              {i}
-                            </option>
-                          ))}
-                        </select>
+                          전담 근무 배정하기
+                        </button>
+                        <div className="absolute right-0 top-full mt-1 px-3 py-1 bg-gray-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 whitespace-nowrap transition-opacity z-50">
+                          평일 M 전담, D 고정, N 킵 인원을 추가해보세요!
+                        </div>
                       </div>
                     </div>
                   </div>
 
-                  {/* 주말 근무자 수 */}
-                  <div className="flex items-center justify-between py-[0.375rem] border-b">
-                    <span className="text-sm text-foreground">
-                      주말 근무자 수
-                    </span>
-                    <div className="flex items-center gap-2">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium text-duty-day">
-                          D
+                  {/* 섹션 2: 근무 규칙 설정 */}
+                  <div>
+                    <h3 className="text-xs font-semibold text-gray-500 mb-2 uppercase">
+                      근무 규칙 설정
+                    </h3>
+                    <div className="bg-gray-50 rounded-md p-2 space-y-2">
+                      {/* 연속 근무 수 최대 */}
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-foreground">
+                          연속 근무 수 최대
                         </span>
-                        <select
-                          value={rules.wendDCnt}
-                          onChange={(e) =>
-                            handleChange('wendDCnt', Number(e.target.value))
-                          }
-                          className="
-                          appearance-none
-                          border rounded
-                          px-2 py-0.5
-                          text-sm
-                          bg-white
-                          w-12
-                          text-foreground
-                          text-center
-                          cursor-pointer
-                          hover:border-primary
-                          focus:outline-none
-                          focus:ring-1
-                          focus:ring-primary
-                          focus:border-primary
-                        "
-                        >
-                          {[...Array(6)].map((_, i) => (
-                            <option key={i} value={i} className="text-center">
-                              {i}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium text-duty-evening">
-                          E
-                        </span>
-                        <select
-                          value={rules.wendECnt}
-                          onChange={(e) =>
-                            handleChange('wendECnt', Number(e.target.value))
-                          }
-                          className="
-                          appearance-none
-                          border rounded
-                          px-2 py-0.5
-                          text-sm
-                          bg-white
-                          w-12
-                          text-foreground
-                          text-center
-                          cursor-pointer
-                          hover:border-primary
-                          focus:outline-none
-                          focus:ring-1
-                          focus:ring-primary
-                          focus:border-primary
-                        "
-                        >
-                          {[...Array(6)].map((_, i) => (
-                            <option key={i} value={i} className="text-center">
-                              {i}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium text-duty-night">
-                          N
-                        </span>
-                        <select
-                          value={rules.wendNCnt}
-                          onChange={(e) =>
-                            handleChange('wendNCnt', Number(e.target.value))
-                          }
-                          className="
-                          appearance-none
-                          border rounded
-                          px-2 py-0.5
-                          text-sm
-                          bg-white
-                          w-12
-                          text-foreground
-                          text-center
-                          cursor-pointer
-                          hover:border-primary
-                          focus:outline-none
-                          focus:ring-1
-                          focus:ring-primary
-                          focus:border-primary
-                        "
-                        >
-                          {[...Array(6)].map((_, i) => (
-                            <option key={i} value={i} className="text-center">
-                              {i}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* 전담 근무 설정 버튼 */}
-                  <div className="flex items-center justify-end py-0.5 border-b">
-                    <div className="relative group">
-                      <button
-                        onClick={() => (window.location.href = '/ward-admin')}
-                        className="px-3 py-1 text-xs bg-primary text-white rounded-md hover:bg-primary-dark transition-colors"
-                      >
-                        전담 근무 배정하기
-                      </button>
-                      <div className="absolute right-0 top-full mt-1 px-3 py-1 bg-gray-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 whitespace-nowrap transition-opacity z-50">
-                        평일 D 고정, N 킵 인원을 추가해보세요!
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* 연속 근무 수 최대 */}
-                  <div className="flex items-center justify-between py-[0.375rem] border-b">
-                    <span className="text-sm text-foreground">
-                      연속 근무 수 최대
-                    </span>
-                    <div className="flex items-center gap-9">
-                      <div className="flex items-center gap-1.5">
-                        <select
-                          value={rules.maxShift}
-                          onChange={(e) =>
-                            handleChange('maxShift', Number(e.target.value))
-                          }
-                          className="
+                        <div className="flex items-center gap-1.5">
+                          <select
+                            value={rules.maxShift}
+                            onChange={(e) =>
+                              handleChange('maxShift', Number(e.target.value))
+                            }
+                            className="
+                              appearance-none
+                              border rounded
+                              px-2 py-0.5
+                              text-sm
+                              bg-white
+                              w-[4.5rem]
+                              text-center
+                              cursor-pointer
+                              hover:border-primary
+                              focus:outline-none
+                              focus:ring-1
+                              focus:ring-primary
+                              focus:border-primary
+                          "
+                          >
+                            {[...Array(4)].map((_, i) => (
+                              <option
+                                key={i + 3}
+                                value={i + 3}
+                                className="text-center"
+                              >
+                                {i + 3}일 이하
+                              </option>
+                            ))}
+                          </select>
+                          <select
+                            value={rules.prioMaxShift}
+                            onChange={(e) =>
+                              handleChange(
+                                'prioMaxShift',
+                                Number(e.target.value)
+                              )
+                            }
+                            className={`
                             appearance-none
                             border rounded
                             px-2 py-0.5
-                            text-sm
-                            bg-white
-                            w-10
+                            text-xs
+                            bg-primary/10
+                            w-[5rem]
+                            text-foreground
                             text-center
                             cursor-pointer
                             hover:border-primary
@@ -450,230 +562,221 @@ const RuleEditModal = ({
                             focus:ring-1
                             focus:ring-primary
                             focus:border-primary
-                        "
-                        >
-                          {[...Array(4)].map((_, i) => (
-                            <option
-                              key={i + 3}
-                              value={i + 3}
-                              className="text-center"
-                            >
-                              {i + 3}
-                            </option>
-                          ))}
-                        </select>
-                        <span className="text-xs text-foreground">일 이하</span>
+                            ${getFontWeight(rules.prioMaxShift)}
+                          `}
+                          >
+                            {[
+                              {
+                                value: 3,
+                                label: '매우 중요',
+                                weight: 'font-bold',
+                              },
+                              {
+                                value: 2,
+                                label: '중요',
+                                weight: 'font-medium',
+                              },
+                              { value: 1, label: '보통', weight: 'font-light' },
+                            ].map((item) => (
+                              <option
+                                key={item.value}
+                                value={item.value}
+                                className={`text-center ${item.weight}`}
+                              >
+                                {item.label}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
                       </div>
-                      <select
-                        value={rules.prioMaxShift}
-                        onChange={(e) =>
-                          handleChange('prioMaxShift', Number(e.target.value))
-                        }
-                        className={`
-                        appearance-none
-                        border rounded
-                        px-2 py-0.5
-                        text-xs
-                        bg-white
-                        w-20
-                        text-foreground
-                        text-center
-                        cursor-pointer
-                        hover:border-primary
-                        focus:outline-none
-                        focus:ring-1
-                        focus:ring-primary
-                        focus:border-primary
-                        ${getFontWeight(rules.prioMaxShift)}
-                      `}
-                      >
-                        {[
-                          { value: 3, label: '매우 중요', weight: 'font-bold' },
-                          { value: 2, label: '중요', weight: 'font-medium' },
-                          { value: 1, label: '보통', weight: 'font-light' },
-                        ].map((item) => (
-                          <option
-                            key={item.value}
-                            value={item.value}
-                            className={`text-center ${item.weight}`}
+
+                      {/* 나이트 연속 근무 수 최대 */}
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-foreground">
+                          나이트 연속 최대
+                        </span>
+                        <div className="flex items-center gap-1.5">
+                          <select
+                            value={rules.maxN}
+                            onChange={(e) =>
+                              handleChange('maxN', Number(e.target.value))
+                            }
+                            className="
+                            appearance-none
+                            border rounded
+                            px-2 py-0.5
+                            text-sm
+                            bg-white
+                            w-[4.5rem]
+                            text-center
+                            cursor-pointer
+                            hover:border-primary
+                            focus:outline-none
+                            focus:ring-1
+                            focus:ring-primary
+                            focus:border-primary
+                          "
                           >
-                            {item.label}
-                          </option>
-                        ))}
-                      </select>
+                            {[...Array(6)].map((_, i) => (
+                              <option
+                                key={i + 2}
+                                value={i + 2}
+                                className="text-center"
+                              >
+                                {i + 2}일 이하
+                              </option>
+                            ))}
+                          </select>
+                          <select
+                            value={rules.prioMaxN}
+                            onChange={(e) =>
+                              handleChange('prioMaxN', Number(e.target.value))
+                            }
+                            className={`
+                            appearance-none
+                            border rounded
+                            px-2 py-0.5
+                            text-xs
+                            bg-primary/10
+                            w-[5rem]
+                            text-foreground
+                            text-center
+                            cursor-pointer
+                            hover:border-primary
+                            focus:outline-none
+                            focus:ring-1
+                            focus:ring-primary
+                            focus:border-primary
+                            ${getFontWeight(rules.prioMaxN)}
+                          `}
+                          >
+                            {[
+                              {
+                                value: 3,
+                                label: '매우 중요',
+                                weight: 'font-bold',
+                              },
+                              {
+                                value: 2,
+                                label: '중요',
+                                weight: 'font-medium',
+                              },
+                              { value: 1, label: '보통', weight: 'font-light' },
+                            ].map((item) => (
+                              <option
+                                key={item.value}
+                                value={item.value}
+                                className={`text-center ${item.weight}`}
+                              >
+                                {item.label}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+
+                      {/* 나이트 연속 근무 수 최소 */}
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-foreground">
+                          나이트 연속 최소
+                        </span>
+                        <div className="flex items-center gap-1.5">
+                          <select
+                            value={rules.minN}
+                            onChange={(e) =>
+                              handleChange('minN', Number(e.target.value))
+                            }
+                            className="
+                            appearance-none
+                            border rounded
+                            px-2 py-0.5
+                            text-sm
+                            bg-white
+                            w-[4.5rem]
+                            text-center
+                            cursor-pointer
+                            hover:border-primary
+                            focus:outline-none
+                            focus:ring-1
+                            focus:ring-primary
+                            focus:border-primary
+                          "
+                          >
+                            {[...Array(6)].map((_, i) => (
+                              <option key={i} value={i} className="text-center">
+                                {i}일 이상
+                              </option>
+                            ))}
+                          </select>
+                          <select
+                            value={rules.prioMinN}
+                            onChange={(e) =>
+                              handleChange('prioMinN', Number(e.target.value))
+                            }
+                            className={`
+                            appearance-none
+                            border rounded
+                            px-2 py-0.5
+                            text-xs
+                            bg-primary/10
+                            w-[5rem]
+                            text-foreground
+                            text-center
+                            cursor-pointer
+                            hover:border-primary
+                            focus:outline-none
+                            focus:ring-1
+                            focus:ring-primary
+                            focus:border-primary
+                            ${getFontWeight(rules.prioMinN)}
+                          `}
+                          >
+                            {[
+                              {
+                                value: 3,
+                                label: '매우 중요',
+                                weight: 'font-bold',
+                              },
+                              {
+                                value: 2,
+                                label: '중요',
+                                weight: 'font-medium',
+                              },
+                              { value: 1, label: '보통', weight: 'font-light' },
+                            ].map((item) => (
+                              <option
+                                key={item.value}
+                                value={item.value}
+                                className={`text-center ${item.weight}`}
+                              >
+                                {item.label}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
                     </div>
                   </div>
 
-                  {/* 나이트 연속 근무 수 최대 */}
-                  <div className="flex items-center justify-between py-[0.375rem] border-b">
-                    <span className="text-sm text-foreground">
-                      나이트 연속 최대
-                    </span>
-                    <div className="flex items-center gap-1.5">
-                      <select
-                        value={rules.maxN}
-                        onChange={(e) =>
-                          handleChange('maxN', Number(e.target.value))
-                        }
-                        className="
-                        appearance-none
-                        border rounded
-                        px-2 py-0.5
-                        text-sm
-                        bg-white
-                        w-10
-                        text-center
-                        cursor-pointer
-                        hover:border-primary
-                        focus:outline-none
-                        focus:ring-1
-                        focus:ring-primary
-                        focus:border-primary
-                      "
-                      >
-                        {[...Array(6)].map((_, i) => (
-                          <option
-                            key={i + 2}
-                            value={i + 2}
-                            className="text-center"
-                          >
-                            {i + 2}
-                          </option>
-                        ))}
-                      </select>
-                      <span className="text-xs text-foreground">일 이하</span>
-                      <select
-                        value={rules.prioMaxN}
-                        onChange={(e) =>
-                          handleChange('prioMaxN', Number(e.target.value))
-                        }
-                        className={`                        appearance-none
-                        border rounded
-                        px-2 py-0.5
-                        text-xs
-                        bg-white
-                        w-20
-                        text-foreground
-                        text-center
-                        cursor-pointer
-                        hover:border-primary
-                        focus:outline-none
-                        focus:ring-1
-                        focus:ring-primary
-                        focus:border-primary
-                        ${getFontWeight(rules.prioMaxN)}
-                      `}
-                      >
-                        {[
-                          { value: 3, label: '매우 중요', weight: 'font-bold' },
-                          { value: 2, label: '중요', weight: 'font-medium' },
-                          { value: 1, label: '보통', weight: 'font-light' },
-                        ].map((item) => (
-                          <option
-                            key={item.value}
-                            value={item.value}
-                            className={`text-center ${item.weight}`}
-                          >
-                            {item.label}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
+                  {/* 저장 버튼 */}
+                  <div className="flex justify-end gap-[0.25rem] mt-[1rem]">
+                    <Button
+                      size="xs"
+                      color="muted"
+                      onClick={onClose}
+                      disabled={isSubmitting}
+                    >
+                      취소
+                    </Button>
+                    <Button
+                      size="xs"
+                      color="primary"
+                      onClick={handleSubmit}
+                      disabled={isSubmitting}
+                    >
+                      {isSubmitting ? '저장 중...' : '저장'}
+                    </Button>
                   </div>
-
-                  {/* 나이트 연속 근무 수 최소 */}
-                  <div className="flex items-center justify-between py-[0.375rem] border-b">
-                    <span className="text-sm text-foreground">
-                      나이트 연속 최소
-                    </span>
-                    <div className="flex items-center gap-1.5">
-                      <select
-                        value={rules.minN}
-                        onChange={(e) =>
-                          handleChange('minN', Number(e.target.value))
-                        }
-                        className="
-                        appearance-none
-                        border rounded
-                        px-2 py-0.5
-                        text-sm
-                        bg-white
-                        w-10
-                        text-center
-                        cursor-pointer
-                        hover:border-primary
-                        focus:outline-none
-                        focus:ring-1
-                        focus:ring-primary
-                        focus:border-primary
-                      "
-                      >
-                        {[...Array(6)].map((_, i) => (
-                          <option key={i} value={i} className="text-center">
-                            {i}
-                          </option>
-                        ))}
-                      </select>
-                      <span className="text-xs text-foreground">일 이상</span>
-                      <select
-                        value={rules.prioMinN}
-                        onChange={(e) =>
-                          handleChange('prioMinN', Number(e.target.value))
-                        }
-                        className={`
-                        appearance-none
-                        border rounded
-                        px-2 py-0.5
-                        text-xs
-                        bg-white
-                        w-20
-                        text-foreground
-                        text-center
-                        cursor-pointer
-                        hover:border-primary
-                        focus:outline-none
-                        focus:ring-1
-                        focus:ring-primary
-                        focus:border-primary
-                        ${getFontWeight(rules.prioMinN)}
-                      `}
-                      >
-                        {[
-                          { value: 3, label: '매우 중요', weight: 'font-bold' },
-                          { value: 2, label: '중요', weight: 'font-medium' },
-                          { value: 1, label: '보통', weight: 'font-light' },
-                        ].map((item) => (
-                          <option
-                            key={item.value}
-                            value={item.value}
-                            className={`text-center ${item.weight}`}
-                          >
-                            {item.label}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-                </div>
-
-                {/* 저장 버튼 */}
-                <div className="flex justify-end gap-[0.25rem] mt-[0.75rem]">
-                  <Button
-                    size="xs"
-                    color="muted"
-                    onClick={onClose}
-                    disabled={isSubmitting}
-                  >
-                    취소
-                  </Button>
-                  <Button
-                    size="xs"
-                    color="primary"
-                    onClick={handleSubmit}
-                    disabled={isSubmitting}
-                  >
-                    {isSubmitting ? '저장 중...' : '저장'}
-                  </Button>
                 </div>
               </>
             )

@@ -425,7 +425,7 @@ const SurveyModal = ({ isOpen, onClose }: SurveyModalProps) => {
         return {
           title: '안녕하세요! 듀티메이트 팀입니다 👋',
           description: '여러분의 의견은 서비스 개선에 큰 도움이 됩니다 💖',
-          badge: '2분이면 완료돼요!',
+          badge: '30초면 완료돼요!',
         };
       case 'favoriteFeatures':
         return {
