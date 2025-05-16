@@ -25,7 +25,7 @@ import NurseGroupPage from '@/pages/Group/NurseGroupPage';
 import GroupDetailPage from '@/pages/Group/GroupDetailPage';
 import GroupMemberPage from '@/pages/Group/GroupMemberPage';
 import GroupInvitePage from '@/pages/Group/GroupInvitePage';
-
+import PrivacyPolicy from '@/pages/PrivacyPolicy';
 interface ProtectedRouteProps {
   element: ReactElement;
 }
@@ -150,6 +150,7 @@ const Router = () => {
       <Route path="/error" element={<Error />} />
       <Route path="*" element={<Error />} />
       {/* <Route path="/_playgrounds" element={<Playgrounds />} /> */}
+      <Route path="/privacy-policy" element={<PrivacyPolicy />} />
     </Routes>
   );
 };

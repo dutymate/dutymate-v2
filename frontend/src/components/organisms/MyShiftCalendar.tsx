@@ -190,9 +190,27 @@ const MyShiftCalendar = ({
     return holidayInfo?.name || null;
   };
 
+  // 일정을 타입별로 정렬
+  const sortSchedules = (schedules: ScheduleType[]) => {
+    return [...schedules].sort((a, b) => {
+      // 하루종일 일정 먼저
+      if (a.isAllDay && !b.isAllDay) return -1;
+      if (!a.isAllDay && b.isAllDay) return 1;
+
+      // 시간별 정렬 (시작 시간 기준)
+      if (!a.isAllDay && !b.isAllDay) {
+        const aTime = a.startTime || '';
+        const bTime = b.startTime || '';
+        return aTime.localeCompare(bTime);
+      }
+
+      return 0;
+    });
+  };
+
   return (
     <div
-      className={`bg-white rounded-[0.92375rem]   pt-4 sm:p-6 h-full${isMobile ? ' overflow-x-auto' : ''}`}
+      className={`bg-white ${isMobile ? '' : 'rounded-[0.92375rem]'} h-full ${isMobile ? 'pt-4' : 'pt-4 px-0'} ${isMobile ? 'overflow-x-auto w-full' : 'w-full'}`}
     >
       <div className="grid grid-cols-3 items-center mb-4 px-2">
         {/* 왼쪽 - 빈 공간 */}
@@ -239,32 +257,14 @@ const MyShiftCalendar = ({
                 <span>근무 요청</span>
               </div>
             </Button>
-          ) : (
-            <Button
-              color="primary"
-              text-size="md"
-              className={`whitespace-nowrap ${
-                isMobile ? 'px-2 py-2 text-xs' : 'py-0.5 px-1.5 sm:py-1 sm:px-2'
-              }`}
-              onClick={() => setIsWorkModalOpen(true)}
-              size={isMobile ? 'xs' : 'register'}
-            >
-              <div className="flex items-center gap-1 relative group">
-                <span>근무 입력</span>
-              </div>
-            </Button>
-          )}
+          ) : null}
         </div>
       </div>
 
-      <div className={`${isMobile ? 'w-full' : ''}`}>
-        <div
-          className={`bg-white rounded-[1rem] ${
-            isMobile ? 'w-full ' : 'w-full p-[0.5rem]'
-          }`}
-        >
+      <div className={`${isMobile ? 'w-full' : 'w-full'}`}>
+        <div className={`bg-white ${isMobile ? '' : 'rounded-[1rem]'} w-full`}>
           {/* 달력 헤더 */}
-          <div className="grid grid-cols-7 mb-[0.25rem]">
+          <div className="grid grid-cols-7 mb-0">
             {WEEKDAYS.map((day, index) => (
               <div
                 key={day}
@@ -282,7 +282,9 @@ const MyShiftCalendar = ({
           </div>
 
           {/* 달력 그리드 */}
-          <div className="grid grid-cols-7 divide-x divide-y divide-gray-100 border border-gray-100">
+          <div
+            className={`grid grid-cols-7 divide-x divide-y divide-gray-100 border border-gray-100 ${isMobile ? '' : 'auto-rows-[6.5rem] overflow-hidden'}`}
+          >
             {/* 이전 달 날짜 */}
             {prevMonthDays.map((day) => {
               const prevMonth = currentMonth - 1 === 0 ? 12 : currentMonth - 1;
@@ -314,16 +316,14 @@ const MyShiftCalendar = ({
                 <div
                   key={`prev-${day}`}
                   className={`${
-                    isMobile
-                      ? 'min-h-[5rem] p-[2px]'
-                      : 'min-h-[7.5rem] p-2 lg:p-3'
+                    isMobile ? 'min-h-[5rem] p-[2px]' : 'p-2 lg:p-3'
                   } relative bg-gray-50 cursor-not-allowed flex flex-col justify-between`}
                 >
                   <span className={`${textColor} text-xs lg:text-sm`}>
                     {day}
                   </span>
                   {dutyBadge && (
-                    <div className="absolute bottom-1 right-1 lg:bottom-0.5 lg:right-0.5 transform scale-[0.45] lg:scale-75 origin-bottom-right">
+                    <div className="absolute bottom-1 right-1 lg:bottom-0.5 lg:right-0.5 transform scale-[0.45] lg:scale-75 origin-bottom-right pointer-events-none">
                       {dutyBadge}
                     </div>
                   )}
@@ -351,7 +351,7 @@ const MyShiftCalendar = ({
                 2,
                 '0'
               )}-${String(day).padStart(2, '0')}`;
-              const schedules = schedulesByDate[dateKey] || [];
+              const schedules = sortSchedules(schedulesByDate[dateKey] || []);
 
               return (
                 <div
@@ -365,9 +365,7 @@ const MyShiftCalendar = ({
                     onDateSelect(newDate);
                   }}
                   className={`${
-                    isMobile
-                      ? 'min-h-[5rem] p-[2px]'
-                      : 'min-h-[7.5rem] p-2 lg:p-3'
+                    isMobile ? 'min-h-[5rem] p-[2px]' : 'p-2 lg:p-3'
                   } relative cursor-pointer hover:bg-gray-50 flex flex-col ${
                     externalSelectedDate &&
                     externalSelectedDate.getDate() === day &&
@@ -378,48 +376,56 @@ const MyShiftCalendar = ({
                 >
                   {/* 날짜 표시 영역 */}
                   <div
-                    className={`relative flex flex-row ${isMobile ? 'items-center' : 'items-start'} justify-start ${isMobile ? 'mb-0' : 'mb-1'}`}
+                    className={`relative ${isMobile ? 'flex flex-row items-center justify-start mb-0.5' : 'flex flex-row items-center justify-between mb-1'}`}
                   >
                     <span
-                      className={`${isMobile ? 'w-[1.1rem] h-[1.1rem]' : 'w-6 h-6'} lg:w-8 lg:h-8 flex items-center justify-center ${
-                        isTodayDate ? 'bg-primary' : ''
-                      } ${getDateStyle(
-                        day,
-                        isTodayDate
-                      )} rounded-full text-xs lg:text-sm`}
+                      className={`${isMobile ? 'w-[1.1rem] h-[1.1rem]' : 'w-5 h-5'} flex items-center justify-center ${
+                        isTodayDate ? 'bg-primary rounded-full' : ''
+                      } ${getDateStyle(day, isTodayDate)} text-xs lg:text-sm`}
                     >
                       {day}
                     </span>
                     {holidayName && (
                       <span
-                        className={`text-red-500 truncate max-w-[80%] line-clamp-1 ${isMobile ? 'ml-[2px] text-[0.55rem]' : 'ml-1 text-[10px] lg:text-[11px]'}`}
+                        className={`text-red-500 truncate max-w-[80%] line-clamp-1 ${isMobile ? 'ml-[2px] text-[0.4rem]' : 'ml-1 text-[10px] lg:text-[11px]'}`}
                       >
                         {holidayName}
                       </span>
                     )}
                   </div>
 
-                  {/* 일정 동그라미 영역 - 높이 조정 */}
+                  {/* 일정 메모 리스트 (TodayShiftModal 캘린더 탭 스타일) */}
                   <div
-                    className={`flex-1 ${
-                      isMobile ? 'min-h-[1.5rem]' : 'min-h-[2.5rem]'
-                    }`}
+                    className={`flex-1 ${isMobile ? 'mt-0.5' : 'mt-1'} overflow-hidden`}
                   >
-                    <div className="flex flex-wrap gap-[1px] lg:gap-1">
+                    <div
+                      className={`flex flex-col ${isMobile ? 'gap-0.5' : 'gap-[2px]'}`}
+                    >
                       {schedules
-                        .slice(0, isMobile ? 3 : 10)
-                        .map((schedule, index) => (
-                          <span
-                            key={schedule.calendarId || `temp-${index}`}
-                            className={`inline-block rounded-full ${
-                              colorClassMap[schedule.color] || 'bg-gray-300'
-                            } ${isMobile ? 'w-1 h-1' : 'w-2 h-2'}`}
+                        .slice(0, isMobile ? 3 : 3)
+                        .map((schedule, idx) => (
+                          <div
+                            key={schedule.calendarId || `temp-${idx}`}
+                            className={`flex items-center gap-[1px] min-h-0 py-0`}
                             title={schedule.title}
-                          />
+                          >
+                            <span
+                              className={`inline-block rounded-full flex-shrink-0 ${
+                                colorClassMap[schedule.color] || 'bg-gray-300'
+                              } ${isMobile ? 'w-[0.35em] h-[0.25rem]' : 'w-[0.5rem] h-[0.4rem]'}`}
+                            />
+                            <span
+                              className={`whitespace-nowrap overflow-hidden text-gray-700 leading-none ${isMobile ? 'text-[6px]' : 'text-[8.5px]'}`}
+                            >
+                              {schedule.title}
+                            </span>
+                          </div>
                         ))}
-                      {schedules.length > (isMobile ? 3 : 10) && (
-                        <span className="text-[7px] lg:text-[10px] text-gray-500">
-                          +{schedules.length - (isMobile ? 3 : 10)}
+                      {schedules.length > (isMobile ? 3 : 3) && (
+                        <span
+                          className={`${isMobile ? 'text-[8px]' : 'text-[10px]'} text-gray-400 pl-1 block mt-1`}
+                        >
+                          +{schedules.length - 3}개 더...
                         </span>
                       )}
                     </div>
@@ -427,7 +433,7 @@ const MyShiftCalendar = ({
 
                   {/* DutyBadgeKor */}
                   {dutyBadge && (
-                    <div className="absolute bottom-1 right-1 lg:bottom-0.5 lg:right-0.5 transform scale-[0.45] lg:scale-75 origin-bottom-right">
+                    <div className="absolute bottom-1 right-1 lg:bottom-0.5 lg:right-0.5 transform scale-[0.45] lg:scale-75 origin-bottom-right pointer-events-none">
                       {dutyBadge}
                     </div>
                   )}
@@ -466,16 +472,14 @@ const MyShiftCalendar = ({
                 <div
                   key={`next-${day}`}
                   className={`${
-                    isMobile
-                      ? 'min-h-[5rem] p-[2px]'
-                      : 'min-h-[7.5rem] p-2 lg:p-3'
+                    isMobile ? 'min-h-[5rem] p-[2px]' : 'p-2 lg:p-3'
                   } relative bg-gray-50 cursor-not-allowed flex flex-col justify-between`}
                 >
                   <span className={`${textColor} text-xs lg:text-sm`}>
                     {day}
                   </span>
                   {dutyBadge && (
-                    <div className="absolute bottom-1 right-1 lg:bottom-0.5 lg:right-0.5 transform scale-[0.45] lg:scale-75 origin-bottom-right">
+                    <div className="absolute bottom-1 right-1 lg:bottom-0.5 lg:right-0.5 transform scale-[0.45] lg:scale-75 origin-bottom-right pointer-events-none">
                       {dutyBadge}
                     </div>
                   )}

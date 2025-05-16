@@ -5,6 +5,7 @@ export interface Calendar {
 }
 
 export interface CalendarEvent {
+  calendarId: number;
   date: string;
   title: string;
   color: string;

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Map, MapMarker } from 'react-kakao-maps-sdk';
-import { deleteCalendar as deleteCalendarService } from '@/services/calendarService';
+// import { deleteCalendar as deleteCalendarService } from '@/services/calendarService';
 import type { ScheduleType } from '@/services/calendarService';
 import type { CalendarCreateRequest } from '@/services/calendarService';
 
@@ -332,7 +332,7 @@ const ScheduleEditModal = ({
       onClose();
 
       // 서버 API 호출
-      await deleteCalendarService(Number(initialData.calendarId));
+      // await deleteCalendarService(Number(initialData.calendarId));
 
       // 부모 컴포넌트의 onDelete 함수 호출
       onDelete?.(Number(initialData.calendarId));

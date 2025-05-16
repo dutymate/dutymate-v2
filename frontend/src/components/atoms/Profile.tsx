@@ -13,7 +13,7 @@ const Profile = () => {
   const navigate = useNavigate();
 
   const isMypage = location.pathname === '/my-page';
-  const privacyPolicyUrl = import.meta.env.VITE_PRIVACY_POLICY_URL || '#';
+  // const privacyPolicyUrl = import.meta.env.VITE_PRIVACY_POLICY_URL || '#';
 
   const isDemo = userInfo?.isDemo;
   const [timeLeft, setTimeLeft] = useState<number>(0);
@@ -188,7 +188,7 @@ const Profile = () => {
               (주)듀티메이트
             </span>
             <span className="text-xs text-gray-400">
-              <a href={privacyPolicyUrl}>개인정보처리방침</a>
+              <Link to="/privacy-policy">개인정보처리방침</Link>
             </span>
           </div>
         </div>

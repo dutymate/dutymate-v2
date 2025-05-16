@@ -7,7 +7,7 @@ import {
 } from '@/utils/dutyUtils';
 import { useEffect, useState } from 'react';
 import { IoMdClose } from 'react-icons/io';
-import { IoChevronBack, IoChevronForward } from 'react-icons/io5';
+import { IoChevronBack, IoChevronForward, IoAdd } from 'react-icons/io5';
 import type { ScheduleType } from '@/services/calendarService';
 import {
   CalendarCreateRequest,
@@ -159,6 +159,7 @@ const TodayShiftModal = ({
     try {
       // API를 통해 일정 삭제
       await deleteCalendar(calendarId);
+      toast.success('일정이 삭제되었습니다.');
 
       // 선택된 일정 초기화 및 모달 닫기
       setSelectedSchedule(null);
@@ -167,12 +168,13 @@ const TodayShiftModal = ({
       // 해당 날짜의 일정 다시 가져오기
       await loadSchedules();
 
-      // 월 전체 데이터 갱신 (선택적)
+      // 월 전체 데이터 갱신
       if (refreshMyDutyData) {
         await refreshMyDutyData();
       }
     } catch (error) {
-      alert('일정 삭제에 실패했습니다.');
+      console.error('일정 삭제 실패:', error);
+      toast.error('일정 삭제에 실패했습니다.');
     }
   };
 
@@ -205,16 +207,15 @@ const TodayShiftModal = ({
 
       // API 호출
       await createCalendar(req);
+      toast.success('일정이 추가되었습니다.');
 
       // 해당 날짜의 일정 다시 가져오기
       await loadSchedules();
 
-      // 월 전체 데이터 갱신 (선택적)
-      if (refreshMyDutyData) {
-        await refreshMyDutyData();
-      }
+      // 월 전체 데이터 갱신은 loadSchedules 내에서 처리됨
     } catch (error) {
-      alert('일정 저장에 실패했습니다.');
+      console.error('일정 저장 실패:', error);
+      toast.error('일정 저장에 실패했습니다.');
     }
   };
 
@@ -261,16 +262,15 @@ const TodayShiftModal = ({
 
       // API 호출
       await updateCalendar(selectedSchedule.calendarId, editData);
+      toast.success('일정이 수정되었습니다.');
 
       // 해당 날짜의 일정 다시 가져오기
       await loadSchedules();
 
-      // 월 전체 데이터 갱신 (선택적)
-      if (refreshMyDutyData) {
-        await refreshMyDutyData();
-      }
+      // 월 전체 데이터 갱신은 loadSchedules 내에서 처리됨
     } catch (error) {
-      alert('일정 수정에 실패했습니다.');
+      console.error('일정 수정 실패:', error);
+      toast.error('일정 수정에 실패했습니다.');
     }
   };
 
@@ -434,7 +434,13 @@ const TodayShiftModal = ({
       // calendarService의 fetchSchedules 함수 사용
       const fetchedSchedules = await fetchSchedules(date);
       setSchedules(fetchedSchedules);
+
+      // 월 전체 데이터도 함께 갱신 (선택적)
+      if (refreshMyDutyData) {
+        await refreshMyDutyData();
+      }
     } catch (error) {
+      console.error('일정 로딩 실패:', error);
       toast.error('일정을 불러오는데 실패했습니다.');
     }
   };
@@ -451,7 +457,7 @@ const TodayShiftModal = ({
       className={`bg-white rounded-[1rem] p-[1rem] shadow-sm ${
         isMobile
           ? 'w-full max-w-[25rem] h-auto max-h-[90vh] py-5 overflow-auto'
-          : 'w-full h-full min-h-[37.5rem]'
+          : 'w-full min-h-[41rem] flex-1'
       } flex flex-col relative`}
     >
       {isMobile && (
@@ -523,7 +529,9 @@ const TodayShiftModal = ({
       <div className="border-t border-gray-900 mb-[0.25rem] lg:mb-[0.5rem] shrink-0" />
 
       {/* 탭별 내용 분기 */}
-      <div className="flex-1 flex flex-col min-h-0">
+      <div
+        className={`${isMobile ? 'flex-1 flex flex-col min-h-0' : 'flex flex-col min-h-0'}`}
+      >
         {activeTab === 'status' ? (
           <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar">
             {!dutyData?.otherShifts ? (
@@ -715,7 +723,7 @@ const TodayShiftModal = ({
               {sortedSchedules.map((schedule) => (
                 <div
                   key={schedule.calendarId || Math.random()}
-                  className="flex items-start gap-1.5 cursor-pointer rounded-lg p-0.5 hover:bg-gray-50"
+                  className="flex items-start gap-1.5 cursor-pointer rounded-lg p-0.5 hover:bg-gray-50 group"
                   onClick={() =>
                     schedule.calendarId &&
                     handleScheduleClick(schedule.calendarId)
@@ -772,7 +780,7 @@ const TodayShiftModal = ({
                   <div
                     className={`flex-1 bg-gray-50 rounded-lg px-2 py-1 ${
                       isMobile ? 'text-xs' : 'text-sm'
-                    } font-medium min-w-0`}
+                    } font-medium min-w-0 relative`}
                   >
                     <div className="truncate">{schedule.title}</div>
                     {isMobile && schedule.place && (
@@ -794,7 +802,7 @@ const TodayShiftModal = ({
               className={`flex gap-2 shrink-0 sm:absolute sm:bottom-0 sm:left-0 sm:w-full sm:bg-white sm:p-4 sm:z-10 sm:border-t sm:border-gray-200 rounded-b-[1rem]`}
             >
               <button
-                className="flex-1 bg-white border border-gray-200 rounded-xl py-2 flex items-center justify-center text-2xl font-bold text-primary shadow-sm hover:bg-primary hover:text-white transition-colors"
+                className="flex-1 bg-white border border-gray-200 rounded-xl py-2 flex items-center justify-center text-primary shadow-sm hover:bg-primary hover:text-white transition-colors"
                 onClick={handleAddClick}
                 disabled={schedules.length >= MAX_SCHEDULES_PER_DAY}
                 style={
@@ -803,7 +811,8 @@ const TodayShiftModal = ({
                     : {}
                 }
               >
-                +
+                <IoAdd className="mr-1 h-4 w-4" />
+                <span className="font-medium">일정 추가</span>
               </button>
               <button
                 className="flex-1 bg-white border border-gray-200 rounded-xl py-2 text-primary font-medium shadow-sm hover:bg-primary hover:text-white transition-colors"

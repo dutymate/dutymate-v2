@@ -79,7 +79,7 @@ const MyShift = () => {
     event: CalendarEvent
   ): ScheduleType => {
     return {
-      calendarId: 0, // ID는 TodayShiftModal에서 실제 데이터를 불러올 때 사용
+      calendarId: event.calendarId,
       title: event.title,
       color: event.color,
       date: event.date,
@@ -98,6 +98,7 @@ const MyShift = () => {
           today.getFullYear(),
           today.getMonth() + 1
         );
+        // console.log('data', data);
         setMyDutyData(data);
 
         // MyDuty 응답에서 받은 calendar 데이터를 schedulesByDate로 변환
@@ -216,7 +217,6 @@ const MyShift = () => {
           if (!newSchedulesByDate[dateKey]) {
             newSchedulesByDate[dateKey] = [];
           }
-
           newSchedulesByDate[dateKey].push(
             convertCalendarEventToSchedule(event)
           );
@@ -256,9 +256,9 @@ const MyShift = () => {
         />
 
         {/* 메인 컨텐츠 영역 */}
-        <div className="flex-1 min-w-0 px-0 py-6 lg:px-8 lg:py-6 h-screen lg:h-screen overflow-y-auto">
+        <div className="flex-1 min-w-0 px-0 py-0 lg:px-8 lg:py-6 h-screen overflow-y-auto">
           {/* 모바일 헤더 */}
-          <div className="flex items-center gap-3 lg:hidden mb-4 px-4">
+          <div className="flex items-center gap-3 lg:hidden mb-4 px-4 pt-4">
             <button
               onClick={() => setIsSidebarOpen(true)}
               className="p-2 hover:bg-gray-100 rounded-lg"
@@ -275,14 +275,15 @@ const MyShift = () => {
           </div>
 
           {/* 데스크톱 타이틀 */}
-          <div className="hidden lg:block">
+          <div className="hidden lg:flex items-center mb-6 w-full">
             <Title title="나의 듀티표" subtitle="나의 듀티표를 확인해보세요" />
+            <div className="flex-1 h-[1.5px] bg-gray-200 ml-4" />
           </div>
-          <div className="block lg:flex lg:gap-[2rem] mt-6">
+          <div className="block lg:flex lg:gap-[2rem]">
             {/* 캘린더와 모달을 감싸는 컨테이너 */}
-            <div className="calendar-modal-container flex flex-col lg:flex-row w-full gap-4">
+            <div className="calendar-modal-container flex flex-col lg:flex-row w-full gap-y-0 lg:gap-x-4">
               {/* 캘린더 영역 - 모달 영역과 함께 고정 비율 유지 */}
-              <div className="relative lg:flex-1">
+              <div className="relative flex flex-col lg:flex-1 lg:min-w-0">
                 <MyShiftCalendar
                   onDateSelect={handleDateSelect}
                   selectedDate={selectedDate}
@@ -295,7 +296,7 @@ const MyShift = () => {
               </div>
 
               {/* ✅ 모달 영역: 항상 자리 차지하되 조건부 렌더링 */}
-              <div className="hidden lg:block lg:w-[24.5rem]">
+              <div className="hidden lg:block lg:w-[24.5rem] lg:flex-shrink-0">
                 {selectedDate && dayDutyData ? (
                   <TodayShiftModal
                     date={selectedDate}
@@ -314,7 +315,13 @@ const MyShift = () => {
                     refreshMyDutyData={refreshMyDutyData}
                     dutyColors={dutyColors}
                   />
-                ) : null}
+                ) : (
+                  <div className="w-full min-h-[40.5rem] bg-white rounded-[1rem] flex flex-col items-center justify-center shadow-sm">
+                    <span className="text-gray-400 text-base">
+                      날짜를 클릭하면 상세 근무표가 표시됩니다.
+                    </span>
+                  </div>
+                )}
               </div>
 
               {/* ✅ 모바일 모달 */}
