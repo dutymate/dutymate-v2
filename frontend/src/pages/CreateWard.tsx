@@ -34,15 +34,11 @@ const CreateWard = () => {
   };
 
   const handleCreateWard = async (hospitalName: string, wardName: string) => {
-    // console.log("handleCreateWard 함수 호출됨:", { hospitalName, wardName });
-
     try {
-      // console.log("wardService.createWard 호출 전");
       await wardService.createWard({
         hospitalName,
         wardName,
       });
-      // console.log("wardService.createWard 호출 성공");
 
       const currentUserInfo = userAuthStore.userInfo;
       if (currentUserInfo) {
@@ -89,17 +85,12 @@ const CreateWard = () => {
         description="병동 생성을 위한 기본 정보를 입력해주세요."
       />
       <LandingTemplate showIntroText={false}>
-        <div className="flex flex-col items-center">
-          <p className="text-primary-dark font-semibold text-[1rem] mt-[0.9rem] mb-[1rem]">
-            병동 생성을 위한 기본 정보를 입력해주세요.
-          </p>
-          <CreateWardForm
-            onSubmit={handleCreateWard}
-            onSearchHospitals={handleSearchHospitals}
-            hospitals={hospitals}
-            isSearching={isSearching}
-          />
-        </div>
+        <CreateWardForm
+          onSubmit={handleCreateWard}
+          onSearchHospitals={handleSearchHospitals}
+          hospitals={hospitals}
+          isSearching={isSearching}
+        />
       </LandingTemplate>
     </>
   );
