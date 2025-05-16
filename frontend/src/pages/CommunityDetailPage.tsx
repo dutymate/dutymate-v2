@@ -31,11 +31,10 @@ const CommunityDetailPage = () => {
     const fetchPost = async () => {
       setIsLoading(true);
       try {
-        const data = await boardService.getSinglePosts(numericBoardId);
-        if (!data) {
-          throw new Error('게시글 데이터를 찾을 수 없습니다.');
+        const response = await boardService.getSinglePosts(numericBoardId);
+        if (response) {
+          setPost(response);
         }
-        setPost(data);
       } catch (error) {
         toast.error('게시글을 불러오는 데 실패했습니다.');
         navigate('/community');

@@ -165,6 +165,34 @@ export const boardService = {
    * @param boardId
    * @returns
    */
+  updateBoard: async (boardId: number, formData: BoardRequest) => {
+    return axiosInstance
+      .put(`/board/${boardId}`, formData)
+      .then((response) => {
+        return response.data;
+      })
+      .catch((error) => {
+        if (axios.isAxiosError(error)) {
+          throw error.response?.data;
+        }
+        if (error.response) {
+          switch (error.response.status) {
+            case 401:
+              window.location.href = '/login';
+              break;
+            default:
+              throw error;
+          }
+        }
+        throw error;
+      });
+  },
+
+  /**
+   *  게시글 삭제하기기
+   * @param boardId
+   * @returns
+   */
   deleteBoard: async (boardId: number) => {
     return axiosInstance
       .delete(`/board/${boardId}`)

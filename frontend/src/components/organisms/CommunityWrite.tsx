@@ -1,12 +1,26 @@
-import { useMemo, useRef, useState } from 'react';
-import { BsImage } from 'react-icons/bs';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { BsImage, BsX } from 'react-icons/bs';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
 import { CommunityRegisterButton } from '@/components/atoms/Button';
 import boardService, { BoardRequest } from '@/services/boardService';
 
-const CommunityWrite = () => {
+interface CommunityWriteProps {
+  initialData?: {
+    boardId: number;
+    category: string;
+    title: string;
+    content: string;
+    boardImgUrl?: string;
+  };
+  isEditMode?: boolean;
+}
+
+const CommunityWrite = ({
+  initialData,
+  isEditMode = false,
+}: CommunityWriteProps) => {
   const categories = [
     { key: 'DAILY', value: '일상글' },
     { key: 'QNA', value: '간호지식 Q&A' },
@@ -15,12 +29,23 @@ const CommunityWrite = () => {
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedFileName, setSelectedFileName] = useState<string>('');
+  const [previewImage, setPreviewImage] = useState<string>('');
   const [formData, setFormData] = useState<BoardRequest>({
-    category: '',
-    title: '',
-    content: '',
-    boardImgUrl: '',
+    category: initialData?.category || '',
+    title: initialData?.title || '',
+    content: initialData?.content || '',
+    boardImgUrl: initialData?.boardImgUrl || '',
   });
+
+  // 이미지 URL이 있으면 파일 이름 표시 및 미리보기 설정
+  useEffect(() => {
+    if (initialData?.boardImgUrl) {
+      const fileName =
+        initialData.boardImgUrl.split('/').pop() || '기존 이미지';
+      setSelectedFileName(fileName);
+      setPreviewImage(initialData.boardImgUrl);
+    }
+  }, [initialData]);
 
   // 폼 유효성 검사
   const isFormValid = useMemo(() => {
@@ -76,6 +101,15 @@ const CommunityWrite = () => {
     }
     setSelectedFileName(file.name);
 
+    // 미리보기 설정
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      if (event.target?.result) {
+        setPreviewImage(event.target.result as string);
+      }
+    };
+    reader.readAsDataURL(file);
+
     boardService.uploadBoardImage(
       file,
       ({ boardImgUrl }) => {
@@ -93,17 +127,40 @@ const CommunityWrite = () => {
     }
   };
 
-  const onRegister = () => {
+  const handleDeleteImage = () => {
+    setFormData((prevData) => ({
+      ...prevData,
+      boardImgUrl: '',
+    }));
+    setSelectedFileName('');
+    setPreviewImage('');
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const onRegister = async () => {
     if (!isFormValid) return;
 
-    boardService.writePost(
-      formData,
-      () => {
-        toast.success('게시글이 작성되었습니다.');
+    if (isEditMode && initialData) {
+      try {
+        await boardService.updateBoard(initialData.boardId, formData);
+
+        toast.success('게시글이 수정되었습니다.');
         navigate('/community');
-      },
-      (error) => toast.error(error.message)
-    );
+      } catch (error) {
+        toast.error('게시글 수정에 실패했습니다.');
+      }
+    } else {
+      boardService.writePost(
+        formData,
+        () => {
+          toast.success('게시글이 작성되었습니다.');
+          navigate('/community');
+        },
+        (error) => toast.error(error.message)
+      );
+    }
     window.history.pushState(null, '', '/community');
   };
 
@@ -176,31 +233,62 @@ const CommunityWrite = () => {
 
         {/* 이미지 업로드 영역 */}
         <div className="flex mb-4">
-          <div className="sm:w-20 shrink-0 " />
-          <div className="flex items-center gap-2">
-            <input
-              type="file"
-              ref={fileInputRef}
-              className="hidden"
-              accept="image/*"
-              onChange={handleFileChange}
-            />
-            <button
-              onClick={handleImageClick}
-              className="p-2 hover:bg-gray-100 rounded-lg"
-            >
-              <BsImage className="w-6 h-6 text-gray-600" />
-            </button>
-            <span className="text-gray-400 text-sm">
-              {selectedFileName || '이미지를 선택해주세요'}
-            </span>
+          <div className="sm:w-20 shrink-0" />
+          <div className="flex flex-col w-full">
+            <div className="flex items-center gap-2">
+              <input
+                type="file"
+                ref={fileInputRef}
+                className="hidden"
+                accept="image/*"
+                onChange={handleFileChange}
+              />
+              <button
+                onClick={handleImageClick}
+                className="p-2 hover:bg-gray-100 rounded-lg"
+              >
+                <BsImage className="w-6 h-6 text-gray-600" />
+              </button>
+              <div className="flex items-center">
+                <span
+                  className="text-gray-400 text-sm max-w-[150px] truncate"
+                  title={selectedFileName}
+                >
+                  {selectedFileName || '이미지를 선택해주세요'}
+                </span>
+                {selectedFileName && (
+                  <button
+                    onClick={handleDeleteImage}
+                    className="ml-2 text-gray-400 hover:text-gray-600"
+                    aria-label="이미지 삭제"
+                  >
+                    <BsX className="w-5 h-5" />
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* 이미지 미리보기 */}
+            {previewImage && (
+              <div className="mt-3 relative">
+                <div className="w-full max-w-sm relative">
+                  <img
+                    src={previewImage}
+                    alt="미리보기"
+                    className="ml-2 w-auto max-w-48 h-full object-contain"
+                  />
+                </div>
+              </div>
+            )}
           </div>
         </div>
+
         {/* 등록 버튼 */}
         <div className="flex justify-end -mt-2">
           <CommunityRegisterButton
             onClick={onRegister}
             disabled={!isFormValid}
+            text={isEditMode ? '수정하기' : '등록하기'}
           />
         </div>
       </div>

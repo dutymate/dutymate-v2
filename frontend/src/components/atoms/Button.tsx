@@ -273,10 +273,12 @@ export const CommunityRegisterButton = ({
   onClick,
   className,
   disabled,
+  text,
 }: {
   onClick?: () => void;
   className?: string;
   disabled?: boolean;
+  text?: string;
 }) => {
   return (
     <button
@@ -288,7 +290,7 @@ export const CommunityRegisterButton = ({
           : 'bg-primary hover:bg-primary-dark'
       } text-white transition-colors text-sm font-semibold ${className || ''}`}
     >
-      등록
+      {text}
     </button>
   );
 };
