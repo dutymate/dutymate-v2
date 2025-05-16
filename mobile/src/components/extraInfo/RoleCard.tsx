@@ -18,28 +18,28 @@ export const RoleCard = ({ option, selected, onPress }: RoleCardProps) => {
 	return (
 		<TouchableOpacity
 			onPress={onPress}
-			className={`border rounded-lg p-4 bg-white ${selected ? "border-[#FF9999]" : "border-gray-200"}`}
+			className={`border rounded-lg p-4 bg-white ${selected ? "border-primary" : "border-gray-200"}`}
 		>
 			<View className="flex-row items-center justify-between">
 				<View className="flex-row items-center">
-					<View className="mr-3">
+					<View className="mr-4">
 						<StyledText className="text-2xl">{option.icon}</StyledText>
 					</View>
 					<View>
 						<StyledText
-							className={`text-xs mb-1 ${selected ? "text-[#FF9999]" : "text-gray-500"}`}
+							className={`text-sm mb-1 ${selected ? "text-primary" : "text-gray-500"}`}
 						>
 							{option.position}
 						</StyledText>
 						<StyledText
-							className={`text-base font-semibold ${selected ? "text-[#FF9999]" : "text-black"}`}
+							className={`text-base font-semibold ${selected ? "text-primary" : "text-black"}`}
 						>
 							{option.title}
 						</StyledText>
 					</View>
 				</View>
 				{selected && (
-					<View className="w-6 h-6 rounded-full bg-[#FF9999] items-center justify-center">
+					<View className="w-6 h-6 rounded-full bg-primary items-center justify-center">
 						<StyledText className="text-white text-base">
 							✓
 						</StyledText>

@@ -1,7 +1,7 @@
 import { View } from "react-native";
 
 import { Card } from "@/components/card/Card";
-import { ExtraInfoForm } from "@/components/extraInfo/ExtraInfoForm";
+import { ExtraInfoForm } from "@/components/form/extraInfo/ExtraInfoForm";
 import { Layout } from "@/layout/Layout";
 import { LogoTemplate } from "@/templates/LogoTemplate";
 
@@ -22,7 +22,7 @@ export const ExtraInfoScreen = ({ navigation }: ExtraInfoScreenProps) => {
 	return (
 		<Layout>
 			<LogoTemplate navigation={navigation}>
-				<View className="p-4">
+				<View>
 					<Card>
 						<ExtraInfoForm />
 					</Card>

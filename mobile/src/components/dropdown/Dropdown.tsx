@@ -24,8 +24,7 @@ export const DropdownComponent = ({
 	onChange,
 	error,
 	disabled,
-	required,
-	optional,
+
 }: DropdownProps) => {
 	const [isFocus, setIsFocus] = useState(false);
 
@@ -34,7 +33,7 @@ export const DropdownComponent = ({
 			styles.dropdown,
 			{
 				backgroundColor: disabled ? "base-muted-30" : "base-white",
-				borderColor: error ? "#ef4444" : isFocus ? "primary" : "base-muted",
+				borderColor: error ? "#ef4444" : isFocus ? "#F5A281" : "#D9D9D9",
 			},
 		],
 		[error, disabled, isFocus],
@@ -51,9 +50,8 @@ export const DropdownComponent = ({
 				{error && (
 					<StyledText className="text-sm text-red-600">{error}</StyledText>
 				)}
-				{optional && (
-					<StyledText className="text-sm text-base-muted">선택 사항</StyledText>
-				)}
+			
+              
 			</View>
 
 			<View className="relative">
@@ -63,9 +61,9 @@ export const DropdownComponent = ({
 					selectedTextStyle={[
 						styles.selectedText,
 						{
-							color: disabled ? "#D9D9D9" : value ? "#F5A281" : "#4D4D4D",
+							color: disabled ? "#D9D9D9" : value ? "#4D4D4D" : "#4D4D4D",
 							textAlign: value ? "center" : "left",
-							fontWeight: value ? "700" : "400",
+							fontWeight: value ? "500" : "400",
 						},
 					]}
 					data={data}
@@ -88,7 +86,7 @@ export const DropdownComponent = ({
 						<MaterialIcons
 							name={isFocus ? "keyboard-arrow-up" : "keyboard-arrow-down"}
 							size={24}
-							color="#4D4D4D"
+							color="#D9D9D9"
 						/>
 					)}
 				/>
@@ -128,6 +126,6 @@ const styles = StyleSheet.create({
 		fontSize: 16,
 		color: "#4D4D4D",
 		textAlign: "center",
-		fontWeight: "700",
+		fontWeight: "500",
 	},
 });

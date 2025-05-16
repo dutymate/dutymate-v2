@@ -1,10 +1,15 @@
 import { Button } from "@/components/button/Button";
+import { ToggleButton } from "@/components/button/ToggleButton";
 import { RoleCard } from "@/components/extraInfo/RoleCard";
 import { StyledText } from "@/components/custom/StyledText";
 import { DropdownComponent } from "@/components/dropdown/Dropdown";
 import { useState } from "react";
 import { View, StyleSheet } from "react-native";
 
+/**
+ * ExtraInfoForm 컴포넌트는 사용자의 추가 정보를 입력받는 폼을 렌더링합니다.
+ * 연차, 성별, 역할(수간호사/평간호사)을 입력받습니다.
+ */
 interface FormData {
 	grade: number;
 	gender: "F" | "M";
@@ -39,6 +44,7 @@ export const ExtraInfoForm = () => {
 	});
 
 	const [careerError, setCareerError] = useState<string>("");
+	const [isLoading, setIsLoading] = useState(false);
 
 	const handleCareerChange = (value: string) => {
 		const gradeValue = parseInt(value);
@@ -46,19 +52,22 @@ export const ExtraInfoForm = () => {
 		setCareerError("");
 	};
 
+	const handleGenderChange = (index: number) => {
+		setFormState((prev) => ({ ...prev, gender: index === 0 ? "F" : "M" }));
+	};
+
 	const handleSubmit = () => {
 		if (formState.grade <= 0) {
 			setCareerError("연차를 선택해주세요.");
 			return;
 		}
-		// TODO: Handle form submission
-		console.log(formState);
 	};
+
 	return (
 		<View>
 			{/* 간호사 연차 */}
-			<View className="mb-8">
-				<StyledText className="text-lg font-semibold mb-3 text-black">
+			<View className="mb-6">
+				<StyledText className="text-xl font-semibold mb-1 text-black">
 					간호사 연차
 				</StyledText>
 				<DropdownComponent
@@ -66,60 +75,25 @@ export const ExtraInfoForm = () => {
 					data={careerOptions}
 					value={formState.grade > 0 ? String(formState.grade) : null}
 					onChange={handleCareerChange}
-					required
 				/>
 			</View>
 
 			{/* 성별 선택 */}
-			<View className="mb-8">
-				<StyledText className="text-lg font-semibold mb-3 text-black">
+			<View className="mb-6">
+				<StyledText className="text-xl font-semibold sm:text-[0.9rem]  text-gray-900 mb-[0.375rem] sm:mb-[0.5rem]">
 					성별
 				</StyledText>
-				<View className="flex-row gap-2">
-					<Button
-						color={formState.gender === "F" ? "primary" : "muted"}
-						size="lg"
-						style={[
-							styles.genderButton,
-							{
-								borderColor: formState.gender === "F" ? "#FF9999" : "#E5E7EB",
-								backgroundColor:
-									formState.gender === "F" ? "#FFFFFF" : "#F3F4F6",
-							},
-						]}
-						onPress={() => setFormState((prev) => ({ ...prev, gender: "F" }))}
-					>
-						<StyledText
-							className={`text-base font-medium ${formState.gender === "F" ? "text-[#FF9999]" : "text-gray-500"}`}
-						>
-							여자
-						</StyledText>
-					</Button>
-					<Button
-						color={formState.gender === "M" ? "primary" : "muted"}
-						size="lg"
-						style={[
-							styles.genderButton,
-							{
-								borderColor: formState.gender === "M" ? "#FF9999" : "#E5E7EB",
-								backgroundColor:
-									formState.gender === "M" ? "#FFFFFF" : "#F3F4F6",
-							},
-						]}
-						onPress={() => setFormState((prev) => ({ ...prev, gender: "M" }))}
-					>
-						<StyledText
-							className={`text-base font-medium ${formState.gender === "M" ? "text-[#FF9999]" : "text-gray-500"}`}
-						>
-							남자
-						</StyledText>
-					</Button>
-				</View>
+				<ToggleButton
+					options={[{ text: "여자" }, { text: "남자" }]}
+					selectedIndex={formState.gender === "F" ? 0 : 1}
+					onChange={handleGenderChange}
+					variant="gender"
+				/>
 			</View>
 
 			{/* 역할 선택 */}
 			<View className="mb-6">
-				<StyledText className="text-lg font-semibold mb-3 text-black">
+				<StyledText className="text-xl font-semibold mb-3 text-black">
 					어떤 업무를 하시나요?
 				</StyledText>
 				<View className="gap-2">
@@ -134,7 +108,7 @@ export const ExtraInfoForm = () => {
 						/>
 					))}
 				</View>
-				<StyledText className="text-gray-500 text-xs mt-2">
+				<StyledText className="text-gray-500 text-sm mt-2">
 					* 평간호사도 근무표 생성 기능이 필요한 경우 수간호사(근무표 관리자)를
 					선택해주세요.
 				</StyledText>
@@ -142,14 +116,15 @@ export const ExtraInfoForm = () => {
 
 			{/* 제출 버튼 */}
 			<Button
-				color="primary"
 				size="lg"
-				style={styles.submitButton}
+				width="long"
+				color="tertiary"
+				fullWidth
+				disabled={isLoading}
 				onPress={handleSubmit}
+				className="w-full h-[3rem]  bg-primary active:bg-primary-dark text-white"
 			>
-				<StyledText className="text-[#FF9999] text-base font-semibold">
-					작성 완료
-				</StyledText>
+				<StyledText className="text-white font-semibold text-lg">{isLoading ? '제출 중...' : '작성 완료'}</StyledText>
 			</Button>
 		</View>
 	);
