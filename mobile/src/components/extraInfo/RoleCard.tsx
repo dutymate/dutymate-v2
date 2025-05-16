@@ -33,10 +33,10 @@ export const RoleCard = ({ option, selected, onPress }: RoleCardProps) => {
 			onPress={onPress}
 			className={`border rounded-lg p-4 bg-white ${selected ? "border-primary" : "border-gray-200"}`}
 		>
-			<View className="flex-row items-center justify-between">
-				<View className="flex-row items-center">
-					<View className="mr-4">
-						<StyledText className="text-2xl">{option.icon}</StyledText>
+			<View className={"flex-row items-center justify-between"}>
+				<View className={"flex-row items-center"}>
+					<View className={"mr-4"}>
+						<StyledText className={"text-2xl"}>{option.icon}</StyledText>
 					</View>
 					<View>
 						<StyledText
@@ -52,8 +52,12 @@ export const RoleCard = ({ option, selected, onPress }: RoleCardProps) => {
 					</View>
 				</View>
 				{selected && (
-					<View className="w-6 h-6 rounded-full bg-primary items-center justify-center">
-						<StyledText className="text-white text-base">✓</StyledText>
+					<View
+						className={
+							"w-6 h-6 rounded-full bg-primary items-center justify-center"
+						}
+					>
+						<StyledText className={"text-white text-base"}>✓</StyledText>
 					</View>
 				)}
 			</View>

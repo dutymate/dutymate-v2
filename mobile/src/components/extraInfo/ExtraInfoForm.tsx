@@ -67,12 +67,12 @@ export const ExtraInfoForm = () => {
 	return (
 		<View>
 			{/* 간호사 연차 */}
-			<View className="mb-6">
-				<StyledText className="text-xl font-semibold mb-1 text-black">
+			<View className={"mb-6"}>
+				<StyledText className={"text-xl font-semibold mb-1 text-black"}>
 					간호사 연차
 				</StyledText>
 				<DropdownComponent
-					placeholder="연차를 선택해주세요."
+					placeholder={"연차를 선택해주세요."}
 					data={careerOptions}
 					value={formState.grade > 0 ? String(formState.grade) : null}
 					onChange={handleCareerChange}
@@ -80,8 +80,12 @@ export const ExtraInfoForm = () => {
 			</View>
 
 			{/* 성별 선택 */}
-			<View className="mb-6">
-				<StyledText className="text-xl font-semibold sm:text-[0.9rem]  text-gray-900 mb-[0.375rem] sm:mb-[0.5rem]">
+			<View className={"mb-6"}>
+				<StyledText
+					className={
+						"text-xl font-semibold sm:text-[0.9rem]  text-gray-900 mb-[0.375rem] sm:mb-[0.5rem]"
+					}
+				>
 					성별
 				</StyledText>
 				<ToggleButton
@@ -92,11 +96,11 @@ export const ExtraInfoForm = () => {
 			</View>
 
 			{/* 역할 선택 */}
-			<View className="mb-6">
-				<StyledText className="text-xl font-semibold mb-3 text-black">
+			<View className={"mb-6"}>
+				<StyledText className={"text-xl font-semibold mb-3 text-black"}>
 					어떤 업무를 하시나요?
 				</StyledText>
-				<View className="gap-2">
+				<View>
 					{roleOptions.map((option) => (
 						<RoleCard
 							key={option.value}
@@ -108,23 +112,23 @@ export const ExtraInfoForm = () => {
 						/>
 					))}
 				</View>
-				<StyledText className="text-gray-500 text-sm mt-2">
-					* 평간호사도 근무표 생성 기능이 필요한 경우 수간호사(근무표 관리자)를
-					선택해주세요.
+				<StyledText className={"text-gray-500 text-sm mt-2"}>
+					※ 평간호사도 근무표 생성 기능이 필요한 경우 수간호사{"\n"}
+					(근무표 관리자)를 선택해주세요.
 				</StyledText>
 			</View>
 
 			{/* 제출 버튼 */}
 			<Button
-				size="lg"
-				width="long"
-				color="tertiary"
+				size={"lg"}
+				width={"long"}
+				color={"tertiary"}
 				fullWidth
 				disabled={isLoading}
 				onPress={handleSubmit}
-				className="w-full h-[3rem]  bg-primary active:bg-primary-dark text-white"
+				className={"w-full h-[3rem]  bg-primary active:bg-primary-dark"}
 			>
-				<StyledText className="text-white font-semibold text-lg">
+				<StyledText className={"text-white font-semibold text-lg"}>
 					{isLoading ? "제출 중..." : "작성 완료"}
 				</StyledText>
 			</Button>

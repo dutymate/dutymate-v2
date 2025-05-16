@@ -130,7 +130,7 @@ export const Input = ({
 				/>
 				{error && (
 					<View className={"absolute right-3 top-1/2 -translate-y-1/2"}>
-						<MaterialIcons name="error" size={24} color="#ef4444" />
+						<MaterialIcons name={"error"} size={24} color={"#ef4444"} />
 					</View>
 				)}
 				{rightElement && (

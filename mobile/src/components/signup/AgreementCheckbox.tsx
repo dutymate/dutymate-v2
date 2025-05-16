@@ -24,7 +24,7 @@ export const AgreementCheckbox = ({
 	onPress,
 }: AgreementCheckboxProps) => {
 	return (
-		<View className="mt-2 flex justify-center items-center">
+		<View className={"mt-2 flex justify-center items-center"}>
 			<Pressable
 				onPress={onPress}
 				disabled={disabled}
@@ -37,9 +37,9 @@ export const AgreementCheckbox = ({
 							: "border-gray-500 bg-transparent"
 					}`}
 				>
-					{isChecked && <Icon name="check" size={16} color="#ffffff" />}
+					{isChecked && <Icon name={"check"} size={16} color={"#ffffff"} />}
 				</View>
-				<StyledText className="ml-1.5 text-md sm:text-sm text-gray-600">
+				<StyledText className={"ml-1.5 text-md sm:text-sm text-gray-600"}>
 					개인정보 수집 및 이용에 동의합니다.
 				</StyledText>
 			</Pressable>

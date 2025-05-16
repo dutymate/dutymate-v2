@@ -85,8 +85,8 @@ export const SignupForm = ({ navigation }: SignupFormProps) => {
 					color={"black"}
 					size={"lg"}
 					width={"long"}
-					onPress={() => {}}
-					disabled={true}
+					onPress={() => navigation.navigate("ExtraInfo")}
+					disabled={false}
 					className={
 						"w-full px-[0.75rem] py-[0.5rem] mt-2 bg-base-black rounded-md hover:bg-neutral-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-base-black"
 					}

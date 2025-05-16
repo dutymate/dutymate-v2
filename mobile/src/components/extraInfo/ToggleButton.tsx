@@ -33,7 +33,7 @@ export const ToggleButton = ({
 	onChange,
 }: ToggleButtonProps) => {
 	return (
-		<View className="flex-row bg-base-muted-30 rounded-lg p-1 w-full">
+		<View className={"flex-row bg-base-muted-30 rounded-lg p-1 w-full"}>
 			{options.map((option, index) => {
 				const isSelected = selectedIndex === index;
 				return (

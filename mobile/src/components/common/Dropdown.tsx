@@ -40,7 +40,6 @@ export const DropdownComponent = ({
 	disabled,
 }: DropdownProps) => {
 	const [isFocus, setIsFocus] = useState(false);
-
 	const dropdownStyle = useMemo(
 		() => [
 			styles.dropdown,
@@ -53,35 +52,34 @@ export const DropdownComponent = ({
 	);
 
 	return (
-		<View className="w-full mt-2">
-			<View className="flex-row justify-between items-center mb-2">
+		<View className={"w-full mt-2"}>
+			<View className={"flex-row justify-between items-center mb-2"}>
 				{label && (
-					<StyledText className="text-base font-medium text-base-foreground">
+					<StyledText className={"text-base font-medium text-base-foreground"}>
 						{label}
 					</StyledText>
 				)}
 				{error && (
-					<StyledText className="text-sm text-red-600">{error}</StyledText>
+					<StyledText className={"text-sm text-red-600"}>{error}</StyledText>
 				)}
 			</View>
-
-			<View className="relative">
+			<View className={"relative"}>
 				<Dropdown
 					style={dropdownStyle}
+					placeholder={placeholder}
 					placeholderStyle={styles.placeholder}
 					selectedTextStyle={[
 						styles.selectedText,
 						{
 							color: disabled ? "#D9D9D9" : value ? "#4D4D4D" : "#4D4D4D",
 							textAlign: value ? "center" : "left",
-							fontWeight: value ? "500" : "400",
+							fontWeight: value ? 500 : 400,
 						},
 					]}
 					data={data}
 					maxHeight={300}
-					labelField="label"
-					valueField="value"
-					placeholder={placeholder}
+					labelField={"label"}
+					valueField={"value"}
 					value={value}
 					onFocus={() => setIsFocus(true)}
 					onBlur={() => setIsFocus(false)}
@@ -97,7 +95,7 @@ export const DropdownComponent = ({
 						<MaterialIcons
 							name={isFocus ? "keyboard-arrow-up" : "keyboard-arrow-down"}
 							size={24}
-							color="#D9D9D9"
+							color={"#D9D9D9"}
 						/>
 					)}
 				/>
@@ -137,6 +135,6 @@ const styles = StyleSheet.create({
 		fontSize: 16,
 		color: "#4D4D4D",
 		textAlign: "center",
-		fontWeight: "500",
+		fontWeight: 500,
 	},
 });

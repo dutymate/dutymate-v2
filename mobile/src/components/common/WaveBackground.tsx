@@ -34,7 +34,7 @@ export const WaveBackground = () => {
 	}));
 
 	return (
-		<View className="absolute top-0 left-0 right-0 bottom-0 overflow-hidden">
+		<View className={"absolute top-0 left-0 right-0 bottom-0 overflow-hidden"}>
 			<Animated.View style={[styles.gradientWrapper, animatedStyle]}>
 				<LinearGradient
 					colors={["#FFE6DC", "#FFFFFF", "#FFE6DC", "#FFFFFF", "#FFE6DC"]}

@@ -57,13 +57,15 @@ export const ErrorScreen = ({ navigation }: ErrorScreenProps) => {
 					</View>
 					<View className={"justify-center items-center"}>
 						<Button
-							color="tertiary"
-							size="lg"
-							width="long"
+							color={"tertiary"}
+							size={"lg"}
+							width={"long"}
 							onPress={() => navigation.navigate("Landing")}
-							className="h-[3.5rem] sm:h-[3rem] bg-primary  w-full max-w-[23.2rem] mt-1 mb-1.5"
+							className={
+								"h-[3.5rem] sm:h-[3rem] bg-primary  w-full max-w-[23.2rem] mt-1 mb-1.5"
+							}
 						>
-							<StyledText className="text-[1.25rem] text-white">
+							<StyledText className={"text-[1.25rem] text-white"}>
 								홈으로 가기
 							</StyledText>
 						</Button>
