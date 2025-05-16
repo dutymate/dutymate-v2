@@ -20,11 +20,13 @@ import net.dutymate.api.domain.community.dto.BoardCreateRequestDto;
 import net.dutymate.api.domain.community.dto.BoardDetailResponseDto;
 import net.dutymate.api.domain.community.dto.BoardImgResponseDto;
 import net.dutymate.api.domain.community.dto.BoardListResponseDto;
+import net.dutymate.api.domain.community.dto.BoardUpdateRequestDto;
 import net.dutymate.api.domain.community.repository.BoardLikesRepository;
 import net.dutymate.api.domain.community.repository.BoardRepository;
 import net.dutymate.api.domain.community.repository.HotBoardRepository;
 import net.dutymate.api.domain.member.Member;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -157,5 +159,18 @@ public class BoardService {
 				hotBoardRepository.deleteByBoard(board);
 			}
 		}
+	}
+
+	@Transactional
+	public void updateBoard(Long boardId, Member member, @Valid BoardUpdateRequestDto boardUpdateRequestDto) {
+
+		Board board = boardRepository.findById(boardId)
+			.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "존재하지 않는 게시글입니다."));
+
+		if (!board.getMember().equals(member)) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "본인이 작성한 글만 수정할 수 있습니다.");
+		}
+
+		board.update(boardUpdateRequestDto);
 	}
 }

@@ -3,6 +3,7 @@ package net.dutymate.api.domain.community;
 import java.sql.Timestamp;
 import java.util.List;
 
+import net.dutymate.api.domain.community.dto.BoardUpdateRequestDto;
 import net.dutymate.api.domain.member.Member;
 
 import jakarta.persistence.CascadeType;
@@ -18,6 +19,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
+import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -96,5 +98,12 @@ public class Board {
 
 	public int getLikesCnt() {
 		return likesCntLow + likesCntMid + likesCntHigh;
+	}
+
+	public void update(@Valid BoardUpdateRequestDto boardUpdateRequestDto) {
+		this.title = boardUpdateRequestDto.getTitle();
+		this.content = boardUpdateRequestDto.getContent();
+		this.category = boardUpdateRequestDto.getCategory();
+		this.boardImageUrl = boardUpdateRequestDto.getBoardImgUrl();
 	}
 }
