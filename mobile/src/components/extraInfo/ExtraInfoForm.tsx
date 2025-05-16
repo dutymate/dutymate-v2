@@ -8,8 +8,15 @@ import { ToggleButton } from "@/components/extraInfo/ToggleButton";
 import { RoleCard } from "@/components/extraInfo/RoleCard";
 
 /**
- * ExtraInfoForm 컴포넌트는 사용자의 추가 정보를 입력받는 폼을 렌더링합니다.
- * 연차, 성별, 역할(수간호사/평간호사)을 입력받습니다.
+ * ExtraInfoFormProps는 ExtraInfoForm 컴포넌트의 props 타입을 정의합니다.
+ * navigation은 React Navigation의 navigation 객체입니다.
+ */
+interface ExtraInfoFormProps {
+	navigation: any;
+}
+
+/**
+ * FormData는 ExtraInfoForm 컴포넌트의 상태를 정의하는 타입입니다.
  */
 interface FormData {
 	grade: number;
@@ -37,20 +44,25 @@ const roleOptions = [
 	},
 ];
 
-export const ExtraInfoForm = () => {
+/**
+ * ExtraInfoForm 컴포넌트는 사용자의 추가 정보를 입력받는 폼입니다.
+ * 연차, 성별, 역할(수간호사/평간호사)을 입력받습니다.
+ */
+export const ExtraInfoForm = ({ navigation }: ExtraInfoFormProps) => {
 	const [formState, setFormState] = useState<FormData>({
 		grade: 0,
 		gender: "F",
 		role: "RN",
 	});
 
-	const [careerError, setCareerError] = useState<string>("");
-	const [isLoading, setIsLoading] = useState(false);
+	// TODO: careerError를 설정하는 로직 추가
+	// const [careerError, setCareerError] = useState<string>("");
+	const [isLoading] = useState(false);
 
 	const handleCareerChange = (value: string) => {
 		const gradeValue = parseInt(value);
 		setFormState((prev) => ({ ...prev, grade: gradeValue }));
-		setCareerError("");
+		// setCareerError("");
 	};
 
 	const handleGenderChange = (index: number) => {
@@ -58,10 +70,12 @@ export const ExtraInfoForm = () => {
 	};
 
 	const handleSubmit = () => {
-		if (formState.grade <= 0) {
-			setCareerError("연차를 선택해주세요.");
-			return;
-		}
+		// TODO: careerError를 설정하는 로직 추가
+		// if (formState.grade <= 0) {
+		// 	setCareerError("연차를 선택해주세요.");
+		// 	return;
+		// }
+		navigation.navigate("WebView");
 	};
 
 	return (

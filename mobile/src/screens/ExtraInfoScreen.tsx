@@ -24,7 +24,7 @@ export const ExtraInfoScreen = ({ navigation }: ExtraInfoScreenProps) => {
 			<LogoTemplate navigation={navigation}>
 				<View>
 					<Card>
-						<ExtraInfoForm />
+						<ExtraInfoForm navigation={navigation} />
 					</Card>
 				</View>
 			</LogoTemplate>
