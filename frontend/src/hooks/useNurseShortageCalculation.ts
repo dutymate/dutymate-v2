@@ -42,7 +42,7 @@ const useNurseShortageCalculation = ({
   const calculateRequiredNurses = useCallback(() => {
     if (!wardRules) return 0;
 
-    // 현재 월의 일 수 및 평일/주말 일 수 계산
+    // 1. 평일/주말 계산
     const daysInMonth = new Date(year, month, 0).getDate();
     const weekendDays = Array.from(
       { length: daysInMonth },
@@ -55,37 +55,35 @@ const useNurseShortageCalculation = ({
     ).length;
     const weekdayDays = daysInMonth - weekendDays;
 
-    // 평일/주말 필요 근무 수 계산
+    // 2. 평일/주말 필요 근무 수 계산
     const weekdayShifts =
       wardRules.wdayDCnt + wardRules.wdayECnt + wardRules.wdayNCnt;
     const weekendShifts =
       wardRules.wendDCnt + wardRules.wendECnt + wardRules.wendNCnt;
 
-    // 총 필요 근무 수 계산
+    // 3. 총 필요 근무 수 계산
     const totalRequiredShifts =
       weekdayShifts * weekdayDays + weekendShifts * weekendDays;
 
-    // 야간 전담 간호사가 없는 경우
+    // 4. 야간 전담 간호사가 없는 경우
     if (nightNurseCount === 0) {
       let nurseCount = 1;
-      while (
-        nurseCount * (daysInMonth - getDefaultOffDays(year, month)) <
-        totalRequiredShifts
-      ) {
+      const workableDays = daysInMonth - getDefaultOffDays(year, month);
+
+      while (nurseCount * workableDays < totalRequiredShifts) {
         nurseCount++;
       }
       return Math.max(0, nurseCount - nursesCount);
     }
 
-    // 야간 전담 간호사가 있는 경우
-    const nightNurseCapacity = nightNurseCount * (daysInMonth / 2); // 야간 전담 간호사가 커버할 수 있는 일수 (6일 중 3일 근무)
+    // 5. 야간 전담 간호사가 있는 경우
+    const nightNurseCapacity = nightNurseCount * (daysInMonth / 2); // 야간 전담 간호사는 6일 중 3일 근무
     const remainingShifts = totalRequiredShifts - nightNurseCapacity;
 
     let normalNurseCount = 1;
-    while (
-      normalNurseCount * (daysInMonth - getDefaultOffDays(year, month)) <
-      remainingShifts
-    ) {
+    const workableDays = daysInMonth - getDefaultOffDays(year, month);
+
+    while (normalNurseCount * workableDays < remainingShifts) {
       normalNurseCount++;
     }
 
