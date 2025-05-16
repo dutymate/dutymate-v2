@@ -62,7 +62,7 @@ const WardAdminTable = ({}: WardAdminTableProps) => {
                       />
                     </div>
                   </div>
-                  <div className="w-[11rem] pl-[3rem] flex items-center gap-[0.25rem]">
+                  <div className="w-[13rem] pl-[5.5rem] flex items-center gap-[0.25rem]">
                     전담 근무
                     <Tooltip
                       content={

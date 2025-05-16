@@ -209,6 +209,39 @@ const WardAdminRowCard = ({ nurse, onUpdate }: WardAdminRowCardProps) => {
     setOpenWorkIntensityDropdown(false);
   };
 
+  const DEN_COMBINATION = ShiftValues.D | ShiftValues.E | ShiftValues.N;
+
+  const handleAllShiftChange = () => {
+    let newShift;
+
+    // M 근무 값
+    const mShiftValue = ShiftValues.M;
+
+    // 현재 D, E, N이 모두 선택되어 있는지 확인
+    const allDENSelected =
+      (nurse.shiftFlags & DEN_COMBINATION) === DEN_COMBINATION;
+
+    if (allDENSelected) {
+      // 이미 모두 선택되어 있으면 모두 해제 (단, 최소 하나는 남겨야 함)
+      toast.warning('최소 하나 이상의 근무를 선택해주세요.');
+      return;
+    } else {
+      // M이 선택되어 있으면 M 해제하고 D, E, N 모두 선택
+      if ((nurse.shiftFlags & mShiftValue) !== 0) {
+        newShift = (nurse.shiftFlags & ~mShiftValue) | DEN_COMBINATION;
+      } else {
+        // M이 선택되어 있지 않으면 기존 선택에 D, E, N 추가
+        newShift = nurse.shiftFlags | DEN_COMBINATION;
+      }
+    }
+
+    onUpdate(nurse.memberId, {
+      shiftFlags: newShift,
+      skillLevel: nurse.skillLevel || null,
+      memo: nurse.memo || '',
+      role: nurse.role,
+    });
+  };
   const handleShiftChange = (shiftValue: number) => {
     let newShift;
 
@@ -572,7 +605,7 @@ const WardAdminRowCard = ({ nurse, onUpdate }: WardAdminRowCardProps) => {
                   </div>
                 )}
               </div>
-              <div className="flex gap-[0.5rem] w-[9.6875rem]">
+              <div className="flex gap-[0.6rem] w-[12rem]">
                 {(['M', 'D', 'E', 'N'] as const).map((duty) => {
                   const dutyDisplay = getDutyLabel(duty);
                   const shiftValue = ShiftValues[duty];
@@ -591,6 +624,22 @@ const WardAdminRowCard = ({ nurse, onUpdate }: WardAdminRowCardProps) => {
                     </DutyTooltip>
                   );
                 })}
+                <DutyTooltip message="D/E/N 모두 선택">
+                  <DutyBadgeEng
+                    type="ALL" // All 타입 사용
+                    size="md"
+                    variant={
+                      (nurse.shiftFlags & DEN_COMBINATION) === DEN_COMBINATION
+                        ? 'filled'
+                        : 'outline'
+                    }
+                    onClick={handleAllShiftChange}
+                    isSelected={
+                      (nurse.shiftFlags & DEN_COMBINATION) === DEN_COMBINATION
+                    }
+                    useSmallText={true}
+                  />
+                </DutyTooltip>
               </div>
             </div>
             <div className="flex items-center gap-[1.5rem] flex-1 min-w-0">
