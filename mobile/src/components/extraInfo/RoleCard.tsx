@@ -40,9 +40,7 @@ export const RoleCard = ({ option, selected, onPress }: RoleCardProps) => {
 				</View>
 				{selected && (
 					<View className="w-6 h-6 rounded-full bg-primary items-center justify-center">
-						<StyledText className="text-white text-base">
-							✓
-						</StyledText>
+						<StyledText className="text-white text-base">✓</StyledText>
 					</View>
 				)}
 			</View>

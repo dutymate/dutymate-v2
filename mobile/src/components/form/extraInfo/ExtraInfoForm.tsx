@@ -4,7 +4,7 @@ import { RoleCard } from "@/components/extraInfo/RoleCard";
 import { StyledText } from "@/components/custom/StyledText";
 import { DropdownComponent } from "@/components/dropdown/Dropdown";
 import { useState } from "react";
-import { View, StyleSheet } from "react-native";
+import { View } from "react-native";
 
 /**
  * ExtraInfoForm 컴포넌트는 사용자의 추가 정보를 입력받는 폼을 렌더링합니다.
@@ -87,7 +87,6 @@ export const ExtraInfoForm = () => {
 					options={[{ text: "여자" }, { text: "남자" }]}
 					selectedIndex={formState.gender === "F" ? 0 : 1}
 					onChange={handleGenderChange}
-					variant="gender"
 				/>
 			</View>
 
@@ -124,20 +123,10 @@ export const ExtraInfoForm = () => {
 				onPress={handleSubmit}
 				className="w-full h-[3rem]  bg-primary active:bg-primary-dark text-white"
 			>
-				<StyledText className="text-white font-semibold text-lg">{isLoading ? '제출 중...' : '작성 완료'}</StyledText>
+				<StyledText className="text-white font-semibold text-lg">
+					{isLoading ? "제출 중..." : "작성 완료"}
+				</StyledText>
 			</Button>
 		</View>
 	);
 };
-
-const styles = StyleSheet.create({
-	genderButton: {
-		flex: 1,
-		borderWidth: 1,
-	},
-	submitButton: {
-		width: "100%",
-		backgroundColor: "#FFE5E5",
-		height: 56,
-	},
-});

@@ -24,7 +24,6 @@ export const DropdownComponent = ({
 	onChange,
 	error,
 	disabled,
-
 }: DropdownProps) => {
 	const [isFocus, setIsFocus] = useState(false);
 
@@ -50,8 +49,6 @@ export const DropdownComponent = ({
 				{error && (
 					<StyledText className="text-sm text-red-600">{error}</StyledText>
 				)}
-			
-              
 			</View>
 
 			<View className="relative">
