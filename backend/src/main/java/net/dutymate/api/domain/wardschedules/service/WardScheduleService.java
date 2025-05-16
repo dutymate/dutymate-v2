@@ -647,14 +647,16 @@ public class WardScheduleService {
 		// 기존 스케줄이 존재한다면, 새로운 스냅샷 생성 및 초기화된 duty 추가하기
 		if (currMonthSchedule != null) {
 			for (WardMember nurse : newWardMemberList) {
-				currMonthSchedule = initialDutyGenerator.updateDutyWithNewMember(currMonthSchedule, nurse);
+				currMonthSchedule = initialDutyGenerator
+					.updateDutyWithNewMember(currMonthSchedule, nurse, yearMonth.initializeShifts());
 			}
 			updatedScheduleList.add(currMonthSchedule);
 		}
 
 		if (nextMonthSchedule != null) {
 			for (WardMember nurse : newWardMemberList) {
-				nextMonthSchedule = initialDutyGenerator.updateDutyWithNewMember(nextMonthSchedule, nurse);
+				nextMonthSchedule = initialDutyGenerator
+					.updateDutyWithNewMember(nextMonthSchedule, nurse, nextYearMonth.initializeShifts());
 			}
 			updatedScheduleList.add(nextMonthSchedule);
 		}

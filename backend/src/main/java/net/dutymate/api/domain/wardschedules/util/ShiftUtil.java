@@ -34,7 +34,7 @@ public class ShiftUtil {
 			.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "존재하지 않는 병동입니다."));
 
 		// 가장 최근 스냅샷
-		List<WardSchedule.NurseShift> lastDuty = wardSchedule.getDuties().getLast().getDuty();
+		List<WardSchedule.NurseShift> lastDuty = wardSchedule.getDuties().get(wardSchedule.getNowIdx()).getDuty();
 
 		String shifts = lastDuty.stream()
 			.filter(prev -> Objects.equals(prev.getMemberId(), member.getMemberId()))
@@ -43,6 +43,22 @@ public class ShiftUtil {
 			.getShifts();
 
 		return Shift.valueOf(String.valueOf(shifts.charAt(date - 1)));
+	}
+
+	public String getShifts(int year, int month, Member member) {
+		Ward ward = member.getWardMember().getWard();
+		WardSchedule wardSchedule = wardScheduleRepository
+			.findByWardIdAndYearAndMonth(ward.getWardId(), year, month)
+			.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "존재하지 않는 병동입니다."));
+
+		// 가장 최근 스냅샷
+		List<WardSchedule.NurseShift> lastDuty = wardSchedule.getDuties().get(wardSchedule.getNowIdx()).getDuty();
+
+		return lastDuty.stream()
+			.filter(prev -> Objects.equals(prev.getMemberId(), member.getMemberId()))
+			.findAny()
+			.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "근무표에 간호사가 존재하지 않습니다."))
+			.getShifts();
 	}
 
 	// 병동 스케줄에서 Shift 변경 메서드

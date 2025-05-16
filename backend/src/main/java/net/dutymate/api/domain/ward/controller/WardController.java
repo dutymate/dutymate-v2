@@ -15,9 +15,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import net.dutymate.api.domain.member.Member;
 import net.dutymate.api.domain.ward.dto.AddNurseCntRequestDto;
+import net.dutymate.api.domain.ward.dto.EnterAcceptRequestDto;
 import net.dutymate.api.domain.ward.dto.EnterWaitingResponseDto;
 import net.dutymate.api.domain.ward.dto.HospitalNameResponseDto;
-import net.dutymate.api.domain.ward.dto.TempLinkRequestDto;
+import net.dutymate.api.domain.ward.dto.ShiftsComparisonResponseDto;
 import net.dutymate.api.domain.ward.dto.TempNurseResponseDto;
 import net.dutymate.api.domain.ward.dto.VirtualEditRequestDto;
 import net.dutymate.api.domain.ward.dto.WardInfoResponseDto;
@@ -98,23 +99,24 @@ public class WardController {
 	}
 
 	// 병동 입장 승인 (연동하지 않고 추가) (관리자) : 입장 관리
-	@PostMapping("/member/{memberId}")
+	@PostMapping("/member/{enterMemberId}")
 	public ResponseEntity<?> enterAcceptWithoutLink(
-		@PathVariable Long memberId,
+		@PathVariable("enterMemberId") Long enterMemberId,
+		@RequestBody EnterAcceptRequestDto enterAcceptRequestDto,
 		@Auth Member member
 	) {
-		wardService.enterAcceptWithoutLink(memberId, member);
+		wardService.enterAcceptWithoutLink(enterMemberId, enterAcceptRequestDto, member);
 		return ResponseEntity.ok().build();
 	}
 
 	// 병동 입장 승인 (연동하고 추가) (관리자) : 입장 관리
-	@PostMapping("/member/{memberId}/link")
+	@PostMapping("/member/{enterMemberId}/link")
 	public ResponseEntity<?> enterAcceptWithLink(
-		@PathVariable Long memberId,
-		@RequestBody TempLinkRequestDto tempLinkRequestDto,
+		@PathVariable("enterMemberId") Long enterMemberId,
+		@RequestBody EnterAcceptRequestDto enterAcceptRequestDto,
 		@Auth Member member
 	) {
-		wardService.enterAcceptWithLink(memberId, tempLinkRequestDto, member);
+		wardService.enterAcceptWithLink(enterMemberId, enterAcceptRequestDto, member);
 		return ResponseEntity.ok().build();
 	}
 
@@ -126,5 +128,16 @@ public class WardController {
 		@Auth Member member) {
 		wardService.enterDenied(memberId, member);
 		return ResponseEntity.ok().build();
+	}
+
+	// 입장 신청 내역 조회 : 개인 듀티 vs 병동 듀티 불러오기
+	@GetMapping("/member/{enterMemberId}/shifts")
+	public ResponseEntity<?> getShiftsComparison(
+		@PathVariable("enterMemberId") Long enterMemberId,
+		@RequestParam(value = "temp-member-id", required = false) Long tempMemberId
+	) {
+		ShiftsComparisonResponseDto shiftsComparisonResponseDto
+			= wardService.getShiftsComparison(enterMemberId, tempMemberId);
+		return ResponseEntity.ok(shiftsComparisonResponseDto);
 	}
 }

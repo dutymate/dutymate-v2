@@ -22,9 +22,10 @@ import net.dutymate.api.domain.ward.EnterWaiting;
 import net.dutymate.api.domain.ward.Hospital;
 import net.dutymate.api.domain.ward.Ward;
 import net.dutymate.api.domain.ward.dto.AddNurseCntRequestDto;
+import net.dutymate.api.domain.ward.dto.EnterAcceptRequestDto;
 import net.dutymate.api.domain.ward.dto.EnterWaitingResponseDto;
 import net.dutymate.api.domain.ward.dto.HospitalNameResponseDto;
-import net.dutymate.api.domain.ward.dto.TempLinkRequestDto;
+import net.dutymate.api.domain.ward.dto.ShiftsComparisonResponseDto;
 import net.dutymate.api.domain.ward.dto.TempNurseResponseDto;
 import net.dutymate.api.domain.ward.dto.VirtualEditRequestDto;
 import net.dutymate.api.domain.ward.dto.WardInfoResponseDto;
@@ -41,6 +42,7 @@ import net.dutymate.api.domain.wardschedules.repository.MemberScheduleRepository
 import net.dutymate.api.domain.wardschedules.repository.WardScheduleRepository;
 import net.dutymate.api.domain.wardschedules.service.WardScheduleService;
 import net.dutymate.api.domain.wardschedules.util.InitialDutyGenerator;
+import net.dutymate.api.domain.wardschedules.util.ShiftUtil;
 
 import lombok.RequiredArgsConstructor;
 
@@ -61,6 +63,7 @@ public class WardService {
 
 	private static final int MAX_VIRTUAL_NURSE_COUNT = 20;
 	private static final int MAX_NURSE_COUNT = 30;
+	private final ShiftUtil shiftUtil;
 
 	@Transactional
 	public void createWard(WardRequestDto requestWardDto, Member member) {
@@ -153,7 +156,7 @@ public class WardService {
 	}
 
 	@Transactional
-	public void enterAcceptWithoutLink(Long enterMemberId, Member member) {
+	public void enterAcceptWithoutLink(Long enterMemberId, EnterAcceptRequestDto enterAcceptRequestDto, Member member) {
 		// 수간호사가 아니면 예외 처리
 		if (!member.getRole().equals(Role.HN)) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "관리자가 아닙니다.");
@@ -173,7 +176,8 @@ public class WardService {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "입장 요청하지 않은 회원입니다.");
 		}
 
-		enterToWard(ward, enterMember);
+		// 와드 스케줄에 입장 멤버 추가, 선택된 shifts도 반영
+		enterToWard(ward, enterMember, enterAcceptRequestDto.getAppliedShifts());
 
 		// 병동 입장을 승인 or 거절하는 경우 모두 입장 대기 테이블에서 삭제시켜야 함
 		enterWaitingRepository.removeByMemberAndWard(enterMember, ward);
@@ -183,10 +187,6 @@ public class WardService {
 		enterMember.changeEnterYearMonth(nowYearMonth);
 
 		List<WardSchedule> allWardSchedule = wardScheduleRepository.findAllByWardId(ward.getWardId());
-
-		// TODO conflict 해결에서 선택된 듀티표를 현재 연월의 wardSchedule에 반영하는 기능 추가 필요
-		// 1. 현재 연월 wardSchedule 조회 후
-		// 2. 선택된 듀티표로 nurseShift 업데이트, history 초기화(개인 듀티 선택 시)
 
 		List<MemberSchedule> memberSchedulesToSave = new ArrayList<>();
 		for (WardSchedule wardSchedule : allWardSchedule) {
@@ -206,7 +206,7 @@ public class WardService {
 	}
 
 	@Transactional
-	public void enterAcceptWithLink(Long enterMemberId, TempLinkRequestDto tempLinkRequestDto, Member member) {
+	public void enterAcceptWithLink(Long enterMemberId, EnterAcceptRequestDto enterAcceptRequestDto, Member member) {
 		// 수간호사가 아니면 예외 처리
 		if (!member.getRole().equals(Role.HN)) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "관리자가 아닙니다.");
@@ -226,7 +226,7 @@ public class WardService {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "입장 요청하지 않은 회원입니다.");
 		}
 
-		Member linkedTempMember = memberRepository.findById(tempLinkRequestDto.getTempMemberId())
+		Member linkedTempMember = memberRepository.findById(enterAcceptRequestDto.getTempMemberId())
 			.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "임시 간호사를 찾을 수 없습니다."));
 
 		// 입장 멤버 정보를 임시 멤버로 변경
@@ -239,10 +239,41 @@ public class WardService {
 		YearMonth nowYearMonth = YearMonth.nowYearMonth();
 		enterMember.changeEnterYearMonth(nowYearMonth);
 
+		// ===== 현재 달 병동 스케줄을 선택한 shifts로 업데이트 START =====
+		WardSchedule currWardSchedule = wardScheduleRepository
+			.findByWardIdAndYearAndMonth(ward.getWardId(), nowYearMonth.year(), nowYearMonth.month())
+			.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "병동 스케줄을 찾을 수 없습니다."));
+
+		WardSchedule.Duty currDuty = currWardSchedule.getDuties().get(currWardSchedule.getNowIdx());
+		for (WardSchedule.NurseShift nurseShift : currDuty.getDuty()) {
+			// 여기서 연동할 임시 멤버 ID 찾고 shifts 업데이트
+			if (nurseShift.getMemberId().equals(linkedTempMember.getMemberId())) {
+				nurseShift.changeShifts(enterAcceptRequestDto.getAppliedShifts());
+				break;
+			}
+		}
+
+		WardSchedule.Duty newDuty = WardSchedule.Duty.builder()
+			.idx(0)
+			.duty(new ArrayList<>(currDuty.getDuty()))
+			.history(initialDutyGenerator.createInitialHistory())
+			.build();
+
+		currWardSchedule = WardSchedule.builder()
+			.id(currWardSchedule.getId())
+			.wardId(ward.getWardId())
+			.year(currWardSchedule.getYear())
+			.month(currWardSchedule.getMonth())
+			.nowIdx(0)
+			.duties(new ArrayList<>(List.of(newDuty)))
+			.build();
+
+		wardScheduleRepository.save(currWardSchedule);
+		// ===== 현재 달 병동 스케줄을 선택한 듀티로 업데이트 END =====
+
 		// 병동 스케줄 순회
 		List<WardSchedule> allWardSchedule = wardScheduleRepository.findAllByWardId(ward.getWardId());
 
-		// TODO conflict 해결에서 선택된 듀티표를 현재 연월의 wardSchedule에 반영하는 기능 추가 필요
 		// 1. 현재 연월 wardSchedule 조회 후
 		// 2. 선택된 듀티표로 nurseShift 업데이트, history 초기화(개인 듀티 선택 시)
 
@@ -260,7 +291,7 @@ public class WardService {
 				}
 			}
 
-			YearMonth wardScheduleYearMonth = new YearMonth(wardSchedule.getYear(), wardSchedule.getMonth());
+			YearMonth wardScheduleYearMonth = wardSchedule.getYearMonth();
 
 			// 입장 연월 이후의 병동 스케줄 -> 멤버 스케줄 연동 (덮어쓰기)
 			if (wardScheduleYearMonth.isSameOrAfter(nowYearMonth)) {
@@ -282,7 +313,7 @@ public class WardService {
 		memberRepository.delete(linkedTempMember);
 	}
 
-	public void enterToWard(Ward ward, Member member) {
+	public void enterToWard(Ward ward, Member member, String appliedShifts) {
 		// 1. wardCode에 해당하는 ward가 존재하는지 확인
 		// Ward ward = wardRepository.findByWardCode(wardCode)
 		// 	.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "유효하지 않은 병동 코드입니다."));
@@ -318,12 +349,14 @@ public class WardService {
 
 		// 5. 기존 스케줄이 존재한다면, 새로운 스냅샷 생성 및 초기화된 duty 추가하기
 		if (currMonthSchedule != null) {
-			currMonthSchedule = initialDutyGenerator.updateDutyWithNewMember(currMonthSchedule, newWardMember);
+			currMonthSchedule = initialDutyGenerator
+				.updateDutyWithNewMember(currMonthSchedule, newWardMember, appliedShifts);
 			wardScheduleRepository.save(currMonthSchedule);
 		}
 
 		if (nextMonthSchedule != null) {
-			nextMonthSchedule = initialDutyGenerator.updateDutyWithNewMember(nextMonthSchedule, newWardMember);
+			nextMonthSchedule = initialDutyGenerator
+				.updateDutyWithNewMember(nextMonthSchedule, newWardMember, nextYearMonth.initializeShifts());
 			wardScheduleRepository.save(nextMonthSchedule);
 		}
 
@@ -526,4 +559,42 @@ public class WardService {
 		return hospitalList.stream().map(HospitalNameResponseDto::of).toList();
 
 	}
+
+	@Transactional(readOnly = true)
+	public ShiftsComparisonResponseDto getShiftsComparison(Long enterMemberId, Long tempMemberId) {
+		// 1. 입장 멤버 초기화
+		if (!memberRepository.existsById(enterMemberId)) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "회원을 찾을 수 없습니다.");
+		}
+
+		// 2. 현재 연월 초기화
+		YearMonth nowYearMonth = YearMonth.nowYearMonth();
+
+		// 3. 입장 멤버의 현재 연월 shifts 불러오기
+		String enterMemberShifts = wardScheduleService
+			.getOrCreateMemberSchedule(enterMemberId, nowYearMonth)
+			.getShifts();
+
+		// 4. 임시 멤버의 현재 연월 shifts 불러오기
+		String tempMemberShifts;
+
+		if (tempMemberId == null) {
+			// 4-1. 임시 멤버와 연동하지 않고 추가 시 "X" 한달 치 반환
+			tempMemberShifts = nowYearMonth.initializeShifts();
+		} else {
+			// 4-2. 임시 멤버와 연동 시, 임시 멤버의 현재 연월 shifts 반환
+			Member tempMember = memberRepository.findById(tempMemberId)
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "회원을 찾을 수 없습니다."));
+
+			if (tempMember.getWardMember() == null) {
+				throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "병동에 속하지 않은 회원입니다.");
+			}
+
+			// 4-3. 임시 멤버의 현재 연월 shifts 불러오기
+			tempMemberShifts = shiftUtil.getShifts(nowYearMonth.year(), nowYearMonth.month(), tempMember);
+		}
+
+		return ShiftsComparisonResponseDto.of(enterMemberShifts, tempMemberShifts);
+	}
+
 }

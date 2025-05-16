@@ -55,10 +55,8 @@ public class InitialDutyGenerator {
 	/**
 	 * 기존 스케줄에 새로운 멤버 추가하여 새 스냅샷 생성 (병동 입장 시)
 	 */
-	public WardSchedule updateDutyWithNewMember(WardSchedule existingSchedule, WardMember newWardMember) {
-
-		String initializedShifts
-			= new YearMonth(existingSchedule.getYear(), existingSchedule.getMonth()).initializeShifts();
+	public WardSchedule updateDutyWithNewMember(WardSchedule existingSchedule, WardMember newWardMember,
+		String initializedShifts) {
 
 		WardSchedule.NurseShift nurseShift = createNurseShift(newWardMember, initializedShifts);
 

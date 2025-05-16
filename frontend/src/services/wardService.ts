@@ -104,7 +104,7 @@ export const ShiftValues = {
 export type SkillLevel = 'LOW' | 'MID' | 'HIGH';
 
 interface TempNurseResponse {
-  tempMemberId: number;
+  memberId: number;
   profileImg: string | null;
   name: string;
   grade: number;
@@ -454,10 +454,10 @@ export const wardService = {
 
   connectWithEnterMember: (
     enterMemberId: number,
-    tempMemberId: { tempMemberId: number }
+    memberId: { memberId: number }
   ) => {
     return axiosInstance
-      .post(`/ward/member/${enterMemberId}/link`, { tempMemberId })
+      .post(`/ward/member/${enterMemberId}/link`, { memberId })
       .then((response) => response.data)
       .catch((error) => {
         if (error.code === 'ERR_NETWORK') {

@@ -7,6 +7,8 @@ import org.springframework.data.mongodb.core.index.CompoundIndexes;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
+import net.dutymate.api.domain.common.utils.YearMonth;
+
 import jakarta.persistence.Id;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -99,5 +101,9 @@ public class WardSchedule {
 		private Integer modifiedDay;
 		@Field("is_auto_created")
 		private Boolean isAutoCreated;
+	}
+
+	public YearMonth getYearMonth() {
+		return new YearMonth(this.year, this.month);
 	}
 }

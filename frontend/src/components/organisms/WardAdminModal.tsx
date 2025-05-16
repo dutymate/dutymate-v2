@@ -30,7 +30,7 @@ interface NurseAssignModalProps {
 
 // Add interface for temp nurse
 interface TempNurse {
-  tempMemberId: number;
+  memberId: number;
   profileImg: string | null;
   name: string;
   grade: number;
@@ -185,10 +185,10 @@ export const NurseAssignModal = ({
 
       // 성공적으로 연동된 경우, 임시 간호사 목록에서 제거
       setTempNurses((prev) =>
-        prev.filter((n) => n.tempMemberId !== tempNurse.tempMemberId)
+        prev.filter((n) => n.memberId !== tempNurse.memberId)
       );
 
-      setSelectedNurse(tempNurse.tempMemberId);
+      setSelectedNurse(tempNurse.memberId);
       onClose();
 
       // 실제 간호사 목록을 다시 불러오기
@@ -288,7 +288,7 @@ export const NurseAssignModal = ({
               ) : (
                 tempNurses.map((tempNurse) => (
                   <div
-                    key={tempNurse.tempMemberId}
+                    key={tempNurse.memberId}
                     className="flex items-center justify-between gap-2 px-3 py-2.5 bg-white rounded-xl min-w-[18.5rem] sm:min-w-0 w-full max-w-[25rem]"
                   >
                     <div className="flex items-center gap-4">
@@ -325,7 +325,7 @@ export const NurseAssignModal = ({
                         setIsAddNurseConfirmModalOpen(true);
                       }}
                       className={`px-3 py-1 rounded-md text-xs transition-colors whitespace-nowrap ${
-                        selectedNurse === tempNurse.tempMemberId
+                        selectedNurse === tempNurse.memberId
                           ? 'bg-primary text-white hover:bg-primary-dark'
                           : 'bg-white text-primary border border-primary hover:bg-primary hover:text-white'
                       }`}
