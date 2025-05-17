@@ -14,6 +14,7 @@ import { Group, GroupMember } from '@/types/group';
 import PageLoadingSpinner from '@/components/atoms/Loadingspinner';
 import { useLoadingStore } from '@/stores/loadingStore';
 import { SEO } from '@/components/SEO';
+import useUserAuthStore from '@/stores/userAuthStore';
 
 const GroupMemberPage = () => {
   const { groupId } = useParams();
@@ -31,6 +32,7 @@ const GroupMemberPage = () => {
   const [members, setMembers] = useState<GroupMember[]>([]);
   const [selectedMembers, setSelectedMembers] = useState<number[]>([]);
   const [inviteLink, setInviteLink] = useState<string>('');
+  const { userInfo } = useUserAuthStore();
 
   // 그룹 정보 가져오기
   useEffect(() => {
@@ -264,37 +266,43 @@ const GroupMemberPage = () => {
                 </tr>
               </thead>
               <tbody>
-                {members.map((m) => (
-                  <tr key={m.memberId} className="text-center">
-                    <td className="py-2">
-                      <div className="flex justify-center">
-                        {m.isLeader ? (
-                          <span className="flex items-center bg-yellow-100 text-yellow-700 font-bold px-3 py-1 rounded-lg text-sm">
-                            <FaCrown className="mr-1 text-yellow-400" />{' '}
-                            {m.name}
-                          </span>
-                        ) : (
-                          <span className="bg-gray-100 text-gray-700 px-3 py-1 rounded-lg text-sm">
-                            {m.name}
-                          </span>
+                {members.map((m) => {
+                  // 그룹 리더의 memberId 찾기
+                  const leader = members.find((mem) => mem.isLeader);
+                  const isCurrentUserLeader =
+                    leader && userInfo && leader.memberId === userInfo.memberId;
+                  return (
+                    <tr key={m.memberId} className="text-center">
+                      <td className="py-2">
+                        <div className="flex justify-center">
+                          {m.isLeader ? (
+                            <span className="flex items-center bg-yellow-100 text-yellow-700 font-bold px-3 py-1 rounded-lg text-sm">
+                              <FaCrown className="mr-1 text-yellow-400" />{' '}
+                              {m.name}
+                            </span>
+                          ) : (
+                            <span className="bg-gray-100 text-gray-700 px-3 py-1 rounded-lg text-sm">
+                              {m.name}
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="text-gray-500 text-sm py-2">
+                        {m.createdAt}
+                      </td>
+                      <td className="py-2">
+                        {!m.isLeader && isCurrentUserLeader && (
+                          <button
+                            className="text-gray-500 text-sm hover:text-red-500"
+                            onClick={() => handleKick(m.memberId)}
+                          >
+                            내보내기
+                          </button>
                         )}
-                      </div>
-                    </td>
-                    <td className="text-gray-500 text-sm py-2">
-                      {m.createdAt}
-                    </td>
-                    <td className="py-2">
-                      {!m.isLeader && (
-                        <button
-                          className="text-gray-500 text-sm hover:text-red-500"
-                          onClick={() => handleKick(m.memberId)}
-                        >
-                          내보내기
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

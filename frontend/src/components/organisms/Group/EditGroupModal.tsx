@@ -136,13 +136,13 @@ const EditGroupModal: React.FC<EditGroupModalProps> = ({
         </button>
         {/* 타이틀 */}
         <div className="text-center mb-4 mt-1 w-full">
-          <h2 className="text-xl font-bold tracking-tight">
+          <h2 className="text-xl font-semibold tracking-tight">
             {initialData ? '그룹 수정하기' : '그룹 만들기'}
           </h2>
         </div>
         {/* 이미지 업로드 */}
         <div className="flex flex-col items-center mb-4 w-full">
-          <label className="w-24 h-24 border-2 border-orange-300 rounded-xl flex items-center justify-center cursor-pointer text-2xl text-orange-400 bg-white hover:bg-orange-50 transition overflow-hidden relative">
+          <label className="w-24 h-24 border-2 border-gray-300 rounded-xl flex items-center justify-center cursor-pointer text-2xl text-gray-400 bg-gray-100 hover:bg-gray-200 transition overflow-hidden relative">
             {img ? (
               <img
                 src={img}
@@ -150,7 +150,7 @@ const EditGroupModal: React.FC<EditGroupModalProps> = ({
                 className="w-full h-full object-cover"
               />
             ) : (
-              <span className="text-2xl text-orange-400">＋</span>
+              <span className="text-2xl text-gray-400">＋</span>
             )}
             <input
               type="file"
@@ -199,42 +199,48 @@ const EditGroupModal: React.FC<EditGroupModalProps> = ({
             <label className="text-gray-400 text-xs mb-1">그룹명</label>
             <div className="w-full flex flex-col items-center mb-3">
               <input
-                className="block w-full border-0 text-center text-base font-bold mb-1 focus:outline-none bg-transparent"
+                className="block w-full border border-gray-300 rounded-lg px-4 py-2 text-base focus:outline-none focus:border-orange-300"
                 placeholder="그룹명을 작성해주세요"
                 value={name}
                 onChange={handleNameChange}
                 maxLength={20}
               />
-              <div className="w-full h-0.5 bg-orange-300" />
             </div>
             <label className="text-gray-400 text-xs mb-1">그룹 설명</label>
             <div className="w-full flex flex-col items-center">
               <input
-                className="block w-full border-0 text-center text-sm mb-1 focus:outline-none bg-transparent"
+                className="block w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-orange-300"
                 placeholder="그룹 소개글을 작성해주세요"
                 value={desc}
                 onChange={handleDescChange}
                 maxLength={20}
               />
-              <div className="w-full h-0.5 bg-orange-300" />
             </div>
           </div>
         ) : (
           <>
-            <input
-              className="block w-full border-0 border-b-2 border-orange-300 focus:border-orange-400 outline-none text-center text-base mb-3 placeholder:text-gray-400"
-              placeholder="그룹명을 작성해주세요"
-              value={name}
-              onChange={handleNameChange}
-              maxLength={20}
-            />
-            <input
-              className="block w-full border-0 border-b-2 border-orange-300 focus:border-orange-400 outline-none text-center text-sm mb-6 placeholder:text-gray-400"
-              placeholder="그룹 소개글을 작성해주세요"
-              value={desc}
-              onChange={handleDescChange}
-              maxLength={20}
-            />
+            <div className="w-full flex flex-col items-center mb-6">
+              <label className="text-gray-400 text-xs mb-1">그룹명</label>
+              <div className="w-full flex flex-col items-center mb-3">
+                <input
+                  className="block w-full border border-gray-300 rounded-lg px-4 py-2 text-base focus:outline-none focus:border-orange-300"
+                  placeholder="그룹명을 작성해주세요"
+                  value={name}
+                  onChange={handleNameChange}
+                  maxLength={20}
+                />
+              </div>
+              <label className="text-gray-400 text-xs mb-1">그룹 설명</label>
+              <div className="w-full flex flex-col items-center">
+                <input
+                  className="block w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-orange-300"
+                  placeholder="그룹 소개글을 작성해주세요"
+                  value={desc}
+                  onChange={handleDescChange}
+                  maxLength={20}
+                />
+              </div>
+            </div>
           </>
         )}
         {/* 등록/수정 버튼 */}

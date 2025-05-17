@@ -143,7 +143,7 @@ const CheckMemberModal: React.FC<CheckMemberModalProps> = ({
           ))}
         </div>
         <button
-          className="w-full bg-gray-700 text-white text-base font-bold py-2 rounded-xl shadow mt-2 active:bg-gray-800 transition disabled:bg-gray-400"
+          className="w-full bg-primary text-white text-base font-semibold py-2 rounded-xl shadow mt-2 active:bg-primary-dark transition disabled:bg-gray-400"
           onClick={handleNext}
           disabled={isLoading || selectedMembers.length === 0}
         >

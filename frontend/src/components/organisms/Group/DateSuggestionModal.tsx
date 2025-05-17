@@ -243,13 +243,13 @@ const DateSuggestionModal: React.FC<DateSuggestionModalProps> = ({
             })}
         </div>
         <button
-          className="mt-4 w-full bg-[#fff4ee] text-[#f47056] border-[0.5px] border-[#f47056] hover:bg-primary py-2 rounded-lg font-bold"
+          className="mt-4 w-full bg-[#fff4ee] text-[#f47056] border-[0.5px] border-[#f47056] hover:bg-primary py-2 rounded-lg font-semibold"
           onClick={handleCalendarView}
         >
           캘린더에서 날짜 확인하기
         </button>
         <button
-          className="mt-4 w-full bg-primary text-white hover:bg-primary-dark py-2 rounded-lg font-bold"
+          className="mt-4 w-full bg-primary text-white hover:bg-primary-dark py-2 rounded-lg font-semibold"
           onClick={handleDownloadImage}
         >
           사진으로 저장하기

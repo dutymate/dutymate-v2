@@ -355,95 +355,91 @@ const GroupDetailPage = () => {
         title="함께 보는 근무표"
         subtitle="모두의 스케줄을 한눈에 확인하세요"
       >
-        {/* 모바일: 그룹 정보 박스 */}
-        <div className="bg-white rounded-none sm:rounded-xl shadow flex items-center justify-between gap-2 px-4 py-2 mb-0 sm:gap-4 sm:px-4 sm:py-4 block sm:hidden">
-          <div className="min-w-0 flex flex-row items-center gap-1 truncate">
-            <span className="font-medium text-sm truncate max-w-[60%]">
-              {group.groupName}
-            </span>
-            <span className="text-xs text-gray-400 truncate max-w-[40%]">
-              {group.groupDescription || '그룹 설명이 없습니다.'}
-            </span>
+        {/* 모바일: 그룹 정보 + 캘린더 카드 통합 */}
+        <div className="block sm:hidden bg-white rounded-t-xl shadow pt-2 sm:px-4 sm:pb-0 sm:mb-4">
+          {/* 상단: 그룹명, 설명, 친구초대 */}
+          <div className="flex items-center justify-between gap-2 mb-2 px-2">
+            <div className="min-w-0 flex flex-row items-center gap-1 truncate">
+              <span className="font-medium text-sm truncate max-w-[60%]">
+                {group.groupName}
+              </span>
+              <span className="text-xs text-gray-400 truncate max-w-[40%]">
+                {group.groupDescription || '그룹 설명이 없습니다.'}
+              </span>
+              <button
+                className="p-1 rounded-md hover:bg-gray-100 sm:p-2 ml-1"
+                onClick={() => navigate(`/group/${groupId}/member`)}
+              >
+                <FaCog className="text-gray-400 text-base sm:text-lg" />
+              </button>
+            </div>
             <button
-              className="p-1 rounded-md hover:bg-gray-100 sm:p-2 ml-1"
-              onClick={() => navigate(`/group/${groupId}/member`)}
+              className="flex items-center border border-primary text-primary rounded-md font-semibold bg-white hover:bg-primary-50 transition-colors whitespace-nowrap px-1.5 py-1 text-xs"
+              type="button"
+              onClick={handleInviteButton}
             >
-              <FaCog className="text-gray-400 text-base sm:text-lg" />
+              <FaUserPlus className="mr-1 w-3 h-3" />
+              <span className="shrink-0">친구 초대</span>
             </button>
           </div>
-          <button
-            className="flex items-center border border-primary text-primary rounded-md font-semibold bg-white hover:bg-primary-50 transition-colors whitespace-nowrap px-1.5 py-1 text-xs"
-            type="button"
-            onClick={handleInviteButton}
-          >
-            <FaUserPlus className="mr-1 w-3 h-3" />
-            <span className="shrink-0">친구 초대</span>
-          </button>
-        </div>
-        {/* 모바일: 캘린더 박스 */}
-        <div className="block sm:hidden bg-white rounded-none sm:rounded-xl shadow p-0 mt-0">
-          {/* 모바일: 이름순/근무순, 연도/월, 약속 날짜 정하기 - 한 줄에 배치 */}
-          <div className="flex flex-row items-center gap-1 mb-2 px-4">
-            {/* 이름순/근무순 - 왼쪽 */}
-            <div className="shrink-0">
-              <div className="flex items-center gap-0 text-gray-400 text-[0.6rem] md:text-xs lg:text-sm font-medium select-none">
-                <span
-                  className={`cursor-pointer px-1 md:px-2 transition font-bold ${
-                    sortByName ? 'text-gray-700' : 'text-gray-400'
-                  }`}
-                  onClick={() => handleSortToggle(true)}
-                >
-                  이름순
-                </span>
-                <span className="mx-0 md:mx-1 text-gray-300 text-[0.6rem] md:text-xs lg:text-base">
-                  |
-                </span>
-                <span
-                  className={`cursor-pointer px-1 md:px-2 transition font-bold ${
-                    !sortByName ? 'text-gray-700' : 'text-gray-400'
-                  }`}
-                  onClick={() => handleSortToggle(false)}
-                >
-                  근무순
-                </span>
-              </div>
+          {/* 하단: 이름순/근무순, 연도/월, 약속잡기 버튼을 한 줄에 모두 배치 */}
+          <div className="flex flex-row items-center gap-2 mb-2 w-full">
+            {/* 이름순/근무순 */}
+            <div className="flex items-center gap-0 text-gray-400 text-[0.6rem] md:text-xs lg:text-sm font-medium select-none">
+              <span
+                className={`cursor-pointer px-1 md:px-2 transition font-bold ${
+                  sortByName ? 'text-gray-700' : 'text-gray-400'
+                }`}
+                onClick={() => handleSortToggle(true)}
+              >
+                이름순
+              </span>
+              <span className="mx-0 md:mx-1 text-gray-300 text-[0.6rem] md:text-xs lg:text-base">
+                |
+              </span>
+              <span
+                className={`cursor-pointer px-1 md:px-2 transition font-bold ${
+                  !sortByName ? 'text-gray-700' : 'text-gray-400'
+                }`}
+                onClick={() => handleSortToggle(false)}
+              >
+                근무순
+              </span>
             </div>
-            {/* 연도/월, 이전/다음달 - 가운데 */}
-            <div className="flex-1 flex justify-center items-center">
-              <div className="flex items-center gap-1 md:gap-4 justify-center">
-                <button
-                  onClick={handlePrevMonth}
-                  className="text-base-muted hover:text-base-foreground p-0"
-                >
-                  <IoIosArrowBack
-                    className={`${isSmallMobile ? 'w-5 h-5' : 'w-5 h-5 md:w-6 md:h-6'}`}
-                  />
-                </button>
-                <h2
-                  className={`text-base-foreground ${isSmallMobile ? 'text-[0.875rem]' : 'text-[0.875rem] md:text-[1rem]'} font-medium whitespace-nowrap`}
-                >
-                  {group && group.shifts && group.shifts.length > 0
-                    ? group.shifts[0].date.substring(0, 4)
-                    : new Date().getFullYear()}
-                  년{' '}
-                  {group && group.shifts && group.shifts.length > 0
-                    ? parseInt(group.shifts[0].date.substring(5, 7))
-                    : new Date().getMonth() + 1}
-                  월
-                </h2>
-                <button
-                  onClick={handleNextMonth}
-                  className="text-base-muted hover:text-base-foreground p-0"
-                >
-                  <IoIosArrowForward
-                    className={`${isSmallMobile ? 'w-5 h-5' : 'w-5 h-5 md:w-6 md:h-6'}`}
-                  />
-                </button>
-              </div>
+            {/* 연도/월, 이전/다음달 */}
+            <div className="flex items-center gap-1 md:gap-4 justify-center flex-1">
+              <button
+                onClick={handlePrevMonth}
+                className="text-base-muted hover:text-base-foreground p-0"
+              >
+                <IoIosArrowBack
+                  className={`${isSmallMobile ? 'w-5 h-5' : 'w-5 h-5 md:w-6 md:h-6'}`}
+                />
+              </button>
+              <h2
+                className={`text-base-foreground ${isSmallMobile ? 'text-[0.875rem]' : 'text-[0.875rem] md:text-[1rem]'} font-medium whitespace-nowrap`}
+              >
+                {group && group.shifts && group.shifts.length > 0
+                  ? group.shifts[0].date.substring(0, 4)
+                  : new Date().getFullYear()}
+                년{' '}
+                {group && group.shifts && group.shifts.length > 0
+                  ? parseInt(group.shifts[0].date.substring(5, 7))
+                  : new Date().getMonth() + 1}
+                월
+              </h2>
+              <button
+                onClick={handleNextMonth}
+                className="text-base-muted hover:text-base-foreground p-0"
+              >
+                <IoIosArrowForward
+                  className={`${isSmallMobile ? 'w-5 h-5' : 'w-5 h-5 md:w-6 md:h-6'}`}
+                />
+              </button>
             </div>
-            {/* 약속잡기 버튼 - 모바일만 ml-2 */}
+            {/* 약속잡기 버튼 */}
             <button
-              className={`ml-2 shadow-sm flex items-center justify-center gap-1 bg-primary text-white rounded-md font-semibold transition-colors whitespace-nowrap px-1.5 py-1 text-xs ${
+              className={`ml-2 mr-2 shadow-sm flex items-center justify-center gap-1 bg-primary text-white rounded-md font-semibold transition-colors whitespace-nowrap px-1.5 py-1 text-xs ${
                 isSmallMobile
                   ? 'text-[0.65rem]'
                   : 'py-0.5 px-1.5 lg:px-2 sm:py-1 sm:px-2 h-[2.25rem] text-sm min-w-[8rem]'
@@ -467,9 +463,8 @@ const GroupDetailPage = () => {
               <span className="shrink-0">약속 잡기</span>
             </button>
           </div>
-
           {/* 캘린더 표 */}
-          <div className="overflow-x-auto w-full">
+          <div className="overflow-x-auto w-full rounded-bl-none rounded-br-none">
             <table className="w-full border-collapse table-fixed">
               <thead>
                 <tr>

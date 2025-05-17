@@ -37,7 +37,7 @@ export default function GroupLayout({
       <div className="flex-1 min-w-0 px-0 py-0 sm:px-4 sm:py-6 lg:px-8 overflow-y-auto">
         <div className="hidden lg:block mb-3">
           <Title
-            title={title || '친구 찾기'}
+            title={title || '나의 모임'}
             subtitle={
               subtitle || '그룹을 만들어 친구들끼리 근무표를 공유해보세요'
             }
@@ -51,7 +51,7 @@ export default function GroupLayout({
             <IoMdMenu className="w-6 h-6 text-gray-600" />
           </button>
           <div className="flex-1">
-            <h1 className="text-lg font-bold">{title || '친구 그룹'}</h1>
+            <h1 className="text-lg font-bold">{title || '나의 모임'}</h1>
             <p className="text-sm text-gray-500">
               {subtitle || '그룹을 만들어 친구들끼리 근무표를 공유해보세요'}
             </p>

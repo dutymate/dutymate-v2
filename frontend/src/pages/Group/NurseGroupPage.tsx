@@ -84,11 +84,11 @@ const NurseGroupPage = () => {
         description="동료 간호사들과 근무표를 공유하는 공간입니다."
       />
       <GroupLayout
-        title="친구 찾기"
+        title="나의 모임"
         subtitle="그룹을 만들어 친구들끼리 근무표를 공유해보세요"
       >
         {/* 그룹 목록 화면 */}
-        <div className="space-y-3">
+        <div className="space-y-3 px-4 lg:px-0">
           {loading ? (
             <div className="flex flex-col items-center justify-center py-10">
               <PageLoadingSpinner />
