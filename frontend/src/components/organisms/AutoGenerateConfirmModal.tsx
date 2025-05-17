@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 import { Button } from '@/components/atoms/Button';
 import RuleEditModal from '@/components/organisms/RuleEditModal';
@@ -64,8 +64,20 @@ const AutoGenerateConfirmModal = ({
   const [isRuleEditModalOpen, setIsRuleEditModalOpen] = useState(false);
   // 업데이트된 규칙 상태 관리
   const [updatedRules, setUpdatedRules] = useState<WardRule | null>(null);
-  // wardInfo 상태 가져오기
+  // wardInfo만 가져오기
   const wardInfo = useWardStore((state) => state.wardInfo);
+
+  // 모달이 열릴 때 한 번만 병동 정보 동기화 (useRef로 중복 호출 방지)
+  const hasRunSync = useRef(false);
+  useEffect(() => {
+    if (isOpen && !hasRunSync.current) {
+      const syncWithServer = useWardStore.getState().syncWithServer;
+      syncWithServer().catch((error) => {
+        console.error('병동 정보 동기화 실패:', error);
+      });
+      hasRunSync.current = true;
+    }
+  }, [isOpen]);
 
   // M 근무(shiftFlags & 8) 간호사 수 계산 - 비트마스킹으로 M 비트가 설정되었는지 확인
   const mShiftNursesCount =

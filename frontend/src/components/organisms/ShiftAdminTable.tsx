@@ -523,17 +523,26 @@ const ShiftAdminTable = memo(
     }, [dutyData, loadNurseOrderFromStorage]);
 
     // 초기화 또는 자동생성이 완료될 때 실행하는 핸들러
-    const handleDutyUpdate = useCallback(async () => {
-      // 현재 페이지의 데이터를 다시 로드
-      try {
-        await onUpdate(year, month);
+    // const handleDutyUpdate = useCallback(async () => {
+    //   // 현재 페이지의 데이터를 다시 로드
+    //   try {
+    //     // Call the onUpdate function to fetch new data
+    //     await onUpdate(year, month);
 
-        // 토스트 메시지 제거
-        // toast.success('근무 데이터가 업데이트되었습니다.');
-      } catch (error) {
-        console.error('데이터 업데이트 실패:', error);
-      }
-    }, [year, month, onUpdate]);
+    //     // Directly fetch the latest data from the server to ensure it's up to date
+    //     const latestData = await dutyService.getDuty({ year, month });
+
+    //     // Update the local state with the latest data from the server
+    //     setSortedDutyData(latestData.duty);
+
+    //     // Also update the shiftStore state to ensure consistency across components
+    //     useShiftStore.getState().setDutyInfo(latestData);
+
+    //     // toast.success('근무 데이터가 업데이트되었습니다.');
+    //   } catch (error) {
+    //     console.error('데이터 업데이트 실패:', error);
+    //   }
+    // }, [year, month, onUpdate]);
 
     const resetDutyConfirmed = async () => {
       setIsResetDutyConfirmModalOpen(false);
@@ -541,8 +550,15 @@ const ShiftAdminTable = memo(
       try {
         await dutyService.resetDuty(year, month);
 
-        // 초기화된 데이터를 가져와 즉시 표시
-        await handleDutyUpdate();
+        // Get the latest data directly from the server
+        const latestData = await dutyService.getDuty({ year, month });
+
+        // Update all relevant states with the new data
+        setSortedDutyData(latestData.duty);
+        useShiftStore.getState().setDutyInfo(latestData);
+
+        // Still call handleDutyUpdate to maintain any additional logic
+        await onUpdate(year, month);
 
         toast.success('초기화되었습니다.');
       } catch (error) {
@@ -551,6 +567,13 @@ const ShiftAdminTable = memo(
         setIsResetting(false);
       }
     };
+
+    // dutyData, year, month 중 하나라도 변경되면 데이터를 다시 불러오도록 추가
+    useEffect(() => {
+      // 이 effect는 year나 month가 변경될 때 데이터를 새로 로드합니다.
+      // 변경될 때 이전 데이터가 잘못 표시되는 것을 방지
+      setSortedDutyData([...dutyData]);
+    }, [year, month, dutyData]);
 
     // 드래그 앤 드롭 센서 설정
     const sensors = useSensors(
@@ -1082,6 +1105,15 @@ const ShiftAdminTable = memo(
           return;
         }
 
+        // 병동 정보 동기화 (M 근무자 수 확인을 위해)
+        try {
+          const syncWithServer = useWardStore.getState().syncWithServer;
+          await syncWithServer();
+        } catch (error) {
+          console.error('병동 정보 동기화 실패:', error);
+          // 동기화 실패 시에도 계속 진행
+        }
+
         // 규칙 정보 먼저 가져오기
         const rules = await ruleService.getWardRules();
         setWardRules(rules);
@@ -1172,7 +1204,7 @@ const ShiftAdminTable = memo(
       setIsAutoGenCountModalOpen(false);
       try {
         setIsAutoCreating(true);
-        // 자동생성 중임을 알림
+        // 자동생성 중임을 알림 (SpinnerOverlay가 보이도록 설정됨)
         const loadingToast = toast.loading(
           '근무표에 마침표를 찍고 있습니다...'
         );
@@ -1185,8 +1217,15 @@ const ShiftAdminTable = memo(
         // API 호출
         const response = await dutyService.autoCreateDuty(year, month);
 
-        // 자동생성 결과를 즉시 표시하기 위해 데이터 업데이트
-        await handleDutyUpdate();
+        // Get the latest data directly from the server
+        const latestData = await dutyService.getDuty({ year, month });
+
+        // Update all relevant states with the new data
+        setSortedDutyData(latestData.duty);
+        useShiftStore.getState().setDutyInfo(latestData);
+
+        // Still call onUpdate to maintain any additional logic
+        await onUpdate(year, month);
 
         // 반영되지 않은 요청이 있는 경우 모달 표시
         if (
@@ -1248,7 +1287,7 @@ const ShiftAdminTable = memo(
     const handleForceAutoGenerate = async () => {
       try {
         setIsAutoCreating(true);
-        // 자동생성 중임을 알림
+        // 자동생성 중임을 알림 (SpinnerOverlay가 보이도록 설정됨)
         const loadingToast = toast.loading(
           '근무표에 마침표를 찍고 있습니다...'
         );
@@ -1256,8 +1295,15 @@ const ShiftAdminTable = memo(
         // 강제 자동생성 API 호출
         const response = await dutyService.autoCreateDuty(year, month, true);
 
-        // 자동생성 결과를 즉시 표시하기 위해 데이터 업데이트
-        await handleDutyUpdate();
+        // Get the latest data directly from the server
+        const latestData = await dutyService.getDuty({ year, month });
+
+        // Update all relevant states with the new data
+        setSortedDutyData(latestData.duty);
+        useShiftStore.getState().setDutyInfo(latestData);
+
+        // Still call onUpdate to maintain any additional logic
+        await onUpdate(year, month);
 
         // 반영되지 않은 요청이 있는 경우 모달 표시
         if (
@@ -1524,6 +1570,15 @@ const ShiftAdminTable = memo(
     const handleRequestCheckModalConfirm = async () => {
       setIsRequestCheckModalOpen(false);
       try {
+        // 병동 정보 동기화 (M 근무자 수 확인을 위해)
+        try {
+          const syncWithServer = useWardStore.getState().syncWithServer;
+          await syncWithServer();
+        } catch (error) {
+          console.error('병동 정보 동기화 실패:', error);
+          // 동기화 실패 시에도 계속 진행
+        }
+
         // 규칙 정보 먼저 가져오기
         const rules = await ruleService.getWardRules();
         setWardRules(rules);
@@ -1580,8 +1635,15 @@ const ShiftAdminTable = memo(
           selectedRequestIds
         );
 
-        // 자동생성 결과를 즉시 표시하기 위해 데이터 업데이트
-        await handleDutyUpdate();
+        // Get the latest data directly from the server
+        const latestData = await dutyService.getDuty({ year, month });
+
+        // Update all relevant states with the new data
+        setSortedDutyData(latestData.duty);
+        useShiftStore.getState().setDutyInfo(latestData);
+
+        // Still call onUpdate to maintain any additional logic
+        await onUpdate(year, month);
 
         // 반영되지 않은 요청이 있는 경우 모달 표시
         if (
@@ -1650,7 +1712,9 @@ const ShiftAdminTable = memo(
             <div
               className={`min-w-[800px] relative ${isWeb ? '' : 'duty-table-content'}`}
             >
-              <SpinnerOverlay isActive={isResetting || isSavingOrder} />
+              <SpinnerOverlay
+                isActive={isResetting || isSavingOrder || isAutoCreating}
+              />
               {/* 기존 테이블 내용을 여기에 복사 */}
               <DndContext
                 sensors={sensors}
@@ -1880,7 +1944,9 @@ const ShiftAdminTable = memo(
             <div className="bg-white rounded-xl p-[0.5rem] shadow-[0_0.25rem_0.75rem_rgba(0,0,0,0.1)]">
               <div className="relative">
                 <SpinnerOverlay
-                  isActive={isResetting || isLoading || isSavingOrder}
+                  isActive={
+                    isResetting || isLoading || isSavingOrder || isAutoCreating
+                  }
                 />
                 <div className="overflow-x-auto">
                   <div
