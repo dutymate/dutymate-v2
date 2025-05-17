@@ -31,7 +31,7 @@ public class FileNameUtils {
 	public static boolean isImageFile(String contentType, String fileName) {
 		String extension = getFileExtension(fileName).toLowerCase();
 		return contentType != null && contentType.startsWith("image/")
-			|| extension.matches("jpg|jpeg|png|gif|bmp|webp|heic");
+			|| extension.matches("jpg|jpeg|png|gif|bmp|webp");
 	}
 
 	public static boolean isHeicFile(String contentType, String fileName) {

@@ -2,11 +2,6 @@ package net.dutymate.api.domain.common.service;
 
 import static net.dutymate.api.domain.common.utils.FileNameUtils.*;
 
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
-
-import javax.imageio.ImageIO;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -42,28 +37,14 @@ public class S3Service {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "이미지 파일만 업로드할 수 있습니다.");
 		}
 
+		if (isHeicFile(contentType, originalFilename)) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "HEIC 형식은 지원하지 않습니다.");
+		}
+
 		try {
-			byte[] imageBytes;
-			String fileExtension;
-
-			if (isHeicFile(contentType, originalFilename)) {
-				BufferedImage bufferedImage = ImageIO.read(multipartFile.getInputStream());
-
-				if (bufferedImage == null) {
-					throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "HEIC 파일을 읽을 수 없습니다.");
-				}
-
-				ByteArrayOutputStream os = new ByteArrayOutputStream();
-				ImageIO.write(bufferedImage, "jpg", os); // jpg로 변환
-				imageBytes = os.toByteArray();
-				fileExtension = "jpg";
-			} else {
-				imageBytes = multipartFile.getBytes();
-				fileExtension = getFileExtension(originalFilename);
-			}
-
+			byte[] imageBytes = multipartFile.getBytes();
+			String fileExtension = getFileExtension(originalFilename);
 			String fileName = createFileName(dirName, fileExtension);
-			System.out.println("fileName = " + fileName);
 
 			PutObjectRequest putObjectRequest = PutObjectRequest.builder()
 				.bucket(bucket)
