@@ -25,7 +25,7 @@ public class HolidayController {
 
 	private final HolidayService holidayService;
 
-	@Value("${api.holiday.secret}")
+	@Value("${api.secret.key}")
 	private String apiHolidaySecret;
 
 	@GetMapping

@@ -19,7 +19,6 @@ public class StringGenerator {
 	private static final String UPPER_LOWER_NUM_CHARS
 		= "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 	private static final String UPPER_NUM_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-	private static final int LENGTH = 15;
 	private static final SecureRandom random = new SecureRandom();
 
 	// 랜덤 닉네임 생성 함수
@@ -35,9 +34,9 @@ public class StringGenerator {
 		return adjective + animal + number;
 	}
 
-	public static String generateRandomString() {
-		StringBuilder sb = new StringBuilder(LENGTH);
-		for (int i = 0; i < LENGTH; i++) {
+	public static String generateRandomString(int length) {
+		StringBuilder sb = new StringBuilder(length);
+		for (int i = 0; i < length; i++) {
 			int index = random.nextInt(UPPER_LOWER_NUM_CHARS.length());
 			sb.append(UPPER_LOWER_NUM_CHARS.charAt(index));
 		}

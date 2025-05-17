@@ -15,6 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import net.dutymate.api.domain.common.utils.FileNameUtils;
 import net.dutymate.api.domain.member.dto.LoginLog;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -90,8 +91,7 @@ public class LoginLogService {
 
 	// List<LoingLog> logs -> CSV 변환 및 S3 업로드
 	private String uploadCsvLog(List<LoginLog> logs, LocalDate date) throws IOException {
-		String dirName = "logs/login";
-		String fileName = dirName + "/" + date + ".csv";
+		String fileName = FileNameUtils.generateLoginLogFileName(date);
 
 		StringBuilder csvBuilder = new StringBuilder();
 		csvBuilder.append("memberId,loginAt,createdAt,success,failReason\n");

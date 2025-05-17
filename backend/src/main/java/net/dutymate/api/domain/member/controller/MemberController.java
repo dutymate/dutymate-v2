@@ -47,7 +47,7 @@ public class MemberController {
 	private final MemberService memberService;
 	private final EmailService emailService;
 
-	@Value("${api.demo.secret}")
+	@Value("${api.secret.key}")
 	private String apiDemoSecret;
 
 	@PostMapping

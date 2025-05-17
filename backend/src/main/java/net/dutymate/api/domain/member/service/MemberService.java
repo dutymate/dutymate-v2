@@ -90,6 +90,7 @@ public class MemberService {
 	private static final Integer DEMO_TEMP_NURSE_CNT = 10;
 	private static final Integer DEMO_AUTO_GEN_CNT = 1;
 	private static final Integer DEFAULT_AUTO_GEN_CNT = 1;
+	private static final Integer DEMO_EMAIL_NAME_LENGTH = 15;
 	private final MemberRepository memberRepository;
 	private final JwtUtil jwtUtil;
 	private final WardMemberRepository wardMemberRepository;
@@ -742,7 +743,7 @@ public class MemberService {
 	@Transactional
 	public LoginResponseDto demoLogin() {
 		SignUpRequestDto signUpRequestDto = SignUpRequestDto.builder()
-			.email(StringGenerator.generateRandomString() + DEMO_EMAIL_SUFFIX)
+			.email(StringGenerator.generateRandomString(DEMO_EMAIL_NAME_LENGTH) + DEMO_EMAIL_SUFFIX)
 			.password(DEMO_PASSWORD)
 			.passwordConfirm(DEMO_PASSWORD)
 			.name(DEMO_NAME)

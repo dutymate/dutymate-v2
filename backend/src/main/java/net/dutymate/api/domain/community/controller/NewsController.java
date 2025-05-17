@@ -23,7 +23,7 @@ public class NewsController {
 
 	private final NewsService newsService;
 
-	@Value("${api.news.secret}")
+	@Value("${api.secret.key}")
 	private String apiNewsSecret;
 
 	@GetMapping
