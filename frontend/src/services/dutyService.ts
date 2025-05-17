@@ -245,6 +245,7 @@ export const dutyService = {
           force,
           priorityRequestIds: priorityRequestIds?.join(','),
         },
+        timeout: 300000,
       })
       .then((response) => {
         return response.data as AutoCreateResponse;
@@ -424,11 +425,17 @@ export const dutyService = {
     requestIds: number[]
   ) => {
     try {
-      const response = await axiosInstance.post('/duty/re-auto-create', {
-        year,
-        month,
-        requestIds,
-      });
+      const response = await axiosInstance.post(
+        '/duty/re-auto-create',
+        {
+          year,
+          month,
+          requestIds,
+        },
+        {
+          timeout: 300000,
+        }
+      );
       return response.data as AutoCreateResponse;
     } catch (error: any) {
       if (error.code === 'ERR_NETWORK') {
