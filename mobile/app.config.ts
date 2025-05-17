@@ -35,5 +35,29 @@ export default ({ config }: ConfigContext): ExpoConfig => {
             tutorialUrl: process.env.EXPO_PUBLIC_TUTORIAL_URL,
             youtubeUrl: process.env.EXPO_PUBLIC_YOUTUBE_URL,
         },
+        plugins: [
+            [
+              "expo-build-properties",
+              {
+                "android": {
+                  "extraMavenRepos": [
+                    "https://devrepo.kakao.com/nexus/content/groups/public/"
+                  ]
+                }
+              }
+            ],
+            [
+              "@react-native-kakao/core",
+              {
+                "nativeAppKey": process.env.EXPO_PUBLIC_KAKAO_NATIVE_APP_KEY,
+                "android": {
+                  authCodeHandlerActivity: true,
+                },
+                "ios": {
+                  handleKakaoOpenUrl: true,
+                },
+              }
+            ]
+          ],
     };
 };
