@@ -51,9 +51,10 @@ const WorkCRUDModal = ({ open, onClose }: WorkCRUDModalProps) => {
     }
   };
 
+  
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-end lg:items-center justify-center bg-black/30">
+    <div className="fixed inset-0 z-50 flex items-end lg:items-center justify-center">
       <div className="absolute inset-0" onClick={onClose} />
       <div
         className={`

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import debounce from 'lodash/debounce';
 import { IoMdCamera } from 'react-icons/io';
+import heic2any from "heic2any";
 
 import { Button } from '@/components/atoms/Button';
 import { MypageInput, MypageSelect } from '@/components/atoms/Input';
@@ -202,8 +203,11 @@ const MypageProfile = () => {
     e.preventDefault();
     setIsDragging(false);
 
-    const file = e.dataTransfer.files?.[0];
+    let file = e.dataTransfer.files?.[0];
     if (!file) return;
+
+    const validExtensions = ['jpg', 'jpeg', 'png', 'heic', 'heif'];
+    const fileExtension = file.name.split('.').pop()?.toLowerCase();
 
     const validTypes = [
       'image/jpeg',
@@ -212,9 +216,26 @@ const MypageProfile = () => {
       'image/heic',
       'image/heif',
     ];
-    if (!validTypes.includes(file.type)) {
+
+
+
+    if (
+      (!file.type || !validTypes.includes(file.type)) &&
+      (!fileExtension || !validExtensions.includes(fileExtension))
+    ) {
       toast.error('JPG, PNG, JPEG, HEIC 형식의 이미지만 업로드 가능합니다.');
       return;
+    }
+
+    // HEIC/HEIF 변환
+    if (fileExtension === 'heic' || fileExtension === 'heif') {
+      try {
+        const convertedBlob = await heic2any({ blob: file, toType: "image/jpeg", quality: 0.9 });
+        file = new File([convertedBlob as Blob], file.name.replace(/\.(heic|heif)$/i, '.jpg'), { type: "image/jpeg" });
+      } catch (err) {
+        toast.error("HEIC 이미지를 변환하는 데 실패했습니다.");
+        return;
+      }
     }
 
     const maxSize = 30 * 1024 * 1024; // 30MB
@@ -244,8 +265,11 @@ const MypageProfile = () => {
   };
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+    let file = e.target.files?.[0];
     if (!file) return;
+
+    const validExtensions = ['jpg', 'jpeg', 'png', 'heic', 'heif'];
+    const fileExtension = file.name.split('.').pop()?.toLowerCase();
 
     const validTypes = [
       'image/jpeg',
@@ -254,9 +278,26 @@ const MypageProfile = () => {
       'image/heic',
       'image/heif',
     ];
-    if (!validTypes.includes(file.type)) {
+
+    
+
+    if (
+      (!file.type || !validTypes.includes(file.type)) &&
+      (!fileExtension || !validExtensions.includes(fileExtension))
+    ) {
       toast.error('JPG, PNG, JPEG, HEIC 형식의 이미지만 업로드 가능합니다.');
       return;
+    }
+
+    // HEIC/HEIF 변환
+    if (fileExtension === 'heic' || fileExtension === 'heif') {
+      try {
+        const convertedBlob = await heic2any({ blob: file, toType: "image/jpeg", quality: 0.9 });
+        file = new File([convertedBlob as Blob], file.name.replace(/\.(heic|heif)$/i, '.jpg'), { type: "image/jpeg" });
+      } catch (err) {
+        toast.error("HEIC 이미지를 변환하는 데 실패했습니다.");
+        return;
+      }
     }
 
     const maxSize = 30 * 1024 * 1024; // 30MB
@@ -462,9 +503,7 @@ const MypageProfile = () => {
               )}
             </div>
 
-            <p className="text-xs text-gray-500 text-center">
-              JPG, PNG 형식 (최대 5MB)
-            </p>
+           
           </div>
 
           {/* 오른쪽 정보 */}

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { BsImage, BsX } from 'react-icons/bs';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import heic2any from "heic2any";
 
 import { CommunityRegisterButton } from '@/components/atoms/Button';
 import boardService, { BoardRequest } from '@/services/boardService';
@@ -87,13 +88,15 @@ const CommunityWrite = ({
     }));
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    let file = e.target.files?.[0];
     if (!file) {
       return;
     }
 
-    // 파일 형식 검사
+    const validExtensions = ['jpg', 'jpeg', 'png', 'heic', 'heif'];
+    const fileExtension = file.name.split('.').pop()?.toLowerCase();
+
     const validTypes = [
       'image/jpeg',
       'image/png',
@@ -101,9 +104,26 @@ const CommunityWrite = ({
       'image/heic',
       'image/heif',
     ];
-    if (!validTypes.includes(file.type)) {
+
+    
+
+    if (
+      (!file.type || !validTypes.includes(file.type)) &&
+      (!fileExtension || !validExtensions.includes(fileExtension))
+    ) {
       toast.error('JPG, PNG, JPEG, HEIC 형식의 이미지만 업로드 가능합니다.');
       return;
+    }
+
+    // HEIC/HEIF 변환
+    if (fileExtension === 'heic' || fileExtension === 'heif') {
+      try {
+        const convertedBlob = await heic2any({ blob: file, toType: "image/jpeg", quality: 0.9 });
+        file = new File([convertedBlob as Blob], file.name.replace(/\.(heic|heif)$/i, '.jpg'), { type: "image/jpeg" });
+      } catch (err) {
+        toast.error("HEIC 이미지를 변환하는 데 실패했습니다.");
+        return;
+      }
     }
 
     // 파일 크기 검사

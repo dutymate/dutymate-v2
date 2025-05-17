@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import useMediaQuery from '@/hooks/useMediaQuery';
 import { groupService } from '@/services/groupService';
 import { toast } from 'react-toastify';
+import heic2any from "heic2any";
 
 interface EditGroupModalProps {
   open: boolean;
@@ -44,10 +45,13 @@ const EditGroupModal: React.FC<EditGroupModalProps> = ({
 
   const handleImgChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     try {
-      const file = e.target.files?.[0];
+      let file = e.target.files?.[0];
 
       if (file) {
         // 파일 형식 검사
+        const validExtensions = ['jpg', 'jpeg', 'png', 'heic', 'heif'];
+        const fileExtension = file.name.split('.').pop()?.toLowerCase();
+
         const validTypes = [
           'image/jpeg',
           'image/png',
@@ -55,11 +59,28 @@ const EditGroupModal: React.FC<EditGroupModalProps> = ({
           'image/heic',
           'image/heif',
         ];
-        if (!validTypes.includes(file.type)) {
+
+       
+
+        if (
+          (!file.type || !validTypes.includes(file.type)) &&
+          (!fileExtension || !validExtensions.includes(fileExtension))
+        ) {
           toast.error(
             'JPG, PNG, JPEG, HEIC 형식의 이미지만 업로드 가능합니다.'
           );
           return;
+        }
+
+        // HEIC/HEIF 변환
+        if (fileExtension === 'heic' || fileExtension === 'heif') {
+          try {
+            const convertedBlob = await heic2any({ blob: file, toType: "image/jpeg", quality: 0.9 });
+            file = new File([convertedBlob as Blob], file.name.replace(/\.(heic|heif)$/i, '.jpg'), { type: "image/jpeg" });
+          } catch (err) {
+            toast.error("HEIC 이미지를 변환하는 데 실패했습니다.");
+            return;
+          }
         }
 
         const maxSize = 30 * 1024 * 1024; // 30MB
