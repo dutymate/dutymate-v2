@@ -94,11 +94,25 @@ const CommunityWrite = ({
     }
 
     // 파일 형식 검사
-    const validTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+    const validTypes = [
+      'image/jpeg',
+      'image/png',
+      'image/jpg',
+      'image/heic',
+      'image/heif',
+    ];
     if (!validTypes.includes(file.type)) {
-      toast.error('JPG, PNG, JPEG 형식의 이미지만 업로드 가능합니다.');
+      toast.error('JPG, PNG, JPEG, HEIC 형식의 이미지만 업로드 가능합니다.');
       return;
     }
+
+    // 파일 크기 검사
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+      toast.error('파일 크기는 5MB 이하여야 합니다.');
+      return;
+    }
+
     setSelectedFileName(file.name);
 
     // 미리보기 설정
@@ -271,11 +285,11 @@ const CommunityWrite = ({
             {/* 이미지 미리보기 */}
             {previewImage && (
               <div className="mt-3 relative">
-                <div className="w-full max-w-sm relative">
+                <div className="w-full max-w-[12rem] relative max-h-[12rem] overflow-hidden">
                   <img
                     src={previewImage}
                     alt="미리보기"
-                    className="ml-2 w-auto max-w-48 h-full object-contain"
+                    className="ml-2 w-auto max-w-[12rem] max-h-[12rem] object-contain"
                   />
                 </div>
               </div>

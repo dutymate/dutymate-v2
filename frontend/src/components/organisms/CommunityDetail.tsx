@@ -236,6 +236,12 @@ const CommunityDetail = ({ post }: CommunityDetailProps) => {
     }
   };
 
+  const getImageUrl = (url: string) => {
+    if (!url) return '';
+    if (url.includes('.')) return url;
+    return `${url}.jpg`; // 기본 확장자로 jpg 사용
+  };
+
   return (
     <div className="bg-white rounded-xl p-4 lg:p-6 shadow-[0_4px_12px_rgba(0,0,0,0.1)]">
       <div className="flex justify mb-3">
@@ -331,7 +337,7 @@ const CommunityDetail = ({ post }: CommunityDetailProps) => {
       {post.boardImgUrl && (
         <div className="mb-6">
           <img
-            src={post.boardImgUrl}
+            src={getImageUrl(post.boardImgUrl)}
             alt="게시글 이미지"
             className="rounded-lg w-full"
           />

@@ -47,6 +47,27 @@ const EditGroupModal: React.FC<EditGroupModalProps> = ({
       const file = e.target.files?.[0];
 
       if (file) {
+        // 파일 형식 검사
+        const validTypes = [
+          'image/jpeg',
+          'image/png',
+          'image/jpg',
+          'image/heic',
+          'image/heif',
+        ];
+        if (!validTypes.includes(file.type)) {
+          toast.error(
+            'JPG, PNG, JPEG, HEIC 형식의 이미지만 업로드 가능합니다.'
+          );
+          return;
+        }
+
+        const maxSize = 5 * 1024 * 1024; // 5MB
+        if (file.size > maxSize) {
+          toast.error('파일 크기는 5MB 이하여야 합니다.');
+          return;
+        }
+
         // 미리보기용 임시 URL 생성
         const previewUrl = URL.createObjectURL(file);
         setImg(previewUrl); // 임시 미리보기 URL 설정

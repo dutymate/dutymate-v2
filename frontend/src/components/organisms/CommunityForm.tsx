@@ -116,6 +116,12 @@ const CommunityForm = ({ onWrite, onPostClick }: CommunityFormProps) => {
 
   const isDemo = useUserAuthStore((state) => state.userInfo?.isDemo);
 
+  const getImageUrl = (url: string) => {
+    if (!url) return '';
+    if (url.includes('.')) return url;
+    return `${url}.jpg`; // 기본 확장자로 jpg 사용
+  };
+
   return (
     <>
       <div className="bg-white rounded-xl p-4 lg:p-6 shadow-[0_0.25rem_0.75rem_rgba(0,0,0,0.1)]">
@@ -249,7 +255,7 @@ const CommunityForm = ({ onWrite, onPostClick }: CommunityFormProps) => {
                         post.boardImgUrl.trim() !== '' && (
                           <div className="flex sm:flex items-center justify-center w-[4rem] h-[4rem] md:w-[6rem] md:h-[6em] xl:w-[7.5rem] xl:h-[7.5rem] bg-gray-50 rounded-lg shrink-0">
                             <img
-                              src={post.boardImgUrl}
+                              src={getImageUrl(post.boardImgUrl)}
                               alt={post.title}
                               className="w-full h-full object-cover rounded-lg"
                             />

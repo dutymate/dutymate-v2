@@ -206,7 +206,7 @@ const GroupMemberPage = () => {
         title="그룹 관리"
         subtitle="소속 인원과 정보를 관리할 수 있습니다."
       >
-        <div className="space-y-3">
+        <div className="space-y-3 px-4 lg:px-0">
           <div className="flex mb-3">
             <button
               onClick={() => navigate(-1)}
@@ -216,12 +216,14 @@ const GroupMemberPage = () => {
             </button>
           </div>
           <div className="bg-white rounded-xl p-4 shadow border">
-            <div className="flex items-center gap-4 mb-3">
-              <img
-                src={groupInfo.groupImg || ''}
-                alt={groupInfo.groupName || '그룹'}
-                className="w-16 h-16 rounded-lg object-cover"
-              />
+            <div className="flex items-center gap-4">
+              <div className="flex items-center">
+                <img
+                  src={groupInfo.groupImg || ''}
+                  alt={groupInfo.groupName || '그룹'}
+                  className="w-16 h-16 rounded-lg object-cover"
+                />
+              </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                   <span className="font-bold text-base md:text-lg truncate">
@@ -245,7 +247,7 @@ const GroupMemberPage = () => {
                     {groupInfo.groupDescription}
                   </div>
                   <button
-                    className="flex items-center border border-primary text-primary rounded-lg font-semibold bg-white hover:bg-primary-50 transition-colors whitespace-nowrap py-0.5 px-1.5 sm:py-1 sm:px-2 h-[2.25rem] text-sm"
+                    className="flex items-center border border-primary text-primary rounded-lg font-semibold bg-white hover:bg-primary-50 transition-colors whitespace-nowrap py-0.5 px-1.5 sm:py-2 sm:px-6 h-[1.75rem] sm:h-[2.25rem] text-sm sm:hover:bg-primary sm:hover:text-white"
                     type="button"
                     onClick={handleInviteButton}
                   >
@@ -276,12 +278,12 @@ const GroupMemberPage = () => {
                       <td className="py-2">
                         <div className="flex justify-center">
                           {m.isLeader ? (
-                            <span className="flex items-center bg-yellow-100 text-yellow-700 font-bold px-3 py-1 rounded-lg text-sm">
+                            <span className="flex items-center bg-yellow-100 text-yellow-700 font-bold px-3 py-1 rounded-lg text-sm truncate">
                               <FaCrown className="mr-1 text-yellow-400" />{' '}
                               {m.name}
                             </span>
                           ) : (
-                            <span className="bg-gray-100 text-gray-700 px-3 py-1 rounded-lg text-sm">
+                            <span className="bg-gray-100 text-gray-700 px-3 py-1 rounded-lg text-sm truncate">
                               {m.name}
                             </span>
                           )}
@@ -307,13 +309,16 @@ const GroupMemberPage = () => {
             </table>
           </div>
 
-          <button
-            className="w-full bg-white text-gray-700 font-semibold py-3 rounded-xl border border-gray-200 hover:bg-gray-50"
-            type="button"
-            onClick={() => setExitModalOpen(true)}
-          >
-            그룹 나가기
-          </button>
+          <div className="mb-4">
+            <button
+              className="w-full bg-white text-gray-700 font-semibold py-3 rounded-xl border border-gray-200 hover:bg-gray-50"
+              type="button"
+              onClick={() => setExitModalOpen(true)}
+            >
+              그룹 나가기
+            </button>
+            <div className="h-3"></div>
+          </div>
         </div>
         <CheckMemberModal
           open={checkMemberOpen}

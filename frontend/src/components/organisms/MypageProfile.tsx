@@ -205,8 +205,15 @@ const MypageProfile = () => {
     const file = e.dataTransfer.files?.[0];
     if (!file) return;
 
-    if (!file.type.startsWith('image/')) {
-      toast.error('이미지 파일만 업로드 가능합니다.');
+    const validTypes = [
+      'image/jpeg',
+      'image/png',
+      'image/jpg',
+      'image/heic',
+      'image/heif',
+    ];
+    if (!validTypes.includes(file.type)) {
+      toast.error('JPG, PNG, JPEG, HEIC 형식의 이미지만 업로드 가능합니다.');
       return;
     }
 
@@ -240,8 +247,15 @@ const MypageProfile = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (!file.type.startsWith('image/')) {
-      toast.error('이미지 파일만 업로드 가능합니다.');
+    const validTypes = [
+      'image/jpeg',
+      'image/png',
+      'image/jpg',
+      'image/heic',
+      'image/heif',
+    ];
+    if (!validTypes.includes(file.type)) {
+      toast.error('JPG, PNG, JPEG, HEIC 형식의 이미지만 업로드 가능합니다.');
       return;
     }
 
