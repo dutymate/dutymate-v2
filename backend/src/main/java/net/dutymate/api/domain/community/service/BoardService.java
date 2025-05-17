@@ -11,7 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
-import net.dutymate.api.domain.common.utils.FileNameUtils;
+import net.dutymate.api.domain.common.service.S3Service;
 import net.dutymate.api.domain.community.Board;
 import net.dutymate.api.domain.community.BoardLikes;
 import net.dutymate.api.domain.community.Category;
@@ -28,23 +28,15 @@ import net.dutymate.api.domain.member.Member;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 @Service
 @RequiredArgsConstructor
 public class BoardService {
 
-	private final S3Client s3Client;
+	private final S3Service s3Service;
 	private final BoardRepository boardRepository;
 	private final BoardLikesRepository boardLikesRepository;
 	private final HotBoardRepository hotBoardRepository;
-
-	@Value("${cloud.aws.region.static}")
-	private String region;
-	@Value("${cloud.aws.s3.bucket}")
-	private String bucket;
 
 	@Transactional
 	public ResponseEntity<?> createBoard(BoardCreateRequestDto boardCreateRequestDto, Member member) {
@@ -102,31 +94,10 @@ public class BoardService {
 	@Transactional
 	public BoardImgResponseDto uploadBoardImage(MultipartFile multipartFile) {
 		String dirName = "board";
+		String fileUrl = s3Service.uploadImage(dirName, multipartFile);
 
-		if (multipartFile == null || multipartFile.isEmpty()) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "파일이 비어 있습니다.");
-		}
+		return BoardImgResponseDto.of(fileUrl);
 
-		String fileName = FileNameUtils.createFileName(multipartFile.getOriginalFilename(), dirName);
-
-		try {
-
-			PutObjectRequest putObjectRequest = PutObjectRequest.builder()
-				.bucket(bucket)
-				.key(fileName)
-				.contentType(multipartFile.getContentType())
-				.build();
-
-			// InputStream을 사용하여 메모리 사용량 최소화
-			s3Client.putObject(putObjectRequest,
-				RequestBody.fromInputStream(multipartFile.getInputStream(), multipartFile.getSize()));
-
-			String fileUrl = "https://" + bucket + ".s3." + region + ".amazonaws.com/" + fileName;
-
-			return BoardImgResponseDto.of(fileUrl);
-		} catch (Exception e) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "파일 업로드 중 오류가 발생했습니다.");
-		}
 	}
 
 	@Transactional

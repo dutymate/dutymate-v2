@@ -16,17 +16,27 @@ public class FileNameUtils {
 	private static final Integer RAND_STR_LENGTH = 6;
 
 	// 파일명을 난수화하기 위해 UUID 활용
-	public static String createFileName(String fileName, String dirName) {
+	public static String createFileName(String dirName, String fileExtension) {
 		String uuid = UUID.randomUUID().toString().replace("-", "");
-		String extension = getFileExtension(fileName);
-		return dirName + "/" + uuid + extension;
+		return dirName + "/" + uuid + "." + fileExtension;
 	}
 
 	public static String getFileExtension(String fileName) {
 		if (fileName == null || !fileName.contains(".")) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "잘못된 형식의 파일입니다.");
 		}
-		return fileName.substring(fileName.lastIndexOf("."));
+		return fileName.substring(fileName.lastIndexOf(".") + 1);
+	}
+
+	public static boolean isImageFile(String contentType, String fileName) {
+		String extension = getFileExtension(fileName).toLowerCase();
+		return contentType != null && contentType.startsWith("image/")
+			|| extension.matches("jpg|jpeg|png|gif|bmp|webp|heic");
+	}
+
+	public static boolean isHeicFile(String contentType, String fileName) {
+		String extension = getFileExtension(fileName).toLowerCase();
+		return "image/heic".equals(contentType) || "heic".equals(extension);
 	}
 
 	/**

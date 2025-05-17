@@ -28,6 +28,7 @@ import net.dutymate.api.domain.member.dto.LoginResponseDto;
 import net.dutymate.api.domain.member.dto.MypageEditRequestDto;
 import net.dutymate.api.domain.member.dto.MypageResponseDto;
 import net.dutymate.api.domain.member.dto.PasswordResetRequestDto;
+import net.dutymate.api.domain.member.dto.ProfileImgResponseDto;
 import net.dutymate.api.domain.member.dto.SendCodeRequestDto;
 import net.dutymate.api.domain.member.dto.SignUpRequestDto;
 import net.dutymate.api.domain.member.dto.UpdateEmailVerificationRequestDto;
@@ -140,15 +141,15 @@ public class MemberController {
 	}
 
 	@PostMapping("/image")
-	public ResponseEntity<String> uploadImage(@RequestParam("file") MultipartFile multipartFile, @Auth Member member) {
-		memberService.uploadProfileImg(multipartFile, member, "profile");
-		return ResponseEntity.ok().build();
+	public ResponseEntity<?> uploadImage(@RequestParam("file") MultipartFile multipartFile, @Auth Member member) {
+		ProfileImgResponseDto profileImgResponseDto = memberService.uploadProfileImg(multipartFile, member);
+		return ResponseEntity.ok(profileImgResponseDto);
 	}
 
 	@DeleteMapping("/image")
 	public ResponseEntity<?> deleteImage(@Auth Member member) {
-		memberService.deleteProfileImg(member);
-		return ResponseEntity.ok().build();
+		ProfileImgResponseDto profileImgResponseDto = memberService.deleteProfileImg(member);
+		return ResponseEntity.ok(profileImgResponseDto);
 	}
 
 	@DeleteMapping("/ward")

@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import net.dutymate.api.domain.common.service.S3Service;
 import net.dutymate.api.domain.common.utils.YearMonth;
 import net.dutymate.api.domain.member.Gender;
 import net.dutymate.api.domain.member.Member;
@@ -58,12 +59,12 @@ public class WardService {
 	private final EnterWaitingRepository enterWaitingRepository;
 	private final HospitalRepository hospitalRepository;
 	private final WardScheduleService wardScheduleService;
-	private final MemberService memberService;
 	private final MemberScheduleRepository memberScheduleRepository;
 
 	private static final int MAX_VIRTUAL_NURSE_COUNT = 20;
 	private static final int MAX_NURSE_COUNT = 30;
 	private final ShiftUtil shiftUtil;
+	private final S3Service s3Service;
 
 	@Transactional
 	public void createWard(WardRequestDto requestWardDto, Member member) {
@@ -469,7 +470,7 @@ public class WardService {
 		List<WardMember> newWardMemberList = new ArrayList<>();
 
 		Integer tempNurseSeq = ward.getTempNurseSeq();
-		String defaultProfileImgUrl = memberService.addBasicProfileImgUrl();
+		String defaultProfileImgUrl = s3Service.addBasicProfileImgUrl();
 
 		for (int newNurse = 0; newNurse < addNurseCnt; newNurse++) {
 

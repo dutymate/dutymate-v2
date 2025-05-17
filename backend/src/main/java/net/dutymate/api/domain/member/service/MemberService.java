@@ -5,7 +5,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import org.mindrot.jbcrypt.BCrypt;
@@ -26,6 +25,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import net.dutymate.api.domain.color.Color;
 import net.dutymate.api.domain.color.repository.ColorRepository;
+import net.dutymate.api.domain.common.service.S3Service;
 import net.dutymate.api.domain.common.utils.YearMonth;
 import net.dutymate.api.domain.member.Gender;
 import net.dutymate.api.domain.member.Member;
@@ -71,10 +71,6 @@ import net.dutymate.api.global.exception.EmailNotVerifiedException;
 
 import io.netty.handler.codec.http.HttpHeaderValues;
 import lombok.RequiredArgsConstructor;
-import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 @Service
 @RequiredArgsConstructor
@@ -94,7 +90,6 @@ public class MemberService {
 	private final MemberRepository memberRepository;
 	private final JwtUtil jwtUtil;
 	private final WardMemberRepository wardMemberRepository;
-	private final S3Client s3Client;
 	private final WardScheduleRepository wardScheduleRepository;
 	private final WardMemberService wardMemberService;
 	private final EnterWaitingRepository enterWaitingRepository;
@@ -105,6 +100,7 @@ public class MemberService {
 	private final MemberScheduleRepository memberScheduleRepository;
 	private final ColorRepository colorRepository;
 	private final LoginLogService loginLogService;
+	private final S3Service s3Service;
 
 	@Value("${kakao.client.id}")
 	private String kakaoClientId;
@@ -125,11 +121,6 @@ public class MemberService {
 	private String googleUserUri;
 	@Value("${google.redirect.uri}")
 	private String googleRedirectUri;
-
-	@Value("${cloud.aws.region.static}")
-	private String region;
-	@Value("${cloud.aws.s3.bucket}")
-	private String bucket;
 
 	@Value("${jwt.demo-expiration}")
 	private long demoExpiration;
@@ -155,7 +146,7 @@ public class MemberService {
 		// 이메일 중복 체크
 		checkEmail(signUpRequestDto.getEmail());
 
-		Member newMember = signUpRequestDto.toMember(addBasicProfileImgUrl());
+		Member newMember = signUpRequestDto.toMember(s3Service.addBasicProfileImgUrl());
 		newMember.setAutoGenCnt(DEFAULT_AUTO_GEN_CNT);
 		memberRepository.save(newMember);
 
@@ -374,14 +365,14 @@ public class MemberService {
 
 	// KAKAO 계정으로 회원가입
 	private Member signUp(KakaoUserResponseDto.KakaoAccount kakaoAccount) {
-		Member newMember = kakaoAccount.toMember(addBasicProfileImgUrl());
+		Member newMember = kakaoAccount.toMember(s3Service.addBasicProfileImgUrl());
 		memberRepository.save(newMember);
 		return newMember;
 	}
 
 	// GOOGLE 계정으로 회원가입
 	private Member signUp(GoogleUserResponseDto googleUserInfo) {
-		Member newMember = googleUserInfo.toMember(addBasicProfileImgUrl());
+		Member newMember = googleUserInfo.toMember(s3Service.addBasicProfileImgUrl());
 		memberRepository.save(newMember);
 		return newMember;
 	}
@@ -465,85 +456,28 @@ public class MemberService {
 
 	// 파일 업로드
 	@Transactional
-	public ProfileImgResponseDto uploadProfileImg(MultipartFile multipartFile, Member member, String dirName) {
-
-		if (multipartFile == null || multipartFile.isEmpty()) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "파일이 비어 있습니다.");
-		}
-
-		String fileName = createFileName(multipartFile.getOriginalFilename(), dirName);
-
-		try {
-
-			PutObjectRequest putObjectRequest = PutObjectRequest.builder()
-				.bucket(bucket)
-				.key(fileName)
-				.contentType(multipartFile.getContentType())
-				.build();
-
-			// InputStream을 사용하여 메모리 사용량 최소화
-			s3Client.putObject(putObjectRequest,
-				RequestBody.fromInputStream(multipartFile.getInputStream(), multipartFile.getSize()));
-
-			String fileUrl = "https://" + bucket + ".s3." + region + ".amazonaws.com/" + fileName;
-
-			member.setFileUrl(fileUrl);
-
-			return ProfileImgResponseDto.of(fileUrl);
-		} catch (Exception e) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "파일 업로드 중 오류가 발생했습니다.");
-		}
-	}
-
-	// 파일명을 난수화하기 위해 UUID 활용
-	private String createFileName(String fileName, String dirName) {
-		String uuid = UUID.randomUUID().toString().replace("-", "");
-		String extension = getFileExtension(fileName);
-		return dirName + "/" + uuid + extension;
-	}
-
-	private String getFileExtension(String fileName) {
-		if (fileName == null || !fileName.contains(".")) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "잘못된 형식의 파일입니다.");
-		}
-		return fileName.substring(fileName.lastIndexOf("."));
+	public ProfileImgResponseDto uploadProfileImg(MultipartFile multipartFile, Member member) {
+		String dirName = "profile";
+		String fileUrl = s3Service.uploadImage(dirName, multipartFile);
+		member.setFileUrl(fileUrl);
+		return ProfileImgResponseDto.of(fileUrl);
 	}
 
 	// 프로필 이미지 삭제 -> 기본 이미지로 변경
 	@Transactional
 	public ProfileImgResponseDto deleteProfileImg(Member member) {
-		try {
-			String fileUrl = member.getProfileImg();
-			String fileName = extractFileNameFromUrl(fileUrl);
+		String fileUrl = member.getProfileImg();
+		String dirName = "profile";
+		String fileName = s3Service.extractFileNameFromUrl(fileUrl, dirName);
 
-			if (fileName.equals("default_profile.png")) {
-				return ProfileImgResponseDto.of(addBasicProfileImgUrl());
-			}
-
-			DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
-				.bucket(bucket)
-				.key(fileName)
-				.build();
-
-			s3Client.deleteObject(deleteObjectRequest);
-
-			member.setFileUrl(addBasicProfileImgUrl());
-			memberRepository.save(member);
-
-			return ProfileImgResponseDto.of(addBasicProfileImgUrl());
-		} catch (Exception e) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "S3 이미지 삭제 중 오류 발생");
+		if (fileName.equals("default_profile.png")) {
+			return ProfileImgResponseDto.of(s3Service.addBasicProfileImgUrl());
 		}
-	}
 
-	private String extractFileNameFromUrl(String fileUrl) {
-		String baseUrl = "https://" + bucket + ".s3." + region + ".amazonaws.com/profile/";
-		return fileUrl.replace(baseUrl, "");
-	}
+		s3Service.deleteFile(dirName, fileName);
+		member.setFileUrl(s3Service.addBasicProfileImgUrl());
 
-	// 기본 프로필 이미지 URL 생성
-	public String addBasicProfileImgUrl() {
-		return "https://" + bucket + ".s3." + region + ".amazonaws.com/profile/default_profile.png";
+		return ProfileImgResponseDto.of(member.getProfileImg());
 	}
 
 	@Transactional
@@ -752,7 +686,7 @@ public class MemberService {
 
 		// 1. 데모 계정 회원가입
 		checkEmail(signUpRequestDto.getEmail());
-		Member newMember = signUpRequestDto.toMember(addBasicProfileImgUrl());
+		Member newMember = signUpRequestDto.toMember(s3Service.addBasicProfileImgUrl());
 		memberRepository.save(newMember);
 
 		// 2. 데모 계정 부가정보 기입
@@ -845,7 +779,7 @@ public class MemberService {
 			.role(Role.RN)
 			.gender(Gender.F)
 			.provider(Provider.NONE)
-			.profileImg(addBasicProfileImgUrl())
+			.profileImg(s3Service.addBasicProfileImgUrl())
 			.autoGenCnt(0)
 			.build();
 	}

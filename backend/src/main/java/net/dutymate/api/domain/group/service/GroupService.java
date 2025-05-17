@@ -21,7 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
-import net.dutymate.api.domain.common.utils.FileNameUtils;
+import net.dutymate.api.domain.common.service.S3Service;
 import net.dutymate.api.domain.common.utils.YearMonth;
 import net.dutymate.api.domain.group.GroupMember;
 import net.dutymate.api.domain.group.MeetingMessageType;
@@ -44,20 +44,17 @@ import net.dutymate.api.domain.wardschedules.collections.MemberSchedule;
 import net.dutymate.api.domain.wardschedules.repository.MemberScheduleRepository;
 
 import lombok.RequiredArgsConstructor;
-import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 @Service
 @RequiredArgsConstructor
 public class GroupService {
 
-	private final S3Client s3Client;
 	private final GroupRepository groupRepository;
 	private final GroupMemberRepository groupMemberRepository;
 	private final MemberScheduleRepository memberScheduleRepository;
 	private final RedisTemplate<String, String> redisTemplate;
 	private final MemberRepository memberRepository;
+	private final S3Service s3Service;
 
 	@Value("${cloud.aws.region.static}")
 	private String region;
@@ -94,30 +91,8 @@ public class GroupService {
 	@Transactional
 	public GroupImgResponseDto uploadGroupImage(MultipartFile multipartFile) {
 		String dirName = "group";
-
-		if (multipartFile == null || multipartFile.isEmpty()) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "파일이 비어 있습니다.");
-		}
-
-		String fileName = FileNameUtils.createFileName(multipartFile.getOriginalFilename(), dirName);
-
-		try {
-			PutObjectRequest putObjectRequest = PutObjectRequest.builder()
-				.bucket(bucket)
-				.key(fileName)
-				.contentType(multipartFile.getContentType())
-				.build();
-
-			s3Client.putObject(putObjectRequest,
-				RequestBody.fromInputStream(multipartFile.getInputStream(), multipartFile.getSize()));
-
-			String fileUrl = "https://" + bucket + ".s3." + region + ".amazonaws.com/" + fileName;
-
-			return GroupImgResponseDto.of(fileUrl);
-
-		} catch (Exception e) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "파일 업로드 중 오류가 발생했습니다.");
-		}
+		String fileUrl = s3Service.uploadImage(dirName, multipartFile);
+		return GroupImgResponseDto.of(fileUrl);
 	}
 
 	@Transactional
