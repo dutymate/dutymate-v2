@@ -29,7 +29,13 @@ locals {
       schedule    = "cron(0 15 * * ? *)",
       http_method = "PUT",
       endpoint    = "https://api.${var.domain_name}/api/holiday/update"
-    }
+    },
+    login_log = {
+      name        = "login-log",
+      schedule    = "cron(5 15 * * ? *)",
+      http_method = "POST",
+      endpoint    = "https://api.${var.domain_name}/api/log/login"
+    },
   }
 }
 
