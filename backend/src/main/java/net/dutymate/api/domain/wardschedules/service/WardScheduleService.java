@@ -147,7 +147,7 @@ public class WardScheduleService {
 							return 2;
 						}
 						return switch (shiftFlags) {
-							case 8-> 1;
+							case 8 -> 1;
 							case 7 -> 2;  // ALL이 두 번째
 							case 6 -> 3;
 							case 5 -> 4;
@@ -504,12 +504,13 @@ public class WardScheduleService {
 		for (Long memberId : memberIds) {
 			if (!wardMemberMap.containsKey(memberId)) {
 				// 더미 Member 생성
-				Member deletedMember = Member.builder()
-					.memberId(memberId)
-					.name("(탈퇴회원)")
-					.role(Role.RN)
-					.grade(1)
-					.build();
+				Member deletedMember = memberRepository.findById(memberId)
+					.orElseGet(() -> Member.builder()
+						.memberId(memberId)
+						.name("(탈퇴회원)")
+						.role(Role.RN)
+						.grade(1)
+						.build());
 
 				// 더미 WardMember 생성
 				WardMember dummyWardMember = WardMember.builder()
