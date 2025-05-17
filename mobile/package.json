@@ -12,7 +12,12 @@
     "web:prod": "APP_ENV=production expo start --web",
     "lint": "biome lint ./src",
     "format": "biome format ./src",
-    "format:fix": "biome format --write ./src"
+    "format:fix": "biome format --write ./src",
+    "prebuild": "expo prebuild",
+    "ios:build": "npx expo run:ios",
+    "android:build": "npx expo run:android",
+    "android": "expo run:android",
+    "ios": "expo run:ios"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "1.23.1",
@@ -43,7 +48,8 @@
     "react-native-vector-icons": "^10.2.0",
     "react-native-webview": "13.12.5",
     "tailwindcss": "^3.4.17",
-    "zustand": "^5.0.4"
+    "zustand": "^5.0.4",
+    "expo-dev-client": "~5.0.20"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
