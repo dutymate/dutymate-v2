@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import useMediaQuery from '@/hooks/useMediaQuery';
 import { groupService } from '@/services/groupService';
 import { toast } from 'react-toastify';
-import heic2any from "heic2any";
+import heic2any from 'heic2any';
 
 interface EditGroupModalProps {
   open: boolean;
@@ -60,8 +60,6 @@ const EditGroupModal: React.FC<EditGroupModalProps> = ({
           'image/heif',
         ];
 
-       
-
         if (
           (!file.type || !validTypes.includes(file.type)) &&
           (!fileExtension || !validExtensions.includes(fileExtension))
@@ -75,10 +73,18 @@ const EditGroupModal: React.FC<EditGroupModalProps> = ({
         // HEIC/HEIF 변환
         if (fileExtension === 'heic' || fileExtension === 'heif') {
           try {
-            const convertedBlob = await heic2any({ blob: file, toType: "image/jpeg", quality: 0.9 });
-            file = new File([convertedBlob as Blob], file.name.replace(/\.(heic|heif)$/i, '.jpg'), { type: "image/jpeg" });
+            const convertedBlob = await heic2any({
+              blob: file,
+              toType: 'image/jpeg',
+              quality: 0.9,
+            });
+            file = new File(
+              [convertedBlob as Blob],
+              file.name.replace(/\.(heic|heif)$/i, '.jpg'),
+              { type: 'image/jpeg' }
+            );
           } catch (err) {
-            toast.error("HEIC 이미지를 변환하는 데 실패했습니다.");
+            toast.error('HEIC 이미지를 변환하는 데 실패했습니다.');
             return;
           }
         }
