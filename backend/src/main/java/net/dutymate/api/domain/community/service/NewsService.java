@@ -5,8 +5,10 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.server.ResponseStatusException;
 
 import net.dutymate.api.domain.community.collections.News;
 import net.dutymate.api.domain.community.dto.GptApiResponseDto;
@@ -65,13 +67,36 @@ public class NewsService {
 	}
 
 	private NewsApiResponseDto requestNewsApi() {
-		return WebClient.create().get()
-			.uri(naverNewsUri)
-			.header("X-Naver-Client-Id", naverClientId)
-			.header("X-Naver-Client-Secret", naverClientSecret)
-			.retrieve()
-			.bodyToMono(NewsApiResponseDto.class)
-			.block();
+		try {
+			// 첫 번째 시도
+			return WebClient.create().get()
+				.uri(naverNewsUri)
+				.header("X-Naver-Client-Id", naverClientId)
+				.header("X-Naver-Client-Secret", naverClientSecret)
+				.retrieve()
+				.bodyToMono(NewsApiResponseDto.class)
+				.block();
+		} catch (Exception e) {
+			// 실패 시 1초 대기 후 한 번 더 시도
+			try {
+				Thread.sleep(1000); // 1000ms 지연
+			} catch (InterruptedException ie) {
+				Thread.currentThread().interrupt(); // 인터럽트 처리
+				throw new RuntimeException("스레드가 인터럽트되었습니다.", ie);
+			}
+
+			try {
+				return WebClient.create().get()
+					.uri(naverNewsUri)
+					.header("X-Naver-Client-Id", naverClientId)
+					.header("X-Naver-Client-Secret", naverClientSecret)
+					.retrieve()
+					.bodyToMono(NewsApiResponseDto.class)
+					.block();
+			} catch (Exception second) {
+				throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "뉴스 API 요청이 모두 실패했습니다.", second);
+			}
+		}
 	}
 
 	public String getChatGptResponse(String prompt) {
@@ -82,7 +107,7 @@ public class NewsService {
 			.bodyValue(Map.of(
 				"model", openaiModel,
 				"messages", new Object[] {Map.of("role", "user", "content", prompt)},
-				"temperature", 0.7
+				"temperature", 0.4
 			))
 			.retrieve()
 			.bodyToMono(Map.class)
@@ -100,22 +125,28 @@ public class NewsService {
 
 	public String generatePrompt() {
 		return """
-			다음의 간호사 관련 뉴스를 바탕으로 가장 간호사 및 의료 정책과 관련도가 높은 뉴스를 5건 추출하세요.
-			그리고 기사 제목(최대30자)과 내용(최대60자)으로 요약하고 뉴스 링크를 제공해주세요.
-			중복된 기사는 제외해주세요.
-			[제약 사항]
-			title 값은 최대 30자
-			description 값은 최대 60자
-			응답 값에 HTML 엔티티 코드(예를 들어, &quot;)를 포함하지 않을 것
-			응답은 항상 제시된 JSON 형식을 따를 것
-			[JSON 형식]
+			당신에게 뉴스 기사 여러 건이 제공됩니다.
+			이 뉴스들 중에서 간호사 및 의료 정책과 가장 관련 있는 기사 5건을 선별하세요.
+
+			각 기사는 다음 조건에 맞게 요약해야 합니다:
+			- 기사 제목: 최대 30자
+			- 기사 요약 내용: 최대 60자
+			- 뉴스 링크 포함
+			- HTML 엔티티(&quot; 등)는 포함하지 말 것
+			- 중복 기사 제거
+
+			절대로 예시 형식("뉴스 제목 1" 등)으로 응답하지 말고, 실제 기사 내용을 기반으로만 응답하세요.
+
+			아래 JSON 형식으로만 출력하세요:
 			[
 				{
-					"title": "뉴스 제목 1
-					"description": "뉴스 내용 요약 1",
-					"link": "뉴스 링크 1"
-				}
+					"title": "제목",
+					"description": "요약 내용",
+					"link": "링크"
+				},
+				...
 			]
+			다음은 뉴스 기사 목록입니다:
 			""" + requestNewsApi().toString();
 	}
 }
