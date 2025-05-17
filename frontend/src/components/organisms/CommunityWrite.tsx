@@ -107,9 +107,9 @@ const CommunityWrite = ({
     }
 
     // 파일 크기 검사
-    const maxSize = 5 * 1024 * 1024; // 5MB
+    const maxSize = 30 * 1024 * 1024; // 30MB
     if (file.size > maxSize) {
-      toast.error('파일 크기는 5MB 이하여야 합니다.');
+      toast.error('파일 크기는 30MB 이하여야 합니다.');
       return;
     }
 
