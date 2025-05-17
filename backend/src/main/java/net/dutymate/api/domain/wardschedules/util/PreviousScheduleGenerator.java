@@ -42,14 +42,14 @@ public class PreviousScheduleGenerator {
 				if (nightNurseCount == 0) {
 					// 첫번째 들어오는 사람: NOOO
 					shifts[startDay] = 'N';
-					shifts[startDay + 1] = 'O';
+					shifts[startDay + 1] = 'N';
 					shifts[startDay + 2] = 'O';
 					shifts[startDay + 3] = 'O';
 					nightNurseCount++; // 카운터 증가
 				} else {
 					// 두번째 들어오는 사람: ONNN
 					shifts[startDay] = 'O';
-					shifts[startDay + 1] = 'N';
+					shifts[startDay + 1] = 'O';
 					shifts[startDay + 2] = 'N';
 					shifts[startDay + 3] = 'N';
 					nightNurseCount = 0; // 카운터 리셋 (필요에 따라)
@@ -83,9 +83,9 @@ public class PreviousScheduleGenerator {
 						break;
 					case 3: // EONN
 						shifts[startDay] = 'E';
-						shifts[startDay + 1] = 'O';
-						shifts[startDay + 2] = 'N';
-						shifts[startDay + 3] = 'N';
+						shifts[startDay + 1] = 'E';
+						shifts[startDay + 2] = 'O';
+						shifts[startDay + 3] = 'O';
 						break;
 					case 4: // OOEE
 						shifts[startDay] = 'O';

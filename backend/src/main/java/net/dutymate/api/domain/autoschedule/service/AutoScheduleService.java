@@ -88,8 +88,9 @@ public class AutoScheduleService {
 		int wardMemberCount = regularWardMembers.size();
 
 		// Night 전담 간호사 수는 따로 계산하지 않음 (통합 로직에 포함됨)
+		//TODO 필요 인원수 계산 방식 변경되어서 api 로 설계 해야함 현재 임의로 -5
 		int neededNurseCount = nurseScheduler.neededNurseCount(yearMonth, rule, 0)
-			+ midWardMembers.size() -5;
+			+ midWardMembers.size() - 5;
 
 		if (wardMemberCount < neededNurseCount && !force) {
 			AutoScheduleNurseCountResponseDto responseDto = new AutoScheduleNurseCountResponseDto(
@@ -134,6 +135,11 @@ public class AutoScheduleService {
 			reinforcementRequestIds, workIntensities,
 			nurseShiftFlags  // 새로 추가된 파라미터
 		);
+		//
+		// WardSchedule updateWardSchedule = geneticNurseScheduler.generateSchedule(
+		// 	wardSchedule, rule, regularWardMembers, prevNurseShifts, yearMonth, memberId, acceptedRequests,
+		// 	dailyNightCount, reinforcementRequestIds, workIntensities, nurseShiftFlags
+		// );
 
 		List<WardSchedule.NurseShift> updatedShifts = new ArrayList<>(updateWardSchedule.getDuties()
 			.get(updateWardSchedule.getNowIdx())

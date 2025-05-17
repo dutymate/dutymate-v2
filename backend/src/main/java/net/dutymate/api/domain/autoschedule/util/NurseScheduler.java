@@ -28,8 +28,8 @@ public class NurseScheduler {
 
 	private static final double INITIAL_TEMPERATURE = 1000.0;
 	private static final double COOLING_RATE = 0.995;
-	private static final int MAX_ITERATIONS = 50000;
-	private static final int MAX_NO_IMPROVEMENT = 1000;
+	private static final int MAX_ITERATIONS = 300000;
+	private static final int MAX_NO_IMPROVEMENT = 6000;
 	private static final Random random = new Random();
 
 	public WardSchedule generateSchedule(WardSchedule wardSchedule,
@@ -45,7 +45,7 @@ public class NurseScheduler {
 		Map<Long, Integer> nurseShiftFlags) {
 		Map<Long, String> prevMonthSchedules = getPreviousMonthSchedules(prevNurseShifts);
 		Solution currentSolution = createInitialSolution(
-			wardSchedule, rule, wardMembers, yearMonth, dailyNightCnt,
+			rule, wardMembers, yearMonth, dailyNightCnt,
 			prevMonthSchedules, workIntensities, nurseShiftFlags
 		);
 		Solution bestSolution = currentSolution.copy();
@@ -69,7 +69,7 @@ public class NurseScheduler {
 		double temperature = INITIAL_TEMPERATURE;
 		int noImprovementCount = 0;
 		for (int iteration = 0; iteration < MAX_ITERATIONS; iteration++) {
-			Solution neighborSolution = generateNeighborSolution(currentSolution, prevMonthSchedules);
+			Solution neighborSolution = generateNeighborSolution(currentSolution, prevMonthSchedules, rule);
 			double neighborScore = evaluateSolution(neighborSolution, rule, prevMonthSchedules, shiftRequests,
 				workIntensities);
 
@@ -98,7 +98,6 @@ public class NurseScheduler {
 	}
 
 	private Solution createInitialSolution(
-		WardSchedule wardSchedule,
 		Rule rule,
 		List<WardMember> wardMembers,
 		YearMonth yearMonth,
@@ -107,19 +106,18 @@ public class NurseScheduler {
 		Map<Long, WorkIntensity> workIntensities,
 		Map<Long, Integer> nurseShiftFlags) {
 
-		Map<Long, String> existingSchedules = getExistingSchedules(wardSchedule);
 		Map<Integer, Solution.DailyRequirement> requirements = calculateDailyRequirements(rule, yearMonth,
 			dailyNightCnt);
 
 		// 간호사 초기화 (모두 오프로 시작) - 비트마스킹 정보 포함
-		List<Solution.Nurse> nurses = initializeNurses(wardMembers, existingSchedules, yearMonth.daysInMonth(),
+		List<Solution.Nurse> nurses = initializeNurses(wardMembers, yearMonth.daysInMonth(),
 			nurseShiftFlags);
 
 		// 이전 달 마지막 근무와의 연속성 고려
 		considerPreviousMonthContinuity(nurses, prevMonthSchedules, rule);
 
 		// 특정 근무 타입만 가능한 간호사 먼저 처리 (Night 전담, Day 전담 등)
-		handleSpecificShiftNurses(nurses, yearMonth, dailyNightCnt);
+		// handleSpecificShiftNurses(nurses, yearMonth, dailyNightCnt);
 
 		// 나머지 날짜에 대한 근무 배정 (워크 인텐시티 고려)
 		for (int day = 1; day <= yearMonth.daysInMonth(); day++) {
@@ -133,60 +131,6 @@ public class NurseScheduler {
 			.nurses(nurses)
 			.dailyRequirements(requirements)
 			.build();
-	}
-
-	/**
-	 * Night 전담, Day 전담 등 특정 근무 타입만 수행 가능한 간호사들 처리
-	 */
-	private void handleSpecificShiftNurses(List<Solution.Nurse> nurses, YearMonth yearMonth,
-		Map<Integer, Integer> dailyNightCnt) {
-		// Night 전담 간호사 처리
-		List<Solution.Nurse> nightOnlyNurses = nurses.stream()
-			.filter(nurse -> nurse.getShiftFlags() == ShiftType.N.getFlag())
-			.collect(Collectors.toList());
-
-		if (!nightOnlyNurses.isEmpty()) {
-			// Night 전담 간호사 패턴 생성 (3일 야간, 3일 휴무 패턴 등)
-			for (int i = 0; i < nightOnlyNurses.size(); i++) {
-				Solution.Nurse nurse = nightOnlyNurses.get(i);
-
-				// 기존 NNNOOO 패턴 적용
-				int startDay = i * 3 % 6; // 각 간호사마다 다른 시작점
-
-				for (int day = 1; day <= yearMonth.daysInMonth(); day++) {
-					int patternDay = (day - 1 + startDay) % 6;
-					char shift = patternDay < 3 ? 'N' : 'O';
-					nurse.setShift(day, shift);
-
-					// 야간 근무 카운트 업데이트
-					if (shift == 'N') {
-						dailyNightCnt.merge(day, 1, Integer::sum);
-					}
-				}
-			}
-		}
-
-		// Day 전담 간호사 처리
-		nurses.stream()
-			.filter(nurse -> nurse.getShiftFlags() == ShiftType.D.getFlag())
-			.forEach(nurse -> {
-				for (int day = 1; day <= yearMonth.daysInMonth(); day++) {
-					// 주말은 휴무, 평일은 D로 설정
-					boolean isWeekend = yearMonth.isWeekend(day);
-					nurse.setShift(day, isWeekend ? 'O' : 'D');
-				}
-			});
-
-		// Evening 전담 간호사 처리
-		nurses.stream()
-			.filter(nurse -> nurse.getShiftFlags() == ShiftType.E.getFlag())
-			.forEach(nurse -> {
-				for (int day = 1; day <= yearMonth.daysInMonth(); day++) {
-					// 주말은 휴무, 평일은 E로 설정
-					boolean isWeekend = yearMonth.isWeekend(day);
-					nurse.setShift(day, isWeekend ? 'O' : 'E');
-				}
-			});
 	}
 
 	private void sortNursesByWorkIntensity(List<Solution.Nurse> nurses, Map<Long, WorkIntensity> workIntensities) {
@@ -328,12 +272,15 @@ public class NurseScheduler {
 
 			// 간호사의 가능한 근무 유형에 따라 대체할 근무 선택
 			List<Character> possibleShifts = new ArrayList<>();
-			if (nurse.canWorkShift('D'))
+			if (nurse.canWorkShift('D')) {
 				possibleShifts.add('D');
-			if (nurse.canWorkShift('E'))
+			}
+			if (nurse.canWorkShift('E')) {
 				possibleShifts.add('E');
-			if (nurse.canWorkShift('N'))
+			}
+			if (nurse.canWorkShift('N')) {
 				possibleShifts.add('N');
+			}
 
 			if (possibleShifts.isEmpty()) {
 				continue; // 가능한 근무 유형이 없으면 건너뜀
@@ -354,47 +301,262 @@ public class NurseScheduler {
 
 				// 이전 달 마지막 날이 야간 근무인 경우
 				if (lastPrevShift == 'N') {
-					// 두 가지 가능성 고려:
-					// 1. 야간 근무를 계속 이어서 할 경우 (야간 연속성)
-					if (random.nextBoolean() && nurse.getShifts().length > 1 && nurse.canWorkShift('N')) {
-						// 연속 야간 근무가 rule.getMaxN()을 초과하지 않는지 체크
-						int consecutiveNights = 1; // 이전 달 마지막 날 포함
-						for (int i = prevSchedule.length() - 2; i >= 0 && i >= prevSchedule.length() - 4; i--) {
-							if (prevSchedule.charAt(i) == 'N') {
-								consecutiveNights++;
+					// 실제 연속 야간 근무 일수 계산 (전체 이전 달 스케줄 체크)
+					int consecutiveNights = 1; // 이전 달 마지막 날 포함
+					for (int i = prevSchedule.length() - 2; i >= 0; i--) {
+						if (prevSchedule.charAt(i) == 'N') {
+							consecutiveNights++;
+						} else {
+							break; // 연속이 끊기면 중단
+						}
+					}
+
+					// 연속 야간 근무가 최대치에 도달했는지 확인
+					if (consecutiveNights >= rule.getMaxN()) {
+						// 최대 연속 야간 근무 초과하거나 도달한 경우 무조건 휴무
+						nurse.setShift(1, 'O'); // 첫날은 휴무
+
+						// 특별히 연속 야간 후 필요한 추가 휴식 적용
+						int extraRestDays = rule.getOffCntAfterN();
+						for (int day = 1; day <= Math.min(extraRestDays, nurse.getShifts().length); day++) {
+							nurse.setShift(day, 'O');
+						}
+					} else if (nurse.canWorkShift('N')) {
+						// 아직 최대치에 도달하지 않았고 야간 근무 가능한 경우
+						int remainingAllowedNights = rule.getMaxN() - consecutiveNights;
+
+						// 수정: 연속성 확률 낮춤 (이전 0.7)
+						if (remainingAllowedNights > 0 && random.nextDouble() < 0.5) {
+							nurse.setShift(1, 'N'); // 첫날도 야간 근무 계속
+
+							// 수정: 최대 1일만 추가로 배정 (이전 최대 2일)
+							int additionalNights = Math.min(remainingAllowedNights - 1, 1);
+							for (int day = 2; day <= additionalNights + 1 && day <= nurse.getShifts().length; day++) {
+								// 수정: 확률 낮춤 (이전 0.8)
+								if (random.nextDouble() < 0.6) {
+									nurse.setShift(day, 'N');
+								} else {
+									nurse.setShift(day, 'O'); // 휴무로 전환
+									break; // 연속 중단
+								}
+							}
+
+							// 연속 야간 후 필요한 휴식 추가
+							int totalNights = consecutiveNights + additionalNights;
+							if (totalNights >= rule.getMaxN() - 1) { // 수정: 더 엄격한 조건
+								int reset = additionalNights + 2;
+								int restDays = rule.getOffCntAfterN();
+								int length = nurse.getShifts().length;
+								for (int day = reset; day < reset + restDays && day <= length; day++) {
+									nurse.setShift(day, 'O');
+								}
+							}
+						} else {
+							// 연속성 중단, 휴무로 전환
+							nurse.setShift(1, 'O'); // 첫날은 휴무
+						}
+					} else {
+						// 야간 근무 불가능한 경우
+						nurse.setShift(1, 'O'); // 첫날은 무조건 휴무
+					}
+				} else if (lastPrevShift == 'D' || lastPrevShift == 'E') {
+					// 연속 근무 일수 계산
+					int consecutiveWorkDays = 1; // 이전 달 마지막 날 포함
+					for (int i = prevSchedule.length() - 2; i >= 0; i--) {
+						char shift = prevSchedule.charAt(i);
+						if (shift != 'O' && shift != 'X') {
+							consecutiveWorkDays++;
+						} else {
+							break;
+						}
+					}
+
+					// 근무 연속성 처리
+					if (consecutiveWorkDays >= rule.getMaxShift()) {
+						// 최대 연속 근무일 도달 시 휴무
+						nurse.setShift(1, 'O');
+
+						// 최대 연속 근무 후 필요한 휴식 적용
+						int restDays = rule.getOffCntAfterMaxShift();
+						for (int day = 1; day <= Math.min(restDays, nurse.getShifts().length); day++) {
+							nurse.setShift(day, 'O');
+						}
+					} else {
+						// 생체리듬 보호를 위해 같은 유형 유지 시도
+						int remainingWorkDays = rule.getMaxShift() - consecutiveWorkDays;
+
+						if (remainingWorkDays > 0) {
+							double continuityProb = 0.0;
+							char preferredShift = 'O';
+
+							// 근무 유형별 생체리듬 보호 로직
+							if (lastPrevShift == 'D') {
+								continuityProb = 0.7; // 70% 확률로 주간 연속
+								preferredShift = 'D';
+							} else {
+								continuityProb = 0.6; // 60% 확률로 저녁 연속
+								preferredShift = 'E';
+							}
+
+							if (random.nextDouble() < continuityProb && nurse.canWorkShift(preferredShift)) {
+								nurse.setShift(1, preferredShift); // 같은 유형 유지
+
+								// 너무 긴 연속 근무는 피함
+								if (consecutiveWorkDays + 1 >= rule.getMaxShift() && nurse.getShifts().length > 1) {
+									nurse.setShift(2, 'O'); // 둘째날은 휴무
+								}
+							} else if (lastPrevShift == 'E' && nurse.canWorkShift('N') && random.nextDouble() < 0.3) {
+								// E→N은 생체리듬상 허용 가능 (저녁→야간)
+
+								// 야간 근무는 최소 연속 근무 일수를 보장해야 함
+								int minNights = rule.getMinN();
+								if (nurse.getShifts().length >= minNights) {
+									// 첫날 야간 배정
+									nurse.setShift(1, 'N');
+
+									// 최소 야간 일수만큼 연속 배정
+									for (int day = 2; day <= minNights && day <= nurse.getShifts().length; day++) {
+										nurse.setShift(day, 'N');
+									}
+
+									// 필요한 경우 휴식 보장
+									if (nurse.getShifts().length > minNights) {
+										nurse.setShift(minNights + 1, 'O');
+									}
+								} else {
+									// 최소 야간 일수를 채울 수 없으면 야간 배정하지 않음
+									nurse.setShift(1, 'O');
+								}
+							} else {
+								// 아니면 휴무
+								nurse.setShift(1, 'O');
+							}
+						} else {
+							nurse.setShift(1, 'O'); // 휴무
+						}
+					}
+				} else if (lastPrevShift == 'O' || lastPrevShift == 'X' || lastPrevShift == 'M') {
+					// 미드 근무도 휴무처럼 처리 (자동 생성 로직에서 제외)
+					// 휴무 연속 일수 확인 (미드 근무는 연속성을 고려하지 않음)
+					int consecutiveOffs = 1; // 이전 달 마지막 날 포함 (미드나 휴무)
+					if (lastPrevShift == 'O' || lastPrevShift == 'X') {
+						for (int i = prevSchedule.length() - 2; i >= 0; i--) {
+							if (prevSchedule.charAt(i) == 'O' || prevSchedule.charAt(i) == 'X') {
+								consecutiveOffs++;
 							} else {
 								break;
 							}
 						}
+					}
 
-						if (consecutiveNights < rule.getMaxN()) {
-							nurse.setShift(1, 'N'); // 첫날도 야간 근무
-							if (nurse.getShifts().length > 1) {
-								nurse.setShift(2, 'O'); // 둘째날은 휴무
+					// 가능한 근무 유형 목록 생성 (미드 제외)
+					List<Character> possibleShifts = new ArrayList<>();
+					if (nurse.canWorkShift('D')) {
+						possibleShifts.add('D');
+					}
+					if (nurse.canWorkShift('E')) {
+						possibleShifts.add('E');
+					}
+
+					// 야간 근무는 최소 연속 일수가 보장될 수 있는 경우만 후보로 추가
+					if (nurse.canWorkShift('N')) {
+						int minNights = rule.getMinN();
+						boolean canEnsureMinNights = true;
+
+						// 최소 야간 근무 일수를 확보할 수 있는지 확인
+						for (int day = 1; day <= minNights && day <= nurse.getShifts().length; day++) {
+							if (nurse.getShift(day) != 'O' && nurse.getShift(day) != 'X') {
+								canEnsureMinNights = false;
+								break;
 							}
-						} else {
-							// 이미 최대 연속 야간 근무에 도달한 경우
-							nurse.setShift(1, 'O'); // 첫날은 휴무
+						}
+
+						if (canEnsureMinNights && nurse.getShifts().length >= minNights) {
+							possibleShifts.add('N');
+						}
+					}
+
+					possibleShifts.add('O'); // 휴무 연장도 가능
+
+					// 너무 긴 휴무는 근무로 전환 시도 (미드인 경우는 고려하지 않음)
+					if (lastPrevShift != 'M' && consecutiveOffs > 3) {
+						// 오래 쉬었으면 근무 재개 확률 높임
+						if (!possibleShifts.isEmpty() && possibleShifts.size() > 1) {
+							// 휴무 옵션 제거
+							possibleShifts.remove(Character.valueOf('O'));
+
+							// 근무 유형에 가중치 부여
+							double rand = random.nextDouble();
+							char selectedShift;
+
+							if (rand < 0.7 && possibleShifts.contains('D')) { // 주간 70%
+								selectedShift = 'D';
+							} else if (rand < 0.95 && possibleShifts.contains('E')) { // 저녁 25%
+								selectedShift = 'E';
+							} else if (possibleShifts.contains('N')) { // 야간 5% (낮은 확률)
+								selectedShift = 'N';
+
+								// 야간이 선택된 경우 최소 연속 일수 보장
+								nurse.setShift(1, 'N');
+								int minNights = rule.getMinN();
+
+								// 최소 야간 일수만큼 연속 배정
+								for (int day = 2; day <= minNights && day <= nurse.getShifts().length; day++) {
+									nurse.setShift(day, 'N');
+								}
+
+								// 필요한 경우 휴식 보장
+								if (nurse.getShifts().length > minNights) {
+									nurse.setShift(minNights + 1, 'O');
+								}
+
+								continue; // 야간 근무 특별 처리 완료, 다음 간호사로
+							} else if (!possibleShifts.isEmpty()) {
+								selectedShift = possibleShifts.get(0);
+							} else {
+								selectedShift = 'O'; // 기본값
+							}
+
+							nurse.setShift(1, selectedShift);
+						} else if (!possibleShifts.isEmpty()) {
+							nurse.setShift(1, possibleShifts.get(0));
 						}
 					} else {
-						// 2. 야간 근무 후 휴식이 필요한 경우
-						nurse.setShift(1, 'O'); // 첫날은 휴무
+						// 적절한 휴식 기간이거나 미드 근무인 경우 정상 배정
+						if (!possibleShifts.isEmpty()) {
+							double rand = random.nextDouble();
+
+							if (rand < 0.5 && possibleShifts.contains('D')) { // 주간 50%
+								nurse.setShift(1, 'D');
+							} else if (rand < 0.85 && possibleShifts.contains('E')) { // 저녁 35%
+								nurse.setShift(1, 'E');
+							} else if (rand < 0.95 && possibleShifts.contains('N')) { // 야간 10%
+								// 야간 선택 시 최소 연속 일수 보장
+								nurse.setShift(1, 'N');
+								int minNights = rule.getMinN();
+
+								// 최소 야간 일수만큼 연속 배정
+								for (int day = 2; day <= minNights && day <= nurse.getShifts().length; day++) {
+									nurse.setShift(day, 'N');
+								}
+
+								// 필요한 경우 휴식 보장
+								if (nurse.getShifts().length > minNights) {
+									nurse.setShift(minNights + 1, 'O');
+								}
+
+								continue; // 야간 근무 특별 처리 완료, 다음 간호사로
+							} else if (possibleShifts.contains('O')) { // 휴무 5%
+								nurse.setShift(1, 'O');
+							} else {
+								// 가능한 근무 중 선택
+								nurse.setShift(1, possibleShifts.get(random.nextInt(possibleShifts.size())));
+							}
+						}
 					}
 				}
 			}
 		}
-	}
-
-	private Map<Long, String> getExistingSchedules(WardSchedule wardSchedule) {
-		Map<Long, String> existingSchedules = new HashMap<>();
-		if (wardSchedule.getDuties() != null && !wardSchedule.getDuties().isEmpty()) {
-			WardSchedule.Duty currentDuty = wardSchedule.getDuties().get(wardSchedule.getNowIdx());
-			for (WardSchedule.NurseShift shift : currentDuty.getDuty()) {
-				String modifiedShifts = shift.getShifts().replace('M', 'O');
-				existingSchedules.put(shift.getMemberId(), modifiedShifts);
-			}
-		}
-		return existingSchedules;
 	}
 
 	private Map<Integer, Solution.DailyRequirement> calculateDailyRequirements(Rule rule, YearMonth yearMonth,
@@ -414,23 +576,15 @@ public class NurseScheduler {
 	}
 
 	private List<Solution.Nurse> initializeNurses(List<WardMember> wardMembers,
-		Map<Long, String> existingSchedules,
 		int daysInMonth,
 		Map<Long, Integer> nurseShiftFlags) {
 		return wardMembers.stream()
 			.map(wm -> {
 				Long memberId = wm.getMember().getMemberId();
 				char[] shifts = new char[daysInMonth];
-				String existingShifts = existingSchedules.get(memberId);
+				// String existingShifts = existingSchedules.get(memberId);
 
-				if (existingShifts != null) {
-					for (int i = 0; i < Math.min(existingShifts.length(), daysInMonth); i++) {
-						char shift = existingShifts.charAt(i);
-						shifts[i] = shift == 'X' ? 'O' : shift;
-					}
-				} else {
-					Arrays.fill(shifts, 'O');
-				}
+				Arrays.fill(shifts, 'O');
 
 				int shiftFlag = nurseShiftFlags.getOrDefault(memberId, ShiftType.ALL.getFlag());
 
@@ -593,24 +747,93 @@ public class NurseScheduler {
 		double score = 0;
 
 		// 강한 제약 조건
-		score += evaluateShiftRequirements(solution) * 10000;
-		score += evaluateConsecutiveShifts(solution, rule) * 10000;
+		score += evaluateShiftRequirements(solution) * 20000;
+		score += evaluateConsecutiveShifts(solution, rule) * 15000;
 		score += evaluatePreviousMonthConstraints(solution, prevMonthSchedules, rule) * 10000;
-		score += evaluateShiftTypeConstraints(solution) * 30000; // 근무 유형 제약 (높은 가중치)
-
+		score += evaluateShiftTypeConstraints(solution) * 10000; // 근무 유형 제약 (높은 가중치)
 		score += evaluateShiftRequests(solution, requests) * 5000;
+		score += evaluateShiftPatterns(solution) * 5000;
 
 		// 약한 제약 조건
-		score += evaluateNodPatterns(solution, prevMonthSchedules) * 5000;
-		score += evaluateShiftPatterns(solution) * 2500;
+		score += evaluateNodPatterns(solution, prevMonthSchedules) * 3000;
 		score += evaluateWorkloadBalance(solution) * 1000;
-
 		score += evaluateWorkIntensityBalance(solution, workIntensities) * 2000;
+		score += evaluateAlternatingWorkPattern(solution) * 500;
+		score += evaluateShiftConsistency(solution) * 1000; // 3000 가중치로 설정
 
 		return score;
 	}
 
-	// 근무 유형 제약 조건 평가 메서드 (새로 추가
+	private void modifyAlternatingPattern(List<Solution.Nurse> nurses) {
+		if (nurses.isEmpty()) {
+			return;
+		}
+
+		int nurseIdx = random.nextInt(nurses.size());
+		Solution.Nurse nurse = nurses.get(nurseIdx);
+		char[] shifts = nurse.getShifts();
+
+		// 근무-휴무 패턴 찾기
+		List<Integer> patternStarts = new ArrayList<>();
+
+		for (int i = 0; i < shifts.length - 3; i++) {
+			if (shifts[i] != 'O'
+				&& shifts[i] != 'X'
+				&& (shifts[i + 1] == 'O' || shifts[i + 1] == 'X')
+				&& shifts[i + 2] != 'O' && shifts[i + 2] != 'X'
+				&& (shifts[i + 3] == 'O' || shifts[i + 3] == 'X')) {
+
+				patternStarts.add(i);
+				i += 3; // 다음 검색은 이 패턴 이후부터
+			}
+		}
+
+		if (patternStarts.isEmpty()) {
+			return;
+		}
+
+		// 랜덤하게 패턴 선택
+		int startIdx = patternStarts.get(random.nextInt(patternStarts.size()));
+
+		// 패턴 수정 전략 선택
+		int strategy = random.nextInt(4);
+
+		switch (strategy) {
+			case 0:
+				// 전략 1: 연속 근무로 변경 (첫번째 근무 + 휴무를 모두 근무로)
+				if (startIdx + 1 < shifts.length) {
+					char workShift = shifts[startIdx];
+					if (nurse.canWorkShift(workShift)) {
+						nurse.setShift(startIdx + 2, workShift);
+					}
+				}
+				break;
+			case 1:
+				// 전략 2: 연속 휴무로 변경 (두번째 근무 + 휴무를 모두 휴무로)
+				if (startIdx + 3 < shifts.length) {
+					nurse.setShift(startIdx + 3, 'O');
+				}
+				break;
+			case 2:
+				// 전략 3: 첫번째 근무 유형 변경
+				if (startIdx + 2 < shifts.length) {
+					char currentShift = shifts[startIdx + 2];
+					if (nurse.canWorkShift(currentShift)) {
+						nurse.setShift(startIdx + 1, currentShift);
+					}
+				}
+				break;
+			case 3:
+				// 전략 4: 두번째 근무 유형 변경
+				if (startIdx < shifts.length) {
+					char currentShift = shifts[startIdx];
+					if (nurse.canWorkShift(currentShift)) {
+						nurse.setShift(startIdx + 3, currentShift);
+					}
+				}
+				break;
+		}
+	}
 
 	// 근무 유형 제약 조건 평가 메서드 (새로 추가)
 	private double evaluateShiftTypeConstraints(Solution solution) {
@@ -618,10 +841,10 @@ public class NurseScheduler {
 
 		for (Solution.Nurse nurse : solution.getNurses()) {
 			// 특정 근무 타입만 가능한 간호사 처리
-			boolean isSpecificShiftNurse = nurse.getShiftFlags() == ShiftType.D.getFlag() ||
-				nurse.getShiftFlags() == ShiftType.E.getFlag() ||
-				nurse.getShiftFlags() == ShiftType.N.getFlag() ||
-				nurse.getShiftFlags() == ShiftType.M.getFlag();
+			boolean isSpecificShiftNurse = nurse.getShiftFlags() == ShiftType.D.getFlag()
+				|| nurse.getShiftFlags() == ShiftType.E.getFlag()
+				|| nurse.getShiftFlags() == ShiftType.N.getFlag()
+				|| nurse.getShiftFlags() == ShiftType.M.getFlag();
 
 			for (int day = 1; day <= solution.getDaysInMonth(); day++) {
 				char shift = nurse.getShift(day);
@@ -799,39 +1022,45 @@ public class NurseScheduler {
 				if (lastPrevShift == 'N') {
 					// 야간 -> 주간/저녁 패턴은 위반 (야간 근무 후 바로 주간이나 저녁 근무 불가)
 					if (firstCurrentShift == 'D' || firstCurrentShift == 'E') {
-						violations += 50;  // 높은 패널티
-					}
-
-					// 야간 연속성 체크 (이전 달 마지막 N과 첫날 N이 연속일 경우 최대 연속 야간 확인)
-					if (firstCurrentShift == 'N') {
-						int consecutiveNights = 1; // 마지막 날
-						for (int i = prevSchedule.length() - 2; i >= 0; i--) {
-							if (prevSchedule.charAt(i) == 'N') {
-								consecutiveNights++;
-							} else {
-								break;
-							}
-						}
-
-						// 현재 달 연속 야간 체크
-						for (int day = 2; day <= solution.getDaysInMonth(); day++) {
-							if (nurse.getShift(day) == 'N') {
-								consecutiveNights++;
-							} else {
-								break;
-							}
-						}
-
-						// 최대 연속 야간 초과 시 패널티
-						if (consecutiveNights > rule.getMaxN()) {
-							violations += (consecutiveNights - rule.getMaxN()) * 10;
-						}
+						violations += 100;  // 높은 패널티
 					}
 
 					// 야간 근무 후 바로 휴무가 아닌 경우 (N -> O 아닌 경우) 패널티
-					// 단, 야간 연속성 (N -> N)은 예외
+					// 단, 야간 연속성 (N -> N)은 예외로 검사
 					if (firstCurrentShift != 'O' && firstCurrentShift != 'N') {
-						violations += 30;
+						violations += 50;
+					}
+
+					// 야간 연속성 체크 (이전 달 마지막과 이번 달이 연속될 때만)
+					if (firstCurrentShift == 'N') {
+						// 이전 달 연속 야간 근무 일수 계산
+						int prevMonthConsecutiveNights = 1; // 마지막 날
+						for (int i = prevSchedule.length() - 2; i >= 0; i--) {
+							if (prevSchedule.charAt(i) == 'N') {
+								prevMonthConsecutiveNights++;
+							} else {
+								break;
+							}
+						}
+
+						// 현재 달 연속 야간 근무 일수 계산
+						int currentMonthConsecutiveNights = 1; // 첫날
+						for (int day = 2; day <= solution.getDaysInMonth(); day++) {
+							if (nurse.getShift(day) == 'N') {
+								currentMonthConsecutiveNights++;
+							} else {
+								break;
+							}
+						}
+
+						// 전체 연속 야간 근무 일수
+						int totalConsecutiveNights =
+							prevMonthConsecutiveNights + currentMonthConsecutiveNights - 1; // 중복 카운트 방지
+
+						// 최대 연속 야간 초과 시 패널티 (매우 높은 패널티 적용)
+						if (totalConsecutiveNights > rule.getMaxN()) {
+							violations += (totalConsecutiveNights - rule.getMaxN()) * 30;
+						}
 					}
 
 					// NOD 패턴 체크: 이전 달 마지막 날 N, 첫날 O, 둘째날 D인 경우
@@ -918,51 +1147,106 @@ public class NurseScheduler {
 		for (Solution.Nurse nurse : solution.getNurses()) {
 			int consecutiveShifts = 0;
 			int consecutiveNights = 0;
-			boolean hasSingleNight = false;
+			int consecutiveOffs = 0;  // 연속 휴무 일수 추적
+			int maxConsecutiveOffs = 3;  // 최대 허용 연속 휴무 일수 (조정 가능)
 
 			for (int day = 1; day <= solution.getDaysInMonth(); day++) {
 				char shift = nurse.getShift(day);
-				if (shift != 'O' && shift != 'X') {
+				if (shift == 'O' || shift == 'X') {
+					// 휴식일 발생
+					consecutiveOffs++;
+
+					// 휴식일 발생시 단일 야간 패턴 확인
+					if (consecutiveNights == 1) {
+						violations += 10;
+					}
+					consecutiveShifts = 0;
+					consecutiveNights = 0;
+				} else {
+					// 너무 긴 연속 휴무에 대한 패널티 부여
+					if (consecutiveOffs > maxConsecutiveOffs) {
+						violations += (consecutiveOffs - maxConsecutiveOffs) * 5;  // 초과 일수당 5점 패널티
+					}
+					consecutiveOffs = 0;  // 근무일이 시작되면 연속 휴무 카운트 리셋
+
 					consecutiveShifts++;
 					if (shift == 'N') {
 						consecutiveNights++;
 					} else {
 						// 단일 야간 근무에 높은 패널티 부여
 						if (consecutiveNights == 1) {
-							violations += 10; // 단일 야간 근무에 대한 패널티 증가
-							hasSingleNight = true;
+							violations += 15; // 단일 야간 근무에 대한 패널티 증가
 						}
 						consecutiveNights = 0;
 					}
-				} else {
-					// 휴식일 발생시 단일 야간 패턴 확인
-					if (consecutiveNights == 1) {
-						violations += 10;
-						hasSingleNight = true;
-					}
-					consecutiveShifts = 0;
-					consecutiveNights = 0;
 				}
 
 				if (consecutiveShifts > rule.getMaxShift()) {
 					violations++;
 				}
 				if (consecutiveNights > rule.getMaxN()) {
-					violations++;
+					violations += 15;
 				}
 			}
 
 			// 월말 최종 확인
 			if (consecutiveNights == 1) {
-				violations += 10;
-				hasSingleNight = true;
+				violations += 15;
 			}
 
-			// 스케줄에 단일 야간이 있는 경우 추가 패널티
-			if (hasSingleNight) {
-				violations += 5;
+			if (consecutiveShifts == 1) {
+				violations += 10;
+			}
+
+			// 월말에 연속 휴무 확인
+			if (consecutiveOffs > maxConsecutiveOffs) {
+				violations += (consecutiveOffs - maxConsecutiveOffs) * 5;
 			}
 		}
+		return violations;
+	}
+
+	// 연속 근무 시 같은 유형의 근무를 유지하는지 평가하는 함수
+	private double evaluateShiftConsistency(Solution solution) {
+		double violations = 0;
+
+		for (Solution.Nurse nurse : solution.getNurses()) {
+			char[] shifts = nurse.getShifts();
+			char currentShiftType = 'X'; // 초기값
+			int consecutiveWorkDays = 0;
+			int shiftTypeChanges = 0;
+
+			for (int day = 0; day < shifts.length; day++) {
+				char shift = shifts[day];
+
+				// 근무일인 경우 (O와 X가 아닌 경우)
+				if (shift != 'O' && shift != 'X') {
+					consecutiveWorkDays++;
+
+					// 이전에도 근무일이었다면 유형 변경 체크
+					if (consecutiveWorkDays > 1) {
+						if (currentShiftType != shift && currentShiftType != 'X') {
+							shiftTypeChanges++;
+
+							// 연속 근무 길이에 따라 다른 패널티 적용
+							// 2~4일 연속 근무에서 유형 변경시 더 높은 패널티
+							if (consecutiveWorkDays >= 2 && consecutiveWorkDays <= 4) {
+								violations += 5; // 높은 패널티
+							} else {
+								violations += 2; // 일반 패널티
+							}
+						}
+					}
+
+					currentShiftType = shift;
+				} else {
+					// 휴무일이 시작되면 연속 근무 카운터 초기화
+					consecutiveWorkDays = 0;
+					currentShiftType = 'X';
+				}
+			}
+		}
+
 		return violations;
 	}
 
@@ -1055,12 +1339,12 @@ public class NurseScheduler {
 			.build();
 	}
 
-	private Solution generateNeighborSolution(Solution current, Map<Long, String> prevMonthSchedules) {
+	private Solution generateNeighborSolution(Solution current, Map<Long, String> prevMonthSchedules, Rule rule) {
 		Solution neighbor = current.copy();
 		List<Solution.Nurse> nurses = neighbor.getNurses();
 
 		// 기존 케이스에 월말-월초 패턴 처리 케이스 추가
-		switch (random.nextInt(6)) {  // 케이스 하나 추가
+		switch (random.nextInt(8)) {  // 케이스 하나 더 추가해서 8로 변경
 			case 0: // 두 간호사 간 근무 교환
 				swapNurseShifts(nurses);
 				break;
@@ -1077,14 +1361,103 @@ public class NurseScheduler {
 				modifyNightShiftPattern(nurses);
 				break;
 			case 5: // 월말-월초 패턴 처리
-				fixMonthTransitionPatterns(nurses, prevMonthSchedules);
+				fixMonthTransitionPatterns(nurses, prevMonthSchedules, rule);
+				break;
+			case 6: // 근무-휴무 반복 패턴 수정
+				modifyAlternatingPattern(nurses);
+				break;
+			case 7: // 연속 근무 유형 일관성 개선 (새로 추가)
+				improveShiftConsistency(nurses);
 				break;
 		}
 
 		return neighbor;
 	}
 
-	private void fixMonthTransitionPatterns(List<Solution.Nurse> nurses, Map<Long, String> prevMonthSchedules) {
+	private void improveShiftConsistency(List<Solution.Nurse> nurses) {
+		if (nurses.isEmpty()) {
+			return;
+		}
+
+		int nurseIdx = random.nextInt(nurses.size());
+		Solution.Nurse nurse = nurses.get(nurseIdx);
+		char[] shifts = nurse.getShifts();
+
+		// 유형이 변경되는 연속 근무 시퀀스를 찾습니다
+		List<Integer> inconsistentDays = new ArrayList<>();
+
+		char prevShift = 'X';
+		int consecutiveWorkDays = 0;
+
+		for (int day = 0; day < shifts.length; day++) {
+			char shift = shifts[day];
+
+			if (shift != 'O' && shift != 'X') {
+				consecutiveWorkDays++;
+
+				// 이전과 다른 근무 유형이고, 연속 근무 중일 때 (2일 이상 연속 근무)
+				if (prevShift != 'X' && prevShift != shift && prevShift != 'O' && consecutiveWorkDays > 1) {
+					inconsistentDays.add(day);
+				}
+
+				prevShift = shift;
+			} else {
+				consecutiveWorkDays = 0;
+				prevShift = 'X';
+			}
+		}
+
+		if (inconsistentDays.isEmpty()) {
+			return;
+		}
+
+		// 무작위로 선택한 불일치 지점을 수정
+		int dayToFix = inconsistentDays.get(random.nextInt(inconsistentDays.size()));
+
+		// 앞쪽 근무 유형 또는 뒤쪽 근무 유형 중 하나로 통일
+		boolean useForwardType = random.nextBoolean();
+
+		// 앞으로 또는 뒤로 연속적인 근무일 찾기
+		int startDay;
+		int endDay;
+
+		// 앞으로 찾기 (현재 위치부터 이전 휴무일까지)
+		for (startDay = dayToFix - 1; startDay >= 0; startDay--) {
+			if (shifts[startDay] == 'O' || shifts[startDay] == 'X') {
+				break;
+			}
+		}
+		startDay++; // 실제 근무 시작일
+
+		// 뒤로 찾기 (현재 위치부터 다음 휴무일까지)
+		for (endDay = dayToFix; endDay < shifts.length; endDay++) {
+			if (shifts[endDay] == 'O' || shifts[endDay] == 'X') {
+				break;
+			}
+		}
+		endDay--; // 실제 근무 종료일
+
+		if (startDay <= endDay) {
+			// 통일할 근무 유형 결정
+			char unifiedType;
+			if (useForwardType) {
+				unifiedType = shifts[startDay]; // 앞쪽 근무 유형
+			} else {
+				unifiedType = shifts[endDay]; // 뒤쪽 근무 유형
+			}
+
+			// 간호사가 해당 근무 유형을 수행할 수 있는지 확인
+			if (nurse.canWorkShift(unifiedType)) {
+				// 시퀀스 내 모든 근무를 동일한 유형으로 설정
+				for (int i = startDay; i <= endDay; i++) {
+					nurse.setShift(i + 1, unifiedType); // setShift는 1부터 시작하므로 +1
+				}
+			}
+		}
+	}
+
+	private void fixMonthTransitionPatterns(List<Solution.Nurse> nurses, Map<Long, String> prevMonthSchedules,
+		Rule rule) {
 		if (nurses.isEmpty()) {
 			return;
 		}
@@ -1100,44 +1473,83 @@ public class NurseScheduler {
 		}
 
 		if (!nightEndNurses.isEmpty()) {
-			Solution.Nurse nurse = nightEndNurses.get(random.nextInt(nightEndNurses.size()));
-
-			// 첫날, 둘째날 스케줄 개선
-			if (nurse.canWorkShift('N')) {
-				// 야간 근무 가능한 경우
-				char[] possibleFirstDay = {'N', 'O'};  // 야간 연속 또는 휴무
-				char firstShift = possibleFirstDay[random.nextInt(possibleFirstDay.length)];
-				nurse.setShift(1, firstShift);
-
-				if (firstShift == 'N' && nurse.getShifts().length > 1) {
-					nurse.setShift(2, random.nextBoolean() ? 'N' : 'O');
-				} else if (firstShift == 'O' && nurse.getShifts().length > 1) {
-					// NOD 패턴 방지
-					List<Character> possibleShifts = new ArrayList<>();
-					if (nurse.canWorkShift('E'))
-						possibleShifts.add('E');
-					if (nurse.canWorkShift('N'))
-						possibleShifts.add('N');
-					possibleShifts.add('O');
-
-					if (!possibleShifts.isEmpty()) {
-						nurse.setShift(2, possibleShifts.get(random.nextInt(possibleShifts.size())));
+			// 모든 대상 간호사를 처리
+			for (Solution.Nurse nurse : nightEndNurses) {
+				// 이전 달 연속 야간 일수 계산
+				String prevSchedule = prevMonthSchedules.get(nurse.getId());
+				int prevConsecutiveNights = 1; // 마지막 날 포함
+				for (int i = prevSchedule.length() - 2; i >= 0; i--) {
+					if (prevSchedule.charAt(i) == 'N') {
+						prevConsecutiveNights++;
+					} else {
+						break;
 					}
 				}
-			} else {
-				// 야간 근무 불가능한 경우 무조건 휴무
-				nurse.setShift(1, 'O');
-				if (nurse.getShifts().length > 1) {
-					// 둘째날은 가능한 근무 중 하나로
-					List<Character> possibleShifts = new ArrayList<>();
-					if (nurse.canWorkShift('D'))
-						possibleShifts.add('D');
-					if (nurse.canWorkShift('E'))
-						possibleShifts.add('E');
-					possibleShifts.add('O');
 
-					if (!possibleShifts.isEmpty()) {
-						nurse.setShift(2, possibleShifts.get(random.nextInt(possibleShifts.size())));
+				// 최대 연속 야간 근무 초과 여부 확인
+				if (prevConsecutiveNights >= rule.getMaxN() - 1) { // 수정: 더 엄격한 조건 적용
+					// 첫날은 반드시 휴무
+					nurse.setShift(1, 'O');
+
+					// 추가 휴식일 적용
+					int restDays = rule.getOffCntAfterN();
+					for (int day = 1; day <= Math.min(restDays, nurse.getShifts().length); day++) {
+						nurse.setShift(day, 'O');
+					}
+
+					// 둘째날도 NOD 패턴 방지를 위해 설정
+					if (nurse.getShifts().length > restDays) {
+						List<Character> safeShifts = new ArrayList<>();
+						if (nurse.canWorkShift('E')) {
+							safeShifts.add('E');
+						}
+						safeShifts.add('O');
+
+						nurse.setShift(restDays + 1, safeShifts.get(random.nextInt(safeShifts.size())));
+					}
+				} else if (nurse.canWorkShift('N')) {
+					// 첫날 야간인지 확인
+					boolean isFirstDayNight = nurse.getShift(1) == 'N';
+
+					// 수정: 더 엄격한 연속 야간 관리
+					if (isFirstDayNight) {
+						// 현재 달 연속 야간 계산
+						int currentConsecutiveNights = 1; // 첫날 포함
+						for (int day = 2; day <= nurse.getShifts().length; day++) {
+							if (nurse.getShift(day) == 'N') {
+								currentConsecutiveNights++;
+							} else {
+								break;
+							}
+						}
+
+						// 전체 연속 야간 계산 (중복 제거)
+						int totalConsecutiveNights = prevConsecutiveNights + currentConsecutiveNights - 1;
+
+						// 수정: 최대치에 근접하거나 초과하면 즉시 조정
+						if (totalConsecutiveNights >= rule.getMaxN()) {
+							// 앞에서부터 수정 (연속성 즉시 끊기)
+							nurse.setShift(1, 'O');
+
+							// 휴식일 보장
+							int restDays = rule.getOffCntAfterN();
+							for (int day = 1; day <= Math.min(restDays, nurse.getShifts().length); day++) {
+								nurse.setShift(day, 'O');
+							}
+						} else if (totalConsecutiveNights >= rule.getMaxN() - 1) {
+							// 최대 1일까지만 허용하고 그 이후는 휴식
+							for (int day = 2; day <= nurse.getShifts().length; day++) {
+								if (day > 1) { // 첫날은 이미 N으로 설정됨
+									nurse.setShift(day, 'O');
+								}
+							}
+
+							// 추가 휴식일 보장
+							int restDays = rule.getOffCntAfterN();
+							for (int day = 2; day < 2 + restDays && day <= nurse.getShifts().length; day++) {
+								nurse.setShift(day, 'O');
+							}
+						}
 					}
 				}
 			}
@@ -1152,8 +1564,7 @@ public class NurseScheduler {
 		// 야간 근무 가능한 간호사만 필터링
 		List<Solution.Nurse> nightEligibleNurses = nurses.stream()
 			.filter(nurse -> nurse.canWorkShift('N'))
-			.collect(Collectors.toList());
-
+			.toList();
 		if (nightEligibleNurses.isEmpty()) {
 			return;
 		}
@@ -1227,17 +1638,16 @@ public class NurseScheduler {
 
 		// 해당 간호사가 가능한 근무 유형만 선택
 		List<Character> possibleShifts = new ArrayList<>();
-		if (nurse.canWorkShift('D'))
+		if (nurse.canWorkShift('D')) {
 			possibleShifts.add('D');
-		if (nurse.canWorkShift('E'))
-			possibleShifts.add('E');
-		if (nurse.canWorkShift('N'))
-			possibleShifts.add('N');
-		possibleShifts.add('O'); // 휴무는 항상 가능
-
-		if (possibleShifts.isEmpty()) {
-			return; // 가능한 근무 유형이 없으면 변경하지 않음
 		}
+		if (nurse.canWorkShift('E')) {
+			possibleShifts.add('E');
+		}
+		if (nurse.canWorkShift('N')) {
+			possibleShifts.add('N');
+		}
+		possibleShifts.add('O'); // 휴무는 항상 가능
 
 		char newShift = possibleShifts.get(random.nextInt(possibleShifts.size()));
 		nurse.setShift(day + 1, newShift);
@@ -1282,6 +1692,43 @@ public class NurseScheduler {
 		}
 	}
 
+	private double evaluateAlternatingWorkPattern(Solution solution) {
+		double violations = 0;
+
+		for (Solution.Nurse nurse : solution.getNurses()) {
+			char[] shifts = nurse.getShifts();
+
+			// 최소 4일 이상의 패턴이 필요함 (근무-휴무-근무-휴무)
+			for (int i = 0; i < shifts.length - 3; i++) {
+				// 근무-휴무-근무-휴무 패턴 체크
+				if (shifts[i] != 'O' && shifts[i] != 'X'
+					&& (shifts[i + 1] == 'O' || shifts[i + 1] == 'X')
+					&& shifts[i + 2] != 'O' && shifts[i + 2] != 'X'
+					&& (shifts[i + 3] == 'O' || shifts[i + 3] == 'X')) {
+
+					// 더 긴 패턴도 체크 (패턴이 계속되는지)
+					int patternLength = 2; // 기본 패턴 길이 (근무-휴무)
+					for (int j = i + 4; j < shifts.length - 1; j += 2) {
+						if (shifts[j] != 'O' && shifts[j] != 'X'
+							&& (shifts[j + 1] == 'O' || shifts[j + 1] == 'X')) {
+							patternLength++;
+						} else {
+							break;
+						}
+					}
+
+					// 패턴이 길수록 더 큰 패널티 부여
+					violations += patternLength * 2;
+
+					// 이미 패턴을 찾았으니 다음 검색은 패턴 이후부터
+					i += patternLength * 2 - 1;
+				}
+			}
+		}
+
+		return violations;
+	}
+
 	private void modifyNodPattern(List<Solution.Nurse> nurses) {
 		if (nurses.isEmpty()) {
 			return;
@@ -1298,22 +1745,29 @@ public class NurseScheduler {
 
 			// 변경 가능한 대체 근무 유형 결정
 			if (dayToChange == 0) { // N 변경
-				if (nurse.canWorkShift('E'))
+				if (nurse.canWorkShift('E')) {
 					alternatives.add('E');
-				if (nurse.canWorkShift('D'))
+				}
+				if (nurse.canWorkShift('D')) {
 					alternatives.add('D');
+				}
 			} else if (dayToChange == 1) { // O 변경
-				if (nurse.canWorkShift('E'))
+				if (nurse.canWorkShift('E')) {
 					alternatives.add('E');
-				if (nurse.canWorkShift('N'))
+				}
+				if (nurse.canWorkShift('N')) {
 					alternatives.add('N');
-				if (nurse.canWorkShift('D'))
+				}
+				if (nurse.canWorkShift('D')) {
 					alternatives.add('D');
+				}
 			} else { // D 변경
-				if (nurse.canWorkShift('E'))
+				if (nurse.canWorkShift('E')) {
 					alternatives.add('E');
-				if (nurse.canWorkShift('N'))
+				}
+				if (nurse.canWorkShift('N')) {
 					alternatives.add('N');
+				}
 				alternatives.add('O');
 			}
 

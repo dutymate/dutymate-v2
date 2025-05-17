@@ -16,7 +16,7 @@ import net.dutymate.api.domain.wardmember.WardMember;
 
 public class DemoRequestGenerator {
 	// 데모 요청 관련 상수
-	private static final int MIN_REQUESTS_PER_NURSE = 2;
+	private static final int MIN_REQUESTS_PER_NURSE = 1;
 	private static final int BASE_DAY_MULTIPLIER = 7;
 	private static final int OFFSET_MULTIPLIER = 5;
 	private static final Random random = new Random();
@@ -70,7 +70,6 @@ public class DemoRequestGenerator {
 	private static RequestStatus getRandomizedRequestStatus() {
 		// 전체 20개 중 각 비율에 따른 최대 개수
 
-
 		totalCount++;
 
 		// 이미 20개를 넘어선 경우, 비율에 맞게 무작위로 선택
@@ -113,11 +112,11 @@ public class DemoRequestGenerator {
 			&& (randomValue < getAcceptedWeight()
 			|| availableStatuses.size() == 2
 			&& !availableStatuses.contains(
-				RequestStatus.DENIED))) {
+			RequestStatus.DENIED))) {
 			selectedStatus = RequestStatus.ACCEPTED;
 		} else if (availableStatuses.contains(RequestStatus.DENIED)
 			&& (randomValue < getAcceptedWeight() + getDeniedWeight() || !availableStatuses.contains(
-				RequestStatus.HOLD))) {
+			RequestStatus.HOLD))) {
 			selectedStatus = RequestStatus.DENIED;
 		} else {
 			selectedStatus = RequestStatus.HOLD;
