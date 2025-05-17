@@ -12,6 +12,7 @@ import {
 	createNavigationContainerRef,
 } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
+import { initializeKakaoSDK } from '@react-native-kakao/core';
 
 import { CreateWardScreen } from "@/screens/CreateWardScreen";
 import { ErrorScreen } from "@/screens/ErrorScreen";
@@ -21,6 +22,7 @@ import { LoginScreen } from "@/screens/LoginScreen";
 import { PasswordResetScreen } from "@/screens/PasswordResetScreen";
 import { SignupScreen } from "@/screens/SignupScreen";
 import { WebViewScreen } from "@/screens/WebViewScreen";
+
 
 configureReanimatedLogger({
 	level: ReanimatedLogLevel.warn,
@@ -35,6 +37,18 @@ const navigationRef = createNavigationContainerRef();
  * 이 컴포넌트는 React Navigation을 사용하여 앱의 내비게이션을 설정합니다.
  */
 export default function App() {
+	/**
+	 * 카카오 네이티브 앱 키 초기화 
+	 */
+	const kakaoNativeAppKey = process.env.EXPO_PUBLIC_KAKAO_NATIVE_APP_KEY;
+
+	useEffect(() => {
+		initializeKakaoSDK(kakaoNativeAppKey);
+	}, []);
+
+	/**
+	 * 폰트(PretendardVariable) 로드
+	 */
 	const [fontsLoaded] = useFonts({
 		PretendardVariable: require("../assets/fonts/PretendardVariable.ttf"),
 	});

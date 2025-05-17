@@ -4,6 +4,7 @@ import { Button } from "@/components/common/Button";
 import { Input } from "@/components/common/Input";
 import { StyledText } from "@/components/common/StyledText";
 import { SocialLoginButton } from "@/components/login/SocialLoginButton";
+import { login } from "@react-native-kakao/user";
 /**
  * LoginFormProps는 LoginScreen의 props 타입을 정의합니다.
  * navigation은 React Navigation의 navigation 객체입니다.
@@ -17,6 +18,20 @@ interface LoginFormProps {
  * @param navigation
  */
 export const LoginForm = ({ navigation }: LoginFormProps) => {
+
+	const handleKakaoLogin = async () => {
+		try {
+			const response = await login();
+			
+		} catch (error) {
+			console.error('Kakao login error:', error);
+		}
+	};
+
+	const handleGoogleLogin = () => {
+		
+	};
+
 	return (
 		<View className={"lg:block"}>
 			<View className={"space-y-[0.375rem] sm:space-y-[0.5rem]"}>
@@ -64,8 +79,8 @@ export const LoginForm = ({ navigation }: LoginFormProps) => {
 				</View>
 			</View>
 			<View className={"flex flex-col gap-y-[1rem]"}>
-				<SocialLoginButton social={"kakao"} onPress={() => {}} />
-				<SocialLoginButton social={"google"} onPress={() => {}} />
+				<SocialLoginButton social={"kakao"} onPress={handleKakaoLogin} />
+				<SocialLoginButton social={"google"} onPress={handleGoogleLogin} />
 			</View>
 			<View className={"mt-[1.125rem] gap-y-[0.625rem]"}>
 				<View>

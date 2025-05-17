@@ -16,13 +16,15 @@ export default ({ config }: ConfigContext): ExpoConfig => {
             backgroundColor: "#ffffff"
         },
         ios: {
-            supportsTablet: true
+            supportsTablet: true,
+            bundleIdentifier: "net.dutymate.app",
         },
         android: {
             adaptiveIcon: {
                 foregroundImage: "./assets/adaptive-icon.png",
                 backgroundColor: "#ffffff"
-            }
+            },
+            package: "net.dutymate.app",
         },
         web: {
             favicon: "./assets/favicon.png"
@@ -59,5 +61,6 @@ export default ({ config }: ConfigContext): ExpoConfig => {
               }
             ]
           ],
+          
     };
 };
