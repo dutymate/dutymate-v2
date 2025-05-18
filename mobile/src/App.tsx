@@ -1,12 +1,12 @@
 import { useUserAuthStore } from "@/store/userAuthStore";
-import { initializeKakaoSDK } from '@react-native-kakao/core';
+import { initializeKakaoSDK } from "@react-native-kakao/core";
 import {
 	createNavigationContainerRef,
 	NavigationContainer,
 } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import { useFonts } from "expo-font";
-import * as SecureStore from 'expo-secure-store';
+import * as SecureStore from "expo-secure-store";
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect } from "react";
 import { BackHandler } from "react-native";
@@ -47,25 +47,25 @@ const navigationRef = createNavigationContainerRef<RootStackParamList>();
 // 초기 화면 이동 함수
 const navigateToScreenAfterLogin = (userInfo: any) => {
 	if (!navigationRef.isReady()) return;
-	
+
 	// 추가 정보가 없는 경우
 	if (!userInfo.existAdditionalInfo) {
-		navigationRef.navigate('ExtraInfo');
-	} 
+		navigationRef.navigate("ExtraInfo");
+	}
 	// 소속 병동이 없는 경우
 	else if (!userInfo.existMyWard) {
-		if (userInfo.role === 'HN') {
-			navigationRef.navigate('CreateWard');
+		if (userInfo.role === "HN") {
+			navigationRef.navigate("CreateWard");
 		} else {
-			navigationRef.navigate('WebView', { path: '/my-shift' });
+			navigationRef.navigate("WebView", { path: "/my-shift" });
 		}
-	} 
+	}
 	// 모든 정보가 있는 경우
 	else {
-		if (userInfo.role === 'HN') {
-			navigationRef.navigate('WebView', { path: '/shift-admin' });
+		if (userInfo.role === "HN") {
+			navigationRef.navigate("WebView", { path: "/shift-admin" });
 		} else {
-			navigationRef.navigate('WebView', { path: '/my-shift' });
+			navigationRef.navigate("WebView", { path: "/my-shift" });
 		}
 	}
 };
@@ -78,7 +78,7 @@ export default function App() {
 	const { setUserInfo } = useUserAuthStore();
 
 	/**
-	 * 카카오 네이티브 앱 키 초기화 
+	 * 카카오 네이티브 앱 키 초기화
 	 */
 	const kakaoNativeAppKey = process.env.EXPO_PUBLIC_KAKAO_NATIVE_APP_KEY;
 
@@ -116,32 +116,32 @@ export default function App() {
 	useEffect(() => {
 		const checkToken = async () => {
 			// checkToken 함수 시작 부분에 추가
-			await SecureStore.deleteItemAsync('auth-token');
-			await SecureStore.deleteItemAsync('user-info');
-			
+			await SecureStore.deleteItemAsync("auth-token");
+			await SecureStore.deleteItemAsync("user-info");
+
 			try {
-				const token = await SecureStore.getItemAsync('auth-token');
-				const userInfoString = await SecureStore.getItemAsync('user-info');
+				const token = await SecureStore.getItemAsync("auth-token");
+				const userInfoString = await SecureStore.getItemAsync("user-info");
 
 				if (token && userInfoString) {
 					const userInfo = JSON.parse(userInfoString);
-					
+
 					// userAuthStore에 사용자 정보 설정
 					setUserInfo({
 						...userInfo,
-						token
+						token,
 					});
-					
-				navigateToScreenAfterLogin(userInfo);
+
+					navigateToScreenAfterLogin(userInfo);
 				}
 			} catch (error) {
-				console.error('자동 로그인 확인 중 오류 발생:', error);
+				console.error("자동 로그인 확인 중 오류 발생:", error);
 				// 오류 발생 시 토큰 삭제
-				await SecureStore.deleteItemAsync('auth-token');
-				await SecureStore.deleteItemAsync('user-info');
+				await SecureStore.deleteItemAsync("auth-token");
+				await SecureStore.deleteItemAsync("user-info");
 			}
 		};
-		
+
 		// 폰트 로드 후 토큰 체크
 		if (fontsLoaded) {
 			checkToken();
@@ -171,8 +171,8 @@ export default function App() {
 					/>
 					<Stack.Screen name={"Signup"} component={SignupScreen} />
 					<Stack.Screen name={"WebView"} component={WebViewScreen} />
-				</Stack.Navigator>	
-			</NavigationContainer>		
+				</Stack.Navigator>
+			</NavigationContainer>
 		</>
 	);
 }

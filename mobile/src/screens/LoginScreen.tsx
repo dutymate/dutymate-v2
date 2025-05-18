@@ -3,7 +3,7 @@ import { LoginForm } from "@/components/login/LoginForm";
 import { Layout } from "@/layout/Layout";
 import { LogoTemplate } from "@/templates/LogoTemplate";
 import React, { useEffect } from "react";
-import * as SecureStore from 'expo-secure-store';
+import * as SecureStore from "expo-secure-store";
 
 /**
  * LoginScreenProps는 LoginScreen의 props 타입을 정의합니다.
@@ -22,13 +22,13 @@ export const LoginScreen = ({ navigation }: LoginScreenProps) => {
 	useEffect(() => {
 		const clearAuthData = async () => {
 			try {
-				await SecureStore.deleteItemAsync('auth-token');
-				await SecureStore.deleteItemAsync('user-info');
+				await SecureStore.deleteItemAsync("auth-token");
+				await SecureStore.deleteItemAsync("user-info");
 			} catch (error) {
-				console.error('인증 정보 삭제 중 오류 발생:', error);
+				console.error("인증 정보 삭제 중 오류 발생:", error);
 			}
 		};
-		
+
 		clearAuthData();
 	}, []);
 

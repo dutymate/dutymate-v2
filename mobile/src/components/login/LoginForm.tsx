@@ -7,8 +7,8 @@ import { StyledText } from "@/components/common/StyledText";
 import { SocialLoginButton } from "@/components/login/SocialLoginButton";
 import { useUserAuthStore } from "@/store/userAuthStore";
 import { login, me } from "@react-native-kakao/user";
-import * as SecureStore from 'expo-secure-store';
-import Toast from 'react-native-toast-message';
+import * as SecureStore from "expo-secure-store";
+import Toast from "react-native-toast-message";
 /**
  * LoginFormProps는 LoginScreen의 props 타입을 정의합니다.
  * navigation은 React Navigation의 navigation 객체입니다.
@@ -28,34 +28,33 @@ export const LoginForm = ({ navigation }: LoginFormProps) => {
 		try {
 			// 카카오 SDK 로그인
 			const profile = await me();
-			
-			
+
 			const profileData = {
 				email: profile.email,
 				nickname: profile.nickname,
-				profileImageUrl: profile.profileImageUrl
-			}
+				profileImageUrl: profile.profileImageUrl,
+			};
 
 			// authService를 통해 백엔드로 코드 전송
 			const loginResponse = await authService.kakaoLogin(profileData);
-			
+
 			// 로그인 정보를 Zustand 스토어에 저장
 			setUserInfo({
 				...loginResponse,
-				provider: 'kakao',
+				provider: "kakao",
 			});
 
 			// 초대 토큰이 있는지 확인
-			const inviteToken = await SecureStore.getItemAsync('inviteToken');
+			const inviteToken = await SecureStore.getItemAsync("inviteToken");
 			if (inviteToken) {
 				Toast.show({
-					type: 'success',
-					text1: '정상적으로 로그인되었습니다.',
+					type: "success",
+					text1: "정상적으로 로그인되었습니다.",
 				});
 				// 현재 Invite 화면이 없으므로 WebView로 대체
 				// TODO: Invite 화면 구현 후 수정
-				navigation.navigate('WebView', { inviteToken });
-				await SecureStore.deleteItemAsync('inviteToken');
+				navigation.navigate("WebView", { inviteToken });
+				await SecureStore.deleteItemAsync("inviteToken");
 				return;
 			}
 
@@ -65,36 +64,36 @@ export const LoginForm = ({ navigation }: LoginFormProps) => {
 			// console.log('Role:', role);
 			// console.log('Exist Additional Info:', existAdditionalInfo);
 			// console.log('Exist My Ward:', existMyWard);
-			
+
 			// 추가 정보가 없는 경우
 			if (!existAdditionalInfo) {
-				navigation.navigate('ExtraInfo');
-			} 
+				navigation.navigate("ExtraInfo");
+			}
 			// 소속 병동이 없는 경우
 			else if (!existMyWard) {
-				if (role === 'HN') {
-					navigation.navigate('CreateWard');
+				if (role === "HN") {
+					navigation.navigate("CreateWard");
 				} else {
 					// TODO: MyShift 화면 구현 후 수정
-					navigation.navigate('WebView', { path: '/my-shift' });
+					navigation.navigate("WebView", { path: "/my-shift" });
 				}
-			} 
+			}
 			// 모든 정보가 있는 경우
 			else {
-				if (role === 'HN') {
+				if (role === "HN") {
 					// TODO: ShiftAdmin 화면 구현 후 수정
-					navigation.navigate('WebView', { path: '/shift-admin' });
+					navigation.navigate("WebView", { path: "/shift-admin" });
 				} else {
 					// TODO: MyShift 화면 구현 후 수정
-					navigation.navigate('WebView', { path: '/my-shift' });
+					navigation.navigate("WebView", { path: "/my-shift" });
 				}
 			}
 		} catch (error) {
-			console.error('Kakao login error:', error);
+			console.error("Kakao login error:", error);
 			Toast.show({
-				type: 'error',
-				text1: '로그인에 실패했습니다.',
-				text2: '다시 시도해주세요.'
+				type: "error",
+				text1: "로그인에 실패했습니다.",
+				text2: "다시 시도해주세요.",
 			});
 		}
 	};
