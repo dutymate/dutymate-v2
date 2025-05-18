@@ -27,21 +27,17 @@ export const LoginForm = ({ navigation }: LoginFormProps) => {
 	const handleKakaoLogin = async () => {
 		try {
 			// 카카오 SDK 로그인
-			const kakaoResponse = await login();
-			console.log('Kakao SDK Response:', kakaoResponse);
-
 			const profile = await me();
-			console.log('Kakao Profile:', profile);
 			
-			// authService를 통해 백엔드로 코드 전송
+			
 			const profileData = {
 				email: profile.email,
 				nickname: profile.nickname,
 				profileImageUrl: profile.profileImageUrl
 			}
-			console.log('Profile Data:', profileData);
+
+			// authService를 통해 백엔드로 코드 전송
 			const loginResponse = await authService.kakaoLogin(profileData);
-			console.log('Login Response from Backend:', loginResponse);
 			
 			// 로그인 정보를 Zustand 스토어에 저장
 			setUserInfo({
@@ -65,10 +61,10 @@ export const LoginForm = ({ navigation }: LoginFormProps) => {
 
 			// 로그인 후 이동 로직 (frontend/KakaoRedirect.tsx와 동일)
 			const { role, existAdditionalInfo, existMyWard } = loginResponse;
-			console.log('Login Response:', loginResponse);
-			console.log('Role:', role);
-			console.log('Exist Additional Info:', existAdditionalInfo);
-			console.log('Exist My Ward:', existMyWard);
+			// console.log('Login Response:', loginResponse);
+			// console.log('Role:', role);
+			// console.log('Exist Additional Info:', existAdditionalInfo);
+			// console.log('Exist My Ward:', existMyWard);
 			
 			// 추가 정보가 없는 경우
 			if (!existAdditionalInfo) {

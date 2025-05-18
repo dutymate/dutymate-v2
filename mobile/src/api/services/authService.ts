@@ -18,8 +18,6 @@ export const authService = {
     kakaoLogin: async (data: KakaoProfileRequestDto): Promise<LoginResponse> => {
         try {
           const response = await axiosInstance.post('/member/login/kakao/mobile', data);
-
-          console.log(response.data);
           
           // 토큰 저장
           const { token: authToken, ...userInfo } = response.data;

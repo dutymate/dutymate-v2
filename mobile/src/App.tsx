@@ -46,8 +46,6 @@ const navigationRef = createNavigationContainerRef<RootStackParamList>();
 
 // 초기 화면 이동 함수
 const navigateToScreenAfterLogin = (userInfo: any) => {
-	console.log('userInfo', userInfo);
-	console.log('navigationRef', navigationRef.isReady());
 	if (!navigationRef.isReady()) return;
 	
 	// 추가 정보가 없는 경우
@@ -120,20 +118,13 @@ export default function App() {
 			// checkToken 함수 시작 부분에 추가
 			await SecureStore.deleteItemAsync('auth-token');
 			await SecureStore.deleteItemAsync('user-info');
-			console.log('토큰 삭제 완료');
 			
 			try {
 				const token = await SecureStore.getItemAsync('auth-token');
-				console.log('Token found:', token ? 'Yes' : 'No');
 				const userInfoString = await SecureStore.getItemAsync('user-info');
-				
-				// 여기에 디버그 출력 추가
-				console.log('토큰 확인:', token);
-				console.log('사용자 정보 확인:', userInfoString);
 
 				if (token && userInfoString) {
 					const userInfo = JSON.parse(userInfoString);
-					console.log('User info loaded:', userInfo);
 					
 					// userAuthStore에 사용자 정보 설정
 					setUserInfo({
