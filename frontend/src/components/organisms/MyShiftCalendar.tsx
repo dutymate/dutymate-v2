@@ -39,6 +39,8 @@ interface MyShiftCalendarProps {
   setMyDutyData: React.Dispatch<React.SetStateAction<MyDuty | null>>;
   refreshMyDutyData?: () => void;
   onWorkCRUDModalOpen?: () => void;
+  isWorkInputMode?: boolean;
+  onWorkInputClick?: () => void;
 }
 
 const typeToShiftCode = (
@@ -73,6 +75,8 @@ const MyShiftCalendar = ({
   setMyDutyData,
   refreshMyDutyData,
   onWorkCRUDModalOpen,
+  isWorkInputMode: externalWorkInputMode,
+  onWorkInputClick,
 }: MyShiftCalendarProps) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1024); // lg 브레이크포인트
@@ -92,6 +96,13 @@ const MyShiftCalendar = ({
   // dutyColors가 전달되지 않은 경우 기본값 설정
   const defaultDutyColors =
     externalDutyColors || getDutyColors(userInfo?.color);
+
+  // 외부에서 전달된 isWorkInputMode 값을 사용
+  useEffect(() => {
+    if (externalWorkInputMode !== undefined) {
+      setIsWorkInputMode(externalWorkInputMode);
+    }
+  }, [externalWorkInputMode]);
 
   // 화면 크기 변경 감지
   useEffect(() => {
@@ -249,13 +260,23 @@ const MyShiftCalendar = ({
     setMyDutyData({ ...dutyData, shifts: newShifts.join('') });
   };
 
+  // 근무 입력 버튼 클릭 핸들러
+  const handleWorkInputButtonClick = () => {
+    if (onWorkInputClick) {
+      onWorkInputClick();
+    } else {
+      setIsWorkInputMode(!isWorkInputMode);
+      toast.info('날짜를 선택하세요');
+    }
+  };
+
   // 날짜 클릭 핸들러 수정
   const handleDateClick = (
     newDate: Date,
     _event: React.MouseEvent<HTMLDivElement>,
     idx: number
   ) => {
-    if (isWorkInputMode && isMobile) {
+    if (isWorkInputMode) {
       // 선택한 셀을 중앙에 오도록 스크롤
       if (cellRefs.current[idx]) {
         cellRefs.current[idx]?.scrollIntoView({
@@ -263,10 +284,15 @@ const MyShiftCalendar = ({
           behavior: 'smooth',
         });
       }
-      setWorkInputSelectedDate(newDate);
-      setIsWorkModalOpen(true);
+      // 근무 입력 모드에서는 onDateSelect만 호출하고 상위 컴포넌트에서 처리
+      onDateSelect(newDate);
+      // 부모의 onWorkCRUDModalOpen이 있으면 호출
+      if (onWorkCRUDModalOpen) {
+        onWorkCRUDModalOpen();
+      }
     } else {
       onDateSelect(newDate);
+      // 근무 입력 모드가 아닐 때만 TodayShiftModal 표시
       setIsTodayShiftModalOpen(true);
     }
   };
@@ -312,21 +338,12 @@ const MyShiftCalendar = ({
               text-size="md"
               className={`whitespace-nowrap ${
                 isMobile ? 'px-2 py-2 text-xs' : 'py-0.5 px-1.5 sm:py-1 sm:px-2'
-              } ${isWorkInputMode ? 'bg-primary text-white' : ''}`}
-              onClick={() => {
-                setIsWorkInputMode(!isWorkInputMode);
-                // 이미 선택된 날짜가 있으면 바로 모달 열기
-                if (externalSelectedDate) {
-                  setWorkInputSelectedDate(externalSelectedDate);
-                  setIsWorkModalOpen(true);
-                  // 부모의 onWorkCRUDModalOpen이 있으면 호출
-                  if (onWorkCRUDModalOpen) {
-                    onWorkCRUDModalOpen();
-                  }
-                } else {
-                  toast.info('날짜를 선택하세요');
-                }
-              }}
+              } ${
+                isWorkInputMode
+                  ? 'bg-[#f47056] text-white border-[0.5px] border-[#f47056]'
+                  : 'bg-[#fff4ee] text-[#f47056] border-[0.5px] border-[#f47056] hover:bg-[#ffebe1]'
+              }`}
+              onClick={handleWorkInputButtonClick}
               size={isMobile ? 'xs' : 'register'}
             >
               <div className="flex items-center gap-1 relative group">
@@ -376,7 +393,7 @@ const MyShiftCalendar = ({
           {/* 달력 그리드 */}
           <div
             ref={calendarGridRef}
-            className={`grid grid-cols-7 divide-x divide-y divide-gray-100 border border-gray-100 ${isMobile ? 'overflow-y-auto' : 'auto-rows-[6.5rem] overflow-hidden'}`}
+            className={`calendar-grid grid grid-cols-7 divide-x divide-y divide-gray-100 border border-gray-100 ${isMobile ? 'overflow-y-auto' : 'auto-rows-[6.5rem] overflow-hidden'}`}
           >
             {/* 이전 달 날짜 */}
             {prevMonthDays.map((day) => {
@@ -632,10 +649,12 @@ const MyShiftCalendar = ({
         />
       )}
 
+      {/* 모바일 TodayShiftModal은 근무 입력 모드가 아닐 때만 표시 */}
       {isMobile &&
         isTodayShiftModalOpen &&
         dutyData &&
-        externalSelectedDate && (
+        externalSelectedDate &&
+        !isWorkInputMode && (
           <TodayShiftModal
             date={externalSelectedDate}
             duty={

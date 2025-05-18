@@ -66,6 +66,13 @@ const MyShift = () => {
     'day' | 'off' | 'evening' | 'night' | 'mid'
   >('day');
 
+  // 근무 입력 모드 상태
+  const [isWorkInputMode, setIsWorkInputMode] = useState(false);
+
+  // 근무 입력용 선택 날짜
+  const [workInputSelectedDate, setWorkInputSelectedDate] =
+    useState<Date | null>(null);
+
   // 사용자 색상 정보를 이용한 duty 색상 설정 - 유틸리티 함수 사용
   const dutyColors = getDutyColors(userInfo?.color);
 
@@ -162,6 +169,15 @@ const MyShift = () => {
   // 날짜 선택 시 해당 날짜의 근무 데이터 로딩
   const handleDateSelect = async (date: Date | null) => {
     if (!date) return;
+
+    // 근무 입력 모드인 경우 WorkCRUDModal을 위한 날짜 설정만 하고 TodayShiftModal은 열지 않음
+    if (isWorkInputMode) {
+      setWorkInputSelectedDate(date);
+      setIsWorkCRUDModalOpen(true);
+      return;
+    }
+
+    // 일반 모드에서는 기존 로직 유지
     setSelectedDate(date);
     setActiveTab('calendar'); // 날짜 클릭 시 캘린더 탭으로 전환
 
@@ -194,11 +210,14 @@ const MyShift = () => {
 
   // 전체 월간 근무 데이터를 갱신하는 함수 추가
   const refreshMyDutyData = async () => {
-    if (!selectedDate) return;
+    if (!workInputSelectedDate && !selectedDate) return;
+
+    const dateToUse = workInputSelectedDate || selectedDate;
+    if (!dateToUse) return;
 
     try {
-      const year = selectedDate.getFullYear();
-      const month = selectedDate.getMonth() + 1;
+      const year = dateToUse.getFullYear();
+      const month = dateToUse.getMonth() + 1;
 
       // 월간 근무 데이터 새로 가져오기
       const updatedMonthData = await dutyService.getMyDuty(year, month);
@@ -229,6 +248,12 @@ const MyShift = () => {
     } catch (error) {
       console.error('데이터 새로고침 실패:', error);
     }
+  };
+
+  // 근무 입력 버튼 클릭 핸들러
+  const handleWorkInputClick = () => {
+    setIsWorkInputMode(true);
+    toast.info('날짜를 선택하세요');
   };
 
   const isDemo = userInfo?.isDemo;
@@ -289,14 +314,19 @@ const MyShift = () => {
               <div className="relative flex flex-col lg:flex-1 lg:min-w-0">
                 <MyShiftCalendar
                   onDateSelect={handleDateSelect}
-                  selectedDate={selectedDate}
+                  selectedDate={
+                    isWorkInputMode ? workInputSelectedDate : selectedDate
+                  }
                   dutyData={myDutyData}
                   onMonthChange={handleMonthChange}
                   schedulesByDate={schedulesByDate}
                   colorClassMap={colorClassMap}
                   dutyColors={dutyColors}
                   setMyDutyData={setMyDutyData}
+                  refreshMyDutyData={refreshMyDutyData}
                   onWorkCRUDModalOpen={() => setIsWorkCRUDModalOpen(true)}
+                  isWorkInputMode={isWorkInputMode}
+                  onWorkInputClick={handleWorkInputClick}
                 />
               </div>
 
@@ -359,11 +389,25 @@ const MyShift = () => {
       {/* WorkCRUDModal */}
       <WorkCRUDModal
         open={isWorkCRUDModalOpen}
-        onClose={() => setIsWorkCRUDModalOpen(false)}
-        selectedDate={selectedDate}
-        setSelectedDate={setSelectedDate}
+        onClose={() => {
+          setIsWorkCRUDModalOpen(false);
+          setIsWorkInputMode(false);
+          setWorkInputSelectedDate(null);
+        }}
+        selectedDate={workInputSelectedDate}
+        setSelectedDate={setWorkInputSelectedDate}
         onDutyUpdated={refreshMyDutyData}
-        currentShift={dayDutyData?.myShift}
+        currentShift={
+          workInputSelectedDate && myDutyData
+            ? (myDutyData.shifts[workInputSelectedDate.getDate() - 1] as
+                | 'D'
+                | 'E'
+                | 'N'
+                | 'O'
+                | 'M'
+                | 'X')
+            : undefined
+        }
         dutyData={myDutyData}
         setMyDutyData={setMyDutyData}
       />
