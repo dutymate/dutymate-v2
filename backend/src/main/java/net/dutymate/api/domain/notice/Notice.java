@@ -24,14 +24,14 @@ public class Notice {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id;
+	private Long noticeId;
 
 	@Column(length = 200, nullable = false)
 	private String title;
 
 	@Lob
 	@Column(nullable = false)
-	private String content; // 마크다운 내용 저장
+	private String content;
 
 	@Column(nullable = false)
 	private boolean isPinned = false; // 상단 고정 여부
@@ -39,12 +39,15 @@ public class Notice {
 	@Column(nullable = false, updatable = false)
 	private LocalDateTime createdAt;
 
-	@Column
-	private LocalDateTime updatedAt;
-
 	// 생성 시간 자동 설정
 	@PrePersist
 	protected void onCreate() {
 		createdAt = LocalDateTime.now();
+	}
+
+	public void update(String title, String content, boolean isPinned) {
+		this.title = title;
+		this.content = content;
+		this.isPinned = isPinned;
 	}
 }

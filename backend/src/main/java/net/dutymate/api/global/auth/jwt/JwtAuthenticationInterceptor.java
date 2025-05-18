@@ -23,8 +23,16 @@ public class JwtAuthenticationInterceptor implements HandlerInterceptor {
 			return true;
 		}
 
-		// POST /user -> 회원가입일 때는 토큰 검사 X
-		if (HttpMethod.POST.matches(request.getMethod()) && request.getRequestURI().equals("/api/member")) {
+		String uri = request.getRequestURI();
+		String method = request.getMethod();
+
+		// 회원가입 요청은 인증 제외
+		if (uri.equals("/api/member") && HttpMethod.POST.matches(method)) {
+			return true;
+		}
+
+		// 공지사항 조회(GET) 요청은 인증 제외
+		if (uri.startsWith("/api/notice") && HttpMethod.GET.matches(method)) {
 			return true;
 		}
 
