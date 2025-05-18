@@ -1,18 +1,19 @@
+import { useUserAuthStore } from "@/store/userAuthStore";
+import { initializeKakaoSDK } from '@react-native-kakao/core';
+import {
+	createNavigationContainerRef,
+	NavigationContainer,
+} from "@react-navigation/native";
+import { createStackNavigator } from "@react-navigation/stack";
 import { useFonts } from "expo-font";
+import * as SecureStore from 'expo-secure-store';
 import { StatusBar } from "expo-status-bar";
-
-import { useEffect } from "react";
+import React, { useEffect } from "react";
 import { BackHandler } from "react-native";
 import {
 	configureReanimatedLogger,
 	ReanimatedLogLevel,
 } from "react-native-reanimated";
-import {
-	NavigationContainer,
-	createNavigationContainerRef,
-} from "@react-navigation/native";
-import { createStackNavigator } from "@react-navigation/stack";
-import { initializeKakaoSDK } from '@react-native-kakao/core';
 
 import { CreateWardScreen } from "@/screens/CreateWardScreen";
 import { ErrorScreen } from "@/screens/ErrorScreen";
@@ -23,20 +24,61 @@ import { PasswordResetScreen } from "@/screens/PasswordResetScreen";
 import { SignupScreen } from "@/screens/SignupScreen";
 import { WebViewScreen } from "@/screens/WebViewScreen";
 
+// 네비게이션 타입 정의
+type RootStackParamList = {
+	CreateWard: undefined;
+	Error: undefined;
+	ExtraInfo: undefined;
+	Landing: undefined;
+	Login: undefined;
+	PasswordReset: undefined;
+	Signup: undefined;
+	WebView: { path?: string; inviteToken?: string };
+};
 
 configureReanimatedLogger({
 	level: ReanimatedLogLevel.warn,
 	strict: false,
 });
 
-const Stack = createStackNavigator();
-const navigationRef = createNavigationContainerRef();
+const Stack = createStackNavigator<RootStackParamList>();
+const navigationRef = createNavigationContainerRef<RootStackParamList>();
+
+// 초기 화면 이동 함수
+const navigateToScreenAfterLogin = (userInfo: any) => {
+	console.log('userInfo', userInfo);
+	console.log('navigationRef', navigationRef.isReady());
+	if (!navigationRef.isReady()) return;
+	
+	// 추가 정보가 없는 경우
+	if (!userInfo.existAdditionalInfo) {
+		navigationRef.navigate('ExtraInfo');
+	} 
+	// 소속 병동이 없는 경우
+	else if (!userInfo.existMyWard) {
+		if (userInfo.role === 'HN') {
+			navigationRef.navigate('CreateWard');
+		} else {
+			navigationRef.navigate('WebView', { path: '/my-shift' });
+		}
+	} 
+	// 모든 정보가 있는 경우
+	else {
+		if (userInfo.role === 'HN') {
+			navigationRef.navigate('WebView', { path: '/shift-admin' });
+		} else {
+			navigationRef.navigate('WebView', { path: '/my-shift' });
+		}
+	}
+};
 
 /**
  * 앱의 메인 컴포넌트입니다.
  * 이 컴포넌트는 React Navigation을 사용하여 앱의 내비게이션을 설정합니다.
  */
 export default function App() {
+	const { setUserInfo } = useUserAuthStore();
+
 	/**
 	 * 카카오 네이티브 앱 키 초기화 
 	 */
@@ -70,6 +112,51 @@ export default function App() {
 		return () => backHandler.remove();
 	}, []);
 
+	/**
+	 * 자동 로그인 체크
+	 */
+	useEffect(() => {
+		const checkToken = async () => {
+			// checkToken 함수 시작 부분에 추가
+			await SecureStore.deleteItemAsync('auth-token');
+			await SecureStore.deleteItemAsync('user-info');
+			console.log('토큰 삭제 완료');
+			
+			try {
+				const token = await SecureStore.getItemAsync('auth-token');
+				console.log('Token found:', token ? 'Yes' : 'No');
+				const userInfoString = await SecureStore.getItemAsync('user-info');
+				
+				// 여기에 디버그 출력 추가
+				console.log('토큰 확인:', token);
+				console.log('사용자 정보 확인:', userInfoString);
+
+				if (token && userInfoString) {
+					const userInfo = JSON.parse(userInfoString);
+					console.log('User info loaded:', userInfo);
+					
+					// userAuthStore에 사용자 정보 설정
+					setUserInfo({
+						...userInfo,
+						token
+					});
+					
+				navigateToScreenAfterLogin(userInfo);
+				}
+			} catch (error) {
+				console.error('자동 로그인 확인 중 오류 발생:', error);
+				// 오류 발생 시 토큰 삭제
+				await SecureStore.deleteItemAsync('auth-token');
+				await SecureStore.deleteItemAsync('user-info');
+			}
+		};
+		
+		// 폰트 로드 후 토큰 체크
+		if (fontsLoaded) {
+			checkToken();
+		}
+	}, [fontsLoaded, setUserInfo]);
+
 	if (!fontsLoaded) {
 		return null;
 	}
@@ -93,8 +180,8 @@ export default function App() {
 					/>
 					<Stack.Screen name={"Signup"} component={SignupScreen} />
 					<Stack.Screen name={"WebView"} component={WebViewScreen} />
-				</Stack.Navigator>
-			</NavigationContainer>
+				</Stack.Navigator>	
+			</NavigationContainer>		
 		</>
 	);
 }

@@ -2,6 +2,8 @@ import { Card } from "@/components/common/Card";
 import { LoginForm } from "@/components/login/LoginForm";
 import { Layout } from "@/layout/Layout";
 import { LogoTemplate } from "@/templates/LogoTemplate";
+import React, { useEffect } from "react";
+import * as SecureStore from 'expo-secure-store';
 
 /**
  * LoginScreenProps는 LoginScreen의 props 타입을 정의합니다.
@@ -16,6 +18,20 @@ interface LoginScreenProps {
  * @param navigation
  */
 export const LoginScreen = ({ navigation }: LoginScreenProps) => {
+	// 로그인 페이지 진입 시 토큰과 사용자 정보 삭제
+	useEffect(() => {
+		const clearAuthData = async () => {
+			try {
+				await SecureStore.deleteItemAsync('auth-token');
+				await SecureStore.deleteItemAsync('user-info');
+			} catch (error) {
+				console.error('인증 정보 삭제 중 오류 발생:', error);
+			}
+		};
+		
+		clearAuthData();
+	}, []);
+
 	return (
 		<Layout>
 			<LogoTemplate navigation={navigation}>
