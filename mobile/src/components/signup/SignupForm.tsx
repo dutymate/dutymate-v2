@@ -1,8 +1,15 @@
 import { View } from "react-native";
 
-import { AuthCodeSendButton, Button } from "@/components/common/Button";
+import {
+	AuthCodeSendButton,
+	Button,
+	InputActionButton,
+} from "@/components/common/Button";
 import { Input } from "@/components/common/Input";
 import { StyledText } from "@/components/common/StyledText";
+import { AgreementCheckbox } from "./AgreementCheckbox";
+import { useState } from "react";
+import { useEmailVerification } from "@/hooks/common/useEmailVerification";
 
 /**
  * SignupFormProps는 SignupForm의 props 타입을 정의합니다.
@@ -17,8 +24,51 @@ interface SignupFormProps {
  * @param navigation
  */
 export const SignupForm = ({ navigation }: SignupFormProps) => {
-	// TODO: AgreementCheckbox isChecked 상태 관리 추가
-	// const [isChecked, setIsChecked] = useState(false);
+	// 회원가입 데이터 상태
+	const [signupData, setSignupData] = useState({
+		email: "",
+		password: "",
+		passwordConfirm: "",
+		name: "",
+	});
+
+	// 동의 체크박스 상태
+	const [isChecked, setIsChecked] = useState(false);
+
+	// 이메일 인증 관련 상태
+	const {
+		email,
+		setEmail,
+		authCode,
+		setAuthCode,
+		authCodeSent,
+		authCodeStatus,
+		isVerified,
+		timer,
+		emailError,
+		isSending,
+		sendCode,
+		verifyCode,
+		resetVerification,
+	} = useEmailVerification("signup");
+
+	// 비밀번호 유효성 검사
+	const validatePassword = (password: string) =>
+		/^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(
+			password,
+		);
+
+	// 타이머 형식 변환 함수 (300초 -> 5:00 형태)
+	const formatTime = (seconds: number) => {
+		const mins = Math.floor(seconds / 60);
+		const secs = seconds % 60;
+		return `${mins}:${secs.toString().padStart(2, "0")}`;
+	};
+
+	// 인증 번호 발송
+	const handleSendAuthCode = async () => {
+		await sendCode();
+	};
 
 	return (
 		<View className={"lg:block"}>
@@ -27,58 +77,88 @@ export const SignupForm = ({ navigation }: SignupFormProps) => {
 					<Input
 						label={"회원가입"}
 						placeholder={"이메일"}
-						value={""}
-						onChangeText={() => {}}
+						value={email}
+						onChangeText={setEmail}
 						keyboardType={"email-address"}
+						error={emailError}
+						editable={!authCodeSent && !isVerified}
 					/>
-					<AuthCodeSendButton onPress={() => {}}>
-						<StyledText
-							className={
-								"font-semibold text-center text-[1rem] text-primary-dark"
-							}
-						>
-							인증번호 발송
-						</StyledText>
-					</AuthCodeSendButton>
+					{!authCodeSent && (
+						<AuthCodeSendButton onPress={sendCode}>
+							<StyledText
+								className={
+									"font-semibold text-center text-[1rem] text-primary-dark"
+								}
+							>
+								{isSending ? "발송 중..." : "인증번호 발송"}
+							</StyledText>
+						</AuthCodeSendButton>
+					)}
+
 					{/*TODO: 이메일 인증 로직 추가*/}
-					{/*
-					<Input
-						placeholder={"인증번호"}
-						value={""}
-						onChangeText={() => {}}
-						keyboardType={"number-pad"}
-						rightElement={
-							<InputActionButton inputType={"code"} onPress={() => {}}>
-								<StyledText className={"text-xs text-gray-800"}>
-									확인
-								</StyledText>
-							</InputActionButton>
-						}
-					/>
-					<Input
-						placeholder={"비밀번호"}
-						value={""}
-						onChangeText={() => {}}
-						keyboardType={"default"}
-					/>
-					<Input
-						placeholder={"비밀번호 확인"}
-						value={""}
-						onChangeText={() => {}}
-						keyboardType={"default"}
-					/>
-					<Input
-						placeholder={"이름"}
-						value={""}
-						onChangeText={() => {}}
-						keyboardType={"default"}
-					/>
-					<AgreementCheckbox
-						isChecked={isChecked}
-						disabled={false}
-						onPress={() => setIsChecked(!isChecked)}
-					/>
-					*/}
+					{authCodeSent && (
+						<Input
+							placeholder={"인증번호"}
+							value={authCode}
+							onChangeText={setAuthCode}
+							keyboardType={"number-pad"}
+							rightElement={
+								<View className="flex-row items-center">
+									{/* 타이머 표시 */}
+									<StyledText className="text-red-500 font-bold text-sm mr-2">
+										{!isVerified ? formatTime(timer) : ""}
+									</StyledText>
+
+									<InputActionButton
+										inputType={"code"}
+										onPress={verifyCode}
+										disabled={isVerified}
+									>
+										<StyledText className={"text-xs text-gray-800"}>
+											확인
+										</StyledText>
+									</InputActionButton>
+								</View>
+							}
+							status={authCodeStatus}
+							error={
+								authCodeStatus === "error"
+									? "인증 코드가 일치하지 않습니다."
+									: undefined
+							}
+							successText={
+								authCodeStatus === "success" ? "인증되었습니다." : undefined
+							}
+							editable={!isVerified}
+						/>
+					)}
+					{isVerified && (
+						<View>
+							<Input
+								placeholder={"비밀번호"}
+								value={""}
+								onChangeText={() => {}}
+								keyboardType={"default"}
+							/>
+							<Input
+								placeholder={"비밀번호 확인"}
+								value={""}
+								onChangeText={() => {}}
+								keyboardType={"default"}
+							/>
+							<Input
+								placeholder={"이름"}
+								value={""}
+								onChangeText={() => {}}
+								keyboardType={"default"}
+							/>
+							<AgreementCheckbox
+								isChecked={isChecked}
+								disabled={false}
+								onPress={() => setIsChecked(!isChecked)}
+							/>
+						</View>
+					)}
 				</View>
 				{/*TODO: 회원가입 로직 추가*/}
 				<Button

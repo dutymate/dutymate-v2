@@ -23,6 +23,7 @@ import { LoginScreen } from "@/screens/LoginScreen";
 import { PasswordResetScreen } from "@/screens/PasswordResetScreen";
 import { SignupScreen } from "@/screens/SignupScreen";
 import { WebViewScreen } from "@/screens/WebViewScreen";
+import Toast from "react-native-toast-message";
 
 // 네비게이션 타입 정의
 type RootStackParamList = {
@@ -173,6 +174,9 @@ export default function App() {
 					<Stack.Screen name={"WebView"} component={WebViewScreen} />
 				</Stack.Navigator>
 			</NavigationContainer>
+
+			{/* Toast 컴포넌트를 최하단에 추가 */}
+			<Toast />
 		</>
 	);
 }
