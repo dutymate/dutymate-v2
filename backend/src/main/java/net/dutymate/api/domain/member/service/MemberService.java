@@ -36,6 +36,7 @@ import net.dutymate.api.domain.member.dto.CheckPasswordDto;
 import net.dutymate.api.domain.member.dto.EditRoleRequestDto;
 import net.dutymate.api.domain.member.dto.GoogleTokenResponseDto;
 import net.dutymate.api.domain.member.dto.GoogleUserResponseDto;
+import net.dutymate.api.domain.member.dto.KakaoProfileRequestDto;
 import net.dutymate.api.domain.member.dto.KakaoTokenResponseDto;
 import net.dutymate.api.domain.member.dto.KakaoUserResponseDto;
 import net.dutymate.api.domain.member.dto.LoginLog;
@@ -216,9 +217,10 @@ public class MemberService {
 	}
 
 	@Transactional
-	public LoginResponseDto kakaoLogin(String code, boolean isMobile) {
-		// KAKAO로부터 토큰 발급받아 유저 정보 확인
+	public LoginResponseDto kakaoLogin(String code) {
 		String kakaoAccessToken = getKakaoAccessToken(code);
+
+		// KAKAO로부터 토큰 발급받아 유저 정보 확인
 		KakaoUserResponseDto.KakaoAccount kakaoAccount = getKakaoUserInfo(kakaoAccessToken);
 
 		// 가입된 회원 엔티티를 조회. 회원 테이블에 없으면 회원가입 처리
@@ -236,13 +238,7 @@ public class MemberService {
 		}
 
 		// memberId로 AccessToken 생성
-		String accessToken;
-
-		if (isMobile) {
-			accessToken = jwtUtil.createMobileToken(member.getMemberId());
-		} else {
-			accessToken = jwtUtil.createToken(member.getMemberId());
-		}
+		String accessToken=jwtUtil.createToken(member.getMemberId());
 
 		boolean existAdditionalInfo =
 			member.getGrade() != null && member.getGender() != null && member.getRole() != null;
@@ -376,8 +372,8 @@ public class MemberService {
 		memberRepository.save(newMember);
 		return newMember;
 	}
+	
 	// API POST 요청 with params
-
 	private <T> T requestApiByPost(
 		String uri, MultiValueMap<String, String> params, Class<T> classType) {
 		return WebClient.create().post()
@@ -388,8 +384,8 @@ public class MemberService {
 			.bodyToMono(classType)
 			.block();
 	}
-	// API POST 요청 with params, header
 
+	// API POST 요청 with params, header
 	private <T> T requestApiByPostWithAuthHeader(String uri, String token, Class<T> classType) {
 		return WebClient.create().get()
 			.uri(uri)
@@ -887,5 +883,52 @@ public class MemberService {
 	public void updateRole(Member member, EditRoleRequestDto editRoleRequestDto) {
 		member.setRole(editRoleRequestDto.getRole());
 		memberRepository.save(member);
+	}
+
+	@Transactional
+	public LoginResponseDto kakaoLoginMobile(KakaoProfileRequestDto profileRequestDto) {
+		// 사용자 정보로 회원 조회 또는 회원가입 처리
+		Member member = memberRepository.findMemberByEmail(profileRequestDto.getEmail())
+			.orElseGet(() -> signUpWithKakaoProfileInMobile(profileRequestDto));
+
+		// 만약 다른 경로(일반 이메일, GOOGLE) 회원가입한 이력이 있는 경우 예외 처리
+		checkAnotherSocialLogin(member, Provider.KAKAO);
+
+		// Color 테이블에 아직 값이 없으면 기본 컬러값 저장
+		if (!colorRepository.existsByMember(member)) {
+			Color defaultColor = Color.of(member);
+			member.setColor(defaultColor);
+			colorRepository.save(defaultColor);
+		}
+
+		// memberId로 모바일용 AccessToken 생성
+		String accessToken =jwtUtil.createMobileToken(member.getMemberId());
+
+		boolean existAdditionalInfo =
+			member.getGrade() != null && member.getGender() != null && member.getRole() != null;
+
+		boolean existMyWard = wardMemberRepository.existsByMember(member);
+
+		boolean sentWardCode = enterWaitingRepository.existsByMember(member);
+
+		loginLogService.pushLoginLog(LoginLog.of(member, true, null));
+
+		return LoginResponseDto.of(member, accessToken, existAdditionalInfo, existMyWard, sentWardCode, false);
+	}
+
+	// 프로필 정보로 회원가입
+	private Member signUpWithKakaoProfileInMobile(KakaoProfileRequestDto profileRequestDto) {
+		Member newMember = Member.builder()
+			.email(profileRequestDto.getEmail())
+			.password("KakaoPassword123!!")  // 소셜 로그인은 실제 사용되지 않는 비밀번호
+			.name(profileRequestDto.getNickname())
+			.profileImg(Optional.ofNullable(profileRequestDto.getProfileImageUrl()).orElse(s3Service.addBasicProfileImgUrl()))
+			.provider(Provider.KAKAO)
+			.isVerified(true)
+			.autoGenCnt(DEFAULT_AUTO_GEN_CNT)
+			.build();
+		
+		memberRepository.save(newMember);
+		return newMember;
 	}
 }
