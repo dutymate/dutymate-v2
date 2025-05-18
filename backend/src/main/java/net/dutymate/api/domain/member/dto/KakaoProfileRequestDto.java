@@ -4,7 +4,7 @@ import lombok.Data;
 
 @Data
 public class KakaoProfileRequestDto {
-    private String email;
-    private String nickname;
-    private String profileImageUrl;
-} 
+	private String email;
+	private String nickname;
+	private String profileImageUrl;
+}

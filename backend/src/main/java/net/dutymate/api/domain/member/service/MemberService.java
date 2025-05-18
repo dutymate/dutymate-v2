@@ -238,7 +238,7 @@ public class MemberService {
 		}
 
 		// memberId로 AccessToken 생성
-		String accessToken=jwtUtil.createToken(member.getMemberId());
+		String accessToken = jwtUtil.createToken(member.getMemberId());
 
 		boolean existAdditionalInfo =
 			member.getGrade() != null && member.getGender() != null && member.getRole() != null;
@@ -372,7 +372,7 @@ public class MemberService {
 		memberRepository.save(newMember);
 		return newMember;
 	}
-	
+
 	// API POST 요청 with params
 	private <T> T requestApiByPost(
 		String uri, MultiValueMap<String, String> params, Class<T> classType) {
@@ -902,7 +902,7 @@ public class MemberService {
 		}
 
 		// memberId로 모바일용 AccessToken 생성
-		String accessToken =jwtUtil.createMobileToken(member.getMemberId());
+		String accessToken = jwtUtil.createMobileToken(member.getMemberId());
 
 		boolean existAdditionalInfo =
 			member.getGrade() != null && member.getGender() != null && member.getRole() != null;
@@ -922,12 +922,13 @@ public class MemberService {
 			.email(profileRequestDto.getEmail())
 			.password("KakaoPassword123!!")  // 소셜 로그인은 실제 사용되지 않는 비밀번호
 			.name(profileRequestDto.getNickname())
-			.profileImg(Optional.ofNullable(profileRequestDto.getProfileImageUrl()).orElse(s3Service.addBasicProfileImgUrl()))
+			.profileImg(
+				Optional.ofNullable(profileRequestDto.getProfileImageUrl()).orElse(s3Service.addBasicProfileImgUrl()))
 			.provider(Provider.KAKAO)
 			.isVerified(true)
 			.autoGenCnt(DEFAULT_AUTO_GEN_CNT)
 			.build();
-		
+
 		memberRepository.save(newMember);
 		return newMember;
 	}

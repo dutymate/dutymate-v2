@@ -23,6 +23,7 @@ import net.dutymate.api.domain.member.dto.AdditionalInfoResponseDto;
 import net.dutymate.api.domain.member.dto.CheckNicknameRequestDto;
 import net.dutymate.api.domain.member.dto.CheckPasswordDto;
 import net.dutymate.api.domain.member.dto.EditRoleRequestDto;
+import net.dutymate.api.domain.member.dto.KakaoProfileRequestDto;
 import net.dutymate.api.domain.member.dto.LoginRequestDto;
 import net.dutymate.api.domain.member.dto.LoginResponseDto;
 import net.dutymate.api.domain.member.dto.MypageEditRequestDto;
@@ -33,7 +34,6 @@ import net.dutymate.api.domain.member.dto.SendCodeRequestDto;
 import net.dutymate.api.domain.member.dto.SignUpRequestDto;
 import net.dutymate.api.domain.member.dto.UpdateEmailVerificationRequestDto;
 import net.dutymate.api.domain.member.dto.VerifyCodeRequestDto;
-import net.dutymate.api.domain.member.dto.KakaoProfileRequestDto;
 import net.dutymate.api.domain.member.service.EmailService;
 import net.dutymate.api.domain.member.service.MemberService;
 import net.dutymate.api.global.auth.annotation.Auth;
@@ -90,7 +90,7 @@ public class MemberController {
 
 	@PostMapping("/login/kakao/mobile")
 	public ResponseEntity<?> kakaoLoginMobile(@RequestBody KakaoProfileRequestDto profileRequestDto) {
-		
+
 		// 모바일에서 직접 전달받은 사용자 정보로 로그인 처리
 		LoginResponseDto loginResponseDto = memberService.kakaoLoginMobile(profileRequestDto);
 		return ResponseEntity.ok(loginResponseDto);
