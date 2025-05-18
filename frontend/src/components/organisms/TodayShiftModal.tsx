@@ -20,7 +20,7 @@ import {
 import { toast } from 'react-toastify';
 import { wardService } from '@/services/wardService';
 import { useUserAuthStore } from '@/stores/userAuthStore';
-import { dutyService } from '@/services/dutyService';
+// import { dutyService } from '@/services/dutyService';
 import JoinWardGuideModal from './JoinWardGuideModal';
 import ShiftColorPickerModal from './ShiftColorPickerModal';
 const weekDays = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'] as const;
@@ -90,8 +90,8 @@ const TodayShiftModal = ({
   setSchedulesByDate,
   activeTab,
   onTabChange,
-  selectedDutyType,
-  onDutyTypeChange,
+  // selectedDutyType,
+  // onDutyTypeChange,
   refreshMyDutyData,
   dutyColors: externalDutyColors,
 }: TodayShiftModalProps) => {
@@ -362,69 +362,69 @@ const TodayShiftModal = ({
   };
 
   // 듀티 버튼 클릭 처리 함수
-  const handleDutyBadgeClick = async (
-    type: 'day' | 'evening' | 'night' | 'off' | 'mid'
-  ) => {
-    if (!date || !userInfo) return;
+  // const handleDutyBadgeClick = async (
+  //   type: 'day' | 'evening' | 'night' | 'off' | 'mid'
+  // ) => {
+  //   if (!date || !userInfo) return;
 
-    // 1. 현재 날짜와 사용자 정보 가져오기
-    const selectedDate = new Date(date);
-    const year = selectedDate.getFullYear();
-    const month = selectedDate.getMonth() + 1;
-    const day = selectedDate.getDate();
+  //   // 1. 현재 날짜와 사용자 정보 가져오기
+  //   const selectedDate = new Date(date);
+  //   const year = selectedDate.getFullYear();
+  //   const month = selectedDate.getMonth() + 1;
+  //   const day = selectedDate.getDate();
 
-    try {
-      // 2. 듀티 타입을 서버 형식으로 변환
-      const dutyTypeToShiftMap: Record<
-        string,
-        'D' | 'E' | 'N' | 'O' | 'X' | 'M'
-      > = {
-        day: 'D',
-        evening: 'E',
-        night: 'N',
-        off: 'O',
-        mid: 'M',
-      };
+  //   try {
+  //     // 2. 듀티 타입을 서버 형식으로 변환
+  //     const dutyTypeToShiftMap: Record<
+  //       string,
+  //       'D' | 'E' | 'N' | 'O' | 'X' | 'M'
+  //     > = {
+  //       day: 'D',
+  //       evening: 'E',
+  //       night: 'N',
+  //       off: 'O',
+  //       mid: 'M',
+  //     };
 
-      // 3. 새로운 근무 유형 정의
-      const newShift = dutyTypeToShiftMap[type];
+  //     // 3. 새로운 근무 유형 정의
+  //     const newShift = dutyTypeToShiftMap[type];
 
-      // 4. 현재 날짜에 해당하는 근무 유형 찾기 (불필요한 API 호출 제거)
-      // 현재 표시된 날짜의 근무 정보는 dutyData.myShift에 이미 있음
-      const currentShift = dutyData.myShift;
+  //     // 4. 현재 날짜에 해당하는 근무 유형 찾기 (불필요한 API 호출 제거)
+  //     // 현재 표시된 날짜의 근무 정보는 dutyData.myShift에 이미 있음
+  //     const currentShift = dutyData.myShift;
 
-      // 5. 같은 근무 유형을 다시 클릭했을 경우 삭제 (X로 설정)
-      let shiftToSend = newShift;
-      if (currentShift === newShift) {
-        shiftToSend = 'X'; // 같은 유형을 다시 클릭하면 삭제
-      }
+  //     // 5. 같은 근무 유형을 다시 클릭했을 경우 삭제 (X로 설정)
+  //     let shiftToSend = newShift;
+  //     if (currentShift === newShift) {
+  //       shiftToSend = 'X'; // 같은 유형을 다시 클릭하면 삭제
+  //     }
 
-      // 6. 업데이트 요청 데이터 생성
-      const updateData = {
-        year,
-        month,
-        day,
-        shift: shiftToSend,
-      };
+  //     // 6. 업데이트 요청 데이터 생성
+  //     const updateData = {
+  //       year,
+  //       month,
+  //       day,
+  //       shift: shiftToSend,
+  //     };
 
-      // 7. API 호출로 근무표 업데이트
-      await dutyService.updateMyDuty(updateData);
+  //     // 7. API 호출로 근무표 업데이트
+  //     await dutyService.updateMyDuty(updateData);
 
-      // 8. 월간 근무 데이터를 갱신하고 바로 다음 날짜로 이동
-      if (typeof refreshMyDutyData === 'function') {
-        // 데이터 갱신 후
-        await refreshMyDutyData();
-      }
+  //     // 8. 월간 근무 데이터를 갱신하고 바로 다음 날짜로 이동
+  //     if (typeof refreshMyDutyData === 'function') {
+  //       // 데이터 갱신 후
+  //       await refreshMyDutyData();
+  //     }
 
-      // 9. 다음 날짜로 이동 (모든 경우에 수행)
-      const nextDay = new Date(date);
-      nextDay.setDate(date.getDate() + 1);
-      onDateChange(nextDay);
-    } catch (error) {
-      console.error('근무 업데이트 실패:', error);
-      toast.error('근무 업데이트에 실패했습니다.');
-    }
-  };
+  //     // 9. 다음 날짜로 이동 (모든 경우에 수행)
+  //     const nextDay = new Date(date);
+  //     nextDay.setDate(date.getDate() + 1);
+  //     onDateChange(nextDay);
+  //   } catch (error) {
+  //     console.error('근무 업데이트 실패:', error);
+  //     toast.error('근무 업데이트에 실패했습니다.');
+  //   }
+  // };
 
   // 선택된 날짜의 일정을 가져오는 함수
   const loadSchedules = async () => {
@@ -599,121 +599,68 @@ const TodayShiftModal = ({
         ) : (
           <>
             {/* 근무 종류 뱃지: userInfo.existMyWard가 false일 때만 표시 */}
+            {/*
             {!userInfo?.existMyWard && (
-              <div
-                className={`w-full ${
-                  isMobile ? 'mb-2 p-1 rounded-lg' : 'mb-3 p-3 rounded-xl'
-                } bg-white flex ${
-                  isMobile
-                    ? 'flex-row justify-center gap-1'
-                    : 'flex-col items-center justify-center'
-                } shrink-0`}
-              >
-                {isMobile ? (
-                  <div className="flex flex-row flex-wrap justify-center gap-1 w-full">
-                    {(['day', 'off', 'evening', 'night', 'mid'] as const).map(
-                      (type) => (
-                        <button
-                          key={type}
-                          type="button"
-                          onClick={() => {
-                            onDutyTypeChange(type);
-                            handleDutyBadgeClick(type);
-                          }}
-                          className={`rounded-lg focus:outline-none transition-all border-1 px-0.5 py-0.5 ${
-                            selectedDutyType === type
-                              ? 'ring-2'
-                              : 'border-transparent'
-                          }`}
-                          style={{
-                            lineHeight: 0,
-                            ...(selectedDutyType === type
-                              ? ({
-                                  '--tw-ring-color': localDutyColors[type].bg,
-                                } as React.CSSProperties)
-                              : {}),
-                          }}
-                        >
-                          <DutyBadgeKor
-                            type={type}
-                            size="xxs"
-                            bgColor={localDutyColors[type].bg}
-                            textColor={localDutyColors[type].text}
-                          />
-                        </button>
-                      )
-                    )}
-                  </div>
-                ) : (
-                  <>
-                    <div className="flex justify-center gap-2 mb-2">
-                      {(['day', 'off'] as const).map((type) => (
-                        <button
-                          key={type}
-                          type="button"
-                          onClick={() => {
-                            onDutyTypeChange(type);
-                            handleDutyBadgeClick(type);
-                          }}
-                          className={`rounded-lg focus:outline-none transition-all border-1 px-0.5 py-0.5 ${
-                            selectedDutyType === type
-                              ? 'ring-2'
-                              : 'border-transparent'
-                          }`}
-                          style={{
-                            lineHeight: 0,
-                            ...(selectedDutyType === type
-                              ? ({
-                                  '--tw-ring-color': localDutyColors[type].bg,
-                                } as React.CSSProperties)
-                              : {}),
-                          }}
-                        >
-                          <DutyBadgeKor
-                            type={type}
-                            size="xxs"
-                            bgColor={localDutyColors[type].bg}
-                            textColor={localDutyColors[type].text}
-                          />
-                        </button>
-                      ))}
-                    </div>
-                    <div className="flex justify-center gap-2">
-                      {(['evening', 'night', 'mid'] as const).map((type) => (
-                        <button
-                          key={type}
-                          type="button"
-                          onClick={() => {
-                            onDutyTypeChange(type);
-                            handleDutyBadgeClick(type);
-                          }}
-                          className={`rounded-lg focus:outline-none transition-all border-1 px-0.5 py-0.5 ${
-                            selectedDutyType === type
-                              ? 'ring-2'
-                              : 'border-transparent'
-                          }`}
-                          style={{
-                            lineHeight: 0,
-                            ...(selectedDutyType === type
-                              ? ({
-                                  '--tw-ring-color': localDutyColors[type].bg,
-                                } as React.CSSProperties)
-                              : {}),
-                          }}
-                        >
-                          <DutyBadgeKor
-                            type={type}
-                            size="xxs"
-                            bgColor={localDutyColors[type].bg}
-                            textColor={localDutyColors[type].text}
-                          />
-                        </button>
-                      ))}
-                    </div>
-                  </>
-                )}
+              <div className={`w-full mb-3 p-3 rounded-xl bg-white flex flex-col items-center justify-center shrink-0`}>
+                <div className="flex justify-center gap-2 mb-2">
+                  {(['day', 'off'] as const).map((type) => (
+                    <button
+                      key={type}
+                      type="button"
+                      onClick={() => {
+                        onDutyTypeChange(type);
+                        handleDutyBadgeClick(type);
+                      }}
+                      className={`rounded-lg focus:outline-none transition-all border-1 px-0.5 py-0.5 ${selectedDutyType === type ? 'ring-2' : 'border-transparent'}`}
+                      style={{
+                        lineHeight: 0,
+                        ...(selectedDutyType === type
+                          ? ({
+                              '--tw-ring-color': localDutyColors[type].bg,
+                            } as React.CSSProperties)
+                          : {}),
+                      }}
+                    >
+                      <DutyBadgeKor
+                        type={type}
+                        size="xxs"
+                        bgColor={localDutyColors[type].bg}
+                        textColor={localDutyColors[type].text}
+                      />
+                    </button>
+                  ))}
+                </div>
+                <div className="flex justify-center gap-2">
+                  {(['evening', 'night', 'mid'] as const).map((type) => (
+                    <button
+                      key={type}
+                      type="button"
+                      onClick={() => {
+                        onDutyTypeChange(type);
+                        handleDutyBadgeClick(type);
+                      }}
+                      className={`rounded-lg focus:outline-none transition-all border-1 px-0.5 py-0.5 ${selectedDutyType === type ? 'ring-2' : 'border-transparent'}`}
+                      style={{
+                        lineHeight: 0,
+                        ...(selectedDutyType === type
+                          ? ({
+                              '--tw-ring-color': localDutyColors[type].bg,
+                            } as React.CSSProperties)
+                          : {}),
+                      }}
+                    >
+                      <DutyBadgeKor
+                        type={type}
+                        size="xxs"
+                        bgColor={localDutyColors[type].bg}
+                        textColor={localDutyColors[type].text}
+                      />
+                    </button>
+                  ))}
+                </div>
               </div>
             )}
+            */}
             {/* 일정 리스트 */}
             <div
               className={`flex flex-col gap-1.5 flex-1 overflow-y-auto mb-2 ${

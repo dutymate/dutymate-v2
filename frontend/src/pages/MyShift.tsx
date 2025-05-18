@@ -9,6 +9,7 @@ import KakaoPlaceModal from '@/components/organisms/KakaoPlaceModal';
 import MSidebar from '@/components/organisms/MSidebar';
 import MyShiftCalendar from '@/components/organisms/MyShiftCalendar';
 import TodayShiftModal from '@/components/organisms/TodayShiftModal';
+import WorkCRUDModal from '@/components/organisms/WorkCRUDModal';
 import Sidebar from '@/components/organisms/WSidebar';
 import { SEO } from '@/components/SEO';
 import type { ScheduleType } from '@/services/calendarService';
@@ -159,7 +160,8 @@ const MyShift = () => {
   }, [myDutyData]);
 
   // 날짜 선택 시 해당 날짜의 근무 데이터 로딩
-  const handleDateSelect = async (date: Date) => {
+  const handleDateSelect = async (date: Date | null) => {
+    if (!date) return;
     setSelectedDate(date);
     setActiveTab('calendar'); // 날짜 클릭 시 캘린더 탭으로 전환
 
@@ -230,6 +232,7 @@ const MyShift = () => {
   };
 
   const isDemo = userInfo?.isDemo;
+  const [isWorkCRUDModalOpen, setIsWorkCRUDModalOpen] = useState(false);
 
   return (
     <>
@@ -292,6 +295,8 @@ const MyShift = () => {
                   schedulesByDate={schedulesByDate}
                   colorClassMap={colorClassMap}
                   dutyColors={dutyColors}
+                  setMyDutyData={setMyDutyData}
+                  onWorkCRUDModalOpen={() => setIsWorkCRUDModalOpen(true)}
                 />
               </div>
 
@@ -351,11 +356,27 @@ const MyShift = () => {
         </div>
       </div>
 
-      {/* KakaoPlaceModal */}
+      {/* WorkCRUDModal */}
+      <WorkCRUDModal
+        open={isWorkCRUDModalOpen}
+        onClose={() => setIsWorkCRUDModalOpen(false)}
+        selectedDate={selectedDate}
+        setSelectedDate={setSelectedDate}
+        onDutyUpdated={refreshMyDutyData}
+        currentShift={dayDutyData?.myShift}
+        dutyData={myDutyData}
+        setMyDutyData={setMyDutyData}
+      />
+
       <KakaoPlaceModal
         open={isPlaceModalOpen}
         onClose={() => setIsPlaceModalOpen(false)}
         onSelect={() => {}}
+      />
+
+      <div
+        className="block lg:hidden w-full"
+        style={{ height: '8rem', background: '#F4F4F4' }}
       />
     </>
   );

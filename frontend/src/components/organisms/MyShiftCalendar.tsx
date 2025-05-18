@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { IoIosArrowBack, IoIosArrowForward } from 'react-icons/io';
+import { toast } from 'react-toastify';
 
 import { Button } from '@/components/atoms/Button';
 import { DutyBadgeKor } from '@/components/atoms/DutyBadgeKor';
@@ -19,17 +20,13 @@ import {
   isToday,
 } from '@/utils/dateUtils';
 import { getDutyColors } from '@/utils/dutyUtils';
+import TodayShiftModal from '@/components/organisms/TodayShiftModal';
+import type { MyDuty } from '@/services/dutyService';
 
 interface MyShiftCalendarProps {
-  onDateSelect: (date: Date) => void;
+  onDateSelect: (date: Date | null) => void;
   selectedDate: Date | null;
-  dutyData: {
-    year: number;
-    month: number;
-    prevShifts: string;
-    nextShifts: string;
-    shifts: string;
-  } | null;
+  dutyData: MyDuty | null;
   onMonthChange?: (year: number, month: number) => void;
   schedulesByDate: Record<string, ScheduleType[]>;
   colorClassMap: Record<string, string>;
@@ -39,7 +36,31 @@ interface MyShiftCalendarProps {
   onClose?: () => void;
   dutyColors?: Record<string, { bg: string; text: string }>;
   dutyBadges?: Record<string, JSX.Element>;
+  setMyDutyData: React.Dispatch<React.SetStateAction<MyDuty | null>>;
+  refreshMyDutyData?: () => void;
+  onWorkCRUDModalOpen?: () => void;
 }
+
+const typeToShiftCode = (
+  type: 'day' | 'evening' | 'night' | 'off' | 'mid' | 'X'
+): 'D' | 'E' | 'N' | 'O' | 'M' | 'X' => {
+  switch (type) {
+    case 'day':
+      return 'D';
+    case 'evening':
+      return 'E';
+    case 'night':
+      return 'N';
+    case 'off':
+      return 'O';
+    case 'mid':
+      return 'M';
+    case 'X':
+      return 'X';
+    default:
+      return 'X';
+  }
+};
 
 const MyShiftCalendar = ({
   onDateSelect,
@@ -49,14 +70,24 @@ const MyShiftCalendar = ({
   schedulesByDate,
   colorClassMap,
   dutyColors: externalDutyColors,
+  setMyDutyData,
+  refreshMyDutyData,
+  onWorkCRUDModalOpen,
 }: MyShiftCalendarProps) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1024); // lg 브레이크포인트
   const [isReqModalOpen, setIsReqModalOpen] = useState(false);
   const [isWorkModalOpen, setIsWorkModalOpen] = useState(false);
+  const [isWorkInputMode, setIsWorkInputMode] = useState(false);
+  const [isTodayShiftModalOpen, setIsTodayShiftModalOpen] = useState(false);
+  const [workInputSelectedDate, setWorkInputSelectedDate] =
+    useState<Date | null>(null);
   const fetchHolidays = useHolidayStore((state) => state.fetchHolidays);
   const { userInfo } = useUserAuthStore();
   const hasWard = userInfo?.existMyWard;
+  const calendarGridRef = useRef<HTMLDivElement>(null);
+  // 날짜 셀 refs
+  const cellRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   // dutyColors가 전달되지 않은 경우 기본값 설정
   const defaultDutyColors =
@@ -208,6 +239,38 @@ const MyShiftCalendar = ({
     });
   };
 
+  const handleDutyTypeChange = (dutyType: string) => {
+    if (!dutyData || !externalSelectedDate) return;
+    const dayIdx = externalSelectedDate.getDate() - 1;
+    const newShifts = dutyData.shifts.split('');
+    newShifts[dayIdx] = typeToShiftCode(
+      dutyType as 'day' | 'evening' | 'night' | 'off' | 'mid' | 'X'
+    );
+    setMyDutyData({ ...dutyData, shifts: newShifts.join('') });
+  };
+
+  // 날짜 클릭 핸들러 수정
+  const handleDateClick = (
+    newDate: Date,
+    _event: React.MouseEvent<HTMLDivElement>,
+    idx: number
+  ) => {
+    if (isWorkInputMode && isMobile) {
+      // 선택한 셀을 중앙에 오도록 스크롤
+      if (cellRefs.current[idx]) {
+        cellRefs.current[idx]?.scrollIntoView({
+          block: 'center',
+          behavior: 'smooth',
+        });
+      }
+      setWorkInputSelectedDate(newDate);
+      setIsWorkModalOpen(true);
+    } else {
+      onDateSelect(newDate);
+      setIsTodayShiftModalOpen(true);
+    }
+  };
+
   return (
     <div
       className={`bg-white ${isMobile ? '' : 'rounded-[0.92375rem]'} h-full ${isMobile ? 'pt-4' : 'pt-4 px-0'} ${isMobile ? 'overflow-x-auto w-full' : 'w-full'}`}
@@ -242,22 +305,51 @@ const MyShiftCalendar = ({
         </div>
 
         {/* 오른쪽 - 근무 요청/근무 입력 버튼 */}
-        <div className="col-start-3 flex justify-end shrink-0">
-          {hasWard ? (
+        <div className="col-start-3 flex justify-end gap-2">
+          {!hasWard ? (
+            <Button
+              color="primary"
+              text-size="md"
+              className={`whitespace-nowrap ${
+                isMobile ? 'px-2 py-2 text-xs' : 'py-0.5 px-1.5 sm:py-1 sm:px-2'
+              } ${isWorkInputMode ? 'bg-primary text-white' : ''}`}
+              onClick={() => {
+                setIsWorkInputMode(!isWorkInputMode);
+                // 이미 선택된 날짜가 있으면 바로 모달 열기
+                if (externalSelectedDate) {
+                  setWorkInputSelectedDate(externalSelectedDate);
+                  setIsWorkModalOpen(true);
+                  // 부모의 onWorkCRUDModalOpen이 있으면 호출
+                  if (onWorkCRUDModalOpen) {
+                    onWorkCRUDModalOpen();
+                  }
+                } else {
+                  toast.info('날짜를 선택하세요');
+                }
+              }}
+              size={isMobile ? 'xs' : 'register'}
+            >
+              <div className="flex items-center gap-1 relative group">
+                <span>근무 입력</span>
+              </div>
+            </Button>
+          ) : (
             <Button
               color="primary"
               text-size="md"
               className={`whitespace-nowrap ${
                 isMobile ? 'px-2 py-2 text-xs' : 'py-0.5 px-1.5 sm:py-1 sm:px-2'
               }`}
-              onClick={() => setIsReqModalOpen(true)}
+              onClick={() => {
+                setIsReqModalOpen(true);
+              }}
               size={isMobile ? 'xs' : 'register'}
             >
               <div className="flex items-center gap-1 relative group">
                 <span>근무 요청</span>
               </div>
             </Button>
-          ) : null}
+          )}
         </div>
       </div>
 
@@ -283,7 +375,8 @@ const MyShiftCalendar = ({
 
           {/* 달력 그리드 */}
           <div
-            className={`grid grid-cols-7 divide-x divide-y divide-gray-100 border border-gray-100 ${isMobile ? '' : 'auto-rows-[6.5rem] overflow-hidden'}`}
+            ref={calendarGridRef}
+            className={`grid grid-cols-7 divide-x divide-y divide-gray-100 border border-gray-100 ${isMobile ? 'overflow-y-auto' : 'auto-rows-[6.5rem] overflow-hidden'}`}
           >
             {/* 이전 달 날짜 */}
             {prevMonthDays.map((day) => {
@@ -332,7 +425,7 @@ const MyShiftCalendar = ({
             })}
 
             {/* 현재 달 날짜 */}
-            {currentMonthDays.map((day) => {
+            {currentMonthDays.map((day, idx) => {
               const isTodayDate = isToday(currentYear, currentMonth, day);
               const holidayName = getHolidayText(day);
               const duty = getDutyFromShifts(
@@ -347,23 +440,21 @@ const MyShiftCalendar = ({
                   textColor={defaultDutyColors[duty].text}
                 />
               ) : null;
-              const dateKey = `${currentYear}-${String(currentMonth).padStart(
-                2,
-                '0'
-              )}-${String(day).padStart(2, '0')}`;
+              const dateKey = `${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
               const schedules = sortSchedules(schedulesByDate[dateKey] || []);
 
               return (
                 <div
+                  ref={(el) => (cellRefs.current[idx] = el)}
                   key={`current-${day}`}
-                  onClick={() => {
-                    const newDate = new Date(
-                      currentYear,
-                      currentMonth - 1,
-                      day
-                    );
-                    onDateSelect(newDate);
-                  }}
+                  data-date={dateKey}
+                  onClick={(e) =>
+                    handleDateClick(
+                      new Date(currentYear, currentMonth - 1, day),
+                      e,
+                      idx
+                    )
+                  }
                   className={`${
                     isMobile ? 'min-h-[5rem] p-[2px]' : 'p-2 lg:p-3'
                   } relative cursor-pointer hover:bg-gray-50 flex flex-col ${
@@ -372,7 +463,17 @@ const MyShiftCalendar = ({
                     externalSelectedDate.getMonth() === currentMonth - 1
                       ? 'ring-2 ring-primary ring-inset'
                       : ''
-                  }`}
+                  }
+                  ${
+                    workInputSelectedDate &&
+                    workInputSelectedDate.getDate() === day &&
+                    workInputSelectedDate.getMonth() === currentMonth - 1 &&
+                    workInputSelectedDate.getFullYear() === currentYear &&
+                    isWorkInputMode
+                      ? 'ring-2 ring-primary ring-inset'
+                      : ''
+                  }
+                  `}
                 >
                   {/* 날짜 표시 영역 */}
                   <div
@@ -502,9 +603,69 @@ const MyShiftCalendar = ({
       {isWorkModalOpen && (
         <WorkCRUDModal
           open={isWorkModalOpen}
-          onClose={() => setIsWorkModalOpen(false)}
+          onClose={() => {
+            setIsWorkModalOpen(false);
+            setIsWorkInputMode(false);
+            setWorkInputSelectedDate(null);
+          }}
+          selectedDate={workInputSelectedDate}
+          setSelectedDate={setWorkInputSelectedDate}
+          onDutyUpdated={
+            typeof refreshMyDutyData === 'function'
+              ? refreshMyDutyData
+              : undefined
+          }
+          currentShift={(() => {
+            if (!workInputSelectedDate || !dutyData) return undefined;
+            const dayIdx = workInputSelectedDate.getDate() - 1;
+            return dutyData.shifts[dayIdx] as
+              | 'D'
+              | 'E'
+              | 'N'
+              | 'O'
+              | 'M'
+              | 'X'
+              | undefined;
+          })()}
+          dutyData={dutyData}
+          setMyDutyData={setMyDutyData}
         />
       )}
+
+      {isMobile &&
+        isTodayShiftModalOpen &&
+        dutyData &&
+        externalSelectedDate && (
+          <TodayShiftModal
+            date={externalSelectedDate}
+            duty={
+              getDutyFromShifts(
+                externalSelectedDate,
+                externalSelectedDate.getDate()
+              ) || 'off'
+            }
+            dutyData={{
+              myShift:
+                (dutyData.shifts[externalSelectedDate.getDate() - 1] as
+                  | 'D'
+                  | 'E'
+                  | 'N'
+                  | 'O'
+                  | 'X'
+                  | 'M') || 'X',
+              otherShifts: [], // 필요시 실제 데이터로 교체
+            }}
+            isMobile={isMobile}
+            onClose={() => setIsTodayShiftModalOpen(false)}
+            onDateChange={() => {}}
+            schedulesByDate={schedulesByDate}
+            setSchedulesByDate={() => {}}
+            activeTab={'calendar'}
+            onTabChange={() => {}}
+            selectedDutyType={'day'}
+            onDutyTypeChange={handleDutyTypeChange}
+          />
+        )}
     </div>
   );
 };
