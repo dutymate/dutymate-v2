@@ -278,7 +278,7 @@ const SortableNurseRow = memo(
       opacity: isDragging ? 0.5 : 1,
       zIndex: isDragging ? 999 : 'auto',
       position: 'relative' as const,
-      touchAction: 'none',
+      touchAction: 'pan-x', // 수평 스크롤 허용, 수직 드래그만 컴포넌트가 처리
     };
 
     // 간호사 이름 컬럼 렌더링
@@ -291,7 +291,7 @@ const SortableNurseRow = memo(
             {...listeners}
             {...attributes}
             className="cursor-grab pr-2"
-            style={{ touchAction: 'none' }}
+            style={{ touchAction: 'pan-x' }}
           >
             <MdDragIndicator size={20} />
           </div>
