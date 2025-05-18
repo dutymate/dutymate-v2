@@ -464,7 +464,7 @@ const GroupDetailPage = () => {
             </button>
           </div>
           {/* 캘린더 표 */}
-          <div className="overflow-x-auto w-full rounded-bl-none rounded-br-none">
+          <div className="overflow-x-auto w-full rounded-bl-none rounded-br-none px-2 pb-2">
             <table className="w-full border-collapse table-fixed">
               <thead>
                 <tr>
@@ -744,7 +744,7 @@ const GroupDetailPage = () => {
                               }
                               ${
                                 isMobile
-                                  ? 'min-w-[3.75rem] min-h-[5rem] p-0.5'
+                                  ? 'min-w-[3.75rem] min-h-[5rem] px-2 py-0.5'
                                   : 'min-w-[5.625rem] p-2'
                               }
                               ${

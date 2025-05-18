@@ -420,7 +420,7 @@ const MyShift = () => {
 
       <div
         className="block lg:hidden w-full"
-        style={{ height: '8rem', background: '#F4F4F4' }}
+        style={{ height: '14rem', background: '#F4F4F4' }}
       />
     </>
   );

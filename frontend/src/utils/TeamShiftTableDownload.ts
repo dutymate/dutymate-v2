@@ -6,11 +6,6 @@ interface TeamShiftTableDownloadOptions {
   month: number;
   tableElement: HTMLElement;
   prefix?: string;
-  cellSize?: {
-    base: number;
-    nameColumn: number;
-    header: number;
-  };
 }
 
 export const TeamShiftTableDownload = async ({
@@ -18,73 +13,95 @@ export const TeamShiftTableDownload = async ({
   month,
   tableElement,
   prefix = '듀티표',
-  cellSize = {
-    base: 50,
-    nameColumn: 110,
-    header: 70,
-  },
 }: TeamShiftTableDownloadOptions): Promise<boolean> => {
   try {
-    // 테이블 크기 계산
-    const daysInMonth = new Date(year, month, 0).getDate();
-    const totalRows = tableElement.querySelectorAll('tbody tr').length;
+    // 테이블 요소 직접 찾기
+    const table = tableElement.querySelector('table');
 
-    const virtualWidth = cellSize.nameColumn + daysInMonth * cellSize.base;
-    const virtualHeight = cellSize.header + totalRows * cellSize.base;
+    if (!table) {
+      toast.error('테이블 요소를 찾을 수 없습니다.');
+      return false;
+    }
 
-    // 가상 테이블을 위한 스타일 오버라이드
-    const virtualTableStyles = {
-      table: {
-        width: `${virtualWidth}px`,
-        height: `${virtualHeight}px`,
-        borderCollapse: 'collapse',
-        backgroundColor: '#FFFFFF',
-        fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif',
-      },
-      'td, th': {
-        border: '1px solid #E5E7EB',
-        padding: '4px',
-        textAlign: 'center',
-        fontSize: '12px',
-      },
-      th: {
-        fontWeight: '500',
-        fontSize: '11px',
-        lineHeight: '1.2',
-      },
-      '.duty-table-content': {
-        width: `${virtualWidth}px !important`,
-        minWidth: `${virtualWidth}px !important`,
-        height: `${virtualHeight}px !important`,
-      },
-    };
+    // 테이블만 클론하여 불필요한 요소 제거
+    const clone = table.cloneNode(true) as HTMLTableElement;
 
-    // 스타일 문자열 생성
-    const styleString = Object.entries(virtualTableStyles)
-      .map(([selector, rules]) => {
-        const ruleString = Object.entries(rules)
-          .map(([property, value]) => `${property}: ${value};`)
-          .join(' ');
-        return `${selector} { ${ruleString} }`;
-      })
-      .join('\n');
+    // 테이블 스타일 초기화 및 설정
+    clone.style.width = 'auto';
+    clone.style.height = 'auto';
+    clone.style.borderCollapse = 'collapse';
+    clone.style.borderSpacing = '0';
+    clone.style.margin = '0';
+    clone.style.padding = '0';
+    clone.style.backgroundColor = '#FFFFFF';
+
+    // 모든 셀에 스타일 적용
+    const cells = clone.querySelectorAll('th, td');
+    cells.forEach((cell) => {
+      const cellEl = cell as HTMLElement;
+      cellEl.style.border = '1px solid #E5E7EB';
+
+      // 주말 배경색 유지
+      if (
+        cellEl.classList.contains('bg-base-muted-30') ||
+        cellEl.closest('tr')?.querySelector('.bg-base-muted-30')
+      ) {
+        cellEl.style.backgroundColor = '#f8f9fa';
+      } else {
+        cellEl.style.backgroundColor = '#FFFFFF';
+      }
+
+      // 셀 패딩 일관되게 설정
+      cellEl.style.padding = '4px';
+    });
+
+    // 모든 행(tr)에 높이 명시적 설정
+    const rows = clone.querySelectorAll('tr');
+    rows.forEach((row) => {
+      (row as HTMLElement).style.height = 'auto';
+    });
+
+    // 불필요한 속성 및 스타일 제거
+    clone.removeAttribute('class');
+
+    // 다운로드용 컨테이너 생성
+    const container = document.createElement('div');
+    container.style.position = 'absolute';
+    container.style.left = '-9999px';
+    container.style.display = 'inline-block';
+    container.style.width = 'auto';
+    container.style.height = 'auto';
+    container.style.overflow = 'hidden';
+    container.style.padding = '0';
+    container.style.margin = '0';
+    container.style.backgroundColor = '#FFFFFF';
+    container.appendChild(clone);
+    document.body.appendChild(container);
+
+    // 테이블 실제 크기 계산
+    const rect = clone.getBoundingClientRect();
 
     // 이미지 생성 옵션
     const options = {
       quality: 1.0,
-      pixelRatio: 3,
-      width: virtualWidth,
-      height: virtualHeight,
+      pixelRatio: 2,
+      width: rect.width,
+      height: rect.height,
       style: {
         transform: 'scale(1)',
         transformOrigin: 'top left',
       },
-      fontEmbedCSS: styleString,
       backgroundColor: '#FFFFFF',
+      skipAutoScale: true,
     };
 
-    const dataUrl = await toPng(tableElement, options);
+    // 이미지 생성
+    const dataUrl = await toPng(clone, options);
 
+    // 임시 요소 제거
+    document.body.removeChild(container);
+
+    // 다운로드
     const link = document.createElement('a');
     link.download = `${prefix}_${year}년_${month}월.png`;
     link.href = dataUrl;

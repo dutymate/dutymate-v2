@@ -31,6 +31,7 @@ const CommunityWrite = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedFileName, setSelectedFileName] = useState<string>('');
   const [previewImage, setPreviewImage] = useState<string>('');
+  const [isImageUploading, setIsImageUploading] = useState(false);
   const [formData, setFormData] = useState<BoardRequest>({
     category: initialData?.category || '',
     title: initialData?.title || '',
@@ -58,6 +59,7 @@ const CommunityWrite = ({
   }, [formData.category, formData.title, formData.content]);
 
   const handleImageClick = () => {
+    if (isImageUploading) return;
     fileInputRef.current?.click();
   };
 
@@ -94,6 +96,8 @@ const CommunityWrite = ({
       return;
     }
 
+    setIsImageUploading(true);
+
     const validExtensions = ['jpg', 'jpeg', 'png', 'heic', 'heif'];
     const fileExtension = file.name.split('.').pop()?.toLowerCase();
 
@@ -110,6 +114,7 @@ const CommunityWrite = ({
       (!fileExtension || !validExtensions.includes(fileExtension))
     ) {
       toast.error('JPG, PNG, JPEG, HEIC 형식의 이미지만 업로드 가능합니다.');
+      setIsImageUploading(false);
       return;
     }
 
@@ -128,6 +133,7 @@ const CommunityWrite = ({
         );
       } catch (err) {
         toast.error('HEIC 이미지를 변환하는 데 실패했습니다.');
+        setIsImageUploading(false);
         return;
       }
     }
@@ -136,6 +142,7 @@ const CommunityWrite = ({
     const maxSize = 30 * 1024 * 1024; // 30MB
     if (file.size > maxSize) {
       toast.error('파일 크기는 30MB 이하여야 합니다.');
+      setIsImageUploading(false);
       return;
     }
 
@@ -157,8 +164,14 @@ const CommunityWrite = ({
           ...preData,
           boardImgUrl: boardImgUrl,
         }));
+        setIsImageUploading(false);
       },
-      (error) => toast.error(error.message)
+      (error) => {
+        toast.error(error.message || '이미지 업로드에 실패했습니다.');
+        setIsImageUploading(false);
+        setSelectedFileName('');
+        setPreviewImage('');
+      }
     );
 
     // 파일 input 초기화
@@ -168,6 +181,8 @@ const CommunityWrite = ({
   };
 
   const handleDeleteImage = () => {
+    if (isImageUploading) return;
+
     setFormData((prevData) => ({
       ...prevData,
       boardImgUrl: '',
@@ -180,7 +195,7 @@ const CommunityWrite = ({
   };
 
   const onRegister = async () => {
-    if (!isFormValid) return;
+    if (!isFormValid || isImageUploading) return;
 
     if (isEditMode && initialData) {
       try {
@@ -226,6 +241,7 @@ const CommunityWrite = ({
             name="category"
             value={formData.category}
             onChange={handleSelectChange}
+            disabled={isImageUploading}
           >
             <option value="">카테고리를 선택해주세요.</option>
             {categories.map((category) => (
@@ -248,6 +264,7 @@ const CommunityWrite = ({
             name="title"
             value={formData.title}
             onChange={handleTitleChange}
+            disabled={isImageUploading}
           />
         </div>
 
@@ -268,6 +285,7 @@ const CommunityWrite = ({
             name="content"
             value={formData.content}
             onChange={handleContentChange}
+            disabled={isImageUploading}
           />
         </div>
 
@@ -282,10 +300,12 @@ const CommunityWrite = ({
                 className="hidden"
                 accept="image/*"
                 onChange={handleFileChange}
+                disabled={isImageUploading}
               />
               <button
                 onClick={handleImageClick}
-                className="p-2 hover:bg-gray-100 rounded-lg"
+                className={`p-2 ${isImageUploading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100'} rounded-lg`}
+                disabled={isImageUploading}
               >
                 <BsImage className="w-6 h-6 text-gray-600" />
               </button>
@@ -294,13 +314,16 @@ const CommunityWrite = ({
                   className="text-gray-400 text-sm max-w-[150px] truncate"
                   title={selectedFileName}
                 >
-                  {selectedFileName || '이미지를 선택해주세요'}
+                  {isImageUploading
+                    ? '이미지 업로드 중...'
+                    : selectedFileName || '이미지를 선택해주세요'}
                 </span>
-                {selectedFileName && (
+                {selectedFileName && !isImageUploading && (
                   <button
                     onClick={handleDeleteImage}
                     className="ml-2 text-gray-400 hover:text-gray-600"
                     aria-label="이미지 삭제"
+                    disabled={isImageUploading}
                   >
                     <BsX className="w-5 h-5" />
                   </button>
@@ -327,8 +350,14 @@ const CommunityWrite = ({
         <div className="flex justify-end -mt-2">
           <CommunityRegisterButton
             onClick={onRegister}
-            disabled={!isFormValid}
-            text={isEditMode ? '수정하기' : '등록하기'}
+            disabled={!isFormValid || isImageUploading}
+            text={
+              isImageUploading
+                ? '이미지 업로드 중...'
+                : isEditMode
+                  ? '수정하기'
+                  : '등록하기'
+            }
           />
         </div>
       </div>

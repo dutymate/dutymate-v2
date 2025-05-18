@@ -285,8 +285,8 @@ const TeamShiftTable = () => {
         </div>
       </div>
       <div className="overflow-x-auto relative w-full">
-        <div className="duty-table-content min-w-[640px] relative">
-          <table className="w-full border-collapse">
+        <div className="duty-table-content min-w-[640px] relative bg-white">
+          <table className="w-full border-collapse table-auto">
             <colgroup>
               <col className="w-[3rem] sm:w-[4rem] lg:w-[5.5rem]" />
               {days.map((day) => (

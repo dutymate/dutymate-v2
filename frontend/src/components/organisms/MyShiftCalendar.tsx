@@ -299,7 +299,7 @@ const MyShiftCalendar = ({
 
   return (
     <div
-      className={`bg-white ${isMobile ? '' : 'rounded-[0.92375rem]'} h-full ${isMobile ? 'pt-4' : 'pt-4 px-0'} ${isMobile ? 'overflow-x-auto w-full' : 'w-full'}`}
+      className={`bg-white ${isMobile ? '' : 'rounded-[0.92375rem]'} h-full ${isMobile ? 'pt-4' : 'pt-4 px-0'} ${isMobile ? 'overflow-visible' : 'overflow-hidden'} w-full`}
     >
       <div className="grid grid-cols-3 items-center mb-4 px-2">
         {/* 왼쪽 - 빈 공간 */}
@@ -370,7 +370,7 @@ const MyShiftCalendar = ({
         </div>
       </div>
 
-      <div className={`${isMobile ? 'w-full' : 'w-full'}`}>
+      <div className="w-full overflow-hidden">
         <div className={`bg-white ${isMobile ? '' : 'rounded-[1rem]'} w-full`}>
           {/* 달력 헤더 */}
           <div className="grid grid-cols-7 mb-0">
@@ -393,7 +393,7 @@ const MyShiftCalendar = ({
           {/* 달력 그리드 */}
           <div
             ref={calendarGridRef}
-            className={`calendar-grid grid grid-cols-7 divide-x divide-y divide-gray-100 border border-gray-100 ${isMobile ? 'overflow-y-auto' : 'auto-rows-[6.5rem] overflow-hidden'}`}
+            className="calendar-grid grid grid-cols-7 divide-x divide-y divide-gray-100 border border-gray-100 auto-rows-[6.5rem] overflow-hidden"
           >
             {/* 이전 달 날짜 */}
             {prevMonthDays.map((day) => {
@@ -473,7 +473,7 @@ const MyShiftCalendar = ({
                     )
                   }
                   className={`${
-                    isMobile ? 'min-h-[5rem] p-[2px]' : 'p-2 lg:p-3'
+                    isMobile ? 'min-h-[6.5rem] p-1' : 'p-2 lg:p-3'
                   } relative cursor-pointer hover:bg-gray-50 flex flex-col ${
                     externalSelectedDate &&
                     externalSelectedDate.getDate() === day &&
@@ -494,7 +494,7 @@ const MyShiftCalendar = ({
                 >
                   {/* 날짜 표시 영역 */}
                   <div
-                    className={`relative ${isMobile ? 'flex flex-row items-center justify-start mb-0.5' : 'flex flex-row items-center justify-between mb-1'}`}
+                    className={`relative ${isMobile ? 'flex flex-row items-center justify-start mb-1' : 'flex flex-row items-center justify-between mb-1'}`}
                   >
                     <span
                       className={`${isMobile ? 'w-[1.1rem] h-[1.1rem]' : 'w-5 h-5'} flex items-center justify-center ${
@@ -514,45 +514,52 @@ const MyShiftCalendar = ({
 
                   {/* 일정 메모 리스트 (TodayShiftModal 캘린더 탭 스타일) */}
                   <div
-                    className={`flex-1 ${isMobile ? 'mt-0.5' : 'mt-1'} overflow-hidden`}
+                    className={`${isMobile ? 'h-[3.3rem] mb-0.5' : 'flex-1 mt-1'} overflow-hidden`}
                   >
-                    <div
-                      className={`flex flex-col ${isMobile ? 'gap-0.5' : 'gap-[2px]'}`}
-                    >
-                      {schedules
-                        .slice(0, isMobile ? 3 : 3)
-                        .map((schedule, idx) => (
-                          <div
-                            key={schedule.calendarId || `temp-${idx}`}
-                            className={`flex items-center gap-[1px] min-h-0 py-0`}
-                            title={schedule.title}
-                          >
-                            <span
-                              className={`inline-block rounded-full flex-shrink-0 ${
-                                colorClassMap[schedule.color] || 'bg-gray-300'
-                              } ${isMobile ? 'w-[0.35em] h-[0.25rem]' : 'w-[0.5rem] h-[0.4rem]'}`}
-                            />
-                            <span
-                              className={`whitespace-nowrap overflow-hidden text-gray-700 leading-none ${isMobile ? 'text-[6px]' : 'text-[8.5px]'}`}
-                            >
-                              {schedule.title}
-                            </span>
-                          </div>
-                        ))}
-                      {schedules.length > (isMobile ? 3 : 3) && (
-                        <span
-                          className={`${isMobile ? 'text-[8px]' : 'text-[10px]'} text-gray-400 pl-1 block mt-1`}
+                    <div className="flex flex-col gap-0">
+                      {schedules.slice(0, 3).map((schedule, idx) => (
+                        <div
+                          key={schedule.calendarId || `temp-${idx}`}
+                          className={`flex items-center gap-[1px] ${isMobile ? 'h-[0.9rem] py-0' : 'min-h-0 py-0'} min-w-0`}
+                          title={schedule.title}
                         >
-                          +{schedules.length - 3}개 더...
-                        </span>
-                      )}
+                          <span
+                            className={`inline-block rounded-full flex-shrink-0 ${
+                              colorClassMap[schedule.color] || 'bg-gray-300'
+                            } ${isMobile ? 'w-[0.3em] h-[0.2rem]' : 'w-[0.5rem] h-[0.4rem]'}`}
+                          />
+                          <span
+                            className={`whitespace-nowrap overflow-hidden text-gray-700 leading-tight truncate min-w-0 w-full ${isMobile ? 'text-[0.38rem]' : 'text-[8.5px]'}`}
+                          >
+                            {schedule.title}
+                          </span>
+                        </div>
+                      ))}
                     </div>
                   </div>
 
-                  {/* DutyBadgeKor */}
+                  {/* 추가 메모 표시 - 데스크톱은 메모 목록 하단에 배치 */}
+                  {schedules.length > 3 && !isMobile && (
+                    <div className="flex justify-start mt-1">
+                      <span className="bg-gray-100 text-gray-600 rounded px-0.5 py-0.5 inline-block mr-10 whitespace-nowrap text-[6.5px] transform scale-85 origin-left">
+                        +{schedules.length - 3}개의 메모
+                      </span>
+                    </div>
+                  )}
+
+                  {/* 듀티 뱃지 표시 */}
                   {dutyBadge && (
                     <div className="absolute bottom-1 right-1 lg:bottom-0.5 lg:right-0.5 transform scale-[0.45] lg:scale-75 origin-bottom-right pointer-events-none">
                       {dutyBadge}
+                    </div>
+                  )}
+
+                  {/* 모바일에서는 메모 갯수를 마지막 메모와 듀티 뱃지 사이에 배치 */}
+                  {schedules.length > 3 && isMobile && (
+                    <div className="absolute left-1 bottom-[1.2rem]">
+                      <span className="bg-gray-100 text-gray-600 rounded px-0.5 py-[0.1rem] inline-block whitespace-nowrap text-[0.4rem] transform scale-90 origin-left">
+                        +{schedules.length - 3}개의 메모
+                      </span>
                     </div>
                   )}
                 </div>

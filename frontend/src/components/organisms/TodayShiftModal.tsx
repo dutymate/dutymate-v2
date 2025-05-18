@@ -470,12 +470,14 @@ const TodayShiftModal = ({
       )}
 
       {/* 탭 UI */}
-      <div className="flex w-full mb-3 rounded-full overflow-hidden bg-white border border-gray-200 shrink-0">
+      <div
+        className={`flex w-full mb-3 ${isMobile ? '' : 'rounded-full overflow-hidden bg-white border border-gray-200'} shrink-0`}
+      >
         <button
           className={`flex-1 py-1.5 text-center font-semibold transition-colors ${
             activeTab === 'status'
-              ? 'bg-white text-primary border-b-2 border-primary'
-              : 'bg-white text-gray-400'
+              ? `bg-white text-primary border-b-2 border-primary`
+              : `bg-white text-gray-400 ${isMobile ? '' : ''}`
           }`}
           onClick={() => onTabChange('status')}
         >
@@ -484,8 +486,8 @@ const TodayShiftModal = ({
         <button
           className={`flex-1 py-1.5 text-center font-semibold transition-colors ${
             activeTab === 'calendar'
-              ? 'bg-white text-primary border-b-2 border-primary'
-              : 'bg-white text-gray-400'
+              ? `bg-white text-primary border-b-2 border-primary`
+              : `bg-white text-gray-400 ${isMobile ? '' : ''}`
           }`}
           onClick={() => onTabChange('calendar')}
         >
@@ -526,7 +528,6 @@ const TodayShiftModal = ({
           </div>
         )}
       </div>
-      <div className="border-t border-gray-900 mb-[0.25rem] lg:mb-[0.5rem] shrink-0" />
 
       {/* 탭별 내용 분기 */}
       <div
