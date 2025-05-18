@@ -1019,7 +1019,7 @@ const ShiftAdminTable = memo(
 
       // 선택된 셀 자체의 하이라이트
       if (row === selectedCell.row && col === selectedCell.col) {
-        return `${baseHighlight} bg-duty-off-bg ring-2 ring-primary ring-offset-1 z-[0]`;
+        return `${baseHighlight} bg-duty-off-bg z-[0]`;
       }
 
       // 같은 행 하이라이트 (이름과 이전 근무 포함)
