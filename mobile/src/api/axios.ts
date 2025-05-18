@@ -2,6 +2,9 @@
 import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
 
+/**
+ *  EXPO_PUBLIC_ 접두사로 시작하는 모든 환경 변수는 빌드 과정에서 실제 값으로 대체됩니다. 
+ */
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
 export const axiosInstance = axios.create({
