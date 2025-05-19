@@ -3,12 +3,16 @@
   "version": "1.0.0",
   "main": "src/index.ts",
   "scripts": {
+    "android": "expo run:android",
     "android:dev": "APP_ENV=development expo run:android",
     "android:prod": "APP_ENV=production expo run:android",
+    "android:prebuild:dev": "APP_ENV=development expo prebuild --platform android",
+    "android:prebuild:prod": "APP_ENV=production expo prebuild --platform android",
+    "ios": "expo run:ios",
     "ios:dev": "APP_ENV=development expo run:ios",
     "ios:prod": "APP_ENV=production expo run:ios",
-    "prebuild:dev": "APP_ENV=development expo prebuild",
-    "prebuild:prod": "APP_ENV=production expo prebuild",
+    "ios:prebuild:dev": "APP_ENV=development expo prebuild --platform ios",
+    "ios:prebuild:prod": "APP_ENV=production expo prebuild --platform ios",
     "lint": "biome lint ./src",
     "format": "biome format ./src",
     "format:fix": "biome format --write ./src"
