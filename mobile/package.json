@@ -47,7 +47,8 @@
     "react-native-vector-icons": "^10.2.0",
     "react-native-webview": "13.12.5",
     "tailwindcss": "^3.4.17",
-    "zustand": "^5.0.4"
+    "zustand": "^5.0.4",
+    "expo-splash-screen": "~0.29.24"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
