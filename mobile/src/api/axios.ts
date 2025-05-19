@@ -1,14 +1,10 @@
-// src/api/client.ts
-import axios from "axios";
+import Constants from "expo-constants";
 import * as SecureStore from "expo-secure-store";
 
-/**
- *  EXPO_PUBLIC_ 접두사로 시작하는 모든 환경 변수는 빌드 과정에서 실제 값으로 대체됩니다.
- */
-const API_URL = process.env.EXPO_PUBLIC_API_URL;
+import axios from "axios";
 
 export const axiosInstance = axios.create({
-	baseURL: API_URL || "/api",
+	baseURL: Constants.expoConfig?.extra?.apiUrl ?? "/api",
 	timeout: 30000,
 	headers: {
 		"Content-Type": "application/json",

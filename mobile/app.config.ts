@@ -29,10 +29,14 @@ export default ({config}: ConfigContext): ExpoConfig => {
         extra: {
             url:
                 process.env.APP_ENV === "production"
-                    ? "https://dutymate.net"
-                    : "http://localhost:5173",
+                    ? process.env.EXPO_PUBLIC_PROD_URL
+                    : process.env.EXPO_PUBLIC_DEV_URL,
+            apiUrl:
+                process.env.APP_ENV === "production"
+                    ? process.env.EXPO_PUBLIC_PROD_API_URL
+                    : process.env.EXPO_PUBLIC_DEV_API_URL,
             tutorialUrl: process.env.EXPO_PUBLIC_TUTORIAL_URL,
-            youtubeUrl: process.env.EXPO_PUBLIC_YOUTUBE_URL,
+            youtubeUrl: process.env.EXPO_PUBLIC_YOUTUBE_URL
         },
         plugins: [
             [
