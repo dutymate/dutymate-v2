@@ -14,6 +14,7 @@ import { useRequestCountStore } from '@/stores/requestCountStore';
 import { Icon } from '@/components/atoms/Icon';
 import { Button } from '@/components/atoms/Button';
 import { FaPlus, FaTrash } from 'react-icons/fa';
+import { IoMdClose } from 'react-icons/io';
 
 interface ReqAdminTableProps {
   requests?: WardRequest[];
@@ -645,45 +646,48 @@ const ReqAdminTable = forwardRef<ReqAdminTableRef, ReqAdminTableProps>(
             }}
           >
             <div
-              className="bg-white rounded-xl shadow-lg w-[22.5rem] max-h-[90vh] overflow-y-auto"
+              className="bg-white rounded-2xl shadow-lg w-[90%] max-w-[22.5rem] max-h-[90vh] overflow-y-auto"
               onClick={(e) => e.stopPropagation()}
             >
               {/* 헤더 */}
-              <div className="flex rounded-t-xl justify-between bg-primary-bg items-center px-[1rem] py-[0.25rem] border-b">
-                <h2 className="text-sm font-medium text-primary-dark">
-                  요청 삭제
-                </h2>
+              <div className="p-6 relative">
+                {/* 닫기 버튼 */}
                 <button
                   onClick={() =>
                     setDeleteModal({ isOpen: false, requestId: null })
                   }
-                  className="text-primary hover:text-primary/80"
+                  className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 transition-colors"
                 >
-                  <span className="text-lg">×</span>
+                  <IoMdClose size={20} />
                 </button>
-              </div>
+                {/* 제목 */}
+                <h2 className="text-[1.125rem] font-semibold text-center mb-4 w-full">
+                  요청 삭제
+                </h2>
 
-              {/* 내용 */}
-              <div className="p-[1rem]">
-                <div className="space-y-[0.5rem]">
-                  {/* 안내 멘트 */}
-                  <div className="flex items-center justify-center gap-[0.25rem] py-[0.5rem] px-[0.25rem] bg-gray-50 rounded text-sm text-gray">
-                    <span>정말로 이 요청을 삭제하시겠습니까?</span>
-                  </div>
-                </div>
+                {/* 안내 멘트 */}
+                <p className="text-left mb-6 text-[0.9375rem]">
+                  정말로 이 요청을 삭제하시겠습니까?
+                </p>
 
                 {/* 버튼 영역 */}
-                <div className="flex justify-end gap-[0.25rem] mt-[1rem]">
+                <div className="flex gap-2">
                   <Button
-                    size="sm"
-                    color="off"
+                    size="lg"
+                    color="muted"
                     onClick={() =>
                       setDeleteModal({ isOpen: false, requestId: null })
                     }
+                    className="flex-1 bg-[#F1F1F1] hover:bg-[#E5E5E5] active:bg-[#DADADA] text-black font-normal rounded-xl py-3 sm:py-2.5 text-[0.9375rem] sm:text-sm transition-colors min-h-[3rem] sm:min-h-[2.5rem]"
                   >
                     취소
                   </Button>
-                  <Button size="sm" color="primary" onClick={confirmDelete}>
+                  <Button
+                    size="lg"
+                    color="primary"
+                    onClick={confirmDelete}
+                    className="flex-1 bg-primary hover:bg-primary-dark active:bg-primary-darker text-white font-normal rounded-xl py-3 sm:py-2.5 text-[0.9375rem] sm:text-sm transition-colors min-h-[3rem] sm:min-h-[2.5rem]"
+                  >
                     삭제
                   </Button>
                 </div>

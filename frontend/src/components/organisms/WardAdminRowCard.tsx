@@ -33,6 +33,7 @@ const WardAdminRowCard = ({ nurse, onUpdate }: WardAdminRowCardProps) => {
   const [dropdownPosition, setDropdownPosition] = useState<'top' | 'bottom'>(
     'bottom'
   );
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 1024); // 모바일 환경 감지 (lg breakpoint)
   const [removeTarget, setRemoveTarget] = useState<'SELF' | 'HN' | 'RN' | null>(
     null
   );
@@ -54,6 +55,16 @@ const WardAdminRowCard = ({ nurse, onUpdate }: WardAdminRowCardProps) => {
 
   const userAuthStore = useUserAuthStore();
   const navigate = useNavigate();
+
+  // 화면 크기 변경 감지
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 1024);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Add this to verify data flow
   useEffect(() => {
@@ -541,7 +552,9 @@ const WardAdminRowCard = ({ nurse, onUpdate }: WardAdminRowCardProps) => {
                   </div>
                 </button>
                 {isGradeDropdownOpen && !nurse.isSynced && (
-                  <div className="absolute top-full left-0 mt-1 bg-white shadow-lg rounded-lg border border-gray-200 z-10 w-[100px] max-h-[150px] overflow-y-auto overflow-x-hidden">
+                  <div
+                    className={`absolute ${isMobile ? 'bottom-full mb-1' : 'top-full mt-1'} left-0 bg-white shadow-lg rounded-lg border border-gray-200 z-50 w-[100px] max-h-[150px] overflow-y-auto overflow-x-hidden`}
+                  >
                     {[...Array(50).keys()].map((grade) => (
                       <button
                         key={grade + 1}

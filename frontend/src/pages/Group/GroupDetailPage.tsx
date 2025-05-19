@@ -374,18 +374,22 @@ const GroupDetailPage = () => {
               </button>
             </div>
             <button
-              className="flex items-center border border-primary text-primary rounded-md font-semibold bg-white hover:bg-primary-50 transition-colors whitespace-nowrap px-1.5 py-1 text-xs"
+              className={`flex items-center justify-center border border-primary text-primary rounded-md font-semibold bg-white hover:bg-primary-50 transition-colors whitespace-nowrap ${isMobile ? 'shrink-0 w-[5.5rem] gap-0.5 px-0.5 h-[1.6rem] text-xs' : 'gap-1 px-3 min-w-[8rem] h-[2.25rem] text-sm'}`}
               type="button"
               onClick={handleInviteButton}
             >
-              <FaUserPlus className="mr-1 w-3 h-3" />
+              <FaUserPlus
+                className={`${isMobile ? 'mr-0.5' : 'mr-1.5'} w-4 h-4`}
+              />
               <span className="shrink-0">친구 초대</span>
             </button>
           </div>
           {/* 하단: 이름순/근무순, 연도/월, 약속잡기 버튼을 한 줄에 모두 배치 */}
           <div className="flex flex-row items-center gap-2 mb-2 w-full">
             {/* 이름순/근무순 */}
-            <div className="flex items-center gap-0 text-gray-400 text-[0.6rem] md:text-xs lg:text-sm font-medium select-none">
+            <div
+              className={`flex items-center gap-0 text-gray-400 text-[0.6rem] md:text-xs lg:text-sm font-medium select-none ${isMobile ? 'shrink-0 min-w-[5.5rem] justify-center' : ''}`}
+            >
               <span
                 className={`cursor-pointer px-1 md:px-2 transition font-bold ${
                   sortByName ? 'text-gray-700' : 'text-gray-400'
@@ -407,7 +411,9 @@ const GroupDetailPage = () => {
               </span>
             </div>
             {/* 연도/월, 이전/다음달 */}
-            <div className="flex items-center gap-1 md:gap-4 justify-center flex-1">
+            <div
+              className={`flex items-center gap-1 md:gap-4 ${isMobile ? 'flex-1 justify-center' : 'justify-center flex-1'}`}
+            >
               <button
                 onClick={handlePrevMonth}
                 className="text-base-muted hover:text-base-foreground p-0"
@@ -439,11 +445,7 @@ const GroupDetailPage = () => {
             </div>
             {/* 약속잡기 버튼 */}
             <button
-              className={`ml-2 mr-2 shadow-sm flex items-center justify-center gap-1 bg-primary text-white rounded-md font-semibold transition-colors whitespace-nowrap px-1.5 py-1 text-xs ${
-                isSmallMobile
-                  ? 'text-[0.65rem]'
-                  : 'py-0.5 px-1.5 lg:px-2 sm:py-1 sm:px-2 h-[2.25rem] text-sm min-w-[8rem]'
-              }`}
+              className={`ml-2 mr-2 shadow-sm flex items-center justify-center bg-primary text-white rounded-md font-semibold transition-colors whitespace-nowrap ${isMobile ? 'shrink-0 gap-0.5 px-0.5 min-w-[5.5rem] h-[1.6rem] text-xs' : 'gap-1 px-3 min-w-[8rem] h-[2.25rem] text-sm'}`}
               onClick={() => setModalStep('check')}
             >
               <svg
@@ -452,7 +454,7 @@ const GroupDetailPage = () => {
                 viewBox="0 0 24 24"
                 strokeWidth={2}
                 stroke="currentColor"
-                className={`${isSmallMobile ? 'w-2.5 h-2.5' : 'w-5 h-5'}`}
+                className={`${isMobile ? 'w-4 h-4 mr-0.5' : 'w-4 h-4 mr-1.5'}`}
               >
                 <path
                   strokeLinecap="round"
@@ -515,7 +517,7 @@ const GroupDetailPage = () => {
                             }
                             ${
                               highlightedDates.includes(day.dateStr || '')
-                                ? 'border-2 border-orange-400'
+                                ? 'relative after:content-[""] after:absolute after:inset-0 after:border-2 after:border-orange-200 after:rounded-md after:pointer-events-none after:z-10 after:box-border'
                                 : ''
                             }
                           `}
@@ -668,15 +670,17 @@ const GroupDetailPage = () => {
               {/* 버튼들 - 오른쪽 세로 정렬 */}
               <div className="flex flex-col items-end gap-1 ml-2">
                 <button
-                  className="flex items-center border border-primary text-primary rounded-md font-semibold bg-white hover:bg-primary-50 transition-colors whitespace-nowrap px-3 py-1.5 text-sm"
+                  className={`flex items-center justify-center border border-primary text-primary rounded-md font-semibold bg-white hover:bg-primary-50 transition-colors whitespace-nowrap ${isMobile ? 'shrink-0 w-[5.5rem] gap-0.5 px-0.5 h-[1.6rem] text-xs' : 'gap-1 px-3 min-w-[8rem] h-[2.25rem] text-sm'}`}
                   type="button"
                   onClick={handleInviteButton}
                 >
-                  <FaUserPlus className="mr-1.5 w-4 h-4" />
+                  <FaUserPlus
+                    className={`${isMobile ? 'mr-0.5' : 'mr-1.5'} w-4 h-4`}
+                  />
                   <span className="shrink-0">친구 초대</span>
                 </button>
                 <button
-                  className="shadow-sm flex items-center justify-center gap-1 bg-primary text-white rounded-md font-semibold transition-colors whitespace-nowrap px-3 py-1.5 text-sm min-w-[8rem]"
+                  className={`shadow-sm flex items-center justify-center bg-primary text-white rounded-md font-semibold transition-colors whitespace-nowrap ${isMobile ? 'shrink-0 gap-0.5 px-0.5 min-w-[5.5rem] h-[1.6rem] text-xs' : 'gap-1 px-3 min-w-[8rem] h-[2.25rem] text-sm'}`}
                   onClick={() => setModalStep('check')}
                 >
                   <svg
@@ -685,7 +689,7 @@ const GroupDetailPage = () => {
                     viewBox="0 0 24 24"
                     strokeWidth={2}
                     stroke="currentColor"
-                    className="w-5 h-5"
+                    className={`${isMobile ? 'w-4 h-4 mr-0.5' : 'w-4 h-4 mr-1.5'}`}
                   >
                     <path
                       strokeLinecap="round"
@@ -749,7 +753,7 @@ const GroupDetailPage = () => {
                               }
                               ${
                                 highlightedDates.includes(day.dateStr || '')
-                                  ? 'border-2 border-orange-400'
+                                  ? 'relative after:content-[""] after:absolute after:inset-0 after:border-2 after:border-orange-200 after:rounded-md after:pointer-events-none after:z-10 after:box-border'
                                   : ''
                               }
                             `}

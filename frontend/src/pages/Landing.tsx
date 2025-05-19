@@ -138,8 +138,8 @@ const Landing = () => {
   return (
     <>
       <SEO
-        title="랜딩 | Dutymate"
-        description="듀티메이트의 랜딩 페이지입니다."
+        title="듀티메이트 | Dutymate"
+        description="병동 관리자와 간호사 모두를 위한 스마트한 근무 일정 관리 서비스, 듀티메이트."
       />
       {showNoticeModal && (
         <UpdateNoticeModal
