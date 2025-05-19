@@ -6,6 +6,7 @@ declare global {
       postMessage: (message: {
         type: string;
         path?: string;
+        params?: Record<string, any>;
         message?: string;
         description?: string;
         toastType?: string;

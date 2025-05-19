@@ -31,3 +31,46 @@ export const navigateToLanding = () => {
     window.location.href = '/';
   }
 };
+
+/**
+ * 병동 생성 페이지로 이동하는 함수
+ */
+export const navigateToCreateWard = () => {
+  if (window.isMobileApp) {
+    window.mobileApp?.postMessage({
+      type: 'NAVIGATION',
+      path: 'CreateWard',
+    });
+  } else {
+    window.location.href = '/create-ward';
+  }
+};
+
+/**
+ * 추가 정보 입력 페이지로 이동하는 함수
+ */
+export const navigateToExtraInfo = () => {
+  if (window.isMobileApp) {
+    window.mobileApp?.postMessage({
+      type: 'NAVIGATION',
+      path: 'ExtraInfo',
+    });
+  } else {
+    window.location.href = '/extra-info';
+  }
+};
+
+/**
+ * WebView 페이지로 이동하는 함수
+ */
+export const navigateToWebView = (path: string) => {
+  if (window.isMobileApp) {
+    window.mobileApp?.postMessage({
+      type: 'NAVIGATION',
+      path: 'WebView',
+      params: { path },
+    });
+  } else {
+    window.location.href = path;
+  }
+};

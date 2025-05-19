@@ -147,7 +147,11 @@ export const WebViewScreen = ({ navigation }: WebViewScreenProps) => {
 
 							// 랜딩 화면으로 이동
 							navigation.navigate("Landing");
+						} else if (data.path === "WebView" && data.params) {
+							// WebView 경로로 다시 이동할 때 params 처리
+							navigation.navigate("WebView", data.params);
 						} else {
+							// 다른 네이티브 화면으로 이동
 							navigation.navigate(data.path);
 						}
 					}

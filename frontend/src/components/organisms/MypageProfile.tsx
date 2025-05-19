@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+// import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import debounce from 'lodash/debounce';
 import { IoMdCamera } from 'react-icons/io';
@@ -13,9 +13,15 @@ import useProfileStore from '@/stores/profileStore';
 import useUserAuthStore from '@/stores/userAuthStore';
 import { wardService } from '@/services/wardService';
 import { validateNickname } from '@/utils/validation';
+import {
+  navigateToLanding,
+  navigateToCreateWard,
+  navigateToExtraInfo,
+  navigateToWebView,
+} from '@/utils/navigation';
 
 const MypageProfile = () => {
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
   const {
     profile,
     fetchProfile,
@@ -384,7 +390,8 @@ const MypageProfile = () => {
           sentWardCode: false,
         });
 
-        navigate('/create-ward');
+        // 유틸리티 함수 사용하여 병동 생성 페이지로 이동
+        navigateToCreateWard();
       },
       (error: ApiErrorResponse) => {
         toast.error(error.message);
@@ -407,7 +414,8 @@ const MypageProfile = () => {
             sentWardCode: false,
           });
 
-          navigate('/my-shift');
+          // 유틸리티 함수 사용하여 MyShift로 이동
+          navigateToWebView('/my-shift');
         } else {
           if (!userInfo) {
             return;
@@ -421,7 +429,8 @@ const MypageProfile = () => {
             sentWardCode: false,
           });
 
-          navigate('/extra-info');
+          // 유틸리티 함수 사용하여 ExtraInfo로 이동
+          navigateToExtraInfo();
         }
       },
       (error: ApiErrorResponse) => {
@@ -433,7 +442,8 @@ const MypageProfile = () => {
   const handleWithdrawal = () => {
     profileService.withdrawlMember(
       () => {
-        navigate('/login');
+        // 유틸리티 함수 사용하여 랜딩 페이지로 이동
+        navigateToLanding();
       },
       (error: ApiErrorResponse) => {
         toast.error(error.message);
