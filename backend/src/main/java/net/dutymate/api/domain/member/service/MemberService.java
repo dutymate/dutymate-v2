@@ -36,7 +36,7 @@ import net.dutymate.api.domain.member.dto.CheckPasswordDto;
 import net.dutymate.api.domain.member.dto.EditRoleRequestDto;
 import net.dutymate.api.domain.member.dto.GoogleTokenResponseDto;
 import net.dutymate.api.domain.member.dto.GoogleUserResponseDto;
-import net.dutymate.api.domain.member.dto.KakaoProfileRequestDto;
+import net.dutymate.api.domain.member.dto.ProfileRequestDto;
 import net.dutymate.api.domain.member.dto.KakaoTokenResponseDto;
 import net.dutymate.api.domain.member.dto.KakaoUserResponseDto;
 import net.dutymate.api.domain.member.dto.LoginLog;
@@ -886,13 +886,13 @@ public class MemberService {
 	}
 
 	@Transactional
-	public LoginResponseDto kakaoLoginMobile(KakaoProfileRequestDto profileRequestDto) {
+	public LoginResponseDto mobileLogin(ProfileRequestDto profileRequestDto, Provider provider) {
 		// 사용자 정보로 회원 조회 또는 회원가입 처리
 		Member member = memberRepository.findMemberByEmail(profileRequestDto.getEmail())
-			.orElseGet(() -> signUpWithKakaoProfileInMobile(profileRequestDto));
+			.orElseGet(() -> signUpWithProfileInMobile(profileRequestDto, provider));
 
 		// 만약 다른 경로(일반 이메일, GOOGLE) 회원가입한 이력이 있는 경우 예외 처리
-		checkAnotherSocialLogin(member, Provider.KAKAO);
+		checkAnotherSocialLogin(member, provider);
 
 		// Color 테이블에 아직 값이 없으면 기본 컬러값 저장
 		if (!colorRepository.existsByMember(member)) {
@@ -917,14 +917,14 @@ public class MemberService {
 	}
 
 	// 프로필 정보로 회원가입
-	private Member signUpWithKakaoProfileInMobile(KakaoProfileRequestDto profileRequestDto) {
+	private Member signUpWithProfileInMobile(ProfileRequestDto profileRequestDto, Provider provider) {
 		Member newMember = Member.builder()
 			.email(profileRequestDto.getEmail())
-			.password("KakaoPassword123!!")  // 소셜 로그인은 실제 사용되지 않는 비밀번호
+			.password(provider.equals(Provider.KAKAO) ? "KakaoPassword123!!" : "GooglePassword123!!")
 			.name(profileRequestDto.getNickname())
 			.profileImg(
 				Optional.ofNullable(profileRequestDto.getProfileImageUrl()).orElse(s3Service.addBasicProfileImgUrl()))
-			.provider(Provider.KAKAO)
+			.provider(provider.equals(Provider.KAKAO) ? Provider.KAKAO : Provider.GOOGLE)
 			.isVerified(true)
 			.autoGenCnt(DEFAULT_AUTO_GEN_CNT)
 			.build();

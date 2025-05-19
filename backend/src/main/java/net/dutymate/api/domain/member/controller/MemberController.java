@@ -18,12 +18,13 @@ import org.springframework.web.server.ResponseStatusException;
 
 import net.dutymate.api.domain.member.EmailVerificationResult;
 import net.dutymate.api.domain.member.Member;
+import net.dutymate.api.domain.member.Provider;
 import net.dutymate.api.domain.member.dto.AdditionalInfoRequestDto;
 import net.dutymate.api.domain.member.dto.AdditionalInfoResponseDto;
 import net.dutymate.api.domain.member.dto.CheckNicknameRequestDto;
 import net.dutymate.api.domain.member.dto.CheckPasswordDto;
 import net.dutymate.api.domain.member.dto.EditRoleRequestDto;
-import net.dutymate.api.domain.member.dto.KakaoProfileRequestDto;
+import net.dutymate.api.domain.member.dto.ProfileRequestDto;
 import net.dutymate.api.domain.member.dto.LoginRequestDto;
 import net.dutymate.api.domain.member.dto.LoginResponseDto;
 import net.dutymate.api.domain.member.dto.MypageEditRequestDto;
@@ -89,10 +90,10 @@ public class MemberController {
 	}
 
 	@PostMapping("/login/kakao/mobile")
-	public ResponseEntity<?> kakaoLoginMobile(@RequestBody KakaoProfileRequestDto profileRequestDto) {
+	public ResponseEntity<?> kakaoLoginMobile(@RequestBody ProfileRequestDto profileRequestDto) {
 
 		// 모바일에서 직접 전달받은 사용자 정보로 로그인 처리
-		LoginResponseDto loginResponseDto = memberService.kakaoLoginMobile(profileRequestDto);
+		LoginResponseDto loginResponseDto = memberService.mobileLogin(profileRequestDto, Provider.KAKAO);
 		return ResponseEntity.ok(loginResponseDto);
 	}
 
@@ -102,9 +103,10 @@ public class MemberController {
 		return ResponseEntity.ok(loginResponseDto);
 	}
 
-	@GetMapping("/login/google/mobile")
-	public ResponseEntity<?> googleLoginMobile(@RequestParam String code) {
-		LoginResponseDto loginResponseDto = memberService.googleLogin(code, true);
+	@PostMapping("/login/google/mobile")
+	public ResponseEntity<?> googleLoginMobile(@RequestBody ProfileRequestDto profileRequestDto) {
+		// 모바일에서 직접 전달받은 사용자 정보로 로그인 처리
+		LoginResponseDto loginResponseDto = memberService.mobileLogin(profileRequestDto, Provider.GOOGLE);
 		return ResponseEntity.ok(loginResponseDto);
 	}
 
