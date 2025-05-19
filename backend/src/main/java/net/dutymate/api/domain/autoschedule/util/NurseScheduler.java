@@ -28,8 +28,8 @@ public class NurseScheduler {
 
 	private static final double INITIAL_TEMPERATURE = 1000.0;
 	private static final double COOLING_RATE = 0.995;
-	private static final int MAX_ITERATIONS = 300000;
-	private static final int MAX_NO_IMPROVEMENT = 6000;
+	private static final int MAX_ITERATIONS = 150000;
+	private static final int MAX_NO_IMPROVEMENT = 3000;
 	private static final Random random = new Random();
 
 	public WardSchedule generateSchedule(WardSchedule wardSchedule,
