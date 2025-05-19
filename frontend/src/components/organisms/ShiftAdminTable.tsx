@@ -113,6 +113,16 @@ const isValidDuty = (duty: string): duty is ValidDutyType => {
   );
 };
 
+const loadingMessages = [
+  '근무표에 마침표를 찍고 있습니다...',
+  '간호사 요청을 반영하고 있습니다...',
+  '규칙을 적용하고 있습니다...',
+  '금지 패턴을 확인하고 있습니다...',
+  '연속 근무를 최적화하고 있습니다...',
+  '근무표의 균형을 맞추고 있습니다...',
+  '최종 점검을 진행하고 있습니다...',
+];
+
 // Cell 컴포넌트를 분리하여 최적화
 interface CellProps {
   nurse: string;
@@ -1200,22 +1210,95 @@ const ShiftAdminTable = memo(
       }
     }, [wardRules, setNurseShortageRules]);
 
+    // 커스텀 로딩 토스트 컴포넌트 - 반응형 지원
+    const ProgressToast: React.FC<{ message: string; progress: number }> = ({
+      message,
+      progress,
+    }) => {
+      return (
+        // 반응형 너비: 모바일에서는 220px, sm 이상(640px)에서는 280px, md 이상(768px)에서는 320px
+        <div className="w-[220px] sm:w-[280px] md:w-[320px]">
+          {/* 텍스트 및 퍼센트 영역 - nowrap으로 줄바꿈 방지 */}
+          <div className="flex justify-between items-center whitespace-nowrap overflow-hidden mb-1.5">
+            <span className="text-xs sm:text-sm font-medium overflow-hidden text-ellipsis pr-2">
+              {message}
+            </span>
+            <span className="text-xs sm:text-sm font-semibold flex-shrink-0">
+              {progress}%
+            </span>
+          </div>
+
+          {/* 프로그레스 바 - 화면 크기에 따라 너비 자동 조정, 높이는 반응형으로 조정 */}
+          <div className="w-full bg-gray-200 rounded-full h-2 sm:h-2.5 overflow-hidden">
+            <div
+              className={`h-full rounded-full transition-all duration-300 ease-out ${
+                progress < 33
+                  ? 'bg-primary-10'
+                  : progress < 67
+                    ? 'bg-primary-30'
+                    : 'bg-primary'
+              }`}
+              style={{ width: `${progress}%` }}
+            ></div>
+          </div>
+        </div>
+      );
+    };
+
     const executeAutoGenerate = async () => {
       setIsAutoGenCountModalOpen(false);
       try {
         setIsAutoCreating(true);
-        // 자동생성 중임을 알림 (SpinnerOverlay가 보이도록 설정됨)
-        const loadingToast = toast.loading(
-          '근무표에 마침표를 찍고 있습니다...'
+
+        // 개선된 로딩 토스트 시스템
+        let progressCounter = 0;
+        const totalTime = 15000; // 예상 총 소요시간 15초
+        const updateInterval = 1000; // 1초마다 메시지 업데이트
+        const messageCount = loadingMessages.length;
+
+        // 최초 토스트 메시지 표시 (커스텀 컴포넌트 사용)
+        const loadingToastId = toast.loading(
+          <ProgressToast message={loadingMessages[0]} progress={0} />,
+          { autoClose: false, closeButton: false }
         );
 
-        // 시작 시 프론트엔드 계산 값으로 설정 (API 호출 전)
-        if (estimatedNurseShortage > 0) {
-          setNeededNurseCount(estimatedNurseShortage);
-        }
+        // 진행 상황 업데이트를 위한 타이머 설정
+        const progressTimer = setInterval(() => {
+          progressCounter++;
+          const elapsedTime = progressCounter * updateInterval;
+          const progressPercent = Math.min(
+            Math.round((elapsedTime / totalTime) * 100),
+            99
+          );
+
+          // 메시지 인덱스 계산 (진행률에 따라 다른 메시지 표시)
+          const messageIndex = Math.min(
+            Math.floor((progressPercent / 100) * messageCount),
+            messageCount - 1
+          );
+
+          // 토스트 메시지 업데이트 (커스텀 컴포넌트로)
+          toast.update(loadingToastId, {
+            render: (
+              <ProgressToast
+                message={loadingMessages[messageIndex]}
+                progress={progressPercent}
+              />
+            ),
+            isLoading: true,
+          });
+
+          // 99%에서 타이머 중지
+          if (progressPercent >= 99) {
+            clearInterval(progressTimer);
+          }
+        }, updateInterval);
 
         // API 호출
         const response = await dutyService.autoCreateDuty(year, month);
+
+        // 타이머 중지
+        clearInterval(progressTimer);
 
         // Get the latest data directly from the server
         const latestData = await dutyService.getDuty({ year, month });
@@ -1233,13 +1316,13 @@ const ShiftAdminTable = memo(
           response.unreflectedRequests?.length > 0
         ) {
           setUnreflectedRequests(response.unreflectedRequests);
-          toast.dismiss(loadingToast);
+          toast.dismiss(loadingToastId);
           toast.warning('일부 요청은 여전히 반영되지 않았습니다.');
           // 모달을 닫지 않고 계속 표시
           setIsUnreflectedRequestsModalOpen(true);
         } else {
           // 성공 알림
-          toast.dismiss(loadingToast);
+          toast.dismiss(loadingToastId);
           toast.success('선택한 요청이 모두 반영되었습니다.');
           // 모든 요청이 반영된 경우에만 모달 닫기
           setIsUnreflectedRequestsModalOpen(false);
@@ -1284,16 +1367,60 @@ const ShiftAdminTable = memo(
       }
     };
 
+    // handleForceAutoGenerate 함수도 유사하게 수정
     const handleForceAutoGenerate = async () => {
       try {
         setIsAutoCreating(true);
-        // 자동생성 중임을 알림 (SpinnerOverlay가 보이도록 설정됨)
-        const loadingToast = toast.loading(
-          '근무표에 마침표를 찍고 있습니다...'
+
+        // 개선된 로딩 토스트 시스템
+        let progressCounter = 0;
+        const totalTime = 15000; // 예상 총 소요시간 15초
+        const updateInterval = 1000; // 1초마다 메시지 업데이트
+        const messageCount = loadingMessages.length;
+
+        // 최초 토스트 메시지 표시 (커스텀 컴포넌트 사용)
+        const loadingToastId = toast.loading(
+          <ProgressToast message={loadingMessages[0]} progress={0} />,
+          { autoClose: false, closeButton: false }
         );
+
+        // 진행 상황 업데이트를 위한 타이머 설정
+        const progressTimer = setInterval(() => {
+          progressCounter++;
+          const elapsedTime = progressCounter * updateInterval;
+          const progressPercent = Math.min(
+            Math.round((elapsedTime / totalTime) * 100),
+            99
+          );
+
+          // 메시지 인덱스 계산 (진행률에 따라 다른 메시지 표시)
+          const messageIndex = Math.min(
+            Math.floor((progressPercent / 100) * messageCount),
+            messageCount - 1
+          );
+
+          // 토스트 메시지 업데이트 (커스텀 컴포넌트로)
+          toast.update(loadingToastId, {
+            render: (
+              <ProgressToast
+                message={loadingMessages[messageIndex]}
+                progress={progressPercent}
+              />
+            ),
+            isLoading: true,
+          });
+
+          // 99%에서 타이머 중지
+          if (progressPercent >= 99) {
+            clearInterval(progressTimer);
+          }
+        }, updateInterval);
 
         // 강제 자동생성 API 호출
         const response = await dutyService.autoCreateDuty(year, month, true);
+
+        // 타이머 중지
+        clearInterval(progressTimer);
 
         // Get the latest data directly from the server
         const latestData = await dutyService.getDuty({ year, month });
@@ -1311,12 +1438,12 @@ const ShiftAdminTable = memo(
           response.unreflectedRequests?.length > 0
         ) {
           setUnreflectedRequests(response.unreflectedRequests);
-          toast.dismiss(loadingToast);
+          toast.dismiss(loadingToastId);
           toast.warning('자동생성 완료, 일부 요청은 반영되지 않았습니다.');
           setIsUnreflectedRequestsModalOpen(true);
         } else {
           // 성공 알림
-          toast.dismiss(loadingToast);
+          toast.dismiss(loadingToastId);
           toast.success('자동생성에 성공했습니다');
         }
 
@@ -1618,22 +1745,66 @@ const ShiftAdminTable = memo(
       UnreflectedRequest[]
     >([]);
 
-    // Add function to regenerate with priority requests
+    // handleRegenerateWithPriority 함수도 유사하게 수정
     const handleRegenerateWithPriority = async (
       selectedRequestIds: number[]
     ) => {
       try {
         setIsAutoCreating(true);
-        // 선택된 요청 ID로 자동 생성 API 호출 (백엔드 API 수정 필요)
-        const loadingToast = toast.loading(
-          '선택한 요청에 우선순위를 적용하여 재생성 중...'
+
+        // 개선된 로딩 토스트 시스템
+        let progressCounter = 0;
+        const totalTime = 15000; // 예상 총 소요시간 15초
+        const updateInterval = 1000; // 1초마다 메시지 업데이트
+        const messageCount = loadingMessages.length;
+
+        // 최초 토스트 메시지 표시 (커스텀 컴포넌트 사용)
+        const loadingToastId = toast.loading(
+          <ProgressToast message={loadingMessages[0]} progress={0} />,
+          { autoClose: false, closeButton: false }
         );
+
+        // 진행 상황 업데이트를 위한 타이머 설정
+        const progressTimer = setInterval(() => {
+          progressCounter++;
+          const elapsedTime = progressCounter * updateInterval;
+          const progressPercent = Math.min(
+            Math.round((elapsedTime / totalTime) * 100),
+            99
+          );
+
+          // 메시지 인덱스 계산 (진행률에 따라 다른 메시지 표시)
+          const messageIndex = Math.min(
+            Math.floor((progressPercent / 100) * messageCount),
+            messageCount - 1
+          );
+
+          // 토스트 메시지 업데이트 (커스텀 컴포넌트로)
+          toast.update(loadingToastId, {
+            render: (
+              <ProgressToast
+                message={loadingMessages[messageIndex]}
+                progress={progressPercent}
+              />
+            ),
+            isLoading: true,
+          });
+
+          // 99%에서 타이머 중지
+          if (progressPercent >= 99) {
+            clearInterval(progressTimer);
+          }
+        }, updateInterval);
+
         // 새로운 재생성 API 호출
         const response = await dutyService.reAutoCreateDuty(
           year,
           month,
           selectedRequestIds
         );
+
+        // 타이머 중지
+        clearInterval(progressTimer);
 
         // Get the latest data directly from the server
         const latestData = await dutyService.getDuty({ year, month });
@@ -1652,13 +1823,13 @@ const ShiftAdminTable = memo(
         ) {
           // 새로운 요청 리스트로 업데이트
           setUnreflectedRequests(response.unreflectedRequests);
-          toast.dismiss(loadingToast);
+          toast.dismiss(loadingToastId);
           toast.warning('일부 요청은 여전히 반영되지 않았습니다.');
           // 모달을 닫지 않고 계속 표시
           setIsUnreflectedRequestsModalOpen(true);
         } else {
           // 모든 요청이 반영된 경우
-          toast.dismiss(loadingToast);
+          toast.dismiss(loadingToastId);
           toast.success('선택한 요청이 모두 반영되었습니다.');
           // 모든 요청이 반영된 경우에만 모달 닫기
           setIsUnreflectedRequestsModalOpen(false);
