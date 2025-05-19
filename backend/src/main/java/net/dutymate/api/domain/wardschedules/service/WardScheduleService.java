@@ -23,6 +23,7 @@ import net.dutymate.api.domain.calendar.repository.CalendarRepository;
 import net.dutymate.api.domain.common.utils.YearMonth;
 import net.dutymate.api.domain.member.Member;
 import net.dutymate.api.domain.member.repository.MemberRepository;
+import net.dutymate.api.domain.request.Request;
 import net.dutymate.api.domain.request.RequestStatus;
 import net.dutymate.api.domain.request.repository.RequestRepository;
 import net.dutymate.api.domain.ward.Ward;
@@ -590,21 +591,39 @@ public class WardScheduleService {
 			.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,
 				"아직 해당 월의 근무표가 생성되지 않았습니다."));
 
-		// 모든 근무자의 듀티 기본값 초기화
-		String emptyShifts = yearMonth.initializeShifts();
+		List<Request> acceptedRequestList = requestRepository.findAcceptedWardRequestsByYearMonth(
+			ward, yearMonth.year(), yearMonth.month(), RequestStatus.ACCEPTED
+		);
 
-		// 초기화된 duty 추가
-		List<WardSchedule.NurseShift> resetShift = ward.getWardMemberList()
+		// 모든 근무자의 듀티 기본값 초기화 후 승인된 요청 반영하기
+		List<WardSchedule.NurseShift> nurseShifts = ward.getWardMemberList()
 			.stream()
-			.map(nurse -> WardSchedule.NurseShift.builder()
-				.memberId(nurse.getMember().getMemberId())
-				.shifts(emptyShifts)
-				.build())
+			.map(nurse -> {
+				// 각 간호사별로 빈 근무표 먼저 생성
+				String initialShifts = yearMonth.initializeShifts();
+				StringBuilder shifts = new StringBuilder(initialShifts);
+
+				// 해당 간호사의 승인된 요청들 필터링
+				List<Request> nurseRequests = acceptedRequestList.stream()
+					.filter(req -> req.getWardMember().getWardMemberId().equals(nurse.getWardMemberId()))
+					.toList();
+
+				// 승인된 요청들을 근무표에 반영
+				for (Request req : nurseRequests) {
+					int day = req.getRequestDate().toLocalDate().getDayOfMonth();
+					shifts.setCharAt(day - 1, req.getRequestShift().getValue().charAt(0));
+				}
+
+				return WardSchedule.NurseShift.builder()
+					.memberId(nurse.getMember().getMemberId())
+					.shifts(shifts.toString())
+					.build();
+			})
 			.toList();
 
 		WardSchedule.Duty resetDuty = WardSchedule.Duty.builder()
 			.idx(0)
-			.duty(resetShift)
+			.duty(nurseShifts)
 			.history(initialDutyGenerator.createInitialHistory())
 			.build();
 
@@ -615,7 +634,7 @@ public class WardScheduleService {
 		wardScheduleRepository.save(wardSchedule);
 
 		// 병동 듀티 -> 개인 듀티 : 연동 작업
-		for (WardSchedule.NurseShift nurseShift : resetShift) {
+		for (WardSchedule.NurseShift nurseShift : nurseShifts) {
 			// 탈퇴회원일 수도 있다. 그러나 현재 초기화하면 탈퇴회원 듀티표 싹 사라지고 현재 병동에 속한 사람들로만 초기화 됨
 			Member nurse = memberRepository.findById(nurseShift.getMemberId())
 				.orElseGet(() -> Member.builder().name("(탈퇴회원)").role(Role.RN).grade(1).build());
