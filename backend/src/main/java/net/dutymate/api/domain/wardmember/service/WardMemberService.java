@@ -16,7 +16,6 @@ import net.dutymate.api.domain.ward.Ward;
 import net.dutymate.api.domain.wardmember.Role;
 import net.dutymate.api.domain.wardmember.WardMember;
 import net.dutymate.api.domain.wardmember.dto.NurseInfoRequestDto;
-import net.dutymate.api.domain.wardmember.repository.WardMemberRepository;
 import net.dutymate.api.domain.wardschedules.collections.WardSchedule;
 import net.dutymate.api.domain.wardschedules.repository.WardScheduleRepository;
 import net.dutymate.api.domain.wardschedules.util.InitialDutyGenerator;
@@ -56,48 +55,47 @@ public class WardMemberService {
 	}
 
 	@Transactional
-	public void deleteWardMember(Long memberId, Member authMember) {
+	public void deleteWardMember(List<Long> memberIds, Member authMember) {
+
+		if (memberIds == null || memberIds.isEmpty()) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "memberIds가 비어있는 값입니다.");
+		}
 
 		// 내보내려는 멤버 찾기
-		Member member = memberRepository.findById(memberId)
-			.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "유효하지 않은 memberId 입니다."));
+		List<Member> members = memberRepository.findAllById(memberIds);
 
-		// member가 병동 회원인지 체크하는 로직
-		validateWardMember(member, authMember);
+		for (Member member : members) {
+			// member가 병동 회원인지 체크하는 로직
+			validateWardMember(member, authMember);
 
-		WardMember wardMemeber = member.getWardMember();
-		Ward ward = wardMemeber.getWard();
+			WardMember wardMember = member.getWardMember();
+			Ward ward = wardMember.getWard();
 
-		// member의 role 초기화하기
-		// member.updateRole(null);
-		member.clearEnterDate();
+			// member의 role 초기화하기
+			// member.updateRole(null);
+			member.clearEnterDate();
 
-		// RDB에서 wardMember 삭제하기
-		ward.removeWardMember(wardMemeber); // 리스트에서 제거(연관관계 제거)
+			// RDB에서 wardMember 삭제하기
+			ward.removeWardMember(wardMember); // 리스트에서 제거(연관관계 제거)
 
-		// 임시 간호사이면 탈퇴 처리
-		if (member.getEmail().equals(MemberService.TEMP_NURSE_EMAIL)) {
-			memberRepository.delete(member);
-		}
+			// 임시 간호사이면 탈퇴 처리
+			if (member.getEmail().equals(MemberService.TEMP_NURSE_EMAIL)) {
+				memberRepository.delete(member);
+			}
 
-		// MongoDB 에서 내보내는 wardmember 찾아서 삭제 (이전 달은 상관 X)
-		// 이번달 듀티에서 삭제
-		YearMonth yearMonth = YearMonth.nowYearMonth();
+			// MongoDB 에서 내보내는 wardmember 찾아서 삭제 (이전 달은 상관 X)
+			// 이번달 듀티에서 삭제
+			YearMonth yearMonth = YearMonth.nowYearMonth();
+			wardScheduleRepository
+				.findByWardIdAndYearAndMonth(ward.getWardId(), yearMonth.year(), yearMonth.month())
+				.ifPresent(currMonthSchedule -> deleteWardMemberDuty(currMonthSchedule, member));
 
-		WardSchedule currMonthSchedule = wardScheduleRepository.findByWardIdAndYearAndMonth(ward.getWardId(),
-			yearMonth.year(), yearMonth.month()).orElse(null);
+			// 다음달 듀티에서 삭제
+			YearMonth nextYearMonth = yearMonth.nextYearMonth();
+			wardScheduleRepository
+				.findByWardIdAndYearAndMonth(ward.getWardId(), nextYearMonth.year(), nextYearMonth.month())
+				.ifPresent(nextMonthSchedule -> deleteWardMemberDuty(nextMonthSchedule, member));
 
-		if (currMonthSchedule != null) {
-			deleteWardMemberDuty(currMonthSchedule, member);
-		}
-
-		// 다음달 듀티에서 삭제
-		YearMonth nextYearMonth = yearMonth.nextYearMonth();
-		WardSchedule nextMonthSchedule = wardScheduleRepository.findByWardIdAndYearAndMonth(ward.getWardId(),
-			nextYearMonth.year(), nextYearMonth.month()).orElse(null);
-
-		if (nextMonthSchedule != null) {
-			deleteWardMemberDuty(nextMonthSchedule, member);
 		}
 	}
 

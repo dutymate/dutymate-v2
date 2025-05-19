@@ -262,12 +262,15 @@ export const wardService = {
   },
 
   /**
-   * 병동 간호사 내보내기
-   * @param memberId - 내보낼 간호사 ID
+   * 병동 간호사 여러 명 내보내기
+   * @param memberIds - 내보낼 간호사 ID 배열
    */
-  removeNurse: (memberId: number) => {
+  removeNurses: (memberIds: number[]) => {
+    const query = memberIds.join(',');
     return axiosInstance
-      .delete(`/ward/member/${memberId}`)
+      .delete(`/ward/member`, {
+        params: { memberIds: query },
+      })
       .then((response) => {
         return response.data;
       })
@@ -290,12 +293,6 @@ export const wardService = {
         }
         throw error;
       });
-    // // Simulate successful removal
-    // return new Promise((resolve) => {
-    // 	setTimeout(() => {
-    // 		resolve({ success: true });
-    // 	}, 300);
-    // });
   },
 
   // 임시 간호사 추가

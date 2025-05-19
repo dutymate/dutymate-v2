@@ -98,7 +98,7 @@ const useWardStore = create<WardStore>((set, get) => ({
     }));
 
     try {
-      await wardService.removeNurse(memberId);
+      await wardService.removeNurses([memberId]);
     } catch (error) {
       // 에러 발생 시 이전 상태로 롤백
       set({ wardInfo: previousState });

@@ -1,11 +1,14 @@
 package net.dutymate.api.domain.wardmember.controller;
 
+import java.util.List;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import net.dutymate.api.domain.member.Member;
@@ -33,10 +36,9 @@ public class WardMemberController {
 	}
 
 	// 병동 간호사 내보내기
-	@DeleteMapping("/member/{memberId}")
-	public ResponseEntity<?> deleteWardMemberInfo(@PathVariable Long memberId, @Auth Member member) {
-
-		wardMemberService.deleteWardMember(memberId, member);
+	@DeleteMapping("/member")
+	public ResponseEntity<?> deleteWardMemberInfo(@RequestParam List<Long> memberIds, @Auth Member member) {
+		wardMemberService.deleteWardMember(memberIds, member);
 		return ResponseEntity.ok().build();
 	}
 }
