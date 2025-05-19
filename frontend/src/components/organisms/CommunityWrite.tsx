@@ -101,18 +101,15 @@ const CommunityWrite = ({
     const validExtensions = ['jpg', 'jpeg', 'png', 'heic', 'heif'];
     const fileExtension = file.name.split('.').pop()?.toLowerCase();
 
-    const validTypes = [
-      'image/jpeg',
-      'image/png',
-      'image/jpg',
-      'image/heic',
-      'image/heif',
-    ];
+    // const validTypes = [
+    //   'image/jpeg',
+    //   'image/png',
+    //   'image/jpg',
+    //   'image/heic',
+    //   'image/heif',
+    // ];
 
-    if (
-      (!file.type || !validTypes.includes(file.type)) &&
-      (!fileExtension || !validExtensions.includes(fileExtension))
-    ) {
+    if (!fileExtension || !validExtensions.includes(fileExtension)) {
       toast.error('JPG, PNG, JPEG, HEIC 형식의 이미지만 업로드 가능합니다.');
       setIsImageUploading(false);
       return;
