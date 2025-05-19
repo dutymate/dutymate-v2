@@ -8,8 +8,11 @@ import {
 import { Input } from "@/components/common/Input";
 import { StyledText } from "@/components/common/StyledText";
 import { AgreementCheckbox } from "./AgreementCheckbox";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useEmailVerification } from "@/hooks/common/useEmailVerification";
+import Toast from "react-native-toast-message";
+import { validateName } from "@/utils/validate";
+import { userService } from "@/api/services/userService";
 
 /**
  * SignupFormProps는 SignupForm의 props 타입을 정의합니다.
@@ -26,11 +29,17 @@ interface SignupFormProps {
 export const SignupForm = ({ navigation }: SignupFormProps) => {
 	// 회원가입 데이터 상태
 	const [signupData, setSignupData] = useState({
-		email: "",
 		password: "",
 		passwordConfirm: "",
 		name: "",
 	});
+
+	// 에러 상태
+	const [error, setError] = useState<{
+		password?: string;
+		passwordConfirm?: string;
+		name?: string;
+	}>({});
 
 	// 동의 체크박스 상태
 	const [isChecked, setIsChecked] = useState(false);
@@ -65,10 +74,132 @@ export const SignupForm = ({ navigation }: SignupFormProps) => {
 		return `${mins}:${secs.toString().padStart(2, "0")}`;
 	};
 
-	// 인증 번호 발송
-	const handleSendAuthCode = async () => {
-		await sendCode();
+
+	// 비밀번호 변경 핸들러
+	const handlePasswordChange = (value: string) => {
+		setSignupData(prev => ({ ...prev, password: value }));
+		
+		let errorMessage = '';
+		if (!validatePassword(value.trim())) {
+			errorMessage = '8자 이상, 숫자 및 특수문자를 포함해야 합니다.';
+		}
+		if (
+			signupData.passwordConfirm &&
+			value.trim() !== signupData.passwordConfirm.trim()
+		) {
+			setError(prev => ({
+				...prev,
+				passwordConfirm: '비밀번호가 일치하지 않습니다.',
+			}));
+		}
+		setError(prev => ({ ...prev, password: errorMessage }));
 	};
+
+	// 비밀번호 확인 변경 핸들러
+	const handlePasswordConfirmChange = (value: string) => {
+		setSignupData(prev => ({ ...prev, passwordConfirm: value }));
+		
+		let errorMessage = '';
+		if (value.trim() !== signupData.password.trim()) {
+			errorMessage = '비밀번호가 일치하지 않습니다.';
+		}
+		setError(prev => ({ ...prev, passwordConfirm: errorMessage }));
+	};
+
+	// 이름 변경 핸들러
+	const handleNameChange = (value: string) => {
+		setSignupData(prev => ({ ...prev, name: value }));
+		
+		let errorMessage = '';
+		const nameValidation = validateName(value.trim());
+		if (!nameValidation.isValid) {
+			errorMessage = nameValidation.message;
+		}
+		setError(prev => ({ ...prev, name: errorMessage }));
+	};
+
+	// 회원가입 제출 핸들러
+	const handleSignupSubmit = async () => {
+		let isValid = true;
+		let newErrors: typeof error = {};
+
+		if (
+			!signupData.password.trim() ||
+			!validatePassword(signupData.password.trim())
+		) {
+			newErrors.password = !signupData.password.trim()
+				? '비밀번호를 입력해주세요.'
+				: '비밀번호는 8자 이상, 숫자 및 특수문자를 포함해야 합니다.';
+			isValid = false;
+		}
+		
+		if (
+			!signupData.passwordConfirm.trim() ||
+			signupData.passwordConfirm.trim() !== signupData.password.trim()
+		) {
+			newErrors.passwordConfirm = !signupData.passwordConfirm.trim()
+				? '비밀번호 확인을 입력해주세요.'
+				: '비밀번호가 일치하지 않습니다.';
+			isValid = false;
+		}
+		
+		if (!signupData.name.trim()) {
+			newErrors.name = '이름을 입력해 주세요.';
+			isValid = false;
+		} else {
+			const nameValidation = validateName(signupData.name.trim());
+			if (!nameValidation.isValid) {
+				newErrors.name = nameValidation.message;
+				isValid = false;
+			}
+		}
+		
+		if (!isChecked) {
+			Toast.show({
+				type: 'error',
+				text1: '개인정보 수집 및 이용에 동의해주세요.',
+			});
+			return;
+		}
+		
+		if (!isValid) {
+			setError(newErrors);
+			return;
+		}
+
+		try {
+			await userService.checkEmail(email.trim());
+			await userService.signup({
+				email: email.trim(),
+				password: signupData.password.trim(),
+				passwordConfirm: signupData.passwordConfirm.trim(),
+				name: signupData.name.trim(),
+			});
+			
+			Toast.show({
+				type: 'success',
+				text1: '정상적으로 회원가입 되었습니다.',
+			});
+			navigation.navigate("ExtraInfo");
+		} catch (error: any) {
+			Toast.show({
+				type: 'error',
+				text1: error.message || '회원가입 중 오류가 발생했습니다.',
+			});
+		}
+	};
+
+	// 타이머 만료 처리
+	useEffect(() => {
+		if (timer === 0 && authCodeSent && !isVerified) {
+			resetVerification();
+			setEmail('');
+			Toast.show({
+				type: 'error',
+				text1: '인증 시간이 만료되었습니다. 다시 시도해주세요.',
+			});
+		}
+	}, [timer, authCodeSent, isVerified]);
 
 	return (
 		<View className={"lg:block"}>
@@ -95,7 +226,6 @@ export const SignupForm = ({ navigation }: SignupFormProps) => {
 						</AuthCodeSendButton>
 					)}
 
-					{/*TODO: 이메일 인증 로직 추가*/}
 					{authCodeSent && (
 						<Input
 							placeholder={"인증번호"}
@@ -136,21 +266,26 @@ export const SignupForm = ({ navigation }: SignupFormProps) => {
 						<View>
 							<Input
 								placeholder={"비밀번호"}
-								value={""}
-								onChangeText={() => {}}
+								value={signupData.password}
+								onChangeText={handlePasswordChange}
 								keyboardType={"default"}
+								secureTextEntry={true}
+								error={error.password}
 							/>
 							<Input
 								placeholder={"비밀번호 확인"}
-								value={""}
-								onChangeText={() => {}}
+								value={signupData.passwordConfirm}
+								onChangeText={handlePasswordConfirmChange}
 								keyboardType={"default"}
+								secureTextEntry={true}
+								error={error.passwordConfirm}
 							/>
 							<Input
 								placeholder={"이름"}
-								value={""}
-								onChangeText={() => {}}
+								value={signupData.name}
+								onChangeText={handleNameChange}
 								keyboardType={"default"}
+								error={error.name}
 							/>
 							<AgreementCheckbox
 								isChecked={isChecked}
@@ -160,13 +295,19 @@ export const SignupForm = ({ navigation }: SignupFormProps) => {
 						</View>
 					)}
 				</View>
-				{/*TODO: 회원가입 로직 추가*/}
 				<Button
 					color={"black"}
 					size={"lg"}
 					width={"long"}
-					onPress={() => navigation.navigate("ExtraInfo")}
-					disabled={false}
+					onPress={handleSignupSubmit}
+					disabled={
+						!isVerified ||
+						!email ||
+						!signupData.password ||
+						!signupData.passwordConfirm ||
+						!signupData.name ||
+						!isChecked
+					}
 					className={
 						"w-full px-[0.75rem] py-[0.5rem] mt-2 bg-base-black rounded-md hover:bg-neutral-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-base-black"
 					}
