@@ -204,7 +204,7 @@
 <div style="display: flex; gap: 20px; margin-bottom: 20px;">
   <div>
     <p><strong>텍스트 로고</strong></p>
-    <img src="frontend/public/images/logo.svg" alt="Dutymate Text Logo" width="250" height="50"/>
+    <img src="frontend/public/images/text-logo.svg" alt="Dutymate Text Logo" width="250" height="50"/>
   </div>
   <div>
     <p><strong>아이콘 로고</strong></p>

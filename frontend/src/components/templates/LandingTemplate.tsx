@@ -33,7 +33,7 @@ const LandingTemplate: React.FC<LandingTemplateProps> = ({
   const renderContent = () => (
     <div className="flex-1 flex flex-col items-center justify-center p-[1rem] py-[0.75rem]">
       <img
-        src="/images/logo.svg"
+        src="/images/text-logo.svg"
         alt="DutyMate Logo"
         className="w-[50%] max-w-[15rem] mb-[1.5rem] cursor-pointer"
         onClick={handleLogoClick}

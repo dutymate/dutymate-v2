@@ -22,7 +22,6 @@ export default ({config}: ConfigContext): ExpoConfig => {
                     }
                 ]
             },
-            googleServicesFile: "./GoogleService-Info.plist"
         },
         android: {
             adaptiveIcon: {
@@ -30,7 +29,6 @@ export default ({config}: ConfigContext): ExpoConfig => {
                 backgroundColor: "#ffffff"
             },
             package: "net.dutymate.app",
-            googleServicesFile: "./google-services.json"
         },
         extra: {
             url:

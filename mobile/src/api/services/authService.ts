@@ -21,7 +21,9 @@ export const authService = {
 	 */
 	login: async (data: LoginRequestDto): Promise<LoginResponse> => {
 		try {
+			console.log("Attempting login with:", { email: data.email });
 			const response = await axiosInstance.post("/member/login", data);
+			console.log("Login response:", response.data);
 
 			// 토큰 저장
 			const { token: authToken, ...userInfo } = response.data;
@@ -29,8 +31,11 @@ export const authService = {
 			await SecureStore.setItemAsync("user-info", JSON.stringify(userInfo));
 
 			return response.data;
-		} catch (error) {
-			console.error("Login error:", error);
+		} catch (error: any) {
+			console.error(
+				"Login error details:",
+				error.response?.data || error.message,
+			);
 			throw error;
 		}
 	},

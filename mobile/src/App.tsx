@@ -113,7 +113,7 @@ export default function App() {
 	 */
 	useEffect(() => {
 		const checkToken = async () => {
-			// 로그아웃 상태 확인을 위해 주석 처리
+			// 디버깅 시에만 주석 해제하여 로그아웃 강제 실행
 			// await SecureStore.deleteItemAsync("auth-token");
 			// await SecureStore.deleteItemAsync("user-info");
 
