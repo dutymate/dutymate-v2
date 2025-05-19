@@ -1,5 +1,8 @@
 package net.dutymate.api.domain.ward;
 
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+
 import net.dutymate.api.domain.member.Member;
 
 import jakarta.persistence.Entity;
@@ -29,9 +32,11 @@ public class EnterWaiting {
 
 	@OneToOne(fetch = FetchType.LAZY, optional = false)
 	@JoinColumn(name = "member_id", nullable = false)
+	@OnDelete(action = OnDeleteAction.CASCADE)
 	private Member member;
 
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
 	@JoinColumn(name = "ward_id", nullable = false)
+	@OnDelete(action = OnDeleteAction.CASCADE)
 	private Ward ward;
 }
