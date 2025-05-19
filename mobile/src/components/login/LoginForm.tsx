@@ -9,6 +9,7 @@ import { useUserAuthStore } from "@/store/userAuthStore";
 import { login, me } from "@react-native-kakao/user";
 import * as SecureStore from "expo-secure-store";
 import Toast from "react-native-toast-message";
+import { GoogleSignin } from "@react-native-google-signin/google-signin";
 /**
  * LoginFormProps는 LoginScreen의 props 타입을 정의합니다.
  * navigation은 React Navigation의 navigation 객체입니다.
@@ -43,9 +44,9 @@ export const LoginForm = ({ navigation }: LoginFormProps) => {
 			}
 
 			const profileData = {
-				email: profile.email,
-				nickname: profile.nickname,
-				profileImageUrl: profile.profileImageUrl,
+				email: profile?.email,
+				nickname: profile?.nickname,
+				profileImageUrl: profile?.profileImageUrl,
 			};
 
 			// authService를 통해 백엔드로 코드 전송
@@ -113,6 +114,34 @@ export const LoginForm = ({ navigation }: LoginFormProps) => {
 
 	const handleGoogleLogin = async () => {
 		// 구글 로그인 로직도 비슷하게 구현
+		try {
+			await GoogleSignin.hasPlayServices();
+			const userInfo = await GoogleSignin.signIn();
+			console.log(userInfo);
+
+			// 프로필 정보가 없는 경우 에러 처리
+			if (!userInfo) {
+				throw new Error("사용자 정보를 가져오는데 실패했습니다.");
+			}
+
+			const profileData = {
+				email: userInfo.data?.user.email || "",
+				nickname: userInfo.data?.user.name || "",
+				profileImageUrl: userInfo.data?.user.photo || "",
+			};
+
+			// authService를 통해 백엔드로 코드 전송
+			const loginResponse = await authService.googleLogin(profileData);
+			console.log(loginResponse);
+
+			// 로그인 정보를 Zustand 스토어에 저장
+			setUserInfo({
+				...loginResponse,
+				provider: "google",
+			});
+		} catch (error: any) {
+			console.log(error);
+		}
 	};
 
 	return (

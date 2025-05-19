@@ -24,6 +24,7 @@ import { PasswordResetScreen } from "@/screens/PasswordResetScreen";
 import { SignupScreen } from "@/screens/SignupScreen";
 import { WebViewScreen } from "@/screens/WebViewScreen";
 import Toast from "react-native-toast-message";
+import { GoogleSignin } from "@react-native-google-signin/google-signin";
 
 // 네비게이션 타입 정의
 type RootStackParamList = {
@@ -85,6 +86,19 @@ export default function App() {
 
 	useEffect(() => {
 		initializeKakaoSDK(kakaoNativeAppKey);
+	}, []);
+
+	/**
+	 * 구글 로그인 초기화
+	 */
+	const googleIosClientId = process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID;
+	const googleAndroidClientId = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID;
+
+	useEffect(() => {
+		GoogleSignin.configure({
+			iosClientId: googleIosClientId,
+			webClientId: googleAndroidClientId,
+		});
 	}, []);
 
 	/**

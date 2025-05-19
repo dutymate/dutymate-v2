@@ -1,6 +1,8 @@
 import { ConfigContext, ExpoConfig } from "@expo/config";
 
 export default ({config}: ConfigContext): ExpoConfig => {
+    const iosUrlScheme = process.env.EXPO_PUBLIC_GOOGLE_IOS_URL_SCHEME;
+
     return {
         ...config,
         name: "듀티메이트",
@@ -18,6 +20,14 @@ export default ({config}: ConfigContext): ExpoConfig => {
         ios: {
             supportsTablet: true,
             bundleIdentifier: "net.dutymate.app",
+            infoPlist: {
+                CFBundleURLTypes: [
+                    {
+                        CFBundleURLSchemes: [iosUrlScheme]
+                    }
+                ]
+            },
+            googleServicesFile: "./GoogleService-Info.plist"
         },
         android: {
             adaptiveIcon: {
@@ -25,6 +35,7 @@ export default ({config}: ConfigContext): ExpoConfig => {
                 backgroundColor: "#ffffff"
             },
             package: "net.dutymate.app",
+            googleServicesFile: "./google-services.json"
         },
         extra: {
             url:
@@ -59,6 +70,12 @@ export default ({config}: ConfigContext): ExpoConfig => {
                     "ios": {
                         handleKakaoOpenUrl: true,
                     },
+                }
+            ],
+            [
+                "@react-native-google-signin/google-signin",
+                {
+                    iosUrlScheme,
                 }
             ]
         ],

@@ -2,7 +2,7 @@ import { LoginResponse } from "@/types/user";
 import axiosInstance from "../axios";
 import * as SecureStore from "expo-secure-store";
 
-interface KakaoProfileRequestDto {
+interface ProfileRequestDto {
 	email: string;
 	nickname: string;
 	profileImageUrl: string;
@@ -11,10 +11,10 @@ interface KakaoProfileRequestDto {
 export const authService = {
 	/**
 	 * 카카오 로그인 API
-	 * @param token
-	 * @returns
+	 * @param data 카카오 로그인 정보
+	 * @returns 로그인 응답 데이터
 	 */
-	kakaoLogin: async (data: KakaoProfileRequestDto): Promise<LoginResponse> => {
+	kakaoLogin: async (data: ProfileRequestDto): Promise<LoginResponse> => {
 		try {
 			const response = await axiosInstance.post(
 				"/member/login/kakao/mobile",
@@ -38,11 +38,12 @@ export const authService = {
 	 * @param code
 	 * @returns
 	 */
-	googleLogin: async (code: string): Promise<LoginResponse> => {
+	googleLogin: async (data: ProfileRequestDto): Promise<LoginResponse> => {
 		try {
-			const response = await axiosInstance.get("/member/login/google/mobile", {
-				params: { code },
-			});
+			const response = await axiosInstance.post(
+				"/member/login/google/mobile",
+				data,
+			);
 
 			// 토큰 저장
 			const { token: authToken, ...userInfo } = response.data;
