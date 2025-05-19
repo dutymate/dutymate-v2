@@ -84,6 +84,7 @@ public class MemberService {
 	private static final String DEMO_NAME = "데모계정";
 	private static final String DEMO_HOSPITAL_NAME = "듀티메이트병원";
 	private static final String DEMO_WARD_NAME = "듀티병동";
+	private static final String DEFAULT_PROFILE_IMAGE_NAME = "default_profile_image.jpg";
 	private static final Integer DEMO_TEMP_NURSE_CNT = 10;
 	private static final Integer DEMO_AUTO_GEN_CNT = 1;
 	private static final Integer DEFAULT_AUTO_GEN_CNT = 1;
@@ -454,6 +455,11 @@ public class MemberService {
 	@Transactional
 	public ProfileImgResponseDto uploadProfileImg(MultipartFile multipartFile, Member member) {
 		String dirName = "profile";
+		String fileName = s3Service.extractFileNameFromUrl(member.getProfileImg(), dirName);
+		// 기존에 프로필 이미지가 있으면 삭제 후 업로드
+		if (!fileName.equals(DEFAULT_PROFILE_IMAGE_NAME)) {
+			s3Service.deleteFile(dirName, fileName);
+		}
 		String fileUrl = s3Service.uploadImage(dirName, multipartFile);
 		member.setFileUrl(fileUrl);
 		return ProfileImgResponseDto.of(fileUrl);

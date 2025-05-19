@@ -68,7 +68,7 @@ public class S3Service {
 				.bucket(bucket)
 				.key(key)
 				.build();
-
+			System.out.println("deleteObjectRequest = " + deleteObjectRequest.toString());
 			s3Client.deleteObject(deleteObjectRequest);
 		} catch (Exception e) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "S3 이미지 삭제 중 오류 발생");
@@ -76,7 +76,7 @@ public class S3Service {
 	}
 
 	public String extractFileNameFromUrl(String fileUrl, String dirName) {
-		String baseUrl = "https://" + bucket + ".s3." + region + ".amazonaws.com/" + dirName;
+		String baseUrl = "https://" + bucket + ".s3." + region + ".amazonaws.com/" + dirName + "/";
 		return fileUrl.replace(baseUrl, "");
 	}
 
