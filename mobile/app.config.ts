@@ -1,17 +1,17 @@
-import { ExpoConfig, ConfigContext } from "@expo/config";
+import { ConfigContext, ExpoConfig } from "@expo/config";
 
-export default ({ config }: ConfigContext): ExpoConfig => {
+export default ({config}: ConfigContext): ExpoConfig => {
     return {
         ...config,
-        name: "dutymate-mobile",
-        slug: "dutymate-mobile",
+        name: "듀티메이트",
+        slug: "dutymate",
         version: "1.0.0",
         orientation: "portrait",
-        icon: "./assets/icon.png",
+        icon: "./assets/images/icon.png",
         userInterfaceStyle: "light",
         newArchEnabled: true,
         splash: {
-            image: "./assets/splash-icon.png",
+            image: "./assets/images/splash-icon.png",
             resizeMode: "contain",
             backgroundColor: "#ffffff"
         },
@@ -21,13 +21,10 @@ export default ({ config }: ConfigContext): ExpoConfig => {
         },
         android: {
             adaptiveIcon: {
-                foregroundImage: "./assets/adaptive-icon.png",
+                foregroundImage: "./assets/images/adaptive-icon.png",
                 backgroundColor: "#ffffff"
             },
             package: "net.dutymate.app",
-        },
-        web: {
-            favicon: "./assets/favicon.png"
         },
         extra: {
             url:
@@ -39,28 +36,27 @@ export default ({ config }: ConfigContext): ExpoConfig => {
         },
         plugins: [
             [
-              "expo-build-properties",
-              {
-                "android": {
-                  "extraMavenRepos": [
-                    "https://devrepo.kakao.com/nexus/content/groups/public/"
-                  ]
+                "expo-build-properties",
+                {
+                    "android": {
+                        "extraMavenRepos": [
+                            "https://devrepo.kakao.com/nexus/content/groups/public/"
+                        ]
+                    }
                 }
-              }
             ],
             [
-              "@react-native-kakao/core",
-              {
-                "nativeAppKey": process.env.EXPO_PUBLIC_KAKAO_NATIVE_APP_KEY,
-                "android": {
-                  authCodeHandlerActivity: true,
-                },
-                "ios": {
-                  handleKakaoOpenUrl: true,
-                },
-              }
+                "@react-native-kakao/core",
+                {
+                    "nativeAppKey": process.env.EXPO_PUBLIC_KAKAO_NATIVE_APP_KEY,
+                    "android": {
+                        authCodeHandlerActivity: true,
+                    },
+                    "ios": {
+                        handleKakaoOpenUrl: true,
+                    },
+                }
             ]
-          ],
-          
+        ],
     };
 };
