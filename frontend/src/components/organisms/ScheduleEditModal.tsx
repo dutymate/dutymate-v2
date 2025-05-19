@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Map, MapMarker } from 'react-kakao-maps-sdk';
 // import { deleteCalendar as deleteCalendarService } from '@/services/calendarService';
 import type { ScheduleType } from '@/services/calendarService';
@@ -75,6 +75,58 @@ const ScheduleEditModal = ({
   const [isDirectPlaceInput, setIsDirectPlaceInput] = useState(false);
   const [isAllDay, setIsAllDay] = useState(initialData?.isAllDay || false);
 
+  // Modified setStartTime to automatically switch to end time picker
+  const handleStartTimeChange = useCallback(
+    (timeValue: string) => {
+      setStartTime(timeValue);
+
+      // If end time is earlier than or equal to the new start time, update it
+      const startPeriod = timeValue.split(' ')[0]; // '오전' or '오후'
+      const startHour = parseInt(timeValue.split(' ')[1].split(':')[0]);
+      const startMinute = parseInt(timeValue.split(' ')[1].split(':')[1]);
+
+      const endPeriod = endTime.split(' ')[0];
+      const endHour = parseInt(endTime.split(' ')[1].split(':')[0]);
+      const endMinute = parseInt(endTime.split(' ')[1].split(':')[1]);
+
+      // Convert to 24-hour format to compare
+      let start24Hour = startHour;
+      if (startPeriod === '오후' && startHour !== 12) start24Hour += 12;
+      if (startPeriod === '오전' && startHour === 12) start24Hour = 0;
+
+      let end24Hour = endHour;
+      if (endPeriod === '오후' && endHour !== 12) end24Hour += 12;
+      if (endPeriod === '오전' && endHour === 12) end24Hour = 0;
+
+      // Check if end time is earlier than or equal to start time
+      if (
+        end24Hour < start24Hour ||
+        (end24Hour === start24Hour && endMinute <= startMinute)
+      ) {
+        // Set end time to 1 hour after start time
+        let newEndHour = startHour;
+        let newEndPeriod = startPeriod;
+
+        if (startPeriod === '오전' && startHour === 11) {
+          newEndPeriod = '오후';
+          newEndHour = 12;
+        } else if (startPeriod === '오후' && startHour === 11) {
+          newEndPeriod = '오전';
+          newEndHour = 12;
+        } else if (startHour === 12) {
+          newEndHour = 1;
+        } else {
+          newEndHour = startHour + 1;
+        }
+
+        setEndTime(
+          `${newEndPeriod} ${String(newEndHour).padStart(2, '0')}:${startMinute}`
+        );
+      }
+    },
+    [endTime]
+  );
+
   // 장소 검색 함수
   const searchPlaces = (keyword: string) => {
     if (!map || !window.kakao?.maps?.services?.Places) return;
@@ -139,9 +191,13 @@ const ScheduleEditModal = ({
   const TimePicker = ({
     value,
     onChange,
+    isEndTimePicker = false,
+    startTimeValue = '',
   }: {
     value: string;
     onChange: (v: string) => void;
+    isEndTimePicker?: boolean;
+    startTimeValue?: string;
   }) => {
     const [period, setPeriod] = useState<'오전' | '오후'>(
       value.includes('오전') ? '오전' : '오후'
@@ -150,16 +206,169 @@ const ScheduleEditModal = ({
     const [hour, setHour] = useState<string>(timeParts[0]);
     const [minute, setMinute] = useState<string>(timeParts[1]);
 
+    // Parse start time for comparison if this is end time picker
+    const startTimeParts =
+      isEndTimePicker && startTimeValue
+        ? {
+            period: startTimeValue.split(' ')[0] as '오전' | '오후',
+            hour: startTimeValue.split(' ')[1].split(':')[0],
+            minute: startTimeValue.split(' ')[1].split(':')[1],
+          }
+        : null;
+
+    // Convert time to comparable format (minutes since midnight)
+    const getTimeInMinutes = (p: '오전' | '오후', h: string, m: string) => {
+      let hour = parseInt(h);
+      if (p === '오후' && hour !== 12) hour += 12;
+      if (p === '오전' && hour === 12) hour = 0;
+      return hour * 60 + parseInt(m);
+    };
+
     useEffect(() => {
       const hourStr = String(hour).padStart(2, '0');
-      onChange(`${period} ${hourStr}:${minute}`);
-    }, [period, hour, minute]);
+      const minuteStr = String(minute).padStart(2, '0');
+      onChange(`${period} ${hourStr}:${minuteStr}`);
+    }, [period, hour, minute, onChange]);
+
+    // Generate available period options based on constraints
+    const getPeriodOptions = () => {
+      if (!isEndTimePicker || !startTimeParts) {
+        return [
+          { value: '오전', label: '오전' },
+          { value: '오후', label: '오후' },
+        ];
+      }
+
+      const startPeriod = startTimeParts.period;
+      const startHour = parseInt(startTimeParts.hour);
+
+      // If start time is PM, only PM is valid for end time
+      if (startPeriod === '오후') {
+        return [{ value: '오후', label: '오후' }];
+      }
+
+      // If start time is AM and not 11AM, both AM and PM are valid
+      if (startPeriod === '오전' && startHour < 11) {
+        return [
+          { value: '오전', label: '오전' },
+          { value: '오후', label: '오후' },
+        ];
+      }
+
+      // If start time is 11AM or 12AM, only AM for that hour or PM are valid
+      return [
+        { value: '오전', label: '오전' },
+        { value: '오후', label: '오후' },
+      ];
+    };
+
+    // Get valid hour options based on constraints
+    const getHourOptions = () => {
+      const hours = Array.from({ length: 12 }, (_, i) =>
+        String(i + 1).padStart(2, '0')
+      );
+
+      if (!isEndTimePicker || !startTimeParts) {
+        return hours.map((h) => ({ value: h, label: `${h}시` }));
+      }
+
+      const startPeriod = startTimeParts.period;
+      const startHour = parseInt(startTimeParts.hour);
+      const currentPeriod = period;
+
+      if (startPeriod === currentPeriod) {
+        // Same period, so start hour must be <= end hour
+        return hours
+          .filter(
+            (h) =>
+              parseInt(h) >= (startPeriod === currentPeriod ? startHour : 1)
+          )
+          .map((h) => ({ value: h, label: `${h}시` }));
+      }
+
+      // Different periods (start is AM, end is PM), all PM hours are valid
+      return hours.map((h) => ({ value: h, label: `${h}시` }));
+    };
+
+    // Get valid minute options based on constraints
+    const getMinuteOptions = () => {
+      const minutes = [
+        '00',
+        '05',
+        '10',
+        '15',
+        '20',
+        '25',
+        '30',
+        '35',
+        '40',
+        '45',
+        '50',
+        '55',
+      ];
+
+      if (!isEndTimePicker || !startTimeParts) {
+        return minutes.map((m) => ({ value: m, label: `${m}분` }));
+      }
+
+      const startPeriod = startTimeParts.period;
+      const startHour = parseInt(startTimeParts.hour);
+      const startMinute = parseInt(startTimeParts.minute);
+      const currentPeriod = period;
+      const currentHour = parseInt(hour);
+
+      // If different periods or different hours, all minutes are valid
+      if (startPeriod !== currentPeriod || startHour !== currentHour) {
+        return minutes.map((m) => ({ value: m, label: `${m}분` }));
+      }
+
+      // Same period and hour, filter minutes
+      return minutes
+        .filter((m) => parseInt(m) > startMinute)
+        .map((m) => ({ value: m, label: `${m}분` }));
+    };
+
+    const periodOptions = getPeriodOptions();
+    const hourOptions = getHourOptions();
+    const minuteOptions = getMinuteOptions();
+
+    // If current selections are invalid, update them
+    useEffect(() => {
+      if (isEndTimePicker && startTimeParts) {
+        const startTimeMinutes = getTimeInMinutes(
+          startTimeParts.period as '오전' | '오후',
+          startTimeParts.hour,
+          startTimeParts.minute
+        );
+        const endTimeMinutes = getTimeInMinutes(period, hour, minute);
+
+        if (endTimeMinutes <= startTimeMinutes) {
+          // End time is before or equal to start time, adjust it
+          if (hourOptions.length > 0) {
+            setHour(hourOptions[0].value);
+            if (periodOptions.length > 0 && periodOptions[0].value !== period) {
+              setPeriod(periodOptions[0].value as '오전' | '오후');
+            }
+            if (minuteOptions.length > 0) {
+              setMinute(minuteOptions[0].value);
+            }
+          }
+        }
+      }
+    }, [isEndTimePicker, startTimeParts, period, hour, minute]);
 
     return (
       <div
-        className="absolute z-10 bg-white rounded-lg shadow-xl p-4 border border-gray-200 w-full mt-2"
+        className="absolute z-10 bg-white rounded-lg shadow-xl p-3 border border-gray-200 w-full mt-2"
         onClick={(e) => e.stopPropagation()}
       >
+        <div className="mb-1 text-left">
+          <h3
+            className={`font-medium text-sm ${isEndTimePicker ? 'text-gray-400' : 'text-gray-400'}`}
+          >
+            {isEndTimePicker ? '종료 시간' : '시작 시간'}
+          </h3>
+        </div>
         <div className="flex justify-between items-center space-x-2">
           <div className="flex-1">
             <select
@@ -167,8 +376,11 @@ const ScheduleEditModal = ({
               onChange={(e) => setPeriod(e.target.value as '오전' | '오후')}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
             >
-              <option value="오전">오전</option>
-              <option value="오후">오후</option>
+              {periodOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
             </select>
           </div>
           <div className="flex-1">
@@ -177,9 +389,9 @@ const ScheduleEditModal = ({
               onChange={(e) => setHour(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
             >
-              {Array.from({ length: 12 }, (_, i) => (
-                <option key={i + 1} value={String(i + 1).padStart(2, '0')}>
-                  {i + 1}시
+              {hourOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
                 </option>
               ))}
             </select>
@@ -190,22 +402,9 @@ const ScheduleEditModal = ({
               onChange={(e) => setMinute(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
             >
-              {[
-                '00',
-                '05',
-                '10',
-                '15',
-                '20',
-                '25',
-                '30',
-                '35',
-                '40',
-                '45',
-                '50',
-                '55',
-              ].map((m) => (
-                <option key={m} value={m}>
-                  {m}분
+              {minuteOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
                 </option>
               ))}
             </select>
@@ -359,6 +558,19 @@ const ScheduleEditModal = ({
       else if (hour > 12) hour -= 12;
       return `${period} ${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
     }
+
+    // Also ensure minute format is correct when parsing from string format
+    const parts = timeStr.split(' ');
+    if (parts.length === 2) {
+      const period = parts[0];
+      const timeParts = parts[1].split(':');
+      if (timeParts.length === 2) {
+        const hour = timeParts[0];
+        const minute = timeParts[1];
+        return `${period} ${hour}:${minute.padStart(2, '0')}`;
+      }
+    }
+
     return timeStr;
   }
 
@@ -477,9 +689,16 @@ const ScheduleEditModal = ({
                           activeTimePicker === 'start' ? startTime : endTime
                         )}
                         onChange={(v: string) => {
-                          if (activeTimePicker === 'start') setStartTime(v);
-                          else setEndTime(v);
+                          if (activeTimePicker === 'start') {
+                            handleStartTimeChange(v);
+                          } else {
+                            setEndTime(v);
+                          }
                         }}
+                        isEndTimePicker={activeTimePicker === 'end'}
+                        startTimeValue={
+                          activeTimePicker === 'end' ? startTime : ''
+                        }
                       />
                     </div>
                   )}
