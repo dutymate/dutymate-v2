@@ -36,7 +36,16 @@ const GroupDetailPage = () => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [groupMembers, setGroupMembers] = useState<ShiftMember[]>([]);
   const [inviteLink, setInviteLink] = useState<string>('');
-  const [originalShifts, setOriginalShifts] = useState<any[]>([]);
+  const [originalData, setOriginalData] = useState<{
+    shifts: any[];
+    prevShifts: any[];
+    nextShifts: any[];
+  }>({
+    shifts: [],
+    prevShifts: [],
+    nextShifts: [],
+  });
+
   const [highlightedDates, setHighlightedDates] = useState<string[]>([]);
 
   // fetchGroupData 함수를 useCallback으로 래핑하여 의존성 관리
@@ -61,10 +70,18 @@ const GroupDetailPage = () => {
       // 원본 데이터 저장
       setGroup(response);
 
-      // 원본 shifts 데이터 저장
-      if (response.shifts && response.shifts.length > 0) {
-        setOriginalShifts(JSON.parse(JSON.stringify(response.shifts)));
-      }
+      // 원본 데이터 세트를 저장 (shifts, prevShifts, nextShifts)
+      setOriginalData({
+        shifts: response.shifts
+          ? JSON.parse(JSON.stringify(response.shifts))
+          : [],
+        prevShifts: response.prevShifts
+          ? JSON.parse(JSON.stringify(response.prevShifts))
+          : [],
+        nextShifts: response.nextShifts
+          ? JSON.parse(JSON.stringify(response.nextShifts))
+          : [],
+      });
 
       // 백엔드에서 받은 멤버 리스트 처리
       if (response.shifts && response.shifts.length > 0) {
@@ -86,20 +103,27 @@ const GroupDetailPage = () => {
   }, [groupId, currentMonth.getFullYear(), currentMonth.getMonth(), navigate]);
 
   // 정렬 함수 - 클라이언트에서 처리
+  // 정렬 함수 수정 - 현재 달, 이전 달, 다음 달 모두 포함
   const sortShifts = useCallback(() => {
-    if (!group || !originalShifts.length) return;
+    if (!originalData.shifts.length) return;
 
     // 원본 데이터의 복사본 생성
-    const sortedShifts = JSON.parse(JSON.stringify(originalShifts));
+    const sortedCurrentShifts = JSON.parse(JSON.stringify(originalData.shifts));
+    const sortedPrevShifts = JSON.parse(
+      JSON.stringify(originalData.prevShifts || [])
+    );
+    const sortedNextShifts = JSON.parse(
+      JSON.stringify(originalData.nextShifts || [])
+    );
 
-    // 각 날짜별로 멤버 리스트를 정렬
-    sortedShifts.forEach((shift: any) => {
+    // 정렬 함수 정의
+    const sortMemberList = (shift: any) => {
       if (sortByName) {
         // 이름순 정렬
         shift.memberList.sort((a: any, b: any) => a.name.localeCompare(b.name));
       } else {
         // 근무순 정렬 (D, E, N, O, M, - 순서)
-        const dutyOrder = { D: 0, E: 1, N: 2, O: 3, M: 4, '-': 5 };
+        const dutyOrder = { D: 0, M: 1, E: 2, N: 3, O: 4, X: 5 };
         shift.memberList.sort((a: any, b: any) => {
           const dutyA = a.duty || '-';
           const dutyB = b.duty || '-';
@@ -112,19 +136,29 @@ const GroupDetailPage = () => {
           return orderA - orderB;
         });
       }
-    });
+    };
+
+    // 각 배열의 모든 shift 정렬
+    sortedCurrentShifts.forEach(sortMemberList);
+    sortedPrevShifts.forEach(sortMemberList);
+    sortedNextShifts.forEach(sortMemberList);
 
     // 정렬된 데이터로 그룹 업데이트
     setGroup((prevGroup) => {
       if (!prevGroup) return null;
-      return { ...prevGroup, shifts: sortedShifts };
+      return {
+        ...prevGroup,
+        shifts: sortedCurrentShifts,
+        prevShifts: sortedPrevShifts,
+        nextShifts: sortedNextShifts,
+      };
     });
-  }, [originalShifts, sortByName]);
+  }, [originalData, sortByName]);
 
   // 정렬 기준이 변경될 때마다 정렬 함수 실행
   useEffect(() => {
     sortShifts();
-  }, [sortByName, sortShifts]);
+  }, [sortShifts]);
 
   // 초기 로딩 및 파라미터 변경 시 데이터 가져오기
   useEffect(() => {
