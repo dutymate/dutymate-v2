@@ -1,5 +1,10 @@
-import { View } from "react-native";
+import * as SecureStore from "expo-secure-store";
 
+import { useState, useEffect } from "react";
+import { View } from "react-native";
+import Toast from "react-native-toast-message";
+
+import { userService } from "@/api/services/userService";
 import {
 	AuthCodeSendButton,
 	Button,
@@ -7,15 +12,11 @@ import {
 } from "@/components/common/Button";
 import { Input } from "@/components/common/Input";
 import { StyledText } from "@/components/common/StyledText";
-import { AgreementCheckbox } from "./AgreementCheckbox";
-import { useState, useEffect } from "react";
+import { AgreementCheckbox } from "@/components/signup/AgreementCheckbox";
 import { useEmailVerification } from "@/hooks/common/useEmailVerification";
-import Toast from "react-native-toast-message";
-import { validateName } from "@/utils/validate";
-import { userService } from "@/api/services/userService";
 import { useUserAuthStore } from "@/store/userAuthStore";
-import * as SecureStore from "expo-secure-store";
 import { navigateBasedOnUserRole } from "@/utils/navigation";
+import { validateName } from "@/utils/validate";
 
 /**
  * SignupFormProps는 SignupForm의 props 타입을 정의합니다.

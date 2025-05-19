@@ -1,4 +1,5 @@
 import Constants from "expo-constants";
+import * as SecureStore from "expo-secure-store";
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
@@ -9,11 +10,11 @@ import {
 	View,
 	ActivityIndicator,
 } from "react-native";
-import { WebView } from "react-native-webview";
-import * as SecureStore from "expo-secure-store";
-import { Layout } from "@/layout/Layout";
-import { useRoute } from "@react-navigation/native";
 import Toast from "react-native-toast-message";
+import { WebView } from "react-native-webview";
+import { useRoute } from "@react-navigation/native";
+
+import { Layout } from "@/layout/Layout";
 
 /**
  * WebViewScreenProps는 WebViewScreen 컴포넌트의 props 타입을 정의합니다.

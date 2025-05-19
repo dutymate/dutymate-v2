@@ -1,6 +1,7 @@
-import { userService } from "@/api/services/userService";
 import { useEffect, useState } from "react";
 import Toast from "react-native-toast-message";
+
+import { userService } from "@/api/services/userService";
 
 export const useEmailVerification = (mode: "login" | "signup" | "reset") => {
 	const [email, setEmail] = useState("");

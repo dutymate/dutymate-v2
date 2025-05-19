@@ -1,5 +1,6 @@
 import axios from "axios";
-import axiosInstance from "../axios";
+
+import axiosInstance from "@/api/axios";
 import { LoginResponse, AdditionalInfo } from "@/types/user";
 
 interface SignupRequest {

@@ -1,14 +1,15 @@
+import * as SecureStore from "expo-secure-store";
+
 import { useState } from "react";
 import { View } from "react-native";
-import * as SecureStore from "expo-secure-store";
 import Toast from "react-native-toast-message";
 
+import { userService } from "@/api/services/userService";
 import { Button } from "@/components/common/Button";
 import { DropdownComponent } from "@/components/common/Dropdown";
 import { StyledText } from "@/components/common/StyledText";
-import { ToggleButton } from "@/components/extraInfo/ToggleButton";
 import { RoleCard } from "@/components/extraInfo/RoleCard";
-import { userService } from "@/api/services/userService";
+import { ToggleButton } from "@/components/extraInfo/ToggleButton";
 import { useUserAuthStore } from "@/store/userAuthStore";
 import { AdditionalInfo, UserInfo } from "@/types/user";
 import { navigateBasedOnUserRole } from "@/utils/navigation";

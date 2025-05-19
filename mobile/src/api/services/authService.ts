@@ -1,6 +1,7 @@
-import { LoginResponse } from "@/types/user";
-import axiosInstance from "../axios";
 import * as SecureStore from "expo-secure-store";
+
+import axiosInstance from "@/api/axios";
+import { LoginResponse } from "@/types/user";
 
 export interface ProfileRequestDto {
 	email: string;

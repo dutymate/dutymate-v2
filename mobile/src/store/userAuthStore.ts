@@ -1,7 +1,9 @@
-import { AdditionalInfo, UserAuthState, UserInfo } from "@/types/user";
 import * as SecureStore from "expo-secure-store";
+
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
+
+import { AdditionalInfo, UserAuthState, UserInfo } from "@/types/user";
 
 // SecureStore용 스토리지 어댑터
 const secureStorage = {

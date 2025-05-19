@@ -1,5 +1,10 @@
-import { View } from "react-native";
+import * as SecureStore from "expo-secure-store";
+
 import { useState } from "react";
+import { View } from "react-native";
+import { GoogleSignin } from "@react-native-google-signin/google-signin";
+import { login, me } from "@react-native-kakao/user";
+import Toast from "react-native-toast-message";
 
 import { authService } from "@/api/services/authService";
 import { Button } from "@/components/common/Button";
@@ -7,12 +12,8 @@ import { Input } from "@/components/common/Input";
 import { StyledText } from "@/components/common/StyledText";
 import { SocialLoginButton } from "@/components/login/SocialLoginButton";
 import { useUserAuthStore } from "@/store/userAuthStore";
-import { navigateBasedOnUserRole } from "@/utils/navigation";
-import { login, me } from "@react-native-kakao/user";
-import * as SecureStore from "expo-secure-store";
-import Toast from "react-native-toast-message";
-import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import { LoginResponse } from "@/types/user";
+import { navigateBasedOnUserRole } from "@/utils/navigation";
 
 /**
  * LoginFormProps는 LoginScreen의 props 타입을 정의합니다.
