@@ -18,7 +18,12 @@ interface WardAdminRowCardProps {
   onSelect?: (memberId: number) => void;
   useCustomDutyLabels?: boolean;
 }
-const WardAdminRowCard = ({ nurse, onUpdate }: WardAdminRowCardProps) => {
+const WardAdminRowCard = ({
+  nurse,
+  onUpdate,
+  isSelected,
+  onSelect,
+}: WardAdminRowCardProps) => {
   if (!nurse) {
     return null;
   }
@@ -28,7 +33,7 @@ const WardAdminRowCard = ({ nurse, onUpdate }: WardAdminRowCardProps) => {
   const [isEditingMemo, setIsEditingMemo] = useState(false);
   const [memo, setMemo] = useState(nurse.memo ?? '');
   const memoInputRef = useRef<HTMLInputElement>(null);
-  const { removeNurse, updateVirtualNurseName, updateVirtualNurseInfo } =
+  const { removeNurses, updateVirtualNurseName, updateVirtualNurseInfo } =
     useWardStore();
   const [dropdownPosition, setDropdownPosition] = useState<'top' | 'bottom'>(
     'bottom'
@@ -335,7 +340,7 @@ const WardAdminRowCard = ({ nurse, onUpdate }: WardAdminRowCardProps) => {
         navigate('/my-page');
         return;
       }
-      await removeNurse(nurse.memberId);
+      await removeNurses([nurse.memberId]);
       toast.success(
         removeTarget === 'HN'
           ? '관리자가 병동에서 제외되었습니다.'
@@ -433,9 +438,25 @@ const WardAdminRowCard = ({ nurse, onUpdate }: WardAdminRowCardProps) => {
   return (
     <div>
       <div ref={containerRef} className="relative">
-        <div className="flex items-center p-1.5 lg:p-2 bg-white rounded-xl border border-gray-100">
+        <div
+          className={`flex items-center p-1.5 lg:p-2 rounded-xl border border-gray-100 ${
+            isSelected ? 'bg-gray-100' : 'bg-white'
+          }`}
+        >
           <div className="flex items-center justify-between flex-1 gap-[2.5rem]">
             <div className="flex items-center gap-[1.5rem] flex-shrink-0">
+              <input
+                type="checkbox"
+                checked={isSelected}
+                onChange={() => onSelect?.(nurse.memberId)}
+                className="mx-1"
+                style={{
+                  visibility:
+                    userAuthStore.userInfo?.memberId === nurse.memberId
+                      ? 'hidden'
+                      : 'visible',
+                }}
+              />
               <div className="flex items-center gap-3 w-[7rem] pl-[0.5rem] group relative">
                 {!nurse.isSynced && (
                   <div className="flex-1 items-center">
@@ -726,6 +747,7 @@ const WardAdminRowCard = ({ nurse, onUpdate }: WardAdminRowCardProps) => {
                   position={
                     dropdownPosition === 'top' ? 'top-left' : 'bottom-left'
                   }
+                  isSelected={isSelected}
                 />
               </div>
             </div>

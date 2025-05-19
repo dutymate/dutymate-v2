@@ -6,7 +6,7 @@ export interface WardStore {
   wardInfo: WardInfo | null;
   setWardInfo: (wardInfo: WardInfo) => void;
   updateNurse: (memberId: number, updatedData: any) => Promise<void>;
-  removeNurse: (memberId: number) => Promise<void>;
+  removeNurses: (memberId: number[]) => Promise<void>;
   syncWithServer: () => Promise<void>;
   lastSyncTime: number | null;
   virtualNurseCount: number;
@@ -65,19 +65,23 @@ const useWardStore = create<WardStore>((set, get) => ({
     }
   },
 
-  removeNurse: async (memberId: number) => {
+  removeNurses: async (memberIds: number[]) => {
     const wardInfo = get().wardInfo;
     if (!wardInfo) return;
 
+    // 삭제 대상 nurse 리스트
+    const targetNurses = wardInfo.nurses.filter((nurse) =>
+      memberIds.includes(nurse.memberId)
+    );
     // HN 수 확인
     const hnCount = wardInfo.nurses.filter(
       (nurse) => nurse.role === 'HN'
     ).length;
-    const targetNurse = wardInfo.nurses.find(
-      (nurse) => nurse.memberId === memberId
-    );
+    const hnToRemove = targetNurses.filter(
+      (nurse) => nurse.role === 'HN'
+    ).length;
 
-    if (targetNurse?.role === 'HN' && hnCount <= 1) {
+    if (hnCount - hnToRemove < 1) {
       throw new Error('LAST_HN');
     }
 
@@ -90,15 +94,15 @@ const useWardStore = create<WardStore>((set, get) => ({
         ? {
             ...state.wardInfo,
             nurses: state.wardInfo.nurses.filter(
-              (nurse) => nurse.memberId !== memberId
+              (nurse) => !memberIds.includes(nurse.memberId)
             ),
-            nursesTotalCnt: state.wardInfo.nursesTotalCnt - 1,
+            nursesTotalCnt: state.wardInfo.nursesTotalCnt - memberIds.length,
           }
         : null,
     }));
 
     try {
-      await wardService.removeNurses([memberId]);
+      await wardService.removeNurses(memberIds);
     } catch (error) {
       // 에러 발생 시 이전 상태로 롤백
       set({ wardInfo: previousState });

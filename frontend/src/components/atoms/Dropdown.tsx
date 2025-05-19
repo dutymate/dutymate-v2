@@ -9,6 +9,7 @@ interface DropdownProps {
   label: string;
   disabled?: boolean;
   position?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
+  isSelected?: boolean;
 }
 
 const OPTIONS = {
@@ -33,6 +34,7 @@ export const Dropdown: React.FC<DropdownProps> = ({
   label,
   disabled = false,
   position = 'bottom-left',
+  isSelected = false,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -77,13 +79,15 @@ export const Dropdown: React.FC<DropdownProps> = ({
     if (variant === 'authority') {
       return `
         px-3 py-2
-        bg-base-white
+        ${isSelected ? 'bg-gray-100' : 'bg-base-white'}
         flex items-center justify-between
         min-h-[44px]
       `;
     }
+
     return `
       px-4 py-2
+      ${isSelected ? 'bg-gray-100' : 'bg-base-white'}
       ${
         disabled
           ? 'text-base-muted cursor-not-allowed'

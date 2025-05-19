@@ -44,9 +44,10 @@ const RemoveNurseConfirmModal = ({
         };
       default:
         return {
-          title: '',
-          message: '',
-          confirmText: '',
+          title: '간호사를 내보내요',
+          message: '정말 선택한 간호사를 내보내시겠습니까?',
+          cancelText: '취소',
+          confirmText: '내보내기',
         };
     }
   };

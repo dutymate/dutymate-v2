@@ -2,6 +2,8 @@ import { toast } from 'react-toastify';
 import WardAdminRowCard from '@/components/organisms/WardAdminRowCard';
 import useWardStore from '@/stores/wardStore';
 import { Tooltip } from '@/components/atoms/Tooltip';
+import { useState } from 'react';
+import RemoveNurseConfirmModal from './RemoveNurseConfirmModal';
 
 interface WardAdminTableProps {
   // nurses: Nurse[];
@@ -10,8 +12,38 @@ interface WardAdminTableProps {
 const WardAdminTable = ({}: WardAdminTableProps) => {
   const { updateNurse, syncWithServer, getSortedNurses } = useWardStore();
   const sortedNurses = getSortedNurses();
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
   // const [setSelectedNurses] = useState<string[]>([]);
   // const [selectedNurses] = useState<string[]>([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const { removeNurses } = useWardStore();
+
+  const toggleSelect = (id: number) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  };
+
+  const handleBulkRemove = () => {
+    setIsModalOpen(true);
+  };
+
+  const handleConfirmRemove = async () => {
+    try {
+      await removeNurses(selectedIds);
+      toast.success('간호사를 내보냈어요.');
+      setSelectedIds([]);
+    } catch (err) {
+      if (err instanceof Error && err.message === 'LAST_HN') {
+        toast.error('관리자는 최소 1명 이상 있어야 해요.');
+      } else {
+        toast.error('내보내는 중 문제가 발생했어요.');
+      }
+    } finally {
+      setIsModalOpen(false);
+    }
+  };
 
   const handleNurseUpdate = async (memberId: number, data: any) => {
     try {
@@ -32,12 +64,12 @@ const WardAdminTable = ({}: WardAdminTableProps) => {
             {/* Header */}
             <div className="flex items-center p-[0.375rem] lg:p-[0.5rem] mb-[0.5rem] text-[0.875rem] lg:text-[1rem] text-gray-600 font-medium bg-base-muted-30 rounded-xl">
               <div className="flex items-center justify-between flex-1 gap-[2.5rem]">
-                <div className="flex items-center gap-[1.5rem] flex-shrink-0">
+                <div className="flex items-center gap-[1.5rem] flex-shrink-0 pl-[3rem]">
                   <div className="w-[7rem] pl-[0.5rem]">이름</div>
                   <div className="w-[3.75rem] text-center">성별</div>
                   <div className="w-[4.375rem] pl-[1.7rem]">경력</div>
                   {/* <div className="w-[5rem] pl-[2rem]">숙련도</div> */}
-                  <div className="w-[5rem] pl-[2rem]">
+                  <div className="w-[5rem] pl-[1.2rem]">
                     <div className="flex items-center gap-1 whitespace-nowrap">
                       업무강도
                       <Tooltip
@@ -85,8 +117,17 @@ const WardAdminTable = ({}: WardAdminTableProps) => {
                 <div className="flex items-center gap-[1.5rem] flex-1 min-w-0">
                   <div className="flex-1 text-center">메모</div>
                 </div>
+                <button
+                  onClick={handleBulkRemove}
+                  className={`${
+                    selectedIds.length > 0 ? 'visible' : 'invisible'
+                  } flex items-center justify-center gap-1 py-1 px-3 rounded-lg transition-colors bg-[#999786] hover:bg-[#88866f]`}
+                >
+                  <span className="text-[0.8rem] text-white">내보내기</span>
+                </button>
               </div>
             </div>
+
             {/* Nurse List */}
             {sortedNurses.map((nurse, index) => (
               <WardAdminRowCard
@@ -94,11 +135,20 @@ const WardAdminTable = ({}: WardAdminTableProps) => {
                 nurse={nurse}
                 onUpdate={handleNurseUpdate}
                 useCustomDutyLabels={true}
+                isSelected={selectedIds.includes(nurse.memberId)}
+                onSelect={toggleSelect}
               />
             ))}
           </div>
         </div>
       </div>
+      <RemoveNurseConfirmModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onConfirm={handleConfirmRemove}
+        removeTarget={null}
+        removeTargetName={null}
+      />
     </div>
   );
 };
