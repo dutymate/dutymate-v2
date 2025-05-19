@@ -17,6 +17,10 @@ export const StyledTextInput = ({
 	...rest
 }: StyledTextInputProps) => {
 	return (
-		<TextInput className={`font-pretendard ${className || ""}`} {...rest} />
+		<TextInput
+			className={`font-pretendard ${className || ""}`}
+			autoCapitalize="none"
+			{...rest}
+		/>
 	);
 };
