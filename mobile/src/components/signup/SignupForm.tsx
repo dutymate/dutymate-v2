@@ -63,7 +63,7 @@ export const SignupForm = ({ navigation }: SignupFormProps) => {
 
 	// 비밀번호 유효성 검사
 	const validatePassword = (password: string) =>
-		/^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(
+		/^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$#^!%*~?&])[A-Za-z\d@$#^!%*~?&]{8,}$/.test(
 			password,
 		);
 
@@ -74,48 +74,47 @@ export const SignupForm = ({ navigation }: SignupFormProps) => {
 		return `${mins}:${secs.toString().padStart(2, "0")}`;
 	};
 
-
 	// 비밀번호 변경 핸들러
 	const handlePasswordChange = (value: string) => {
-		setSignupData(prev => ({ ...prev, password: value }));
-		
-		let errorMessage = '';
+		setSignupData((prev) => ({ ...prev, password: value }));
+
+		let errorMessage = "";
 		if (!validatePassword(value.trim())) {
-			errorMessage = '8자 이상, 숫자 및 특수문자를 포함해야 합니다.';
+			errorMessage = "8자 이상, 숫자 및 특수문자를 포함해야 합니다.";
 		}
 		if (
 			signupData.passwordConfirm &&
 			value.trim() !== signupData.passwordConfirm.trim()
 		) {
-			setError(prev => ({
+			setError((prev) => ({
 				...prev,
-				passwordConfirm: '비밀번호가 일치하지 않습니다.',
+				passwordConfirm: "비밀번호가 일치하지 않습니다.",
 			}));
 		}
-		setError(prev => ({ ...prev, password: errorMessage }));
+		setError((prev) => ({ ...prev, password: errorMessage }));
 	};
 
 	// 비밀번호 확인 변경 핸들러
 	const handlePasswordConfirmChange = (value: string) => {
-		setSignupData(prev => ({ ...prev, passwordConfirm: value }));
-		
-		let errorMessage = '';
+		setSignupData((prev) => ({ ...prev, passwordConfirm: value }));
+
+		let errorMessage = "";
 		if (value.trim() !== signupData.password.trim()) {
-			errorMessage = '비밀번호가 일치하지 않습니다.';
+			errorMessage = "비밀번호가 일치하지 않습니다.";
 		}
-		setError(prev => ({ ...prev, passwordConfirm: errorMessage }));
+		setError((prev) => ({ ...prev, passwordConfirm: errorMessage }));
 	};
 
 	// 이름 변경 핸들러
 	const handleNameChange = (value: string) => {
-		setSignupData(prev => ({ ...prev, name: value }));
-		
-		let errorMessage = '';
+		setSignupData((prev) => ({ ...prev, name: value }));
+
+		let errorMessage = "";
 		const nameValidation = validateName(value.trim());
 		if (!nameValidation.isValid) {
 			errorMessage = nameValidation.message;
 		}
-		setError(prev => ({ ...prev, name: errorMessage }));
+		setError((prev) => ({ ...prev, name: errorMessage }));
 	};
 
 	// 회원가입 제출 핸들러
@@ -128,23 +127,23 @@ export const SignupForm = ({ navigation }: SignupFormProps) => {
 			!validatePassword(signupData.password.trim())
 		) {
 			newErrors.password = !signupData.password.trim()
-				? '비밀번호를 입력해주세요.'
-				: '비밀번호는 8자 이상, 숫자 및 특수문자를 포함해야 합니다.';
+				? "비밀번호를 입력해주세요."
+				: "비밀번호는 8자 이상, 숫자 및 특수문자를 포함해야 합니다.";
 			isValid = false;
 		}
-		
+
 		if (
 			!signupData.passwordConfirm.trim() ||
 			signupData.passwordConfirm.trim() !== signupData.password.trim()
 		) {
 			newErrors.passwordConfirm = !signupData.passwordConfirm.trim()
-				? '비밀번호 확인을 입력해주세요.'
-				: '비밀번호가 일치하지 않습니다.';
+				? "비밀번호 확인을 입력해주세요."
+				: "비밀번호가 일치하지 않습니다.";
 			isValid = false;
 		}
-		
+
 		if (!signupData.name.trim()) {
-			newErrors.name = '이름을 입력해 주세요.';
+			newErrors.name = "이름을 입력해 주세요.";
 			isValid = false;
 		} else {
 			const nameValidation = validateName(signupData.name.trim());
@@ -153,15 +152,15 @@ export const SignupForm = ({ navigation }: SignupFormProps) => {
 				isValid = false;
 			}
 		}
-		
+
 		if (!isChecked) {
 			Toast.show({
-				type: 'error',
-				text1: '개인정보 수집 및 이용에 동의해주세요.',
+				type: "error",
+				text1: "개인정보 수집 및 이용에 동의해주세요.",
 			});
 			return;
 		}
-		
+
 		if (!isValid) {
 			setError(newErrors);
 			return;
@@ -175,16 +174,16 @@ export const SignupForm = ({ navigation }: SignupFormProps) => {
 				passwordConfirm: signupData.passwordConfirm.trim(),
 				name: signupData.name.trim(),
 			});
-			
+
 			Toast.show({
-				type: 'success',
-				text1: '정상적으로 회원가입 되었습니다.',
+				type: "success",
+				text1: "정상적으로 회원가입 되었습니다.",
 			});
 			navigation.navigate("ExtraInfo");
 		} catch (error: any) {
 			Toast.show({
-				type: 'error',
-				text1: error.message || '회원가입 중 오류가 발생했습니다.',
+				type: "error",
+				text1: error.message || "회원가입 중 오류가 발생했습니다.",
 			});
 		}
 	};
@@ -193,8 +192,7 @@ export const SignupForm = ({ navigation }: SignupFormProps) => {
 	useEffect(() => {
 		if (timer === 0 && authCodeSent && !isVerified) {
 			resetVerification();
-			setEmail('');
-			
+			setEmail("");
 		}
 	}, [timer, authCodeSent, isVerified]);
 

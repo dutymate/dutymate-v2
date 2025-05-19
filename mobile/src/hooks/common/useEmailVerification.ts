@@ -83,7 +83,6 @@ export const useEmailVerification = (mode: "login" | "signup" | "reset") => {
 				setAuthCodeStatus("success");
 				setIsVerified(true);
 				setTimer(0);
-				
 			} else {
 				throw new Error();
 			}
@@ -91,7 +90,6 @@ export const useEmailVerification = (mode: "login" | "signup" | "reset") => {
 			setAuthCodeStatus("error");
 			setIsVerified(false);
 			setAuthCode("");
-			
 		}
 	};
 
