@@ -2,7 +2,7 @@ import { LoginResponse } from "@/types/user";
 import axiosInstance from "../axios";
 import * as SecureStore from "expo-secure-store";
 
-interface ProfileRequestDto {
+export interface ProfileRequestDto {
 	email: string;
 	nickname: string;
 	profileImageUrl: string;
@@ -35,8 +35,8 @@ export const authService = {
 
 	/**
 	 * 구글 로그인 API
-	 * @param code
-	 * @returns
+	 * @param data 구글 로그인 정보
+	 * @returns 로그인 응답 데이터
 	 */
 	googleLogin: async (data: ProfileRequestDto): Promise<LoginResponse> => {
 		try {

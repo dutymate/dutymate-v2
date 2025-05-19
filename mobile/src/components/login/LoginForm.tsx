@@ -1,6 +1,6 @@
 import { View } from "react-native";
 
-import { authService } from "@/api/services/authService";
+import { authService, ProfileRequestDto } from "@/api/services/authService";
 import { Button } from "@/components/common/Button";
 import { Input } from "@/components/common/Input";
 import { StyledText } from "@/components/common/StyledText";
@@ -25,11 +25,61 @@ interface LoginFormProps {
 export const LoginForm = ({ navigation }: LoginFormProps) => {
 	const { setUserInfo } = useUserAuthStore();
 
+	const handleSocialLogin = async (
+		provider: "kakao" | "google",
+		profileData: ProfileRequestDto,
+	) => {
+		try {
+			const loginResponse =
+				provider === "kakao"
+					? await authService.kakaoLogin(profileData)
+					: await authService.googleLogin(profileData);
+
+			setUserInfo({
+				...loginResponse,
+				provider,
+			});
+
+			// 초대 토큰이 있는지 확인
+			const inviteToken = await SecureStore.getItemAsync("inviteToken");
+			if (inviteToken) {
+				Toast.show({
+					type: "success",
+					text1: "정상적으로 로그인되었습니다.",
+				});
+				navigation.navigate("WebView", { inviteToken });
+				await SecureStore.deleteItemAsync("inviteToken");
+				return;
+			}
+
+			// 로그인 후 이동 로직
+			const { role, existAdditionalInfo, existMyWard } = loginResponse;
+
+			if (!existAdditionalInfo) {
+				navigation.navigate("ExtraInfo");
+			} else if (!existMyWard) {
+				navigation.navigate(role === "HN" ? "CreateWard" : "WebView", {
+					path: "/my-shift",
+				});
+			} else {
+				navigation.navigate("WebView", {
+					path: role === "HN" ? "/shift-admin" : "/my-shift",
+				});
+			}
+		} catch (error: any) {
+			console.error(`${provider} login error:`, error);
+			Toast.show({
+				type: "error",
+				text1: error.message,
+				text2: "다시 시도해주세요.",
+			});
+		}
+	};
+
 	const handleKakaoLogin = async () => {
 		try {
 			// 카카오 로그인 시도
 			const token = await login();
-
 			// 토큰이 없는 경우 에러 처리
 			if (!token) {
 				throw new Error("카카오 로그인에 실패했습니다.");
@@ -37,7 +87,6 @@ export const LoginForm = ({ navigation }: LoginFormProps) => {
 
 			// 사용자 프로필 정보 가져오기
 			const profile = await me();
-
 			// 프로필 정보가 없는 경우 에러 처리
 			if (!profile) {
 				throw new Error("사용자 정보를 가져오는데 실패했습니다.");
@@ -49,59 +98,7 @@ export const LoginForm = ({ navigation }: LoginFormProps) => {
 				profileImageUrl: profile?.profileImageUrl,
 			};
 
-			// authService를 통해 백엔드로 코드 전송
-			const loginResponse = await authService.kakaoLogin(profileData);
-
-			// 로그인 정보를 Zustand 스토어에 저장
-			setUserInfo({
-				...loginResponse,
-				provider: "kakao",
-			});
-
-			// 초대 토큰이 있는지 확인
-			const inviteToken = await SecureStore.getItemAsync("inviteToken");
-			if (inviteToken) {
-				Toast.show({
-					type: "success",
-					text1: "정상적으로 로그인되었습니다.",
-				});
-				// 현재 Invite 화면이 없으므로 WebView로 대체
-				// TODO: Invite 화면 구현 후 수정
-				navigation.navigate("WebView", { inviteToken });
-				await SecureStore.deleteItemAsync("inviteToken");
-				return;
-			}
-
-			// 로그인 후 이동 로직 (frontend/KakaoRedirect.tsx와 동일)
-			const { role, existAdditionalInfo, existMyWard } = loginResponse;
-			// console.log('Login Response:', loginResponse);
-			// console.log('Role:', role);
-			// console.log('Exist Additional Info:', existAdditionalInfo);
-			// console.log('Exist My Ward:', existMyWard);
-
-			// 추가 정보가 없는 경우
-			if (!existAdditionalInfo) {
-				navigation.navigate("ExtraInfo");
-			}
-			// 소속 병동이 없는 경우
-			else if (!existMyWard) {
-				if (role === "HN") {
-					navigation.navigate("CreateWard");
-				} else {
-					// TODO: MyShift 화면 구현 후 수정
-					navigation.navigate("WebView", { path: "/my-shift" });
-				}
-			}
-			// 모든 정보가 있는 경우
-			else {
-				if (role === "HN") {
-					// TODO: ShiftAdmin 화면 구현 후 수정
-					navigation.navigate("WebView", { path: "/shift-admin" });
-				} else {
-					// TODO: MyShift 화면 구현 후 수정
-					navigation.navigate("WebView", { path: "/my-shift" });
-				}
-			}
+			await handleSocialLogin("kakao", profileData);
 		} catch (error: any) {
 			console.error("Kakao login error:", error);
 			Toast.show({
@@ -117,7 +114,6 @@ export const LoginForm = ({ navigation }: LoginFormProps) => {
 		try {
 			await GoogleSignin.hasPlayServices();
 			const userInfo = await GoogleSignin.signIn();
-			console.log(userInfo);
 
 			// 프로필 정보가 없는 경우 에러 처리
 			if (!userInfo) {
@@ -130,17 +126,14 @@ export const LoginForm = ({ navigation }: LoginFormProps) => {
 				profileImageUrl: userInfo.data?.user.photo || "",
 			};
 
-			// authService를 통해 백엔드로 코드 전송
-			const loginResponse = await authService.googleLogin(profileData);
-			console.log(loginResponse);
-
-			// 로그인 정보를 Zustand 스토어에 저장
-			setUserInfo({
-				...loginResponse,
-				provider: "google",
-			});
+			await handleSocialLogin("google", profileData);
 		} catch (error: any) {
-			console.log(error);
+			console.error("Google login error:", error);
+			Toast.show({
+				type: "error",
+				text1: error.message,
+				text2: "다시 시도해주세요.",
+			});
 		}
 	};
 
