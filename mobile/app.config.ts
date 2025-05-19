@@ -12,11 +12,6 @@ export default ({config}: ConfigContext): ExpoConfig => {
         icon: "./assets/images/icon.png",
         userInterfaceStyle: "light",
         newArchEnabled: true,
-        splash: {
-            image: "./assets/images/splash-icon.png",
-            resizeMode: "contain",
-            backgroundColor: "#ffffff"
-        },
         ios: {
             supportsTablet: true,
             bundleIdentifier: "net.dutymate.app",
@@ -58,6 +53,14 @@ export default ({config}: ConfigContext): ExpoConfig => {
                             "https://devrepo.kakao.com/nexus/content/groups/public/"
                         ]
                     }
+                }
+            ],
+            [
+                "expo-splash-screen",
+                {
+                    backgroundColor: "#ffffff",
+                    image: "./assets/images/splash-icon.png",
+                    imageWidth: 400
                 }
             ],
             [
