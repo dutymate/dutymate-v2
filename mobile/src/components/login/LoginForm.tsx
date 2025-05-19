@@ -26,8 +26,21 @@ export const LoginForm = ({ navigation }: LoginFormProps) => {
 
 	const handleKakaoLogin = async () => {
 		try {
-			// 카카오 SDK 로그인
+			// 카카오 로그인 시도
+			const token = await login();
+
+			// 토큰이 없는 경우 에러 처리
+			if (!token) {
+				throw new Error("카카오 로그인에 실패했습니다.");
+			}
+
+			// 사용자 프로필 정보 가져오기
 			const profile = await me();
+
+			// 프로필 정보가 없는 경우 에러 처리
+			if (!profile) {
+				throw new Error("사용자 정보를 가져오는데 실패했습니다.");
+			}
 
 			const profileData = {
 				email: profile.email,
@@ -88,11 +101,11 @@ export const LoginForm = ({ navigation }: LoginFormProps) => {
 					navigation.navigate("WebView", { path: "/my-shift" });
 				}
 			}
-		} catch (error) {
+		} catch (error: any) {
 			console.error("Kakao login error:", error);
 			Toast.show({
 				type: "error",
-				text1: "로그인에 실패했습니다.",
+				text1: error.message,
 				text2: "다시 시도해주세요.",
 			});
 		}
