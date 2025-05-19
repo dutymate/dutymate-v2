@@ -3,21 +3,15 @@
   "version": "1.0.0",
   "main": "src/index.ts",
   "scripts": {
-    "start": "expo start",
-    "android:dev": "APP_ENV=development expo start --android",
-    "android:prod": "APP_ENV=production expo start --android",
-    "ios:dev": "APP_ENV=development expo start --ios",
-    "ios:prod": "APP_ENV=production expo start --ios",
-    "web:dev": "APP_ENV=development expo start --web",
-    "web:prod": "APP_ENV=production expo start --web",
+    "android:dev": "APP_ENV=development expo run:android",
+    "android:prod": "APP_ENV=production expo run:android",
+    "ios:dev": "APP_ENV=development expo run:ios",
+    "ios:prod": "APP_ENV=production expo run:ios",
+    "prebuild:dev": "APP_ENV=development expo prebuild",
+    "prebuild:prod": "APP_ENV=production expo prebuild",
     "lint": "biome lint ./src",
     "format": "biome format ./src",
-    "format:fix": "biome format --write ./src",
-    "prebuild": "expo prebuild",
-    "ios:build": "npx expo run:ios",
-    "android:build": "npx expo run:android",
-    "android": "expo run:android",
-    "ios": "expo run:ios"
+    "format:fix": "biome format --write ./src"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "1.23.1",
