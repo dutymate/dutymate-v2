@@ -297,6 +297,27 @@ const MyShiftCalendar = ({
     }
   };
 
+  // 모바일에서 selectedDate가 변경될 때마다 해당 날짜 셀로 자동 스크롤
+  useEffect(() => {
+    if (isMobile && externalSelectedDate && isWorkInputMode) {
+      // 현재 보이는 날짜들 중에서 선택된 날짜 찾기
+      const dateKey = `${externalSelectedDate.getFullYear()}-${String(externalSelectedDate.getMonth() + 1).padStart(2, '0')}-${String(externalSelectedDate.getDate()).padStart(2, '0')}`;
+
+      // 모든 날짜 셀 중에서 해당 날짜 찾기
+      const idx = cellRefs.current.findIndex(
+        (ref) => ref?.getAttribute('data-date') === dateKey
+      );
+
+      if (idx !== -1 && cellRefs.current[idx]) {
+        // 찾은 셀을 중앙에 오도록 스크롤
+        cellRefs.current[idx]?.scrollIntoView({
+          block: 'center',
+          behavior: 'smooth',
+        });
+      }
+    }
+  }, [externalSelectedDate, isMobile, isWorkInputMode]);
+
   return (
     <div
       className={`bg-white ${isMobile ? '' : 'rounded-[0.92375rem]'} h-full ${isMobile ? 'pt-4' : 'pt-4 px-0'} ${isMobile ? 'overflow-visible' : 'overflow-hidden'} w-full`}

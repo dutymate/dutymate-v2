@@ -269,7 +269,11 @@ const WorkCRUDModal = ({
       // 다음 날짜로 이동 - 모바일, 웹 동일하게 적용 (동일한 근무를 눌러도 다음 날짜로 이동)
       const nextDate = new Date(selectedDate);
       nextDate.setDate(selectedDate.getDate() + 1);
-      setSelectedDate(nextDate);
+
+      // 약간의 지연 후 다음 날짜로 이동 (모바일에서 스크롤 처리가 제대로 작동하도록)
+      setTimeout(() => {
+        setSelectedDate(nextDate);
+      }, 50);
     } catch (error) {
       toast.error('근무 입력에 실패했습니다.');
     }
@@ -310,7 +314,11 @@ const WorkCRUDModal = ({
       // 다음 날짜로 이동
       const nextDate = new Date(selectedDate);
       nextDate.setDate(selectedDate.getDate() + 1);
-      setSelectedDate(nextDate);
+
+      // 약간의 지연 후 다음 날짜로 이동 (모바일에서 스크롤 처리가 제대로 작동하도록)
+      setTimeout(() => {
+        setSelectedDate(nextDate);
+      }, 50);
     } catch (error) {
       toast.error('근무 삭제에 실패했습니다.');
     }
@@ -387,7 +395,7 @@ const WorkCRUDModal = ({
             // 모바일 레이아웃
             <>
               <div className="flex flex-row justify-center gap-2 mb-2 w-full">
-                {(['day', 'off'] as const).map((type) => (
+                {(['day', 'off', 'evening'] as const).map((type) => (
                   <button
                     key={type}
                     type="button"
@@ -411,8 +419,8 @@ const WorkCRUDModal = ({
                   </button>
                 ))}
               </div>
-              <div className="flex flex-row justify-center gap-2 w-full">
-                {(['evening', 'night', 'mid'] as const).map((type) => (
+              <div className="flex flex-row justify-center gap-2 mb-2 w-full">
+                {(['night', 'mid'] as const).map((type) => (
                   <button
                     key={type}
                     type="button"
@@ -435,9 +443,7 @@ const WorkCRUDModal = ({
                     />
                   </button>
                 ))}
-              </div>
-              {/* 모바일에 "없음" 뱃지 추가 */}
-              <div className="flex flex-row justify-center gap-2 mt-2 w-full">
+                {/* 없음 뱃지 */}
                 <button
                   key="empty"
                   type="button"
