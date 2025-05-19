@@ -20,6 +20,7 @@ public class WardScheduleResponseDto {
 	private Integer year;
 	private Integer month;
 	private Integer invalidCnt;
+	private Integer shiftFlags;
 
 	private List<NurseShifts> duty;
 	private List<Issue> issues;

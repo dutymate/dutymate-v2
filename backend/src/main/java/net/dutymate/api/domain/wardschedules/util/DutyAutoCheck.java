@@ -11,6 +11,7 @@ import java.util.stream.IntStream;
 import net.dutymate.api.domain.autoschedule.Shift;
 import net.dutymate.api.domain.rule.Rule;
 import net.dutymate.api.domain.rule.dto.RuleResponseDto;
+import net.dutymate.api.domain.wardmember.ShiftType;
 import net.dutymate.api.domain.wardschedules.dto.WardScheduleResponseDto;
 
 public class DutyAutoCheck {
@@ -25,7 +26,8 @@ public class DutyAutoCheck {
 		RuleResponseDto rule = RuleResponseDto.of(wardRule);
 
 		for (WardScheduleResponseDto.NurseShifts ns : nurseShiftsDto) {
-			List<WardScheduleResponseDto.Issue> personalIssues = checkPersonalDuty(ns, rule);
+			int shiftFlags = ns.getShiftFlags();
+			List<WardScheduleResponseDto.Issue> personalIssues = checkPersonalDuty(ns, rule, shiftFlags);
 			if (!personalIssues.isEmpty()) {
 				issues.addAll(personalIssues);
 			}
@@ -35,17 +37,19 @@ public class DutyAutoCheck {
 	}
 
 	private static List<WardScheduleResponseDto.Issue> checkPersonalDuty(WardScheduleResponseDto.NurseShifts ns,
-		RuleResponseDto rule) {
+		RuleResponseDto rule, int shiftFlags) {
 
 		List<WardScheduleResponseDto.Issue> result = new ArrayList<>();
 		String shifts = ns.getPrevShifts().concat(ns.getShifts());
 		String name = ns.getName();
-		int prevShfitsDay = ns.getPrevShifts().length();
+		int prevShiftsDay = ns.getPrevShifts().length();
 		Long memberId = ns.getMemberId();
 
-		nightIssuesGenerator(memberId, name, prevShfitsDay, shifts, rule, result);
-		maxShiftsIssuesGenerator(memberId, name, prevShfitsDay, shifts, rule, result);
-		specificPatternIssuesGenerator(memberId, name, prevShfitsDay, shifts, result);
+		nightIssuesGenerator(memberId, name, prevShiftsDay, shifts, rule, result);
+		if (shiftFlags != ShiftType.M.getFlag()) {
+			maxShiftsIssuesGenerator(memberId, name, prevShiftsDay, shifts, rule, result);
+		}
+		specificPatternIssuesGenerator(memberId, name, prevShiftsDay, shifts, result);
 		return result;
 	}
 
