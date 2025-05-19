@@ -79,7 +79,7 @@ public class HolidayService {
 			.append(URLEncoder.encode("_type", "UTF-8"))
 			.append("=")
 			.append(URLEncoder.encode("json", "UTF-8"));
-
+		urlBuilder.append("&_type=json");
 		// API 호출
 		URL url = new URL(urlBuilder.toString());
 		HttpURLConnection conn = (HttpURLConnection)url.openConnection();
