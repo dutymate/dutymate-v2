@@ -53,14 +53,15 @@ export const useUserAuthStore = create<UserAuthState>()(
 				});
 			},
 
-			logout: () => {
+			logout: async () => {
 				set({
 					isAuthenticated: false,
 					userInfo: null,
 					additionalInfo: null,
 					timeLeft: 0,
 				});
-				SecureStore.deleteItemAsync("auth-token");
+				await SecureStore.deleteItemAsync("auth-token");
+				await SecureStore.deleteItemAsync("user-info");
 			},
 
 			setProfileImg: (profileImgUrl: string | null) => {

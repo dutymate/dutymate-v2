@@ -14,6 +14,7 @@ import useUserAuthStore from '@/stores/userAuthStore';
 import Title from '@/components/atoms/Title';
 import { requestService, WardRequest } from '@/services/requestService';
 import { useRequestCountStore } from '@/stores/requestCountStore';
+import { navigateToLanding } from '@/utils/navigation';
 
 const DutyManagement = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -36,7 +37,7 @@ const DutyManagement = () => {
         () => {
           alert('체험 시간이 종료되었습니다. 다시 로그인해주세요.');
           useUserAuthStore.getState().logout();
-          window.location.href = '/';
+          navigateToLanding();
         },
         60 * 60 * 1000
       );

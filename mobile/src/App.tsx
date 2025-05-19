@@ -113,9 +113,9 @@ export default function App() {
 	 */
 	useEffect(() => {
 		const checkToken = async () => {
-			// checkToken 함수 시작 부분에 추가
-			await SecureStore.deleteItemAsync("auth-token");
-			await SecureStore.deleteItemAsync("user-info");
+			// 로그아웃 상태 확인을 위해 주석 처리
+			// await SecureStore.deleteItemAsync("auth-token");
+			// await SecureStore.deleteItemAsync("user-info");
 
 			try {
 				const token = await SecureStore.getItemAsync("auth-token");
@@ -134,9 +134,8 @@ export default function App() {
 				}
 			} catch (error) {
 				console.error("자동 로그인 확인 중 오류 발생:", error);
-				// 오류 발생 시 토큰 삭제
-				await SecureStore.deleteItemAsync("auth-token");
-				await SecureStore.deleteItemAsync("user-info");
+				// 오류 발생 시 토큰 삭제 및 로그아웃
+				await useUserAuthStore.getState().logout();
 			}
 		};
 

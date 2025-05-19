@@ -15,6 +15,7 @@ import { SEO } from '@/components/SEO';
 import { ApiErrorResponse, profileService } from '@/services/profileService';
 import useUserAuthStore from '@/stores/userAuthStore';
 import userService from '@/services/userService';
+import { navigateToLanding } from '@/utils/navigation';
 
 const Mypage = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -52,7 +53,7 @@ const Mypage = () => {
         () => {
           userAuthStore.logout();
           toast.success('로그아웃되었습니다.');
-          navigate('/login');
+          navigateToLanding();
         },
         (error: ApiErrorResponse) => {
           if (error instanceof Error) {

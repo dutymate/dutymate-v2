@@ -58,7 +58,17 @@ axiosInstance.interceptors.response.use(
       case 401: // 인증 에러
         // 토큰이 만료되었거나 유효하지 않은 경우
         sessionStorage.removeItem('token');
-        window.location.href = '/login';
+
+        // 모바일 앱 환경인 경우 네이티브 로그인 화면으로 이동
+        if (window.isMobileApp) {
+          window.mobileApp?.postMessage({
+            type: 'NAVIGATION',
+            path: 'Login',
+          });
+        } else {
+          // 웹 환경에서는 기존대로 로그인 페이지로 이동
+          window.location.href = '/login';
+        }
         break;
 
       case 403: // 권한 에러

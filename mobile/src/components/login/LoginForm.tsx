@@ -124,14 +124,34 @@ export const LoginForm = ({ navigation }: LoginFormProps) => {
 
 	const handleGoogleLogin = async () => {
 		try {
+			console.log("Google login started");
 			// 구글 로그인 시도
 			await GoogleSignin.hasPlayServices();
-			const userInfo = await GoogleSignin.signIn();
+			console.log("Google Play Services available");
 
-			// 프로필 정보가 없는 경우 에러 처리
-			if (!userInfo) {
-				throw new Error("사용자 정보를 가져오는데 실패했습니다.");
+			const userInfo = await GoogleSignin.signIn();
+			console.log("Google Sign In completed");
+
+			// 디버깅을 위한 로그
+			console.log("Google userInfo:", JSON.stringify(userInfo, null, 2));
+			console.log("userInfo structure:", Object.keys(userInfo));
+
+			// 로그인이 취소된 경우
+			if (userInfo.type === "cancelled") {
+				console.log("Google login was cancelled by user");
+				throw new Error("구글 로그인이 취소되었습니다.");
 			}
+
+			// 구글 사용자 정보가 없는 경우
+			if (!userInfo.data?.user) {
+				console.log("Google user info not available");
+				throw new Error("구글 계정 정보를 가져올 수 없습니다.");
+			}
+
+			// 사용자 정보 로깅
+			console.log("User email:", userInfo.data?.user.email);
+			console.log("User name:", userInfo.data?.user.name);
+			console.log("User photo:", userInfo.data?.user.photo);
 
 			// 구글 로그인 응답에서 사용자 정보 가져오기
 			const profileData = {
@@ -140,8 +160,22 @@ export const LoginForm = ({ navigation }: LoginFormProps) => {
 				profileImageUrl: userInfo.data?.user.photo || "",
 			};
 
+			// 필수 정보가 없는 경우 오류 처리
+			if (!profileData.email) {
+				console.log("No email was provided from Google login");
+				throw new Error("구글 계정에서 이메일을 가져올 수 없습니다.");
+			}
+
+			console.log("Google profileData:", JSON.stringify(profileData, null, 2));
+
 			// authService를 통해 백엔드로 데이터 전송
+			console.log("Calling authService.googleLogin");
 			const loginResponse = await authService.googleLogin(profileData);
+
+			console.log(
+				"Google loginResponse:",
+				JSON.stringify(loginResponse, null, 2),
+			);
 
 			// 공통 로그인 성공 처리 함수 호출
 			await handleLoginSuccess(loginResponse, "google");

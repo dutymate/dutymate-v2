@@ -139,7 +139,17 @@ export const WebViewScreen = ({ navigation }: WebViewScreenProps) => {
 				case "NAVIGATION":
 					// 네비게이션 요청 처리
 					if (data.path) {
-						navigation.navigate(data.path);
+						// 로그아웃 시 랜딩 페이지로 이동 처리
+						if (data.path === "Landing") {
+							// 자격 증명 정보 삭제
+							SecureStore.deleteItemAsync("auth-token");
+							SecureStore.deleteItemAsync("user-info");
+
+							// 랜딩 화면으로 이동
+							navigation.navigate("Landing");
+						} else {
+							navigation.navigate(data.path);
+						}
 					}
 					break;
 
