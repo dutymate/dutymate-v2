@@ -1,19 +1,22 @@
-import { useUserAuthStore } from "@/store/userAuthStore";
-import { initializeKakaoSDK } from "@react-native-kakao/core";
-import {
-	createNavigationContainerRef,
-	NavigationContainer,
-} from "@react-navigation/native";
-import { createStackNavigator } from "@react-navigation/stack";
+import Constants from "expo-constants";
 import { useFonts } from "expo-font";
 import * as SecureStore from "expo-secure-store";
 import { StatusBar } from "expo-status-bar";
+
 import React, { useEffect } from "react";
 import { BackHandler } from "react-native";
 import {
 	configureReanimatedLogger,
 	ReanimatedLogLevel,
 } from "react-native-reanimated";
+import Toast from "react-native-toast-message";
+import { initializeKakaoSDK } from "@react-native-kakao/core";
+import { GoogleSignin } from "@react-native-google-signin/google-signin";
+import {
+	createNavigationContainerRef,
+	NavigationContainer,
+} from "@react-navigation/native";
+import { createStackNavigator } from "@react-navigation/stack";
 
 import { CreateWardScreen } from "@/screens/CreateWardScreen";
 import { ErrorScreen } from "@/screens/ErrorScreen";
@@ -23,8 +26,7 @@ import { LoginScreen } from "@/screens/LoginScreen";
 import { PasswordResetScreen } from "@/screens/PasswordResetScreen";
 import { SignupScreen } from "@/screens/SignupScreen";
 import { WebViewScreen } from "@/screens/WebViewScreen";
-import Toast from "react-native-toast-message";
-import { GoogleSignin } from "@react-native-google-signin/google-signin";
+import { useUserAuthStore } from "@/store/userAuthStore";
 import { navigateBasedOnUserRole } from "@/utils/navigation";
 
 // 네비게이션 타입 정의
@@ -65,7 +67,7 @@ export default function App() {
 	/**
 	 * 카카오 네이티브 앱 키 초기화
 	 */
-	const kakaoNativeAppKey = process.env.EXPO_PUBLIC_KAKAO_NATIVE_APP_KEY;
+	const kakaoNativeAppKey = Constants.expoConfig?.extra?.kakaoNativeAppKey;
 
 	useEffect(() => {
 		initializeKakaoSDK(kakaoNativeAppKey);
@@ -74,8 +76,8 @@ export default function App() {
 	/**
 	 * 구글 로그인 초기화
 	 */
-	const googleIosClientId = process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID;
-	const googleAndroidClientId = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID;
+	const googleIosClientId = Constants.expoConfig?.extra?.googleIosClientId;
+	const googleAndroidClientId = Constants.expoConfig?.extra?.googleWebClientId;
 
 	useEffect(() => {
 		GoogleSignin.configure({

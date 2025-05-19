@@ -40,7 +40,10 @@ export default ({config}: ConfigContext): ExpoConfig => {
                     ? process.env.EXPO_PUBLIC_PROD_API_URL
                     : process.env.EXPO_PUBLIC_DEV_API_URL,
             tutorialUrl: process.env.EXPO_PUBLIC_TUTORIAL_URL,
-            youtubeUrl: process.env.EXPO_PUBLIC_YOUTUBE_URL
+            youtubeUrl: process.env.EXPO_PUBLIC_YOUTUBE_URL,
+            kakaoNativeAppKey: process.env.EXPO_PUBLIC_KAKAO_NATIVE_APP_KEY,
+            googleIosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
+            googleWebClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
         },
         plugins: [
             [
