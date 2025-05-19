@@ -1,11 +1,17 @@
 import { useState } from "react";
 import { View } from "react-native";
+import * as SecureStore from "expo-secure-store";
+import Toast from "react-native-toast-message";
 
 import { Button } from "@/components/common/Button";
 import { DropdownComponent } from "@/components/common/Dropdown";
 import { StyledText } from "@/components/common/StyledText";
 import { ToggleButton } from "@/components/extraInfo/ToggleButton";
 import { RoleCard } from "@/components/extraInfo/RoleCard";
+import { userService } from "@/api/services/userService";
+import { useUserAuthStore } from "@/store/userAuthStore";
+import { AdditionalInfo, UserInfo } from "@/types/user";
+import { navigateBasedOnUserRole } from "@/utils/navigation";
 
 /**
  * ExtraInfoFormProps는 ExtraInfoForm 컴포넌트의 props 타입을 정의합니다.
@@ -50,32 +56,103 @@ const roleOptions = [
  */
 export const ExtraInfoForm = ({ navigation }: ExtraInfoFormProps) => {
 	const [formState, setFormState] = useState<FormData>({
-		grade: 0,
+		grade: 1,
 		gender: "F",
 		role: "RN",
 	});
+	const { setAdditionalInfo, userInfo, setUserInfo } = useUserAuthStore();
 
-	// TODO: careerError를 설정하는 로직 추가
-	// const [careerError, setCareerError] = useState<string>("");
-	const [isLoading] = useState(false);
+	// 폼 에러와 로딩 상태
+	const [careerError, setCareerError] = useState<string>("");
+	const [isLoading, setIsLoading] = useState(false);
 
 	const handleCareerChange = (value: string) => {
-		const gradeValue = parseInt(value);
-		setFormState((prev) => ({ ...prev, grade: gradeValue }));
-		// setCareerError("");
+		const gradeValue = value ? parseInt(value, 10) : 0;
+		const safeGradeValue = isNaN(gradeValue) ? 1 : gradeValue;
+
+		setFormState((prev) => ({ ...prev, grade: safeGradeValue }));
+		setCareerError("");
 	};
 
 	const handleGenderChange = (index: number) => {
 		setFormState((prev) => ({ ...prev, gender: index === 0 ? "F" : "M" }));
 	};
 
-	const handleSubmit = () => {
-		// TODO: careerError를 설정하는 로직 추가
-		// if (formState.grade <= 0) {
-		// 	setCareerError("연차를 선택해주세요.");
-		// 	return;
-		// }
-		navigation.navigate("CreateWard");
+	const handleSubmit = async () => {
+		if (!formState.grade || isNaN(formState.grade) || formState.grade <= 0) {
+			setCareerError("연차를 선택해주세요.");
+			Toast.show({
+				type: "error",
+				text1: "연차를 선택해주세요.",
+			});
+			return;
+		}
+
+		try {
+			setIsLoading(true);
+
+			const apiData: AdditionalInfo = {
+				grade: Math.max(1, formState.grade),
+				gender: formState.gender,
+				role: formState.role,
+			};
+
+			const response = await userService.submitAdditionalInfo(apiData);
+
+			if (!response || !response.role) {
+				throw new Error("응답에서 역할 정보를 찾을 수 없습니다.");
+			}
+
+			setAdditionalInfo({
+				grade: apiData.grade,
+				gender: apiData.gender,
+				role: apiData.role,
+			});
+
+			Toast.show({
+				type: "success",
+				text1: "회원 정보 입력이 완료되었습니다.",
+			});
+
+			if (userInfo) {
+				const updatedUserInfo: UserInfo = {
+					...userInfo,
+					role: response.role,
+					existAdditionalInfo: true,
+				};
+
+				setUserInfo(updatedUserInfo);
+
+				try {
+					await SecureStore.setItemAsync(
+						"user-info",
+						JSON.stringify(updatedUserInfo),
+					);
+				} catch (storageError) {
+					console.error("SecureStore 저장 실패:", storageError);
+				}
+
+				setTimeout(() => {
+					navigateBasedOnUserRole(navigation, updatedUserInfo);
+				}, 800);
+			} else {
+				Toast.show({
+					type: "error",
+					text1: "사용자 정보를 찾을 수 없습니다.",
+					text2: "다시 로그인해주세요.",
+				});
+				navigation.navigate("Login");
+			}
+		} catch (error) {
+			console.error("부가 정보 제출 중 에러 발생:", error);
+			Toast.show({
+				type: "error",
+				text1: "부가 정보 저장에 실패했습니다.",
+				text2: "다시 시도해주세요.",
+			});
+		} finally {
+			setIsLoading(false);
+		}
 	};
 
 	return (
@@ -88,9 +165,18 @@ export const ExtraInfoForm = ({ navigation }: ExtraInfoFormProps) => {
 				<DropdownComponent
 					placeholder={"연차를 선택해주세요."}
 					data={careerOptions}
-					value={formState.grade > 0 ? String(formState.grade) : null}
+					value={
+						formState.grade && formState.grade > 0 && !isNaN(formState.grade)
+							? String(formState.grade)
+							: null
+					}
 					onChange={handleCareerChange}
 				/>
+				{careerError ? (
+					<StyledText className="text-red-500 text-sm mt-1">
+						{careerError}
+					</StyledText>
+				) : null}
 			</View>
 
 			{/* 성별 선택 */}

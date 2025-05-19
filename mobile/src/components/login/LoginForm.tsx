@@ -1,15 +1,19 @@
 import { View } from "react-native";
+import { useState } from "react";
 
-import { authService, ProfileRequestDto } from "@/api/services/authService";
+import { authService } from "@/api/services/authService";
 import { Button } from "@/components/common/Button";
 import { Input } from "@/components/common/Input";
 import { StyledText } from "@/components/common/StyledText";
 import { SocialLoginButton } from "@/components/login/SocialLoginButton";
 import { useUserAuthStore } from "@/store/userAuthStore";
+import { navigateBasedOnUserRole } from "@/utils/navigation";
 import { login, me } from "@react-native-kakao/user";
 import * as SecureStore from "expo-secure-store";
 import Toast from "react-native-toast-message";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
+import { LoginResponse } from "@/types/user";
+
 /**
  * LoginFormProps는 LoginScreen의 props 타입을 정의합니다.
  * navigation은 React Navigation의 navigation 객체입니다.
@@ -24,20 +28,22 @@ interface LoginFormProps {
  */
 export const LoginForm = ({ navigation }: LoginFormProps) => {
 	const { setUserInfo } = useUserAuthStore();
+	const [loginData, setLoginData] = useState({
+		email: "",
+		password: "",
+	});
+	const [error, setError] = useState<{ email?: string; password?: string }>({});
 
-	const handleSocialLogin = async (
-		provider: "kakao" | "google",
-		profileData: ProfileRequestDto,
+	// 로그인 성공 후 공통 처리 함수
+	const handleLoginSuccess = async (
+		loginResponse: LoginResponse,
+		provider?: string,
 	) => {
 		try {
-			const loginResponse =
-				provider === "kakao"
-					? await authService.kakaoLogin(profileData)
-					: await authService.googleLogin(profileData);
-
+			// 로그인 정보를 Zustand 스토어에 저장
 			setUserInfo({
 				...loginResponse,
-				provider,
+				...(provider && { provider }),
 			});
 
 			// 초대 토큰이 있는지 확인
@@ -52,34 +58,36 @@ export const LoginForm = ({ navigation }: LoginFormProps) => {
 				return;
 			}
 
-			// 로그인 후 이동 로직
-			const { role, existAdditionalInfo, existMyWard } = loginResponse;
-
-			if (!existAdditionalInfo) {
-				navigation.navigate("ExtraInfo");
-			} else if (!existMyWard) {
-				navigation.navigate(role === "HN" ? "CreateWard" : "WebView", {
-					path: "/my-shift",
-				});
-			} else {
-				navigation.navigate("WebView", {
-					path: role === "HN" ? "/shift-admin" : "/my-shift",
-				});
-			}
+			// 공통 네비게이션 로직 사용
+			navigateBasedOnUserRole(navigation, loginResponse);
 		} catch (error: any) {
-			console.error(`${provider} login error:`, error);
+			console.error("Login handling error:", error);
 			Toast.show({
 				type: "error",
-				text1: error.message,
+				text1: error.message || "로그인 처리 중 오류가 발생했습니다.",
 				text2: "다시 시도해주세요.",
 			});
 		}
+	};
+
+	const handleLoginChange = (name: string, value: string) => {
+		setLoginData((prev) => ({
+			...prev,
+			[name]: value,
+		}));
+
+		// 입력 변경 시, 에러 메세지 초기화
+		setError((prev) => ({
+			...prev,
+			[name]: "",
+		}));
 	};
 
 	const handleKakaoLogin = async () => {
 		try {
 			// 카카오 로그인 시도
 			const token = await login();
+
 			// 토큰이 없는 경우 에러 처리
 			if (!token) {
 				throw new Error("카카오 로그인에 실패했습니다.");
@@ -87,31 +95,36 @@ export const LoginForm = ({ navigation }: LoginFormProps) => {
 
 			// 사용자 프로필 정보 가져오기
 			const profile = await me();
+
 			// 프로필 정보가 없는 경우 에러 처리
 			if (!profile) {
 				throw new Error("사용자 정보를 가져오는데 실패했습니다.");
 			}
 
 			const profileData = {
-				email: profile?.email,
-				nickname: profile?.nickname,
-				profileImageUrl: profile?.profileImageUrl,
+				email: profile.email,
+				nickname: profile.nickname,
+				profileImageUrl: profile.profileImageUrl,
 			};
 
-			await handleSocialLogin("kakao", profileData);
+			// authService를 통해 백엔드로 코드 전송
+			const loginResponse = await authService.kakaoLogin(profileData);
+
+			// 공통 로그인 성공 처리 함수 호출
+			await handleLoginSuccess(loginResponse, "kakao");
 		} catch (error: any) {
 			console.error("Kakao login error:", error);
 			Toast.show({
 				type: "error",
-				text1: error.message,
+				text1: error.message || "카카오 로그인에 실패했습니다.",
 				text2: "다시 시도해주세요.",
 			});
 		}
 	};
 
 	const handleGoogleLogin = async () => {
-		// 구글 로그인 로직도 비슷하게 구현
 		try {
+			// 구글 로그인 시도
 			await GoogleSignin.hasPlayServices();
 			const userInfo = await GoogleSignin.signIn();
 
@@ -120,18 +133,23 @@ export const LoginForm = ({ navigation }: LoginFormProps) => {
 				throw new Error("사용자 정보를 가져오는데 실패했습니다.");
 			}
 
+			// 구글 로그인 응답에서 사용자 정보 가져오기
 			const profileData = {
 				email: userInfo.data?.user.email || "",
 				nickname: userInfo.data?.user.name || "",
 				profileImageUrl: userInfo.data?.user.photo || "",
 			};
 
-			await handleSocialLogin("google", profileData);
+			// authService를 통해 백엔드로 데이터 전송
+			const loginResponse = await authService.googleLogin(profileData);
+
+			// 공통 로그인 성공 처리 함수 호출
+			await handleLoginSuccess(loginResponse, "google");
 		} catch (error: any) {
 			console.error("Google login error:", error);
 			Toast.show({
 				type: "error",
-				text1: error.message,
+				text1: error.message || "구글 로그인에 실패했습니다.",
 				text2: "다시 시도해주세요.",
 			});
 		}
@@ -144,18 +162,20 @@ export const LoginForm = ({ navigation }: LoginFormProps) => {
 					<Input
 						label={"이메일"}
 						placeholder={"이메일"}
-						value={""}
-						onChangeText={() => {}}
+						value={loginData.email}
+						onChangeText={(text) => handleLoginChange("email", text)}
 						keyboardType={"email-address"}
+						error={error.email}
 					/>
 				</View>
 				<View className={"mb-[1.5rem]"}>
 					<Input
 						label={"비밀번호"}
 						placeholder={"비밀번호"}
-						value={""}
-						onChangeText={() => {}}
+						value={loginData.password}
+						onChangeText={(text) => handleLoginChange("password", text)}
 						secureTextEntry={true}
+						error={error.password}
 					/>
 				</View>
 			</View>
@@ -163,7 +183,42 @@ export const LoginForm = ({ navigation }: LoginFormProps) => {
 				color={"black"}
 				size={"lg"}
 				width={"long"}
-				onPress={() => navigation.navigate("WebView")}
+				onPress={async () => {
+					try {
+						// 입력값 검증
+						if (!loginData.email.trim()) {
+							setError((prev) => ({
+								...prev,
+								email: "이메일을 입력해주세요.",
+							}));
+							return;
+						}
+
+						if (!loginData.password.trim()) {
+							setError((prev) => ({
+								...prev,
+								password: "비밀번호를 입력해주세요.",
+							}));
+							return;
+						}
+
+						// 로그인 API 호출
+						const loginResponse = await authService.login({
+							email: loginData.email.trim(),
+							password: loginData.password.trim(),
+						});
+
+						// 공통 로그인 성공 처리 함수 호출
+						await handleLoginSuccess(loginResponse);
+					} catch (error: any) {
+						console.error("Login error:", error);
+						Toast.show({
+							type: "error",
+							text1: "이메일 또는 비밀번호가 일치하지 않습니다.",
+							text2: "다시 시도해주세요.",
+						});
+					}
+				}}
 				className={
 					"w-full px-[0.75rem] py-[0.5rem] bg-base-black rounded-md hover:bg-neutral-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-base-black"
 				}

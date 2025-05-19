@@ -40,6 +40,20 @@ export const DropdownComponent = ({
 	disabled,
 }: DropdownProps) => {
 	const [isFocus, setIsFocus] = useState(false);
+
+	// 안전한 value 처리를 위한 계산
+	const safeValue = useMemo(() => {
+		// null, undefined, NaN 등의 경우 null 반환
+		if (
+			value === null ||
+			value === undefined ||
+			(typeof value === "number" && isNaN(value))
+		) {
+			return null;
+		}
+		return value;
+	}, [value]);
+
 	const dropdownStyle = useMemo(
 		() => [
 			styles.dropdown,
@@ -71,20 +85,23 @@ export const DropdownComponent = ({
 					selectedTextStyle={[
 						styles.selectedText,
 						{
-							color: disabled ? "#D9D9D9" : value ? "#4D4D4D" : "#4D4D4D",
-							textAlign: value ? "center" : "left",
-							fontWeight: value ? 500 : 400,
+							color: disabled ? "#D9D9D9" : safeValue ? "#4D4D4D" : "#4D4D4D",
+							textAlign: safeValue ? "center" : "left",
+							fontWeight: safeValue ? 500 : 400,
 						},
 					]}
 					data={data}
 					maxHeight={300}
 					labelField={"label"}
 					valueField={"value"}
-					value={value}
+					value={safeValue}
 					onFocus={() => setIsFocus(true)}
 					onBlur={() => setIsFocus(false)}
 					onChange={(item) => {
-						onChange(item.value);
+						// 값 안전성 검사
+						const itemValue =
+							item && item.value !== undefined ? item.value : null;
+						onChange(itemValue);
 						setIsFocus(false);
 					}}
 					disable={disabled}
@@ -109,7 +126,7 @@ const styles = StyleSheet.create({
 		height: 48,
 		borderRadius: 8,
 		paddingHorizontal: 12,
-		paddingVertical: 10,
+		paddingVertical: 8,
 		borderWidth: 2,
 	},
 	placeholder: {
@@ -129,7 +146,7 @@ const styles = StyleSheet.create({
 	},
 	itemContainer: {
 		paddingHorizontal: 12,
-		paddingVertical: 12,
+		paddingVertical: 0,
 	},
 	itemText: {
 		fontSize: 16,

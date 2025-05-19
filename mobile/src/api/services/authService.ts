@@ -8,7 +8,33 @@ export interface ProfileRequestDto {
 	profileImageUrl: string;
 }
 
+interface LoginRequestDto {
+	email: string;
+	password: string;
+}
+
 export const authService = {
+	/**
+	 * 일반 로그인 API
+	 * @param data 이메일과 비밀번호
+	 * @returns LoginResponse
+	 */
+	login: async (data: LoginRequestDto): Promise<LoginResponse> => {
+		try {
+			const response = await axiosInstance.post("/member/login", data);
+
+			// 토큰 저장
+			const { token: authToken, ...userInfo } = response.data;
+			await SecureStore.setItemAsync("auth-token", authToken);
+			await SecureStore.setItemAsync("user-info", JSON.stringify(userInfo));
+
+			return response.data;
+		} catch (error) {
+			console.error("Login error:", error);
+			throw error;
+		}
+	},
+
 	/**
 	 * 카카오 로그인 API
 	 * @param data 카카오 로그인 정보

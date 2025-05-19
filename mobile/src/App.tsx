@@ -25,6 +25,7 @@ import { SignupScreen } from "@/screens/SignupScreen";
 import { WebViewScreen } from "@/screens/WebViewScreen";
 import Toast from "react-native-toast-message";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
+import { navigateBasedOnUserRole } from "@/utils/navigation";
 
 // 네비게이션 타입 정의
 type RootStackParamList = {
@@ -50,26 +51,8 @@ const navigationRef = createNavigationContainerRef<RootStackParamList>();
 const navigateToScreenAfterLogin = (userInfo: any) => {
 	if (!navigationRef.isReady()) return;
 
-	// 추가 정보가 없는 경우
-	if (!userInfo.existAdditionalInfo) {
-		navigationRef.navigate("ExtraInfo");
-	}
-	// 소속 병동이 없는 경우
-	else if (!userInfo.existMyWard) {
-		if (userInfo.role === "HN") {
-			navigationRef.navigate("CreateWard");
-		} else {
-			navigationRef.navigate("WebView", { path: "/my-shift" });
-		}
-	}
-	// 모든 정보가 있는 경우
-	else {
-		if (userInfo.role === "HN") {
-			navigationRef.navigate("WebView", { path: "/shift-admin" });
-		} else {
-			navigationRef.navigate("WebView", { path: "/my-shift" });
-		}
-	}
+	// 공통 네비게이션 로직 사용
+	navigateBasedOnUserRole(navigationRef, userInfo);
 };
 
 /**

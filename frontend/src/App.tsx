@@ -1,10 +1,12 @@
 import { BrowserRouter } from 'react-router-dom';
 import { Slide, ToastContainer } from 'react-toastify';
+import { useEffect } from 'react';
 
 import PageLoadingSpinner from '@/components/atoms/Loadingspinner';
 import ChannelTalkLoader from '@/components/organisms/ChannelTalkLoader';
 import SurveyProvider from '@/components/organisms/SurveyProvider';
 import Router from '@/routes/Router';
+import { isMobileApp } from '@/lib/mobileApp';
 
 import 'react-toastify/dist/ReactToastify.css';
 import './toast.css';
@@ -17,10 +19,18 @@ function App() {
     console.error = function () {};
   }
 
+  useEffect(() => {
+    if (isMobileApp()) {
+      console.log('모바일 앱에서 실행 중');
+
+      document.documentElement.classList.add('mobile-app-view');
+    }
+  }, []);
+
   return (
     <BrowserRouter>
       <SurveyProvider>
-        <ChannelTalkLoader />
+        {!isMobileApp() && <ChannelTalkLoader />}
         <PageLoadingSpinner />
         <Router />
         <ToastContainer

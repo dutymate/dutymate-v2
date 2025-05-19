@@ -1,12 +1,16 @@
 import axios from "axios";
 import axiosInstance from "../axios";
-import { LoginResponse } from "@/types/user";
+import { LoginResponse, AdditionalInfo } from "@/types/user";
 
 interface SignupRequest {
 	email: string;
 	password: string;
 	passwordConfirm: string;
 	name: string;
+}
+
+interface AdditionalInfoResponse {
+	role: "HN" | "RN";
 }
 
 export const userService = {
@@ -74,6 +78,24 @@ export const userService = {
 	signup: async (data: SignupRequest): Promise<LoginResponse> => {
 		try {
 			const response = await axiosInstance.post("/member", data);
+			return response.data;
+		} catch (error) {
+			if (axios.isAxiosError(error)) {
+				throw error.response?.data;
+			}
+			throw error;
+		}
+	},
+
+	/**
+	 * 부가정보 입력 API
+	 * @param data - 부가정보 (연차, 성별, 역할)
+	 */
+	submitAdditionalInfo: async (
+		data: AdditionalInfo,
+	): Promise<AdditionalInfoResponse> => {
+		try {
+			const response = await axiosInstance.post("/member/info", data);
 			return response.data;
 		} catch (error) {
 			if (axios.isAxiosError(error)) {

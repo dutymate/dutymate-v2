@@ -13,6 +13,9 @@ import { useEmailVerification } from "@/hooks/common/useEmailVerification";
 import Toast from "react-native-toast-message";
 import { validateName } from "@/utils/validate";
 import { userService } from "@/api/services/userService";
+import { useUserAuthStore } from "@/store/userAuthStore";
+import * as SecureStore from "expo-secure-store";
+import { navigateBasedOnUserRole } from "@/utils/navigation";
 
 /**
  * SignupFormProps는 SignupForm의 props 타입을 정의합니다.
@@ -121,6 +124,7 @@ export const SignupForm = ({ navigation }: SignupFormProps) => {
 	const handleSignupSubmit = async () => {
 		let isValid = true;
 		let newErrors: typeof error = {};
+		const { setUserInfo } = useUserAuthStore();
 
 		if (
 			!signupData.password.trim() ||
@@ -168,18 +172,38 @@ export const SignupForm = ({ navigation }: SignupFormProps) => {
 
 		try {
 			await userService.checkEmail(email.trim());
-			await userService.signup({
+			const response = await userService.signup({
 				email: email.trim(),
 				password: signupData.password.trim(),
 				passwordConfirm: signupData.passwordConfirm.trim(),
 				name: signupData.name.trim(),
 			});
 
+			// 토큰 저장
+			const { token: authToken, ...userInfo } = response;
+			await SecureStore.setItemAsync("auth-token", authToken);
+			await SecureStore.setItemAsync("user-info", JSON.stringify(userInfo));
+
+			// 로그인 정보를 Zustand 스토어에 저장
+			setUserInfo({
+				...response,
+			});
+
 			Toast.show({
 				type: "success",
 				text1: "정상적으로 회원가입 되었습니다.",
 			});
-			navigation.navigate("ExtraInfo");
+
+			// 초대 토큰이 있는지 확인
+			const inviteToken = await SecureStore.getItemAsync("inviteToken");
+			if (inviteToken) {
+				navigation.navigate("WebView", { inviteToken });
+				await SecureStore.deleteItemAsync("inviteToken");
+				return;
+			}
+
+			// 공통 네비게이션 로직 사용
+			navigateBasedOnUserRole(navigation, response);
 		} catch (error: any) {
 			Toast.show({
 				type: "error",
