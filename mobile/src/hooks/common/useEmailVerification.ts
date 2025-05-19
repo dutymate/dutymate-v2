@@ -83,10 +83,7 @@ export const useEmailVerification = (mode: "login" | "signup" | "reset") => {
 				setAuthCodeStatus("success");
 				setIsVerified(true);
 				setTimer(0);
-				Toast.show({
-					type: "success",
-					text1: "이메일 인증이 완료되었습니다.",
-				});
+				
 			} else {
 				throw new Error();
 			}
@@ -94,10 +91,7 @@ export const useEmailVerification = (mode: "login" | "signup" | "reset") => {
 			setAuthCodeStatus("error");
 			setIsVerified(false);
 			setAuthCode("");
-			Toast.show({
-				type: "error",
-				text1: "인증 코드가 올바르지 않습니다.",
-			});
+			
 		}
 	};
 

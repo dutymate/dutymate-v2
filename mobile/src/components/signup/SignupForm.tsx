@@ -194,10 +194,7 @@ export const SignupForm = ({ navigation }: SignupFormProps) => {
 		if (timer === 0 && authCodeSent && !isVerified) {
 			resetVerification();
 			setEmail('');
-			Toast.show({
-				type: 'error',
-				text1: '인증 시간이 만료되었습니다. 다시 시도해주세요.',
-			});
+			
 		}
 	}, [timer, authCodeSent, isVerified]);
 
