@@ -365,6 +365,32 @@ public class WardScheduleService {
 
 		}
 
+		// currentCalendar 정렬: isAllDay가 true인 항목을 먼저, 그리고 시간순으로 정렬
+		currentCalendar.sort(Comparator
+			// 1. isAllDay가 true인 항목을 먼저 정렬 (true가 앞에 오도록 reversed 사용)
+			.comparing(MyDutyResponseDto.CalendarEvent::getIsAllDay, Comparator.reverseOrder())
+			// 2. 그 다음 startTime으로 정렬 (null 값도 처리)
+			.thenComparing(event -> {
+				// startTime이 null인 경우 가장 이른 시간으로 처리
+				if (event.getStartTime() == null) {
+					return LocalDateTime.MIN;
+				}
+				return event.getStartTime();
+			})
+		);
+
+		// 필요하다면 prevCalendar와 nextCalendar도 동일하게 정렬할 수 있습니다
+		prevCalendar.sort(Comparator
+			.comparing(MyDutyResponseDto.CalendarEvent::getIsAllDay, Comparator.reverseOrder())
+			.thenComparing(event -> event.getStartTime() != null ? event.getStartTime() : LocalDateTime.MIN)
+		);
+
+		nextCalendar.sort(Comparator
+			.comparing(MyDutyResponseDto.CalendarEvent::getIsAllDay, Comparator.reverseOrder())
+			.thenComparing(event -> event.getStartTime() != null ? event.getStartTime() : LocalDateTime.MIN)
+		);
+
+
 		// 6. calendar DTO 구성
 		MyDutyResponseDto.CalendarData calendarData = new MyDutyResponseDto.CalendarData();
 		calendarData.setPrevCalendar(prevCalendar);
