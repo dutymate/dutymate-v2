@@ -77,12 +77,14 @@ export default function App() {
 	 * 구글 로그인 초기화
 	 */
 	const googleIosClientId = Constants.expoConfig?.extra?.googleIosClientId;
-	const googleAndroidClientId = Constants.expoConfig?.extra?.googleWebClientId;
+	const googleWebClientId = Constants.expoConfig?.extra?.googleWebClientId;
+
 
 	useEffect(() => {
 		GoogleSignin.configure({
 			iosClientId: googleIosClientId,
-			webClientId: googleAndroidClientId,
+			webClientId: googleWebClientId,
+			offlineAccess: true,
 		});
 	}, []);
 

@@ -31,6 +31,9 @@ interface SignupFormProps {
  * @param navigation
  */
 export const SignupForm = ({ navigation }: SignupFormProps) => {
+	// Zustand store 접근 (컴포넌트 최상위 레벨로 이동)
+	const { setUserInfo } = useUserAuthStore();
+
 	// 회원가입 데이터 상태
 	const [signupData, setSignupData] = useState({
 		password: "",

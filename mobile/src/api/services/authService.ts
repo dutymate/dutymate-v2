@@ -80,11 +80,18 @@ export const authService = {
 	 */
 	googleLogin: async (data: ProfileRequestDto): Promise<LoginResponse> => {
 		try {
+			console.log("googleLogin data", data);
+			
+			// 백엔드 URL 확인
+			console.log("API URL:", axiosInstance.defaults.baseURL);
+			
+			// API 호출 시도
+			console.log("Attempting to call API...");
 			const response = await axiosInstance.post(
 				"/member/login/google/mobile",
 				data,
 			);
-
+			console.log("googleLogin response", response.data);
 			// 토큰 저장
 			const { token: authToken, ...userInfo } = response.data;
 			await SecureStore.setItemAsync("auth-token", authToken);
@@ -93,9 +100,11 @@ export const authService = {
 			return response.data;
 		} catch (error: any) {
 			console.error("Google login error:", error);
+
 			if (axios.isAxiosError(error)) {
 				throw error.response?.data;
 			}
+
 			throw error;
 		}
 	},

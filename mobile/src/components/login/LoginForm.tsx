@@ -1,11 +1,10 @@
-import * as SecureStore from "expo-secure-store";
 
+import * as SecureStore from "expo-secure-store";
 import { useState } from "react";
 import { View } from "react-native";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import { login, me } from "@react-native-kakao/user";
 import Toast from "react-native-toast-message";
-
 import { authService } from "@/api/services/authService";
 import { Button } from "@/components/common/Button";
 import { Input } from "@/components/common/Input";
@@ -151,11 +150,6 @@ export const LoginForm = ({ navigation }: LoginFormProps) => {
 				throw new Error("구글 계정 정보를 가져올 수 없습니다.");
 			}
 
-			// 사용자 정보 로깅
-			console.log("User email:", userInfo.data?.user.email);
-			console.log("User name:", userInfo.data?.user.name);
-			console.log("User photo:", userInfo.data?.user.photo);
-
 			// 구글 로그인 응답에서 사용자 정보 가져오기
 			const profileData = {
 				email: userInfo.data?.user.email || "",
@@ -169,10 +163,8 @@ export const LoginForm = ({ navigation }: LoginFormProps) => {
 				throw new Error("구글 계정에서 이메일을 가져올 수 없습니다.");
 			}
 
-			console.log("Google profileData:", JSON.stringify(profileData, null, 2));
 
 			// authService를 통해 백엔드로 데이터 전송
-			console.log("Calling authService.googleLogin");
 			const loginResponse = await authService.googleLogin(profileData);
 
 			console.log(
@@ -182,6 +174,7 @@ export const LoginForm = ({ navigation }: LoginFormProps) => {
 
 			// 공통 로그인 성공 처리 함수 호출
 			await handleLoginSuccess(loginResponse, "google");
+
 		} catch (error: any) {
 			console.error("Google login error:", error);
 			Toast.show({
