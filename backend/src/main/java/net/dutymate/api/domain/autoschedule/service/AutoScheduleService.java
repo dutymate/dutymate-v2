@@ -85,13 +85,15 @@ public class AutoScheduleService {
 		List<WardMember> regularWardMembers = new ArrayList<>(allWardMembers);
 		regularWardMembers.removeIf(wm -> wm.getShiftFlags() == ShiftType.M.getFlag());
 
-		int wardMemberCount = regularWardMembers.size();
+		int wardMemberCount = allWardMembers.size();
+
+		int nightNurseCnt = allWardMembers.stream()
+			.filter(wm->wm.getShiftFlags() == ShiftType.N.getFlag())
+			.toList().size();
 
 		// Night 전담 간호사 수는 따로 계산하지 않음 (통합 로직에 포함됨)
-		//TODO 필요 인원수 계산 방식 변경되어서 api 로 설계 해야함 현재 임의로 -5
-		int neededNurseCount = nurseScheduler.neededNurseCount(yearMonth, rule, 0)
-			+ midWardMembers.size() - 5;
-
+		int neededNurseCount = nurseScheduler.neededNurseCount(yearMonth, rule, nightNurseCnt)
+			+ midWardMembers.size();
 		if (wardMemberCount < neededNurseCount && !force) {
 			AutoScheduleNurseCountResponseDto responseDto = new AutoScheduleNurseCountResponseDto(
 				neededNurseCount
