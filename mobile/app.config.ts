@@ -1,8 +1,7 @@
 import { ConfigContext, ExpoConfig } from "@expo/config";
 
 export default ({config}: ConfigContext): ExpoConfig => {
-    const iosUrlScheme = process.env.EXPO_PUBLIC_GOOGLE_IOS_URL_SCHEME;
-
+   
     return {
         ...config,
         name: "듀티메이트",
@@ -18,7 +17,7 @@ export default ({config}: ConfigContext): ExpoConfig => {
             infoPlist: {
                 CFBundleURLTypes: [
                     {
-                        CFBundleURLSchemes: [iosUrlScheme]
+                        CFBundleURLSchemes: [process.env.EXPO_PUBLIC_GOOGLE_IOS_URL_SCHEME]
                     }
                 ]
             },
@@ -79,7 +78,7 @@ export default ({config}: ConfigContext): ExpoConfig => {
             [
                 "@react-native-google-signin/google-signin",
                 {
-                    iosUrlScheme,
+                    iosUrlScheme: process.env.EXPO_PUBLIC_GOOGLE_IOS_URL_SCHEME,
                 }
             ]
         ],

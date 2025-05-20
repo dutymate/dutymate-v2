@@ -1,4 +1,3 @@
-
 import * as SecureStore from "expo-secure-store";
 import { useState } from "react";
 import { View } from "react-native";
@@ -163,7 +162,6 @@ export const LoginForm = ({ navigation }: LoginFormProps) => {
 				throw new Error("구글 계정에서 이메일을 가져올 수 없습니다.");
 			}
 
-
 			// authService를 통해 백엔드로 데이터 전송
 			const loginResponse = await authService.googleLogin(profileData);
 
@@ -174,7 +172,6 @@ export const LoginForm = ({ navigation }: LoginFormProps) => {
 
 			// 공통 로그인 성공 처리 함수 호출
 			await handleLoginSuccess(loginResponse, "google");
-
 		} catch (error: any) {
 			console.error("Google login error:", error);
 			Toast.show({

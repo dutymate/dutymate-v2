@@ -81,10 +81,10 @@ export const authService = {
 	googleLogin: async (data: ProfileRequestDto): Promise<LoginResponse> => {
 		try {
 			console.log("googleLogin data", data);
-			
+
 			// 백엔드 URL 확인
 			console.log("API URL:", axiosInstance.defaults.baseURL);
-			
+
 			// API 호출 시도
 			console.log("Attempting to call API...");
 			const response = await axiosInstance.post(

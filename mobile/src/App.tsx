@@ -79,7 +79,6 @@ export default function App() {
 	const googleIosClientId = Constants.expoConfig?.extra?.googleIosClientId;
 	const googleWebClientId = Constants.expoConfig?.extra?.googleWebClientId;
 
-
 	useEffect(() => {
 		GoogleSignin.configure({
 			iosClientId: googleIosClientId,
