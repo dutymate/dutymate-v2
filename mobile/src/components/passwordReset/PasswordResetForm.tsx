@@ -36,7 +36,9 @@ const validateEmail = (email: string) =>
  * 비밀번호 형식 검증 함수 - 8자 이상, 숫자 및 특수문자 포함
  */
 const validatePassword = (password: string) =>
-	/^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(password);
+	/^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$#^!%*~?&])[A-Za-z\d@$#^!%*~?&]{8,}$/.test(
+		password,
+	);
 
 /**
  * 타이머 포맷팅 함수
