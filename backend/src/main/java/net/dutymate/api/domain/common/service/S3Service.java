@@ -37,10 +37,6 @@ public class S3Service {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "이미지 파일만 업로드할 수 있습니다.");
 		}
 
-		if (isHeicFile(contentType, originalFilename)) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "HEIC 형식은 지원하지 않습니다.");
-		}
-
 		try {
 			byte[] imageBytes = multipartFile.getBytes();
 			String fileExtension = getFileExtension(originalFilename);
