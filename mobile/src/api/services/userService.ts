@@ -14,6 +14,11 @@ interface AdditionalInfoResponse {
 	role: "HN" | "RN";
 }
 
+interface PasswordResetRequest {
+	email: string;
+	password: string;
+}
+
 export const userService = {
 	/**
 	 * 이메일 인증 코드 API
@@ -112,6 +117,42 @@ export const userService = {
 		try {
 			const response = await axiosInstance.post("/member/info", data);
 			return response.data;
+		} catch (error) {
+			if (axios.isAxiosError(error)) {
+				throw error.response?.data;
+			}
+			throw error;
+		}
+	},
+
+	/**
+	 * 비밀번호 재설정 인증코드 요청 API
+	 * @param email - 사용자 이메일
+	 */
+	requestPasswordReset: async (email: string): Promise<void> => {
+		try {
+			await axiosInstance.post("/member/password/reset-request", { email });
+		} catch (error) {
+			if (axios.isAxiosError(error)) {
+				throw error.response?.data;
+			}
+			throw error;
+		}
+	},
+
+	/**
+	 * 비밀번호 재설정 API
+	 * @param data - 이메일, 비밀번호
+	 */
+	resetPassword: async ({
+		email,
+		password,
+	}: PasswordResetRequest): Promise<void> => {
+		try {
+			await axiosInstance.post("/member/password/reset", {
+				email,
+				password,
+			});
 		} catch (error) {
 			if (axios.isAxiosError(error)) {
 				throw error.response?.data;
