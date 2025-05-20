@@ -138,7 +138,12 @@ const LoginForm = ({ onRequireVerification }: LoginFormProps) => {
         return;
       }
 
-      toast.error('이메일 또는 비밀번호가 일치하지 않습니다.');
+      // 그 외 모든 에러는 백엔드 메시지 그대로 표시
+      if (error?.message) {
+        toast.error(error.message);
+      } else {
+        toast.error('이메일 또는 비밀번호가 일치하지 않습니다.');
+      }
     }
   };
 

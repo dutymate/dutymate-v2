@@ -29,6 +29,20 @@ export const userService = {
 			);
 		} catch (error) {
 			if (axios.isAxiosError(error)) {
+				const errorMessage = error.response?.data?.message || "";
+
+				// 소셜 로그인 관련 에러 메시지 처리
+				if (
+					errorMessage.includes("카카오") ||
+					errorMessage.includes("구글") ||
+					errorMessage.includes("다른 경로로 가입")
+				) {
+					throw {
+						...error.response?.data,
+						message: "이미 소셜 계정으로 가입된 이메일입니다.",
+					};
+				}
+
 				throw error.response?.data;
 			}
 			throw error;

@@ -1,4 +1,5 @@
 import * as SecureStore from "expo-secure-store";
+import axios from "axios";
 
 import axiosInstance from "@/api/axios";
 import { LoginResponse } from "@/types/user";
@@ -37,6 +38,9 @@ export const authService = {
 				"Login error details:",
 				error.response?.data || error.message,
 			);
+			if (axios.isAxiosError(error)) {
+				throw error.response?.data;
+			}
 			throw error;
 		}
 	},
@@ -59,8 +63,11 @@ export const authService = {
 			await SecureStore.setItemAsync("user-info", JSON.stringify(userInfo));
 
 			return response.data;
-		} catch (error) {
+		} catch (error: any) {
 			console.error("Kakao login error:", error);
+			if (axios.isAxiosError(error)) {
+				throw error.response?.data;
+			}
 			throw error;
 		}
 	},
@@ -83,8 +90,11 @@ export const authService = {
 			await SecureStore.setItemAsync("user-info", JSON.stringify(userInfo));
 
 			return response.data;
-		} catch (error) {
+		} catch (error: any) {
 			console.error("Google login error:", error);
+			if (axios.isAxiosError(error)) {
+				throw error.response?.data;
+			}
 			throw error;
 		}
 	},

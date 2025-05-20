@@ -206,10 +206,22 @@ export const SignupForm = ({ navigation }: SignupFormProps) => {
 			// 공통 네비게이션 로직 사용
 			navigateBasedOnUserRole(navigation, response);
 		} catch (error: any) {
-			Toast.show({
-				type: "error",
-				text1: error.message || "회원가입 중 오류가 발생했습니다.",
-			});
+			console.error("SignUp error:", error);
+
+			// 백엔드에서 오는 에러 메시지를 그대로 표시
+			if (error.message) {
+				Toast.show({
+					type: "error",
+					text1: error.message,
+				});
+			} else {
+				// 기본 에러 메시지
+				Toast.show({
+					type: "error",
+					text1: "회원가입 중 오류가 발생했습니다.",
+					text2: "다시 시도해주세요.",
+				});
+			}
 		}
 	};
 

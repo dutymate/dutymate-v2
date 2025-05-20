@@ -248,11 +248,21 @@ export const LoginForm = ({ navigation }: LoginFormProps) => {
 						await handleLoginSuccess(loginResponse);
 					} catch (error: any) {
 						console.error("Login error:", error);
-						Toast.show({
-							type: "error",
-							text1: "이메일 또는 비밀번호가 일치하지 않습니다.",
-							text2: "다시 시도해주세요.",
-						});
+
+						// Display the actual error message from the server
+						if (error.message) {
+							Toast.show({
+								type: "error",
+								text1: error.message,
+							});
+						} else {
+							// 기본 에러 메시지
+							Toast.show({
+								type: "error",
+								text1: "로그인 중 오류가 발생했습니다.",
+								text2: "다시 시도해주세요.",
+							});
+						}
 					}
 				}}
 				className={
