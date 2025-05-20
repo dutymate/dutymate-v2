@@ -67,6 +67,7 @@ resource "aws_ecs_task_definition" "webserver_ecs_task_definition" {
           "            proxy_set_header Host $host;",
           "            proxy_set_header X-Real-IP $remote_addr;",
           "            proxy_intercept_errors off;",
+          "            client_max_body_size 30M;",
           "        }",
           "    }",
           "}",
