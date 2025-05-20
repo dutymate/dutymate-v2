@@ -26,6 +26,10 @@ import GroupDetailPage from '@/pages/Group/GroupDetailPage';
 import GroupMemberPage from '@/pages/Group/GroupMemberPage';
 import GroupInvitePage from '@/pages/Group/GroupInvitePage';
 import PrivacyPolicy from '@/pages/PrivacyPolicy';
+import NoticePage from '@/pages/Notice/NoticePage';
+import NoticeDetailPage from '@/pages/Notice/NoticeDetailPage';
+import NoticeWritePage from '@/pages/Notice/NoticeWritePage';
+
 interface ProtectedRouteProps {
   element: ReactElement;
 }
@@ -76,6 +80,11 @@ const Router = () => {
       <Route path="/oauth/kakao" element={<KakaoRedirect />} />
       <Route path="/oauth/google" element={<GoogleRedirect />} />
       <Route path="/password-reset" element={<PasswordReset />} />
+
+      {/* 공지사항 관련 페이지 */}
+      <Route path="/notice" element={<NoticePage />} />
+      <Route path="/notice/:noticeId" element={<NoticeDetailPage />} />
+      <Route path="/notice/write" element={<NoticeWritePage />} />
 
       {/* 그룹 초대 링크 - 로그인 필요 */}
       <Route

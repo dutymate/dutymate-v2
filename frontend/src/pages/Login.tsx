@@ -5,6 +5,7 @@ import LoginForm from '@/components/organisms/LoginForm';
 import LandingTemplate from '@/components/templates/LandingTemplate';
 import { SEO } from '@/components/SEO';
 import { useLoginStepStore } from '@/stores/useLoginStepStore';
+import Footer from '@/components/organisms/Footer';
 
 const Login = () => {
   const { step, setStep } = useLoginStepStore();
@@ -33,17 +34,22 @@ const Login = () => {
         title="로그인 | Dutymate"
         description="듀티메이트의 로그인 페이지입니다."
       />
-      <LandingTemplate showIntroText={false}>
-        {step === 'login' ? (
-          <LoginForm onRequireVerification={handleRequireVerification} />
-        ) : (
-          <LoginEmailVerificationForm
-            memberId={pendingMemberId!}
-            email={pendingEmail}
-            onSuccess={handleVerificationSuccess}
-          />
-        )}
-      </LandingTemplate>
+      <div className="min-h-screen flex flex-col">
+        <LandingTemplate showIntroText={false}>
+          {step === 'login' ? (
+            <LoginForm onRequireVerification={handleRequireVerification} />
+          ) : (
+            <LoginEmailVerificationForm
+              memberId={pendingMemberId!}
+              email={pendingEmail}
+              onSuccess={handleVerificationSuccess}
+            />
+          )}
+        </LandingTemplate>
+        <div className="mt-auto">
+          <Footer />
+        </div>
+      </div>
     </>
   );
 };

@@ -8,6 +8,7 @@ import LandingTemplate from '@/components/templates/LandingTemplate';
 import { SEO } from '@/components/SEO';
 import { HospitalInfo, wardService } from '@/services/wardService';
 import useUserAuthStore from '@/stores/userAuthStore';
+import Footer from '@/components/organisms/Footer';
 
 const CreateWard = () => {
   const navigate = useNavigate();
@@ -84,14 +85,19 @@ const CreateWard = () => {
         title="병동 생성 | Dutymate"
         description="병동 생성을 위한 기본 정보를 입력해주세요."
       />
-      <LandingTemplate showIntroText={false}>
-        <CreateWardForm
-          onSubmit={handleCreateWard}
-          onSearchHospitals={handleSearchHospitals}
-          hospitals={hospitals}
-          isSearching={isSearching}
-        />
-      </LandingTemplate>
+      <div className="min-h-screen flex flex-col">
+        <LandingTemplate showIntroText={false}>
+          <CreateWardForm
+            onSubmit={handleCreateWard}
+            onSearchHospitals={handleSearchHospitals}
+            hospitals={hospitals}
+            isSearching={isSearching}
+          />
+        </LandingTemplate>
+        <div className="mt-auto">
+          <Footer />
+        </div>
+      </div>
     </>
   );
 };

@@ -8,6 +8,7 @@ import LandingTemplate from '@/components/templates/LandingTemplate';
 import { SEO } from '@/components/SEO';
 import userService from '@/services/userService';
 import useUserAuthStore from '@/stores/userAuthStore';
+import Footer from '@/components/organisms/Footer';
 
 // Mock 응답 데이터 import (임시로 주석 처리)
 // import mockResponse from "../services/response-json/user/PostApiMemberInfo.json";
@@ -94,11 +95,16 @@ const ExtraInfo = () => {
         title="부가 정보 입력 | Dutymate"
         description="원활한 서비스 이용을 위한 부가 정보를 알려주세요."
       />
-      <LandingTemplate showIntroText={false}>
-        <div className="flex flex-col items-center max-h-[90vh]">
-          <ExtraInfoForm initialData={formData} onSubmit={handleSubmit} />
+      <div className="min-h-screen flex flex-col">
+        <LandingTemplate showIntroText={false}>
+          <div className="flex flex-col items-center max-h-[90vh]">
+            <ExtraInfoForm initialData={formData} onSubmit={handleSubmit} />
+          </div>
+        </LandingTemplate>
+        <div className="mt-auto">
+          <Footer />
         </div>
-      </LandingTemplate>
+      </div>
     </>
   );
 };

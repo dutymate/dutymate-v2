@@ -12,6 +12,7 @@ import LandingTemplate from '@/components/templates/LandingTemplate';
 import { SEO } from '@/components/SEO';
 import axiosInstance from '@/lib/axios';
 import useUserAuthStore from '@/stores/userAuthStore';
+import Footer from '@/components/organisms/Footer';
 
 const Landing = () => {
   const navigate = useNavigate();
@@ -60,6 +61,7 @@ const Landing = () => {
       setUserInfo({
         token: data.token,
         memberId: data.memberId,
+        email: data.email,
         name: data.name,
         role: data.role,
         provider: data.provider,
@@ -141,17 +143,18 @@ const Landing = () => {
         title="듀티메이트 | Dutymate"
         description="병동 관리자와 간호사 모두를 위한 스마트한 근무 일정 관리 서비스, 듀티메이트."
       />
-      {showNoticeModal && (
-        <UpdateNoticeModal
-          onClose={handleCloseModal}
-          onDoNotShowToday={handleDoNotShowToday}
-        />
-      )}
-      <LandingTemplate showIntroText={true}>
-        <div className="flex flex-col items-center gap-4 w-full">
-          {/* 모바일: 세로 스택, 데스크탑: 가로 배치 */}
-          <div className="flex flex-col sm:flex-row gap-3 w-full max-w-[23.2rem]">
-            {/* <Button
+      <div className="min-h-screen flex flex-col">
+        {showNoticeModal && (
+          <UpdateNoticeModal
+            onClose={handleCloseModal}
+            onDoNotShowToday={handleDoNotShowToday}
+          />
+        )}
+        <LandingTemplate showIntroText={true}>
+          <div className="flex flex-col items-center gap-4 w-full">
+            {/* 모바일: 세로 스택, 데스크탑: 가로 배치 */}
+            <div className="flex flex-col sm:flex-row gap-3 w-full max-w-[23.2rem]">
+              {/* <Button
 							color="secondary"
 							size="lg"
 							className="w-full h-[3.5rem] sm:h-[3rem] bg-white border border-gray-300 hover:text-black"
@@ -168,48 +171,52 @@ const Landing = () => {
 						>
 							<span className="text-[1rem]">App Store</span>
 						</Button> */}
+            </div>
+
+            <Button
+              color="secondary"
+              size="lg"
+              width="long"
+              className="h-[3.5rem] sm:h-[3rem] bg-[#fff4ee] text-[#f47056] border-[0.5px] border-[#f47056] hover:bg-primary w-full max-w-[23.2rem]"
+              onClick={handleDemoLogin}
+            >
+              <span className="text-[1rem]">서비스 맛보기</span>
+            </Button>
+
+            <Button
+              color="tertiary"
+              size="lg"
+              width="long"
+              onClick={handleStart}
+              className="h-[3.5rem] sm:h-[3rem] bg-primary hover:bg-primary-dark text-white w-full max-w-[23.2rem] mt-1 shadow-md"
+            >
+              <span className="text-[1rem]">시작하기</span>
+            </Button>
+
+            <div className="w-full max-w-[23.2rem] mt-4 pt-4">
+              <p className="text-center text-gray-600">
+                사용법이 궁금하다면?{' '}
+                <span
+                  className="text-primary-dark cursor-pointer font-semibold"
+                  onClick={handleGoToTutorial}
+                >
+                  튜토리얼
+                </span>{' '}
+                |{' '}
+                <span
+                  className="text-primary-dark cursor-pointer font-semibold"
+                  onClick={handleGoToYoutube}
+                >
+                  소개영상
+                </span>
+              </p>
+            </div>
           </div>
-
-          <Button
-            color="secondary"
-            size="lg"
-            width="long"
-            className="h-[3.5rem] sm:h-[3rem] bg-[#fff4ee] text-[#f47056] border-[0.5px] border-[#f47056] hover:bg-primary w-full max-w-[23.2rem]"
-            onClick={handleDemoLogin}
-          >
-            <span className="text-[1rem]">서비스 맛보기</span>
-          </Button>
-
-          <Button
-            color="tertiary"
-            size="lg"
-            width="long"
-            onClick={handleStart}
-            className="h-[3.5rem] sm:h-[3rem] bg-primary hover:bg-primary-dark text-white w-full max-w-[23.2rem] mt-1 shadow-md"
-          >
-            <span className="text-[1rem]">시작하기</span>
-          </Button>
-
-          <div className="w-full max-w-[23.2rem] mt-4 pt-4">
-            <p className="text-center text-gray-600">
-              사용법이 궁금하다면?{' '}
-              <span
-                className="text-primary-dark cursor-pointer font-semibold"
-                onClick={handleGoToTutorial}
-              >
-                튜토리얼
-              </span>{' '}
-              |{' '}
-              <span
-                className="text-primary-dark cursor-pointer font-semibold"
-                onClick={handleGoToYoutube}
-              >
-                소개영상
-              </span>
-            </p>
-          </div>
+        </LandingTemplate>
+        <div className="mt-auto">
+          <Footer />
         </div>
-      </LandingTemplate>
+      </div>
     </>
   );
 };
