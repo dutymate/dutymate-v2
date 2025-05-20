@@ -113,7 +113,7 @@ public class EmailService {
 					<tr>
 						<td style="padding: 30px; text-align: center;">
 							<h2 style="color: #333333; font-size: 20px;">이메일 인증 요청</h2>
-							<p style="color: #555555; font-size: 16px;">듀티메이트 회원가입을 위해 아래 인증코드를
+							<p style="color: #555555; font-size: 16px;">듀티메이트 이메일 인증을 위해 아래 인증코드를
 							입력해주세요.</p>
 							<div style="margin: 30px auto; padding: 20px; background-color: #f0f8ff;
 							border-radius:8px;
