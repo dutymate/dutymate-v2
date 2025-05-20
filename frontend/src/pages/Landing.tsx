@@ -61,7 +61,7 @@ const Landing = () => {
       setUserInfo({
         token: data.token,
         memberId: data.memberId,
-        email: data.email,
+        // email: data.email,
         name: data.name,
         role: data.role,
         provider: data.provider,

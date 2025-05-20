@@ -14,6 +14,7 @@ public class LoginResponseDto {
 
 	private String token;
 	private Long memberId;
+	private String email;
 	private String name;
 	private Role role;
 	private String profileImg;
@@ -30,6 +31,7 @@ public class LoginResponseDto {
 		return LoginResponseDto.builder()
 			.token(token)
 			.memberId(member.getMemberId())
+			.email(member.getEmail())
 			.name(member.getName())
 			.role(member.getRole())
 			.profileImg(member.getProfileImg())
