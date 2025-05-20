@@ -210,6 +210,7 @@ export const LoginForm = ({ navigation }: LoginFormProps) => {
 						value={loginData.password}
 						onChangeText={(text) => handleLoginChange("password", text)}
 						secureTextEntry={true}
+						keyboardType={"default"}
 						error={error.password}
 					/>
 				</View>
