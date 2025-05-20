@@ -11,6 +11,7 @@ import { Button } from "@/components/common/Button";
 import { Input } from "@/components/common/Input";
 import { StyledText } from "@/components/common/StyledText";
 import { SocialLoginButton } from "@/components/login/SocialLoginButton";
+import { LoginEmailVerificationForm } from "@/components/login/LoginEmailVerificationForm";
 import { useUserAuthStore } from "@/store/userAuthStore";
 import { LoginResponse } from "@/types/user";
 import { navigateBasedOnUserRole } from "@/utils/navigation";
@@ -34,6 +35,7 @@ export const LoginForm = ({ navigation }: LoginFormProps) => {
 		password: "",
 	});
 	const [error, setError] = useState<{ email?: string; password?: string }>({});
+	const [needsEmailVerification, setNeedsEmailVerification] = useState(false);
 
 	// 로그인 성공 후 공통 처리 함수
 	const handleLoginSuccess = async (
@@ -190,6 +192,16 @@ export const LoginForm = ({ navigation }: LoginFormProps) => {
 		}
 	};
 
+	// 이메일 인증이 필요한 경우 이메일 인증 폼을 렌더링
+	if (needsEmailVerification) {
+		return (
+			<LoginEmailVerificationForm
+				navigation={navigation}
+				email={loginData.email}
+			/>
+		);
+	}
+
 	return (
 		<View className={"lg:block"}>
 			<View className={"space-y-[0.375rem] sm:space-y-[0.5rem]"}>
@@ -249,20 +261,20 @@ export const LoginForm = ({ navigation }: LoginFormProps) => {
 					} catch (error: any) {
 						console.error("Login error:", error);
 
-						// Display the actual error message from the server
-						if (error.message) {
-							Toast.show({
-								type: "error",
-								text1: error.message,
-							});
-						} else {
-							// 기본 에러 메시지
-							Toast.show({
-								type: "error",
-								text1: "로그인 중 오류가 발생했습니다.",
-								text2: "다시 시도해주세요.",
-							});
+						// 이메일 인증이 필요한 경우 처리
+						if (
+							error.message === "이메일 인증을 진행해주세요." ||
+							error.response?.data?.message === "이메일 인증을 진행해주세요."
+						) {
+							setNeedsEmailVerification(true);
+							return;
 						}
+
+						Toast.show({
+							type: "error",
+							text1: "이메일 또는 비밀번호가 일치하지 않습니다.",
+							text2: "다시 시도해주세요.",
+						});
 					}
 				}}
 				className={

@@ -2,6 +2,7 @@ import * as SecureStore from "expo-secure-store";
 import axios from "axios";
 
 import axiosInstance from "@/api/axios";
+import { userService } from "@/api/services/userService";
 import { LoginResponse } from "@/types/user";
 
 export interface ProfileRequestDto {
@@ -97,5 +98,24 @@ export const authService = {
 			}
 			throw error;
 		}
+	},
+
+	/**
+	 * 이메일 인증 코드 발송 API
+	 * @param email 인증 코드를 받을 이메일
+	 * @returns Promise<void>
+	 */
+	sendVerificationEmail: async (email: string): Promise<void> => {
+		return userService.sendEmailAuthCode(email, "login");
+	},
+
+	/**
+	 * 이메일 인증 코드 확인 API
+	 * @param email 인증 코드를 받은 이메일
+	 * @param code 입력한 인증 코드
+	 * @returns Promise<any>
+	 */
+	verifyEmail: async (email: string, code: string): Promise<any> => {
+		return userService.verifyEmailCode({ email, code });
 	},
 };
