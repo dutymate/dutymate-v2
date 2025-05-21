@@ -61,7 +61,7 @@ public class WardService {
 	private final WardScheduleService wardScheduleService;
 	private final MemberScheduleRepository memberScheduleRepository;
 
-	private static final int MAX_VIRTUAL_NURSE_COUNT = 20;
+	private static final int MAX_VIRTUAL_NURSE_COUNT = 25;
 	private static final int MAX_NURSE_COUNT = 30;
 	private final ShiftUtil shiftUtil;
 	private final S3Service s3Service;
@@ -457,7 +457,7 @@ public class WardService {
 
 		// 1. 임시 간호사 최대 20명
 		if (wardMemberCnt - syncedNurseCnt + addNurseCnt > MAX_VIRTUAL_NURSE_COUNT) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "임시 간호사 수는 20명을 초과할 수 없습니다.");
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "임시 간호사 수는 25명을 초과할 수 없습니다.");
 		}
 
 		// 2. 병동 간호사 최대 30명
