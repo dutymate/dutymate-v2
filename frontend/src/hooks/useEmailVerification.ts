@@ -18,18 +18,27 @@ export const useEmailVerification = (mode: 'login' | 'signup' | 'reset') => {
 
   useEffect(() => {
     if (!authCodeSent || timer <= 0) return;
+
+    const startTime = Date.now();
+    const expectedEndTime = startTime + timer * 1000;
+
     const interval = setInterval(() => {
-      setTimer((prev) => {
-        if (prev <= 1) {
-          clearInterval(interval);
-          setAuthCodeExpired(true);
-          return 0;
-        }
-        return prev - 1;
-      });
+      const currentTime = Date.now();
+      const remainingTime = Math.max(
+        0,
+        Math.ceil((expectedEndTime - currentTime) / 1000)
+      );
+
+      setTimer(remainingTime);
+
+      if (remainingTime <= 0) {
+        clearInterval(interval);
+        setAuthCodeExpired(true);
+      }
     }, 1000);
+
     return () => clearInterval(interval);
-  }, [authCodeSent, timer]);
+  }, [authCodeSent, timer]); // timer 의존성 유지
 
   const validateEmail = (email: string) =>
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
