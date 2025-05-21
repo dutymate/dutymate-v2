@@ -1,5 +1,5 @@
 import React from "react";
-import { View } from "react-native";
+import { KeyboardAvoidingView, View } from "react-native";
 
 import { WaveBackground } from "@/components/common/WaveBackground";
 
@@ -26,12 +26,22 @@ export const Layout = ({
 	isWebView = false,
 	isWaveBackground = true,
 }: LayoutProps) => {
+	const content = (
+		<>
+			{isWaveBackground && <WaveBackground />}
+			{children}
+		</>
+	);
+
 	return (
 		<View
 			className={`flex-1 ${className} ${isWebView ? "bg-base-muted-30" : "bg-white"}`}
 		>
-			{isWaveBackground && <WaveBackground />}
-			{children}
+			{isWebView ? (
+				<KeyboardAvoidingView>{content}</KeyboardAvoidingView>
+			) : (
+				content
+			)}
 		</View>
 	);
 };
