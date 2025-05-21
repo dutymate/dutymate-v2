@@ -21,7 +21,9 @@ const validateEmail = (email: string) =>
   /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
 const validatePassword = (password: string) =>
-  /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(password);
+  /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$#^!%*~?&])[A-Za-z\d@$#^!%*~?&]{8,}$/.test(
+    password
+  );
 
 const PasswordResetForm = () => {
   const navigate = useNavigate();
