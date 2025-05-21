@@ -133,7 +133,7 @@ const PaymentModal = ({ isOpen, onClose, onSubscribe }: PaymentModalProps) => {
       period: '원',
       billingText: '연간 청구',
       buttonText: '1년 구독 시작하기',
-      features: ['자동 생성 무제한', '병동 당 간호사 최대 30명명', '광고 제거'],
+      features: ['자동 생성 무제한', '병동 당 간호사 최대 30명', '광고 제거'],
       popular: false,
     },
   ];
