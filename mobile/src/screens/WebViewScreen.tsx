@@ -334,11 +334,11 @@ export const WebViewScreen = ({ navigation }: WebViewScreenProps) => {
 	);
 
 	// WebView 로딩 화면 컴포넌트
-	const webviewLoadingElement = () => (
-		<View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-			<ActivityIndicator size="small" color="#F5A281" />
-		</View>
-	);
+	// const webviewLoadingElement = () => (
+	// 	<View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+	// 		<ActivityIndicator size="small" color="#F5A281" />
+	// 	</View>
+	// );
 
 	return (
 		<Layout isWebView={true} isWaveBackground={false}>
@@ -375,7 +375,7 @@ export const WebViewScreen = ({ navigation }: WebViewScreenProps) => {
 							}}
 							allowsBackForwardNavigationGestures
 							startInLoadingState={true}
-							renderLoading={webviewLoadingElement}
+							// renderLoading={webviewLoadingElement}
 							javaScriptEnabled={true}
 							domStorageEnabled={true}
 							originWhitelist={["*"]}
