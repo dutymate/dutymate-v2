@@ -383,10 +383,10 @@ const GroupDetailPage = () => {
     <>
       <SEO
         title="그룹 | Dutymate"
-        description="동료 간호사들과 근무표를 공유하는 공간입니다."
+        description="동료 간호사들과 듀티표를 공유하는 공간입니다."
       />
       <GroupLayout
-        title="함께 보는 근무표"
+        title="함께 보는 듀티표"
         subtitle="모두의 스케줄을 한눈에 확인하세요"
       >
         {/* 모바일: 그룹 정보 + 캘린더 카드 통합 */}

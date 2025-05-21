@@ -81,11 +81,11 @@ const NurseGroupPage = () => {
     <>
       <SEO
         title="그룹 | Dutymate"
-        description="동료 간호사들과 근무표를 공유하는 공간입니다."
+        description="동료 간호사들과 듀티표를 공유하는 공간입니다."
       />
       <GroupLayout
         title="나의 모임"
-        subtitle="그룹을 만들어 친구들끼리 근무표를 공유해보세요"
+        subtitle="그룹을 만들어 친구들끼리 듀티표를 공유해보세요"
       >
         {/* 그룹 목록 화면 */}
         <div className="space-y-3 px-4 lg:px-0">

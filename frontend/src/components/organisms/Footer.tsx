@@ -13,6 +13,18 @@ const Footer = () => {
     navigate('/notice');
   };
 
+  const handleServiceGuideClick = () => {
+    navigate('/notice/1');
+  };
+
+  const handlePrivacyPolicyClick = () => {
+    navigate('/notice/2');
+  };
+
+  const handleTermsClick = () => {
+    navigate('/notice/3');
+  };
+
   return (
     <footer className="w-full bg-white py-6 sm:py-8 mt-4 sm:mt-12">
       <div className="container mx-auto px-4">
@@ -27,20 +39,20 @@ const Footer = () => {
             </h3>
             <div className="space-y-1">
               <p
-                className="text-xs sm:text-sm text-gray-600 "
-                // onClick={handleNoticeClick}
+                className="text-xs sm:text-sm text-gray-600 cursor-pointer hover:text-primary transition-colors"
+                onClick={handleServiceGuideClick}
               >
                 • 서비스 이용 안내
               </p>
               <p
-                className="text-xs sm:text-sm text-gray-600 "
-                // onClick={handleNoticeClick}
+                className="text-xs sm:text-sm text-gray-600 cursor-pointer hover:text-primary transition-colors"
+                onClick={handlePrivacyPolicyClick}
               >
                 • 개인정보 처리방침
               </p>
               <p
-                className="text-xs sm:text-sm text-gray-600 "
-                // onClick={handleNoticeClick}
+                className="text-xs sm:text-sm text-gray-600 cursor-pointer hover:text-primary transition-colors"
+                onClick={handleTermsClick}
               >
                 • 이용약관
               </p>
