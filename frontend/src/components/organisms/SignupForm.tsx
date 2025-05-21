@@ -77,6 +77,10 @@ const SignupForm = () => {
     let errorMessage = '';
     if (name === 'email') {
       setEmail(value);
+      // 이메일이 변경되면 인증 코드 상태 초기화
+      if (authCodeSent && !isVerified) {
+        resetVerification(); // 인증 코드 상태 초기화
+      }
       if (!validateEmail(value.trim()))
         errorMessage = '올바른 이메일 형식이 아닙니다.';
     } else if (name === 'password') {
@@ -199,17 +203,21 @@ const SignupForm = () => {
             onChange={handleSignupChange}
             error={emailError || error.email}
             placeholder="이메일"
-            disabled={authCodeSent || isVerified}
+            disabled={isVerified}
             autoComplete="username"
           />
-          {!authCodeSent && (
+          {(!authCodeSent || (authCodeSent && !isVerified)) && (
             <button
               type="button"
               className="w-full px-[0.75rem] py-[0.6rem] sm:py-[0.5rem] text-[0.75rem] sm:text-[0.875rem] bg-primary-20 text-primary-dark rounded"
               onClick={sendCode}
               disabled={isSending}
             >
-              {isSending ? '발송 중...' : '인증번호 발송'}
+              {isSending
+                ? '발송 중...'
+                : authCodeSent
+                  ? '인증번호 재발송'
+                  : '인증번호 발송'}
             </button>
           )}
           {authCodeSent && (
