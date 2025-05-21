@@ -44,6 +44,10 @@ public class EmailService {
 
 		Optional<Member> optionalMember = memberRepository.findMemberByEmail(email);
 
+		if (optionalMember.isEmpty() && path.equals("reset")) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "회원 가입되지 않은 이메일입니다.");
+		}
+
 		if (optionalMember.isPresent()) {
 			Member existingMember = optionalMember.get();
 			Provider provider = existingMember.getProvider();
