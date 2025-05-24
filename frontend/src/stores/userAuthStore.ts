@@ -5,7 +5,7 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 interface UserInfo {
   token: string;
   memberId: number;
-  // email: string;
+  email: string;
   name: string;
   role: string | null;
   provider: string;

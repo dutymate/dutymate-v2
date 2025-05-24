@@ -1,11 +1,12 @@
 // 공지사항 글쓰기
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-// import { Button } from '@/components/atoms/Button';
+import { Button } from '@/components/atoms/Button';
 import { SEO } from '@/components/SEO';
 import { FaChevronLeft } from 'react-icons/fa';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
+import { useUserAuthStore } from '../../stores/userAuthStore';
 // import axiosInstance from '../../lib/axios';
 
 const NoticeWritePage = () => {
@@ -16,8 +17,17 @@ const NoticeWritePage = () => {
   const [isPinned, setIsPinned] = useState(false);
   const [loading, setLoading] = useState(false);
   const isEditMode = !!noticeId; // noticeId가 있으면 수정 모드
+  const token = useUserAuthStore((state) => state.userInfo?.token);
+  const email = useUserAuthStore((state) => state.userInfo?.email);
+  // 수정 모더일 경우 기존 데이터 불러오기
 
-  // 수정 모드일 경우 기존 데이터 불러오기
+  //로그인하지 않은 사용자 차단 , 관리자 이메일이 아니면 차단
+  useEffect(() => {
+    if (!token || email !== 'dutymate.net@gmail.com') {
+      navigate('/notice');
+    }
+  }, [token, email]);
+
   useEffect(() => {
     if (isEditMode) {
       setLoading(true);
@@ -177,11 +187,12 @@ const NoticeWritePage = () => {
             </div>
 
             <div className="flex gap-2 mt-4 justify-end">
-              {/* <Button
+              <Button
                 type="button"
                 color="muted"
                 size="md"
-                className="w-[200px] h-[3rem] sm:h-10"
+                className="flex items-center justify-center text-sm sm:text-base
+               px-[1.25rem] py-[0.5rem] sm:px-[1.5rem] sm:py-[0.625rem] rounded-lg"
                 onClick={() => navigate(-1)}
               >
                 취소
@@ -190,11 +201,12 @@ const NoticeWritePage = () => {
                 type="submit"
                 color="primary"
                 size="md"
-                className="w-[200px] h-[3rem] sm:h-10"
+                className="flex items-center justify-center text-sm sm:text-base
+               px-[1.25rem] py-[0.5rem] sm:px-[1.5rem] sm:py-[0.625rem] rounded-lg"
                 disabled={loading}
               >
                 {isEditMode ? '수정' : '등록'}
-              </Button> */}
+              </Button>
             </div>
           </form>
         </div>

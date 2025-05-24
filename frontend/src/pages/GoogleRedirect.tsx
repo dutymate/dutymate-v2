@@ -37,6 +37,8 @@ export function GoogleRedirect() {
         userAuthStore.setUserInfo({
           ...data,
           provider: 'google',
+          email: data.email,
+          token: data.token,
         });
 
         const inviteToken = localStorage.getItem('inviteToken');
