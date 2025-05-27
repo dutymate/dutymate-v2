@@ -21,6 +21,7 @@ public class NoticeResponseDto {
 			.noticeId(notice.getNoticeId())
 			.title(notice.getTitle())
 			.createdAt(notice.getCreatedAt())
+			.isPinned(notice.isPinned())
 			.build();
 	}
 }

@@ -30,7 +30,7 @@ public class Notice {
 	private String title;
 
 	@Lob
-	@Column(nullable = false)
+	@Column(columnDefinition = "MEDIUMTEXT", nullable = false)
 	private String content;
 
 	@Column(nullable = false)
