@@ -29,6 +29,7 @@ import PrivacyPolicy from '@/pages/PrivacyPolicy';
 import NoticePage from '@/pages/Notice/NoticePage';
 import NoticeDetailPage from '@/pages/Notice/NoticeDetailPage';
 import NoticeWritePage from '@/pages/Notice/NoticeWritePage';
+import AdminRoute from './AdminRoute';
 
 interface ProtectedRouteProps {
   element: ReactElement;
@@ -84,7 +85,14 @@ const Router = () => {
       {/* 공지사항 관련 페이지 */}
       <Route path="/notice" element={<NoticePage />} />
       <Route path="/notice/:noticeId" element={<NoticeDetailPage />} />
-      <Route path="/notice/write" element={<NoticeWritePage />} />
+      <Route
+        path="/notice/write"
+        element={<AdminRoute element={<NoticeWritePage />} />}
+      />
+      <Route
+        path="/notice/:noticeId/edit"
+        element={<AdminRoute element={<NoticeWritePage />} />}
+      />
 
       {/* 그룹 초대 링크 - 로그인 필요 */}
       <Route

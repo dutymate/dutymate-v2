@@ -1,13 +1,14 @@
 // 공지사항 글쓰기
-import { useState, useEffect } from 'react';
+import { useState, useEffect, forwardRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/atoms/Button';
 import { SEO } from '@/components/SEO';
 import { FaChevronLeft } from 'react-icons/fa';
-import ReactQuill from 'react-quill';
+import ReactQuill, { ReactQuillProps } from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import { useUserAuthStore } from '../../stores/userAuthStore';
-// import axiosInstance from '../../lib/axios';
+import axiosInstance from '../../lib/axios';
+import { toast } from 'react-toastify';
 
 const NoticeWritePage = () => {
   const navigate = useNavigate();
@@ -28,63 +29,77 @@ const NoticeWritePage = () => {
     }
   }, [token, email]);
 
+  const fetchNoticeData = async () => {
+    try {
+      const response = await axiosInstance.get(`/notice/${noticeId}`);
+      const noticeData = response.data;
+
+      setTitle(noticeData.title || '');
+      setContent(noticeData.content || '');
+      setIsPinned(Boolean(noticeData.isPinned));
+    } catch (error) {
+      console.error('공지사항 데이터 로딩 실패:', error);
+      toast.error('공지사항 데이터를 불러오는데 실패했습니다.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (isEditMode) {
       setLoading(true);
-      // fetchNoticeData();
+      fetchNoticeData();
     }
   }, [noticeId, isEditMode]);
-
-  // const fetchNoticeData = async () => {
-  //   try {
-  //     const response = await axiosInstance.get(`/api/notice/${noticeId}`);
-  //     const noticeData = response.data;
-
-  //     setTitle(noticeData.title || '');
-  //     setContent(noticeData.content || '');
-  //     setIsPinned(Boolean(noticeData.isPinned));
-  //   } catch (error) {
-  //     console.error('공지사항 데이터 로딩 실패:', error);
-  //     alert('공지사항 데이터를 불러오는데 실패했습니다.');
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!title.trim()) {
-      alert('제목을 입력해주세요.');
+      toast.warn('제목을 입력해주세요.');
       return;
     }
 
     if (!content.trim()) {
-      alert('내용을 입력해주세요.');
+      toast.warn('내용을 입력해주세요.');
       return;
     }
 
-    // const noticeData = {
-    //   title: title.trim(),
-    //   content: content.trim(),
-    //   isPinned,
-    // };
+    const sanitizeHtml = (html: string) => {
+      return html
+        .replace(/<script.*?>.*?<\/script>/gi, '') // <script> 태그 제거
+        .replace(/on\w+=".*?"/gi, '') // onClick, onError 등 이벤트 핸들러 제거
+        .replace(/javascript:/gi, ''); // javascript: 링크 제거
+    };
+
+    const cleanContent = sanitizeHtml(content);
+
+    const noticeData = {
+      title: title.trim(),
+      content: cleanContent, //필터링된 내용 사용용
+      isPinned,
+    };
+
+    const ReactQuillWrapper = forwardRef<ReactQuill, ReactQuillProps>(
+      (props, ref) => <ReactQuill {...props} ref={ref} />
+    );
+    ReactQuillWrapper.displayName = 'ReactQuillWrapper';
 
     setLoading(true);
     try {
       if (isEditMode) {
         // 수정 모드: PUT 요청
-        // await axiosInstance.put(`/api/notice/${noticeId}`, noticeData);
-        alert('공지사항이 수정되었습니다.');
+        await axiosInstance.put(`/notice/${noticeId}`, noticeData);
+        toast.success('공지사항이 수정되었습니다.');
       } else {
         // 등록 모드: POST 요청
-        // await axiosInstance.post('/api/notice', noticeData);
-        alert('공지사항이 등록되었습니다.');
+        await axiosInstance.post('/notice', noticeData);
+        toast.success('공지사항이 등록되었습니다.');
       }
       navigate('/notice');
     } catch (err) {
       console.error('공지사항 저장 실패:', err);
-      alert(
+      toast.error(
         isEditMode
           ? '공지사항 수정에 실패했습니다.'
           : '공지사항 등록에 실패했습니다.'
@@ -140,6 +155,7 @@ const NoticeWritePage = () => {
               <input
                 id="notice-title"
                 type="text"
+                autoComplete="off"
                 className="w-full border rounded px-3 py-2 text-base focus:outline-primary"
                 placeholder="제목을 입력하세요"
                 value={title}
