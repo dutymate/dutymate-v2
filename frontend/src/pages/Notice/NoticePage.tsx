@@ -2,8 +2,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
-// import axiosInstance from '@/lib/axios';
-
+import axiosInstance from '@/lib/axios';
+import { useUserAuthStore } from '../../stores/userAuthStore';
 // import { Button } from '@/components/atoms/Button';
 import { SEO } from '@/components/SEO';
 
@@ -26,60 +26,75 @@ const NoticePage = () => {
   // TODO: 실제 관리자 여부로 교체 (예: userInfo.role === 'admin')
   // const isAdmin = true;
 
+  //   useEffect(() => {
+  //     // API 호출 대신 더미 데이터 사용
+  //     setNotices([
+  //       {
+  //         noticeId: 4,
+  //         title: '📢 듀티메이트 Ver.2.4.0 출시 안내',
+  //         createdAt: '2025-02-15T09:00:00.000Z',
+  //         content: `안녕하세요! 듀티메이트의 새로운 업데이트 소식을 전해드립니다.
+
+  // 1. 평간호사님, 이제 듀티표 직접 관리하세요 ✨
+  // • 병동 입장 없이도 나의 듀티표 등록 가능
+  // • 터치 한 번으로 근무 등록
+  // • 근무별 색상 커스텀 설정
+  // • 개인 일정도 함께 기록 가능
+
+  // 2. 친구와 근무표 공유도 간편하게 👥
+  // • 동료와 근무표 공유
+  // • 모두 쉴 수 있는 날짜 자동 추천
+
+  // 3. 자동 생성 기능이 더 똑똑해졌어요 🤖💡
+  // • 공휴일 및 임시공휴일 자동 반영
+  // • 반려된 요청 우선 반영
+  // • 근무 강도 및 Off 일수 설정 가능
+  // • 수간호사가 대신 요청 등록 가능
+
+  // 📩 궁금한 점은 우측 하단 채널톡으로 편하게 문의 주세요! 😊`,
+  //         isPinned: true,
+  //       },
+  //       {
+  //         noticeId: 1,
+  //         title: '서비스 이용 안내',
+  //         createdAt: '2025-02-15T09:00:00.000Z',
+  //         content:
+  //           '듀티메이트 서비스 이용 안내입니다.\n\n1. 서비스 이용 방법\n2. 주요 기능 소개\n3. 자주 묻는 질문',
+  //         isPinned: false,
+  //       },
+  //       {
+  //         noticeId: 2,
+  //         title: '개인정보 처리방침',
+  //         createdAt: '2025-02-15T09:00:00.000Z',
+  //         content:
+  //           '듀티메이트 개인정보 처리방침입니다.\n\n1. 수집하는 개인정보 항목\n2. 개인정보의 수집 및 이용목적\n3. 개인정보의 보유 및 이용기간\n4. 개인정보의 제3자 제공',
+  //         isPinned: false,
+  //       },
+  //       {
+  //         noticeId: 3,
+  //         title: '이용약관',
+  //         createdAt: '2025-02-15T09:00:00.000Z',
+  //         content:
+  //           '듀티메이트 이용약관입니다.\n\n1. 서비스 이용 조건\n2. 회원의 의무\n3. 서비스 제공자의 의무\n4. 기타 규정',
+  //         isPinned: false,
+  //       },
+  //     ]);
+  //     setLoading(false);
+  //   }, []);
+
   useEffect(() => {
-    // API 호출 대신 더미 데이터 사용
-    setNotices([
-      {
-        noticeId: 4,
-        title: '📢 듀티메이트 Ver.2.4.0 출시 안내',
-        createdAt: '2025-02-15T09:00:00.000Z',
-        content: `안녕하세요! 듀티메이트의 새로운 업데이트 소식을 전해드립니다.
-
-1. 평간호사님, 이제 듀티표 직접 관리하세요 ✨
-• 병동 입장 없이도 나의 듀티표 등록 가능
-• 터치 한 번으로 근무 등록
-• 근무별 색상 커스텀 설정
-• 개인 일정도 함께 기록 가능
-
-2. 친구와 근무표 공유도 간편하게 👥
-• 동료와 근무표 공유
-• 모두 쉴 수 있는 날짜 자동 추천
-
-3. 자동 생성 기능이 더 똑똑해졌어요 🤖💡
-• 공휴일 및 임시공휴일 자동 반영
-• 반려된 요청 우선 반영
-• 근무 강도 및 Off 일수 설정 가능
-• 수간호사가 대신 요청 등록 가능
-
-📩 궁금한 점은 우측 하단 채널톡으로 편하게 문의 주세요! 😊`,
-        isPinned: true,
-      },
-      {
-        noticeId: 1,
-        title: '서비스 이용 안내',
-        createdAt: '2025-02-15T09:00:00.000Z',
-        content:
-          '듀티메이트 서비스 이용 안내입니다.\n\n1. 서비스 이용 방법\n2. 주요 기능 소개\n3. 자주 묻는 질문',
-        isPinned: false,
-      },
-      {
-        noticeId: 2,
-        title: '개인정보 처리방침',
-        createdAt: '2025-02-15T09:00:00.000Z',
-        content:
-          '듀티메이트 개인정보 처리방침입니다.\n\n1. 수집하는 개인정보 항목\n2. 개인정보의 수집 및 이용목적\n3. 개인정보의 보유 및 이용기간\n4. 개인정보의 제3자 제공',
-        isPinned: false,
-      },
-      {
-        noticeId: 3,
-        title: '이용약관',
-        createdAt: '2025-02-15T09:00:00.000Z',
-        content:
-          '듀티메이트 이용약관입니다.\n\n1. 서비스 이용 조건\n2. 회원의 의무\n3. 서비스 제공자의 의무\n4. 기타 규정',
-        isPinned: false,
-      },
-    ]);
-    setLoading(false);
+    axiosInstance.get('/notice').then((res) => {
+      const sortedNotices = res.data.sort((a: Notice, b: Notice) => {
+        // 중요 공지사항 먼저, 이후 작성일 내림차순 정렬
+        if (a.isPinned && !b.isPinned) return -1;
+        if (!a.isPinned && b.isPinned) return 1;
+        return (
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+      });
+      setNotices(sortedNotices);
+      setLoading(false);
+    });
   }, []);
 
   // 안전한 페이지네이션 계산
@@ -120,7 +135,8 @@ const NoticePage = () => {
   const handleRefresh = () => {
     // fetchNotices();
   };
-
+  const token = useUserAuthStore((state) => state.userInfo?.token);
+  const email = useUserAuthStore((state) => state.userInfo?.email);
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-2 text-center">로딩 중...</div>
@@ -160,93 +176,104 @@ const NoticePage = () => {
               )} */}
             </div>
           </div>
-
           {/* 공지사항 목록 */}
-          <>
-            <div className="space-y-4 pb-20">
-              {paginatedNotices.length > 0 ? (
-                paginatedNotices.map((notice) => (
-                  <div
-                    key={notice.noticeId}
-                    className="p-4 bg-white rounded-lg shadow-sm border border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors relative"
-                    onClick={() => navigate(`/notice/${notice.noticeId}`)}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2 overflow-hidden flex-nowrap">
-                        {notice.isPinned && (
-                          <span className="px-2 py-1 text-xs font-medium text-red-600 bg-red-50 rounded whitespace-nowrap">
-                            중요
-                          </span>
-                        )}
-                        <h2 className="text-base sm:text-lg font-medium text-gray-800 truncate flex-1 min-w-0">
-                          {notice.title}
-                        </h2>
-                      </div>
-                      <span className="text-sm text-gray-500 whitespace-nowrap ml-2">
-                        {new Date(notice.createdAt).toLocaleDateString()}
-                      </span>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="p-4 bg-white rounded-lg shadow-sm border border-gray-100 text-center">
-                  <p className="text-gray-500">등록된 공지사항이 없습니다.</p>
-                  <button
-                    className="mt-2 text-primary hover:underline text-sm"
-                    onClick={handleRefresh}
-                  >
-                    새로고침
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {/* 페이지네이션 */}
-            {totalPages > 1 && (
-              <div
-                className="fixed left-0 bottom-0 lg:relative lg:bottom-auto w-full bg-white border-t border-gray-200 z-10 flex justify-center items-center gap-2 py-2
-                lg:border-0 lg:shadow-none lg:rounded-none lg:py-4"
-              >
-                <button
-                  className={`min-w-[2.5rem] h-8 text-xs px-2 flex items-center justify-center rounded transition-colors
-                    ${currentPage === 1 ? 'bg-gray-100 text-gray-300 cursor-not-allowed' : 'bg-white text-gray-700 hover:bg-gray-100'}`}
-                  disabled={currentPage === 1}
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  aria-label="이전 페이지"
+          <div className="space-y-4 pb-20">
+            {paginatedNotices.length > 0 ? (
+              paginatedNotices.map((notice) => (
+                <div
+                  key={notice.noticeId}
+                  className="p-4 bg-white rounded-lg shadow-sm border border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors relative"
+                  onClick={() => navigate(`/notice/${notice.noticeId}`)}
                 >
-                  <FaChevronLeft className="w-4 h-4" />
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 overflow-hidden flex-nowrap">
+                      {notice.isPinned && (
+                        <span className="px-2 py-1 text-xs font-medium text-red-600 bg-red-50 rounded whitespace-nowrap">
+                          중요
+                        </span>
+                      )}
+                      <h2 className="text-base sm:text-lg font-medium text-gray-800 truncate flex-1 min-w-0">
+                        {notice.title}
+                      </h2>
+                    </div>
+                    <span className="text-sm text-gray-500 whitespace-nowrap ml-2">
+                      {new Date(notice.createdAt).toLocaleDateString()}
+                    </span>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="p-4 bg-white rounded-lg shadow-sm border border-gray-100 text-center">
+                <p className="text-gray-500">등록된 공지사항이 없습니다.</p>
+                <button
+                  className="mt-2 text-primary hover:underline text-sm"
+                  onClick={handleRefresh}
+                >
+                  새로고침
                 </button>
-                <div className="flex gap-1">
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                    (page) => (
-                      <button
-                        key={page}
-                        className={`min-w-[2rem] h-8 rounded-full flex items-center justify-center text-xs font-semibold border transition-colors px-0.5 sm:text-sm sm:min-w-[2.5rem] sm:h-8
+              </div>
+            )}
+
+            {/* ✅ 글쓰기 버튼 - 공지사항 리스트 하단 배치 */}
+            {token && email === 'dutymate.net@gmail.com' && (
+              <div className="w-full flex justify-end pt-4">
+                <button
+                  onClick={() => navigate('/notice/write')}
+                  className="flex items-center justify-center gap-1 px-6 py-2 sm:px-8 sm:py-2
+ bg-primary hover:bg-primary-dark rounded-lg transition-colors shadow-sm
+                 text-sm sm:text-base text-white"
+                >
+                  글쓰기
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* 페이지네이션 */}
+          {totalPages > 1 && (
+            <div
+              className="fixed left-0 bottom-0 lg:relative lg:bottom-auto w-full bg-white border-t border-gray-200 z-10 flex justify-center items-center gap-2 py-2
+                lg:border-0 lg:shadow-none lg:rounded-none lg:py-4"
+            >
+              <button
+                className={`min-w-[2.5rem] h-8 text-xs px-2 flex items-center justify-center rounded transition-colors
+                    ${currentPage === 1 ? 'bg-gray-100 text-gray-300 cursor-not-allowed' : 'bg-white text-gray-700 hover:bg-gray-100'}`}
+                disabled={currentPage === 1}
+                onClick={() => handlePageChange(currentPage - 1)}
+                aria-label="이전 페이지"
+              >
+                <FaChevronLeft className="w-4 h-4" />
+              </button>
+              <div className="flex gap-1">
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                  (page) => (
+                    <button
+                      key={page}
+                      className={`min-w-[2rem] h-8 rounded-full flex items-center justify-center text-xs font-semibold border transition-colors px-0.5 sm:text-sm sm:min-w-[2.5rem] sm:h-8
                         ${
                           currentPage === page
                             ? 'bg-primary text-white border-primary'
                             : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'
                         }
                       `}
-                        onClick={() => handlePageChange(page)}
-                      >
-                        {page}
-                      </button>
-                    )
-                  )}
-                </div>
-                <button
-                  className={`min-w-[2.5rem] h-8 text-xs px-2 flex items-center justify-center rounded transition-colors
-                    ${currentPage === totalPages ? 'bg-gray-100 text-gray-300 cursor-not-allowed' : 'bg-white text-gray-700 hover:bg-gray-100'}`}
-                  disabled={currentPage === totalPages}
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  aria-label="다음 페이지"
-                >
-                  <FaChevronRight className="w-4 h-4" />
-                </button>
+                      onClick={() => handlePageChange(page)}
+                    >
+                      {page}
+                    </button>
+                  )
+                )}
               </div>
-            )}
-          </>
+              <button
+                className={`min-w-[2.5rem] h-8 text-xs px-2 flex items-center justify-center rounded transition-colors
+                    ${currentPage === totalPages ? 'bg-gray-100 text-gray-300 cursor-not-allowed' : 'bg-white text-gray-700 hover:bg-gray-100'}`}
+                disabled={currentPage === totalPages}
+                onClick={() => handlePageChange(currentPage + 1)}
+                aria-label="다음 페이지"
+              >
+                <FaChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </>

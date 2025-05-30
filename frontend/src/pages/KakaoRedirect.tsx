@@ -37,6 +37,8 @@ export function KakaoRedirect() {
         userAuthStore.setUserInfo({
           ...data,
           provider: 'kakao',
+          email: data.email,
+          token: data.token,
         });
 
         const inviteToken = localStorage.getItem('inviteToken');

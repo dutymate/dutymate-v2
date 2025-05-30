@@ -14,6 +14,7 @@ public class NoticeDetailResponseDto {
 	private Long noticeId;
 	private String title;
 	private String content;
+	private Boolean isPinned;
 	private LocalDateTime createdAt;
 
 	public static NoticeDetailResponseDto of(Notice notice) {
@@ -21,6 +22,7 @@ public class NoticeDetailResponseDto {
 			.noticeId(notice.getNoticeId())
 			.title(notice.getTitle())
 			.content(notice.getContent())
+			.isPinned(notice.isPinned())
 			.createdAt(notice.getCreatedAt())
 			.build();
 	}

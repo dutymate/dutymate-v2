@@ -7,6 +7,7 @@ import { ColorTheme } from '@/stores/userAuthStore';
 export interface LoginResponse {
   token: string;
   memberId: number;
+  email: string;
   name: string;
   role: string;
   profileImg: string;
