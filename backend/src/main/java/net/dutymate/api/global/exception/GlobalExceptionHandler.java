@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -63,7 +64,7 @@ public class GlobalExceptionHandler {
 
 		List<String> errors = exception.getBindingResult().getFieldErrors()
 			.stream()
-			.map(ex -> ex.getDefaultMessage())
+			.map(DefaultMessageSourceResolvable::getDefaultMessage)
 			.toList();
 		body.put(MESSAGE_KEY, errors.getFirst());
 

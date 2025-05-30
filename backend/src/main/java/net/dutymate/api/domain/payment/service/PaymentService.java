@@ -4,7 +4,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import net.dutymate.api.domain.member.Member;
-import net.dutymate.api.domain.member.repository.MemberRepository;
 import net.dutymate.api.domain.payment.dto.AddAutoGenCntResponseDto;
 import net.dutymate.api.domain.payment.dto.AutoGenCntResponseDto;
 
@@ -16,8 +15,6 @@ import lombok.RequiredArgsConstructor;
 public class PaymentService {
 
 	private static final int DEFAULT_ADD_GEN_COUNT = 100;
-
-	private final MemberRepository memberRepository;
 
 	public AutoGenCntResponseDto getAutoGenCnt(Member member) {
 		return new AutoGenCntResponseDto(member.getAutoGenCnt());

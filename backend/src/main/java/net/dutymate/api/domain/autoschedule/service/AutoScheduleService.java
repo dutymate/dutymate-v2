@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.http.HttpStatus;
@@ -78,17 +77,17 @@ public class AutoScheduleService {
 
 		// Mid 전담 인원만 따로 분리 (자동생성에서 제외)
 		List<WardMember> midWardMembers = allWardMembers.stream()
-			.filter(wm -> wm.getShiftFlags() == ShiftType.M.getFlag())
+			.filter(wm -> wm.getShiftFlags().equals(ShiftType.M.getFlag()))
 			.toList();
 
 		// 자동 생성에 포함될 간호사들 (Mid 제외한 모든 간호사)
 		List<WardMember> regularWardMembers = new ArrayList<>(allWardMembers);
-		regularWardMembers.removeIf(wm -> wm.getShiftFlags() == ShiftType.M.getFlag());
+		regularWardMembers.removeIf(wm -> wm.getShiftFlags().equals(ShiftType.M.getFlag()));
 
 		int wardMemberCount = allWardMembers.size();
 
 		int nightNurseCnt = allWardMembers.stream()
-			.filter(wm->wm.getShiftFlags() == ShiftType.N.getFlag())
+			.filter(wm -> wm.getShiftFlags().equals(ShiftType.N.getFlag()))
 			.toList().size();
 
 		// Night 전담 간호사 수는 따로 계산하지 않음 (통합 로직에 포함됨)
@@ -112,7 +111,7 @@ public class AutoScheduleService {
 		);
 
 		Map<Integer, Integer> dailyNightCount = new HashMap<>();
-		Map<Long, String> prevSchedulesMap = nurseScheduler.getPreviousMonthSchedules(prevNurseShifts);
+		nurseScheduler.getPreviousMonthSchedules(prevNurseShifts);
 
 		// 각 간호사의 ShiftFlags를 Map으로 변환하여 전달
 		Map<Long, Integer> nurseShiftFlags = regularWardMembers.stream()
@@ -137,11 +136,6 @@ public class AutoScheduleService {
 			reinforcementRequestIds, workIntensities,
 			nurseShiftFlags  // 새로 추가된 파라미터
 		);
-		//
-		// WardSchedule updateWardSchedule = geneticNurseScheduler.generateSchedule(
-		// 	wardSchedule, rule, regularWardMembers, prevNurseShifts, yearMonth, memberId, acceptedRequests,
-		// 	dailyNightCount, reinforcementRequestIds, workIntensities, nurseShiftFlags
-		// );
 
 		List<WardSchedule.NurseShift> updatedShifts = new ArrayList<>(updateWardSchedule.getDuties()
 			.get(updateWardSchedule.getNowIdx())
@@ -182,11 +176,7 @@ public class AutoScheduleService {
 
 		member.updateAutoGenCnt(-1);
 
-		Set<Long> previouslyAcceptedRequestIds = acceptedRequests.stream()
-			.map(Request::getRequestId)
-			.collect(Collectors.toSet());
-
-		List<Request> allRequests = requestRepository.findAllWardRequestsByYearMonth(member.getWardMember().getWard(),
+		requestRepository.findAllWardRequestsByYearMonth(member.getWardMember().getWard(),
 			yearMonth.year(),
 			yearMonth.month());
 

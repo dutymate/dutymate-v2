@@ -21,8 +21,6 @@ public class InitialDutyGenerator {
 
 	/**
 	 * Duty 초기화 메서드 (병동 생성 시에만 사용)
-	 *
-	 * @return
 	 */
 	public WardSchedule initializedDuty(WardMember wardMember, YearMonth yearMonth) {
 		return createNewWardSchedule(wardMember.getWard(), List.of(wardMember), yearMonth);

@@ -10,7 +10,7 @@ public class RecommendResponseDto {
 	List<RecommendedBoard> boardList;
 
 	@Data
-	public class RecommendedBoard {
+	public static class RecommendedBoard {
 		Long boardId;
 		String title;
 	}

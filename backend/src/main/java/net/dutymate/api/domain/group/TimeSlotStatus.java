@@ -6,5 +6,5 @@ import lombok.Getter;
 public enum TimeSlotStatus {
 	BEST,
 	OKAY,
-	HARD;
+	HARD
 }

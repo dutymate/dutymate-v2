@@ -501,8 +501,6 @@ public class GroupService {
 	private String getRandomImage() {
 		int randomIndex = new Random().nextInt(3) + 1; // 1 ~ 3
 
-		String fileUrl =
-			"https://" + bucket + ".s3." + region + ".amazonaws.com/group/random-image-" + randomIndex + ".png";
-		return fileUrl;
+		return "https://" + bucket + ".s3." + region + ".amazonaws.com/group/random-image-" + randomIndex + ".png";
 	}
 }

@@ -17,9 +17,9 @@ public record YearMonth(Integer year, Integer month) {
 	private static ApplicationContext applicationContext;
 
 	// 캐싱을 위한 변수들
-	private static Map<String, Map<Integer, String>> holidayCache = new HashMap<>();
-	private static Map<String, Map<Integer, Boolean>> weekendDaysCache = new HashMap<>();
-	private static Map<String, Map<Integer, Boolean>> pureWeekendDaysCache = new HashMap<>();
+	private static final Map<String, Map<Integer, String>> holidayCache = new HashMap<>();
+	private static final Map<String, Map<Integer, Boolean>> weekendDaysCache = new HashMap<>();
+	private static final Map<String, Map<Integer, Boolean>> pureWeekendDaysCache = new HashMap<>();
 
 	public static void setApplicationContext(ApplicationContext context) {
 		YearMonth.applicationContext = context;
@@ -94,7 +94,6 @@ public record YearMonth(Integer year, Integer month) {
 			holidayCache.put(cacheKey, holidayMap);
 			return holidayMap;
 		} catch (Exception e) {
-			e.printStackTrace();
 			return Map.of();
 		}
 	}

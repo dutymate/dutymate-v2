@@ -203,14 +203,6 @@ public class WardScheduleService {
 			requests);
 	}
 
-	private List<WardScheduleResponseDto.RequestDto> findRequest(Ward ward) {
-		return requestRepository.findAllWardRequests(ward)
-			.stream()
-			.filter(o -> o.getStatus() != RequestStatus.DENIED)
-			.map(WardScheduleResponseDto.RequestDto::of)
-			.toList();
-	}
-
 	private boolean isInNextMonth(YearMonth yearMonth) {
 		int serverMonth = Integer.parseInt(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMM")));
 		int inputMonth = Integer.parseInt(yearMonth.year() + String.format("%02d", yearMonth.month()));
@@ -284,14 +276,6 @@ public class WardScheduleService {
 			nowIdx++;
 		}
 
-		/*WardSchedule updatedWardSchedule = WardSchedule.builder()
-			.id(wardSchedule.getId())
-			.wardId(wardSchedule.getWardId())
-			.year(yearMonth.year())
-			.month(yearMonth.month())
-			.nowIdx(nowIdx)
-			.duties(duties)
-			.build();*/
 		wardSchedule.setDuties(duties);
 		wardSchedule.setNowIdx(nowIdx);
 		wardScheduleRepository.save(wardSchedule);
@@ -390,7 +374,6 @@ public class WardScheduleService {
 			.thenComparing(event -> event.getStartTime() != null ? event.getStartTime() : LocalDateTime.MIN)
 		);
 
-
 		// 6. calendar DTO 구성
 		MyDutyResponseDto.CalendarData calendarData = new MyDutyResponseDto.CalendarData();
 		calendarData.setPrevCalendar(prevCalendar);
@@ -411,23 +394,6 @@ public class WardScheduleService {
 			.findAny()
 			.orElseGet(() -> WardSchedule.NurseShift.builder().shifts("X".repeat(daysInMonth)).build())
 			.getShifts();
-	}
-
-	// 병동 입장 연월로 shifts 구하기
-	private String getShiftsByEnterDate(Member member, YearMonth yearMonth) {
-		YearMonth enterYearMonth = new YearMonth(member.getEnterYear(), member.getEnterMonth());
-
-		// 1~4월 : 개인 듀티 조회
-		if (yearMonth.isBefore(enterYearMonth)) {
-			return getOrCreateMemberSchedule(member.getMemberId(), yearMonth).getShifts();
-		}
-
-		// 5~12월 : 병동 듀티 조회
-		WardSchedule wardSchedule = wardScheduleRepository
-			.findByWardIdAndYearAndMonth(member.getWardMember().getWard().getWardId(), yearMonth.year(),
-				yearMonth.month()).orElse(null);
-
-		return getShiftsInWard(member, wardSchedule, yearMonth.daysInMonth());
 	}
 
 	public MemberSchedule getOrCreateMemberSchedule(Long memberId, YearMonth yearMonth) {
@@ -582,16 +548,20 @@ public class WardScheduleService {
 
 				// 2. role이 같은 경우 shiftType으로 정렬 (M > All > N)
 				if (a.getRole() == b.getRole()) {
-					if (a.getShiftFlags() == ShiftType.M.getFlag() && b.getShiftFlags() != ShiftType.M.getFlag()) {
+					if (a.getShiftFlags().equals(ShiftType.M.getFlag())
+						&& !b.getShiftFlags().equals(ShiftType.M.getFlag())) {
 						return -1;
 					}
-					if (a.getShiftFlags() != ShiftType.M.getFlag() && b.getShiftFlags() == ShiftType.M.getFlag()) {
+					if (!a.getShiftFlags().equals(ShiftType.M.getFlag())
+						&& b.getShiftFlags().equals(ShiftType.M.getFlag())) {
 						return 1;
 					}
-					if (a.getShiftFlags() == ShiftType.ALL.getFlag() && b.getShiftFlags() == ShiftType.N.getFlag()) {
+					if (a.getShiftFlags().equals(ShiftType.ALL.getFlag())
+						&& b.getShiftFlags().equals(ShiftType.N.getFlag())) {
 						return -1;
 					}
-					if (a.getShiftFlags() == ShiftType.N.getFlag() && b.getShiftFlags() == ShiftType.ALL.getFlag()) {
+					if (a.getShiftFlags().equals(ShiftType.N.getFlag())
+						&& b.getShiftFlags().equals(ShiftType.ALL.getFlag())) {
 						return 1;
 					}
 				}
@@ -715,12 +685,10 @@ public class WardScheduleService {
 		if (!updatedScheduleList.isEmpty()) {
 			for (WardSchedule schedule : updatedScheduleList) {
 
-				WardSchedule existingSchedule = wardScheduleRepository.findByWardIdAndYearAndMonth(schedule.getWardId(),
-					schedule.getYear(), schedule.getMonth()).orElse(null);
+				wardScheduleRepository
+					.findByWardIdAndYearAndMonth(schedule.getWardId(), schedule.getYear(), schedule.getMonth())
+					.ifPresent(existingSchedule -> schedule.setIdIfNotExist(existingSchedule.getId()));
 
-				if (existingSchedule != null) {
-					schedule.setIdIfNotExist(existingSchedule.getId());
-				}
 				schedule.setDuties(new ArrayList<>(schedule.getDuties()));
 			}
 

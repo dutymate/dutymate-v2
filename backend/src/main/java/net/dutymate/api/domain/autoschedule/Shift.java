@@ -1,5 +1,8 @@
 package net.dutymate.api.domain.autoschedule;
 
+import lombok.Getter;
+
+@Getter
 public enum Shift {
 	D("D"),
 	E("E"),
@@ -14,7 +17,4 @@ public enum Shift {
 		this.value = value;
 	}
 
-	public String getValue() {
-		return value;
-	}
 }

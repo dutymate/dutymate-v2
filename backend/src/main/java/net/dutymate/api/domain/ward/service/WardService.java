@@ -360,12 +360,6 @@ public class WardService {
 				.updateDutyWithNewMember(nextMonthSchedule, newWardMember, nextYearMonth.initializeShifts());
 			wardScheduleRepository.save(nextMonthSchedule);
 		}
-
-		// 6. 기존 스케줄이 없다면, 입장한 멤버의 듀티표 초기화하여 저장하기
-		// 사실 이미 병동이 생성된 이상, 무조건 기존 스케줄이 있어야만 함
-		// if (currMonthSchedule == null && nextMonthSchedule == null) {
-		// 	initialDutyGenerator.initializedDuty(newWardMember, yearMonth);
-		// }
 	}
 
 	@Transactional
@@ -511,25 +505,6 @@ public class WardService {
 		// MongoDB 저장 (JPA 트랜잭션과 분리)
 		wardScheduleService.updateWardSchedules(ward.getWardId(), newWardMemberList);
 	}
-
-	/*// wardCode : 랜덤한 6자리 대문자 + 숫자 조합 코드 생성
-	private String generateWardCode() {
-		Random random = new Random();
-		StringBuilder code = new StringBuilder();
-		String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-		int wardCodeLength = 6;
-		while (wardCodeLength-- > 0) {
-			code.append(characters.charAt(random.nextInt(characters.length())));
-		}
-		return code.toString();
-	}
-
-	private String generateTempName(Ward ward, int index) {
-		// 기존 Ward에 임시간호사 목록 조회
-		List<WardMember> tempNurses = wardMemberRepository.findByWardAndIsSynced(ward, false);
-
-		return "간호사" + (tempNurses.size() + index);
-	}*/
 
 	@Transactional
 	public void changeVirtualMember(
