@@ -34,6 +34,7 @@ public class Notice {
 	private String content;
 
 	@Column(nullable = false)
+	@Builder.Default
 	private boolean isPinned = false; // 상단 고정 여부
 
 	@Column(nullable = false, updatable = false)

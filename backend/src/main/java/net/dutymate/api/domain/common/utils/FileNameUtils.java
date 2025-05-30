@@ -34,11 +34,6 @@ public class FileNameUtils {
 			|| extension.matches("jpg|jpeg|png|gif|bmp|webp");
 	}
 
-	public static boolean isHeicFile(String contentType, String fileName) {
-		String extension = getFileExtension(fileName).toLowerCase();
-		return "image/heic".equals(contentType) || "heic".equals(extension);
-	}
-
 	/**
 	 * 월별 디렉토리 + 날짜 기반 유니크 파일명 생성
 	 * 예: logs/login/2025_05/2025_05_16_A9c2c3.csv

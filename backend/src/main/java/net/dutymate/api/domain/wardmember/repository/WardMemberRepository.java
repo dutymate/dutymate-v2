@@ -18,10 +18,6 @@ public interface WardMemberRepository extends JpaRepository<WardMember, Long> {
 
 	List<WardMember> findAllByWard(Ward ward);
 
-	List<WardMember> findByWardAndIsSynced(Ward ward, Boolean isSynced);
-
-	Boolean existsByWard(Ward ward);
-
 	List<WardMember> findByMember_MemberIdIn(List<Long> memberIds);
 
 }

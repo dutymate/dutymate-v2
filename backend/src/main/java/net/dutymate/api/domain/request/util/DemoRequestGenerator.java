@@ -58,14 +58,6 @@ public class DemoRequestGenerator {
 		return requests;
 	}
 
-	// 카운터 초기화
-	public static void resetRequestCounters() {
-		acceptedCount = 0;
-		deniedCount = 0;
-		holdCount = 0;
-		totalCount = 0;
-	}
-
 	// 무작위로 요청 상태를 결정하는 메서드 (13:4:3 비율 유지)
 	private static RequestStatus getRandomizedRequestStatus() {
 		// 전체 20개 중 각 비율에 따른 최대 개수
@@ -99,7 +91,7 @@ public class DemoRequestGenerator {
 
 		// 남은 상태가 하나라면 그것을 선택
 		if (availableStatuses.size() == 1) {
-			RequestStatus status = availableStatuses.get(0);
+			RequestStatus status = availableStatuses.getFirst();
 			incrementCounter(status);
 			return status;
 		}
@@ -162,27 +154,19 @@ public class DemoRequestGenerator {
 
 	private static RequestInfo getRequestInfo(int nurseSeq, int requestIndex) {
 		if (nurseSeq % 2 == 0) { // 짝수 번호 간호사
-			switch (requestIndex) {
-				case 0:
-					return new RequestInfo(Shift.O, MEMO_VACATION);
-				case 1:
-					return new RequestInfo(Shift.E, MEMO_MORNING_CHECKUP);
-				case 2:
-					return new RequestInfo(Shift.O, MEMO_WEDDING);
-				default:
-					return new RequestInfo(Shift.D, MEMO_AFTERNOON_HOSPITAL);
-			}
+			return switch (requestIndex) {
+				case 0 -> new RequestInfo(Shift.O, MEMO_VACATION);
+				case 1 -> new RequestInfo(Shift.E, MEMO_MORNING_CHECKUP);
+				case 2 -> new RequestInfo(Shift.O, MEMO_WEDDING);
+				default -> new RequestInfo(Shift.D, MEMO_AFTERNOON_HOSPITAL);
+			};
 		} else { // 홀수 번호 간호사
-			switch (requestIndex) {
-				case 0:
-					return new RequestInfo(Shift.O, MEMO_FAMILY_GATHERING);
-				case 1:
-					return new RequestInfo(Shift.D, MEMO_AFTERNOON_HOSPITAL);
-				case 2:
-					return new RequestInfo(Shift.O, MEMO_PERSONAL_SCHEDULE);
-				default:
-					return new RequestInfo(Shift.E, MEMO_MORNING_CHECKUP);
-			}
+			return switch (requestIndex) {
+				case 0 -> new RequestInfo(Shift.O, MEMO_FAMILY_GATHERING);
+				case 1 -> new RequestInfo(Shift.D, MEMO_AFTERNOON_HOSPITAL);
+				case 2 -> new RequestInfo(Shift.O, MEMO_PERSONAL_SCHEDULE);
+				default -> new RequestInfo(Shift.E, MEMO_MORNING_CHECKUP);
+			};
 		}
 	}
 

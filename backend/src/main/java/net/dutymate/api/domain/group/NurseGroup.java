@@ -48,7 +48,7 @@ public class NurseGroup {
 
 	@OneToMany(mappedBy = "group", cascade = CascadeType.ALL, orphanRemoval = true)
 	@Builder.Default
-	private List<GroupMember> groupMemberList = new ArrayList<>();
+	private final List<GroupMember> groupMemberList = new ArrayList<>();
 
 	@PrePersist
 	public void prePersist() {

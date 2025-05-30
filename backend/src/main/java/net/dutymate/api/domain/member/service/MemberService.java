@@ -516,10 +516,8 @@ public class MemberService {
 
 				// 병동 내 다른 유저가 있는지 확인
 				boolean hasOtherUser = wardMemberList.stream()
-					.anyMatch(wm -> {
-						return wm.getMember() != member
-							&& !TEMP_NURSE_EMAIL.equals(wm.getMember().getEmail());
-					});
+					.anyMatch(wm -> wm.getMember() != member
+						&& !TEMP_NURSE_EMAIL.equals(wm.getMember().getEmail()));
 
 				if (hasOtherHN) {
 					ward.removeWardMember(member.getWardMember());
@@ -577,10 +575,8 @@ public class MemberService {
 
 				// 병동 내 다른 유저가 있는지 확인
 				boolean hasOtherUser = wardMemberList.stream()
-					.anyMatch(wardMember -> {
-						return wardMember.getMember() != member
-							&& !TEMP_NURSE_EMAIL.equals(wardMember.getMember().getEmail());
-					});
+					.anyMatch(wardMember -> wardMember.getMember() != member
+						&& !TEMP_NURSE_EMAIL.equals(wardMember.getMember().getEmail()));
 
 				// HN이 있으면 나만 병동에서 삭제
 				if (hasOtherHN) {
@@ -615,22 +611,16 @@ public class MemberService {
 		// 이번달 듀티에서 삭제
 		YearMonth yearMonth = YearMonth.nowYearMonth();
 
-		WardSchedule currMonthSchedule = wardScheduleRepository.findByWardIdAndYearAndMonth(
-			ward.getWardId(), yearMonth.year(), yearMonth.month()).orElse(null);
-
-		if (currMonthSchedule != null) {
-			wardMemberService.deleteWardMemberDuty(currMonthSchedule, member);
-		}
+		wardScheduleRepository
+			.findByWardIdAndYearAndMonth(ward.getWardId(), yearMonth.year(), yearMonth.month())
+			.ifPresent(currMonthSchedule -> wardMemberService.deleteWardMemberDuty(currMonthSchedule, member));
 
 		// 다음달 듀티에서 삭제
 		YearMonth nextYearMonth = yearMonth.nextYearMonth();
 
-		WardSchedule nextMonthSchedule = wardScheduleRepository.findByWardIdAndYearAndMonth(
-			ward.getWardId(), nextYearMonth.year(), nextYearMonth.month()).orElse(null);
-
-		if (nextMonthSchedule != null) {
-			wardMemberService.deleteWardMemberDuty(nextMonthSchedule, member);
-		}
+		wardScheduleRepository
+			.findByWardIdAndYearAndMonth(ward.getWardId(), nextYearMonth.year(), nextYearMonth.month())
+			.ifPresent(nextMonthSchedule -> wardMemberService.deleteWardMemberDuty(nextMonthSchedule, member));
 
 	}
 

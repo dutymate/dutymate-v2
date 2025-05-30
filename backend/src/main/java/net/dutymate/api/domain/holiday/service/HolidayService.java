@@ -5,6 +5,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -64,24 +65,25 @@ public class HolidayService {
 		String solMonth = String.format("%02d", month);
 
 		// API 호출 URL 생성
-		StringBuilder urlBuilder = new StringBuilder(
-			"http://apis.data.go.kr/B090041/openapi/service/SpcdeInfoService/getRestDeInfo");
-		urlBuilder.append("?").append(URLEncoder.encode("serviceKey", "UTF-8")).append("=").append(apiKey);
-		urlBuilder.append("&")
-			.append(URLEncoder.encode("solYear", "UTF-8"))
-			.append("=")
-			.append(URLEncoder.encode(solYear, "UTF-8"));
-		urlBuilder.append("&")
-			.append(URLEncoder.encode("solMonth", "UTF-8"))
-			.append("=")
-			.append(URLEncoder.encode(solMonth, "UTF-8"));
-		urlBuilder.append("&")
-			.append(URLEncoder.encode("_type", "UTF-8"))
-			.append("=")
-			.append(URLEncoder.encode("json", "UTF-8"));
-		urlBuilder.append("&_type=json");
+		String urlBuilder = "http://apis.data.go.kr/B090041/openapi/service/SpcdeInfoService/getRestDeInfo" + "?"
+			+ URLEncoder.encode("serviceKey", StandardCharsets.UTF_8)
+			+ "="
+			+ apiKey
+			+ "&"
+			+ URLEncoder.encode("solYear", StandardCharsets.UTF_8)
+			+ "="
+			+ URLEncoder.encode(solYear, StandardCharsets.UTF_8)
+			+ "&"
+			+ URLEncoder.encode("solMonth", StandardCharsets.UTF_8)
+			+ "="
+			+ URLEncoder.encode(solMonth, StandardCharsets.UTF_8)
+			+ "&"
+			+ URLEncoder.encode("_type", StandardCharsets.UTF_8)
+			+ "="
+			+ URLEncoder.encode("json", StandardCharsets.UTF_8)
+			+ "&_type=json";
 		// API 호출
-		URL url = new URL(urlBuilder.toString());
+		URL url = new URL(urlBuilder);
 		HttpURLConnection conn = (HttpURLConnection)url.openConnection();
 		conn.setRequestMethod("GET");
 
@@ -90,7 +92,6 @@ public class HolidayService {
 		if (conn.getResponseCode() >= 200 && conn.getResponseCode() <= 300) {
 			rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
 		} else {
-			rd = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
 			throw new RuntimeException("API 호출 실패: " + conn.getResponseCode());
 		}
 

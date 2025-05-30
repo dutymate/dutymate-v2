@@ -29,7 +29,6 @@ public class EmailService {
 
 	private static final long EXPIRE_MINUTES = 5;
 	private static final String EMAIL_CODE_PREFIX = "email:code:";
-	private static final String TITLE = "[듀티메이트] 이메일 인증 코드 발송 안내";
 	private final JavaMailSender mailSender;
 	private final RedisTemplate<String, String> redisTemplate;
 	private final MemberRepository memberRepository;
@@ -54,36 +53,34 @@ public class EmailService {
 			boolean isVerified = existingMember.getIsVerified();
 
 			// 로그인 요청인 경우
-			if ("login".equals(path)) {
-				if (provider == Provider.NONE && !isVerified) {
-					// 일반 로그인 + 인증되지 않음 → 인증 코드 전송 허용
-					// → 그냥 통과 (아래 코드 전송 로직으로 진행)
-					// return;
-				} else {
-					// 인증이 이미 된 일반 사용자 or 소셜 로그인 사용자
-					throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "이미 인증된 계정입니다. 로그인해주세요.");
+			switch (path) {
+				case "login" -> {
+					if (provider != Provider.NONE || isVerified) {
+						// 인증이 이미 된 일반 사용자 or 소셜 로그인 사용자
+						throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "이미 인증된 계정입니다. 로그인해주세요.");
+					}
 				}
-			} else if ("signup".equals(path)) {
-				// 회원가입 요청인 경우
-				// 이미 있는 사용자의 경우
-				String message = switch (provider) {
-					case KAKAO -> "카카오 계정으로 회원가입된 이메일입니다. 카카오 로그인을 이용해주세요.";
-					case GOOGLE -> "구글 계정으로 회원가입된 이메일입니다. 구글 로그인을 이용해주세요.";
-					case NONE -> "이미 가입된 이메일입니다.";
-				};
-				throw new ResponseStatusException(HttpStatus.BAD_REQUEST, message);
-
-			} else if ("reset".equals(path)) {
-
-				if (provider == Provider.GOOGLE) {
-					throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "구글 계정으로 회원가입된 이메일입니다.");
-				} else if (provider == Provider.KAKAO) {
-					throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "카카오 계정으로 회원가입된 이메일입니다.");
+				case "signup" -> {
+					// 회원가입 요청인 경우
+					// 이미 있는 사용자의 경우
+					String message = switch (provider) {
+						case KAKAO -> "카카오 계정으로 회원가입된 이메일입니다. 카카오 로그인을 이용해주세요.";
+						case GOOGLE -> "구글 계정으로 회원가입된 이메일입니다. 구글 로그인을 이용해주세요.";
+						case NONE -> "이미 가입된 이메일입니다.";
+					};
+					throw new ResponseStatusException(HttpStatus.BAD_REQUEST, message);
 				}
+				case "reset" -> {
 
-			} else {
-				// 예외: path 값이 login/signup이 아닌 경우
-				throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "유효하지 않은 요청입니다.");
+					if (provider == Provider.GOOGLE) {
+						throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "구글 계정으로 회원가입된 이메일입니다.");
+					} else if (provider == Provider.KAKAO) {
+						throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "카카오 계정으로 회원가입된 이메일입니다.");
+					}
+				}
+				case null, default ->
+					// 예외: path 값이 login/signup이 아닌 경우
+					throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "유효하지 않은 요청입니다.");
 			}
 		}
 

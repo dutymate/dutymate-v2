@@ -102,7 +102,7 @@ public class BoardCurationService {
 		RecommendResponseDto responseDto = new RecommendResponseDto();
 		List<RecommendResponseDto.RecommendedBoard> recommendedBoards = curatedBoards.stream()
 			.map(curatedBoard -> {
-				RecommendResponseDto.RecommendedBoard recommendedBoard = responseDto.new RecommendedBoard();
+				RecommendResponseDto.RecommendedBoard recommendedBoard = new RecommendResponseDto.RecommendedBoard();
 				recommendedBoard.setBoardId(curatedBoard.getBoard().getBoardId());
 				recommendedBoard.setTitle(curatedBoard.getBoard().getTitle());
 				return recommendedBoard;

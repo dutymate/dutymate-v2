@@ -4,7 +4,6 @@ import java.util.List;
 
 import net.dutymate.api.domain.common.utils.YearMonth;
 import net.dutymate.api.domain.wardmember.Role;
-import net.dutymate.api.domain.wardmember.ShiftType;
 
 import lombok.Builder;
 import lombok.Data;
