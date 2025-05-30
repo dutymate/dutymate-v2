@@ -10,6 +10,7 @@ import { isMobileApp } from '@/lib/mobileApp';
 
 import 'react-toastify/dist/ReactToastify.css';
 import './toast.css';
+import Maintenance from './pages/Maintenance';
 
 function App() {
   if (import.meta.env.PROD) {
@@ -26,6 +27,11 @@ function App() {
       document.documentElement.classList.add('mobile-app-view');
     }
   }, []);
+
+  if (import.meta.env.VITE_MAINTENANCE === 'true') {
+    console.log(import.meta.env.VITE_MAINTENANCE);
+    return <Maintenance />;
+  }
 
   return (
     <BrowserRouter>
