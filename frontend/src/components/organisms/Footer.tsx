@@ -1,9 +1,36 @@
 import { FaInstagram, FaYoutube, FaTwitter } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import channelService from '@/services/channelService';
+import { useEffect, useState } from 'react';
+import axiosInstance from '@/lib/axios';
+
+interface Notice {
+  noticeId: number;
+  title: string;
+  createdAt: string;
+}
 
 const Footer = () => {
   const navigate = useNavigate();
+  const [recentNotices, setRecentNotices] = useState<Notice[]>([]);
+
+  useEffect(() => {
+    // Fetch the 4 most recent notices
+    axiosInstance
+      .get('/notice')
+      .then((res) => {
+        // Sort by creation date (newest first)
+        const sortedNotices = res.data.sort(
+          (a: Notice, b: Notice) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+        // Take only the first 4
+        setRecentNotices(sortedNotices.slice(0, 4));
+      })
+      .catch((error) => {
+        console.error('Failed to fetch notices:', error);
+      });
+  }, []);
 
   const handleChatbotClick = () => {
     channelService.showMessenger();
@@ -13,49 +40,30 @@ const Footer = () => {
     navigate('/notice');
   };
 
-  const handleServiceGuideClick = () => {
-    navigate('/notice/1');
-  };
-
-  const handlePrivacyPolicyClick = () => {
-    navigate('/notice/2');
-  };
-
-  const handleTermsClick = () => {
-    navigate('/notice/3');
-  };
-
   return (
     <footer className="w-full bg-white py-6 sm:py-8 mt-4 sm:mt-12">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
           {/* 공지사항 섹션 */}
           <div className="space-y-2 sm:space-y-3">
-            <h3
-              className="text-base sm:text-lg font-bold text-gray-800 cursor-pointer hover:text-primary transition-colors"
-              onClick={handleNoticeClick}
-            >
-              공지사항
-            </h3>
+            <div className="flex items-center gap-2">
+              <h3
+                className="text-base sm:text-lg font-bold text-gray-800 cursor-pointer"
+                onClick={handleNoticeClick}
+              >
+                공지사항
+              </h3>
+            </div>
             <div className="space-y-1">
-              <p
-                className="text-xs sm:text-sm text-gray-600 cursor-pointer hover:text-primary transition-colors"
-                onClick={handleServiceGuideClick}
-              >
-                • 서비스 이용 안내
-              </p>
-              <p
-                className="text-xs sm:text-sm text-gray-600 cursor-pointer hover:text-primary transition-colors"
-                onClick={handlePrivacyPolicyClick}
-              >
-                • 개인정보 처리방침
-              </p>
-              <p
-                className="text-xs sm:text-sm text-gray-600 cursor-pointer hover:text-primary transition-colors"
-                onClick={handleTermsClick}
-              >
-                • 이용약관
-              </p>
+              {recentNotices.map((notice) => (
+                <p
+                  key={notice.noticeId}
+                  className="text-xs sm:text-sm text-gray-600 cursor-pointer hover:text-primary transition-colors truncate"
+                  onClick={() => navigate(`/notice/${notice.noticeId}`)}
+                >
+                  • {notice.title}
+                </p>
+              ))}
               <p
                 className="text-xs sm:text-sm text-gray-600 cursor-pointer hover:text-primary transition-colors"
                 onClick={handleChatbotClick}

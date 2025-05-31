@@ -3,7 +3,6 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { FaChevronLeft } from 'react-icons/fa';
 import { useEffect, useState } from 'react';
 import axiosInstance from '@/lib/axios';
-import { Button } from '@/components/atoms/Button';
 // import { Button } from '@/components/atoms/Button';
 import { toast } from 'react-toastify';
 import DOMPurify from 'dompurify';
@@ -293,7 +292,7 @@ const NoticeDetailPage = () => {
     return (
       <div className="container mx-auto px-4 py-2">
         <button
-          onClick={() => navigate(-1)}
+          onClick={() => navigate('/notice')}
           className="mb-4 text-primary flex items-center gap-2"
         >
           <FaChevronLeft /> <span>목록으로</span>
@@ -310,7 +309,7 @@ const NoticeDetailPage = () => {
       <div className="relative mb-6 h-16 flex items-center justify-center">
         <button
           className="absolute left-0 top-1/2 -translate-y-1/2 flex items-center justify-center w-8 h-8 text-gray-700 hover:text-primary sm:w-10 sm:h-10"
-          onClick={() => navigate(-1)}
+          onClick={() => navigate('/notice')}
           aria-label="뒤로가기"
         >
           <FaChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
@@ -327,7 +326,9 @@ const NoticeDetailPage = () => {
                 중요
               </span>
             )}
-            <h2 className="text-xl font-bold text-gray-800">{notice.title}</h2>
+            <h2 className="text-xl font-bold text-gray-800 break-words overflow-hidden">
+              {notice.title}
+            </h2>
           </div>
           <p className="text-sm text-gray-500">
             {new Date(notice.createdAt).toLocaleDateString()}
@@ -335,7 +336,7 @@ const NoticeDetailPage = () => {
         </div>
         <div className="prose max-w-none">
           <div
-            className="whitespace-pre-line text-gray-700"
+            className="whitespace-pre-line text-gray-700 break-words overflow-hidden"
             dangerouslySetInnerHTML={{
               __html: DOMPurify.sanitize(notice.content || ''),
             }}
@@ -344,24 +345,24 @@ const NoticeDetailPage = () => {
       </div>
       {isAdmin && (
         <div className="flex gap-2 mt-4 justify-end">
-          <Button
+          <button
             type="button"
-            color="muted"
-            size="md"
-            className="w-[200px] h-[3rem] sm:h-10"
+            className="flex items-center justify-center gap-1 px-6 py-2 sm:px-8 sm:py-2
+             bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors shadow-sm
+             text-sm sm:text-base text-gray-700"
             onClick={handleEdit}
           >
             수정
-          </Button>
-          <Button
+          </button>
+          <button
             type="button"
-            color="primary"
-            size="md"
-            className="w-[200px] h-[3rem] sm:h-10"
+            className="flex items-center justify-center gap-1 px-6 py-2 sm:px-8 sm:py-2
+             bg-primary hover:bg-primary-dark rounded-lg transition-colors shadow-sm
+             text-sm sm:text-base text-white"
             onClick={handleDelete}
           >
             삭제
-          </Button>
+          </button>
         </div>
       )}
     </div>
