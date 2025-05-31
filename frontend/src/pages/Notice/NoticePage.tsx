@@ -1,7 +1,7 @@
 //공지사항 목록
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { FaChevronLeft } from 'react-icons/fa';
 import axiosInstance from '@/lib/axios';
 import { useUserAuthStore } from '../../stores/userAuthStore';
 // import { Button } from '@/components/atoms/Button';
@@ -117,7 +117,7 @@ const NoticePage = () => {
   );
 
   const handleBackClick = () => {
-    navigate(-1);
+    navigate('/');
   };
 
   const handlePageChange = (page: number) => {
@@ -177,7 +177,7 @@ const NoticePage = () => {
             </div>
           </div>
           {/* 공지사항 목록 */}
-          <div className="space-y-4 pb-20">
+          <div className="space-y-4 pb-20 min-h-[28rem] lg:min-h-[32rem]">
             {paginatedNotices.length > 0 ? (
               paginatedNotices.map((notice) => (
                 <div
@@ -216,7 +216,7 @@ const NoticePage = () => {
 
             {/* ✅ 글쓰기 버튼 - 공지사항 리스트 하단 배치 */}
             {token && email === 'dutymate.net@gmail.com' && (
-              <div className="w-full flex justify-end pt-4">
+              <div className="w-full flex justify-end pt-2">
                 <button
                   onClick={() => navigate('/notice/write')}
                   className="flex items-center justify-center gap-1 px-6 py-2 sm:px-8 sm:py-2
@@ -235,15 +235,6 @@ const NoticePage = () => {
               className="fixed left-0 bottom-0 lg:relative lg:bottom-auto w-full bg-white border-t border-gray-200 z-10 flex justify-center items-center gap-2 py-2
                 lg:border-0 lg:shadow-none lg:rounded-none lg:py-4"
             >
-              <button
-                className={`min-w-[2.5rem] h-8 text-xs px-2 flex items-center justify-center rounded transition-colors
-                    ${currentPage === 1 ? 'bg-gray-100 text-gray-300 cursor-not-allowed' : 'bg-white text-gray-700 hover:bg-gray-100'}`}
-                disabled={currentPage === 1}
-                onClick={() => handlePageChange(currentPage - 1)}
-                aria-label="이전 페이지"
-              >
-                <FaChevronLeft className="w-4 h-4" />
-              </button>
               <div className="flex gap-1">
                 {Array.from({ length: totalPages }, (_, i) => i + 1).map(
                   (page) => (
@@ -263,17 +254,11 @@ const NoticePage = () => {
                   )
                 )}
               </div>
-              <button
-                className={`min-w-[2.5rem] h-8 text-xs px-2 flex items-center justify-center rounded transition-colors
-                    ${currentPage === totalPages ? 'bg-gray-100 text-gray-300 cursor-not-allowed' : 'bg-white text-gray-700 hover:bg-gray-100'}`}
-                disabled={currentPage === totalPages}
-                onClick={() => handlePageChange(currentPage + 1)}
-                aria-label="다음 페이지"
-              >
-                <FaChevronRight className="w-4 h-4" />
-              </button>
             </div>
           )}
+
+          {/* 페이지네이션 고정 영역 (공지사항이 적을 때도 위치 유지) */}
+          {totalPages <= 1 && <div className="h-12 lg:h-16"></div>}
         </div>
       </div>
     </>

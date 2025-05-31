@@ -1,7 +1,6 @@
 // 공지사항 글쓰기
 import { useState, useEffect, forwardRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Button } from '@/components/atoms/Button';
 import { SEO } from '@/components/SEO';
 import { FaChevronLeft } from 'react-icons/fa';
 import ReactQuill, { ReactQuillProps } from 'react-quill';
@@ -20,6 +19,28 @@ const NoticeWritePage = () => {
   const isEditMode = !!noticeId; // noticeId가 있으면 수정 모드
   const token = useUserAuthStore((state) => state.userInfo?.token);
   const email = useUserAuthStore((state) => state.userInfo?.email);
+
+  // 글자 수 제한 상수
+  const TITLE_MAX_LENGTH = 40;
+  const CONTENT_MAX_LENGTH = 2000;
+
+  // HTML 태그를 제거하고 실제 텍스트 길이를 계산하는 함수 (공백 제외)
+  const getTextLength = (html: string) => {
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = html;
+    const text = tempDiv.textContent || tempDiv.innerText || '';
+    return text.replace(/\s/g, '').length; // 공백 제거 후 길이
+  };
+
+  // 일반 텍스트에서 공백 제거 후 길이 계산
+  const getTitleTextLength = (text: string) => {
+    return text.replace(/\s/g, '').length; // 공백 제거 후 길이
+  };
+
+  // 실제 텍스트 길이
+  const contentTextLength = getTextLength(content);
+  const titleTextLength = getTitleTextLength(title);
+
   // 수정 모더일 경우 기존 데이터 불러오기
 
   //로그인하지 않은 사용자 차단 , 관리자 이메일이 아니면 차단
@@ -62,6 +83,17 @@ const NoticeWritePage = () => {
 
     if (!content.trim()) {
       toast.warn('내용을 입력해주세요.');
+      return;
+    }
+
+    // 글자 수 제한 검증
+    if (titleTextLength > TITLE_MAX_LENGTH) {
+      toast.warn(`제목은 ${TITLE_MAX_LENGTH}자 이내로 입력해주세요.`);
+      return;
+    }
+
+    if (contentTextLength > CONTENT_MAX_LENGTH) {
+      toast.warn(`내용은 ${CONTENT_MAX_LENGTH}자 이내로 입력해주세요.`);
       return;
     }
 
@@ -146,39 +178,67 @@ const NoticeWritePage = () => {
             onSubmit={handleSubmit}
           >
             <div className="mb-4">
-              <label
-                htmlFor="notice-title"
-                className="text-base font-semibold text-black mb-1 block"
-              >
-                제목
-              </label>
+              <div className="flex justify-between items-center mb-1">
+                <label
+                  htmlFor="notice-title"
+                  className="text-base font-semibold text-black"
+                >
+                  제목
+                </label>
+                <span
+                  className={`text-sm ${titleTextLength > TITLE_MAX_LENGTH ? 'text-red-500' : 'text-gray-500'}`}
+                >
+                  {titleTextLength}/{TITLE_MAX_LENGTH}
+                </span>
+              </div>
               <input
                 id="notice-title"
                 type="text"
                 autoComplete="off"
-                className="w-full border rounded px-3 py-2 text-base focus:outline-primary"
+                className={`w-full border rounded px-3 py-2 text-base rounded-lg focus:outline-none ${
+                  titleTextLength > TITLE_MAX_LENGTH ? 'border-red-500' : ''
+                }`}
                 placeholder="제목을 입력하세요"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 required
               />
+              {titleTextLength > TITLE_MAX_LENGTH && (
+                <p className="text-red-500 text-sm mt-1">
+                  제목은 {TITLE_MAX_LENGTH}자 이내로 입력해주세요.
+                </p>
+              )}
             </div>
 
             <div className="mb-4">
-              <label
-                htmlFor="notice-content"
-                className="text-base font-semibold text-black mb-1 block"
-              >
-                내용
-              </label>
+              <div className="flex justify-between items-center mb-1">
+                <label
+                  htmlFor="notice-content"
+                  className="text-base font-semibold text-black"
+                >
+                  내용
+                </label>
+                <span
+                  className={`text-sm ${contentTextLength > CONTENT_MAX_LENGTH ? 'text-red-500' : 'text-gray-500'}`}
+                >
+                  {contentTextLength}/{CONTENT_MAX_LENGTH}
+                </span>
+              </div>
               <ReactQuill
                 id="notice-content"
                 value={content}
                 onChange={setContent}
-                className="mb-6 w-full min-w-0 overflow-x-auto custom-quill-editor"
+                className={`w-full min-w-0 overflow-x-auto custom-quill-editor rounded-lg ${
+                  contentTextLength > CONTENT_MAX_LENGTH ? 'quill-error' : ''
+                }`}
                 style={{ minHeight: '15.625rem' }}
                 placeholder="내용을 입력하세요"
               />
+              {contentTextLength > CONTENT_MAX_LENGTH && (
+                <p className="text-red-500 text-sm mt-1">
+                  내용은 {CONTENT_MAX_LENGTH}자 이내로 입력해주세요.
+                </p>
+              )}
             </div>
 
             <div className="mb-4">
@@ -203,26 +263,28 @@ const NoticeWritePage = () => {
             </div>
 
             <div className="flex gap-2 mt-4 justify-end">
-              <Button
+              <button
                 type="button"
-                color="muted"
-                size="md"
-                className="flex items-center justify-center text-sm sm:text-base
-               px-[1.25rem] py-[0.5rem] sm:px-[1.5rem] sm:py-[0.625rem] rounded-lg"
+                className="flex items-center justify-center gap-1 px-6 py-2 sm:px-8 sm:py-2
+                 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors shadow-sm
+                 text-sm sm:text-base text-gray-700"
                 onClick={() => navigate(-1)}
               >
                 취소
-              </Button>
-              <Button
+              </button>
+              <button
                 type="submit"
-                color="primary"
-                size="md"
-                className="flex items-center justify-center text-sm sm:text-base
-               px-[1.25rem] py-[0.5rem] sm:px-[1.5rem] sm:py-[0.625rem] rounded-lg"
-                disabled={loading}
+                className="flex items-center justify-center gap-1 px-6 py-2 sm:px-8 sm:py-2
+                 bg-primary hover:bg-primary-dark rounded-lg transition-colors shadow-sm
+                 text-sm sm:text-base text-white"
+                disabled={
+                  loading ||
+                  titleTextLength > TITLE_MAX_LENGTH ||
+                  contentTextLength > CONTENT_MAX_LENGTH
+                }
               >
                 {isEditMode ? '수정' : '등록'}
-              </Button>
+              </button>
             </div>
           </form>
         </div>
@@ -239,6 +301,27 @@ const NoticeWritePage = () => {
             .custom-quill-editor .ql-container {
               min-height: 21.875rem;
             }
+          }
+          .custom-quill-editor .ql-toolbar {
+            border-top-left-radius: 0.5rem;
+            border-top-right-radius: 0.5rem;
+            border-color: #e5e7eb;
+          }
+          .custom-quill-editor .ql-container {
+            border-bottom-left-radius: 0.5rem;
+            border-bottom-right-radius: 0.5rem;
+            border-color: #e5e7eb;
+          }
+          .custom-quill-editor .ql-editor.ql-blank::before {
+            font-style: normal !important;
+            color: #9ca3af !important;
+            font-size: 1rem !important;
+          }
+          .quill-error .ql-container {
+            border-color: #ef4444 !important;
+          }
+          .quill-error .ql-toolbar {
+            border-color: #ef4444 !important;
           }
         `}
       </style>
