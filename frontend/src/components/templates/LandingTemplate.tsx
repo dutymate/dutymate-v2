@@ -70,18 +70,13 @@ const LandingTemplate: React.FC<LandingTemplateProps> = ({
             <div className="flex-1 flex items-center">
               <div className="relative w-full h-full">
                 <div className="absolute inset-0 flex flex-col items-center justify-center px-[8%]">
-                  <div className="slide-container relative">
-                    <div className="slide-item relative">
+                  <div className="slide-container">
+                    <div className="slide-item">
                       <img
                         src="/images/iphone.png"
                         alt="Phone Preview"
-                        className="w-full h-full object-contain relative z-10"
+                        className="w-full h-full object-contain"
                       />
-                      {/* Ellipse shadow underneath the phone */}
-                      <div
-                        className="absolute bottom-0 left-1/2 transform -translate-x-1/2 -translate-y-20 w-[35%] h-[0.125%] bg-black/95 rounded-full blur-lg z-0"
-                        style={{ boxShadow: '0 0 30px rgba(0,0,0,0.8)' }}
-                      ></div>
                     </div>
                     <div className="slide-item">
                       <img
