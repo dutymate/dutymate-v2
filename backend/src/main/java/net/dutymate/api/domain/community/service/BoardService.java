@@ -24,6 +24,7 @@ import net.dutymate.api.domain.community.repository.BoardLikesRepository;
 import net.dutymate.api.domain.community.repository.BoardRepository;
 import net.dutymate.api.domain.community.repository.HotBoardRepository;
 import net.dutymate.api.domain.member.Member;
+import net.dutymate.api.global.xss.XssSanitizer;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -39,6 +40,12 @@ public class BoardService {
 
 	@Transactional
 	public ResponseEntity<?> createBoard(BoardCreateRequestDto boardCreateRequestDto, Member member) {
+
+		// XSS 방지
+		String cleanTitle = XssSanitizer.clean(boardCreateRequestDto.getTitle());
+		String cleanContent = XssSanitizer.clean(boardCreateRequestDto.getContent());
+		boardCreateRequestDto.setTitle(cleanTitle);
+		boardCreateRequestDto.setContent(cleanContent);
 
 		Board newBoard = boardCreateRequestDto.toBoard(member, boardCreateRequestDto);
 		member.getBoardList().add(newBoard);
@@ -140,6 +147,12 @@ public class BoardService {
 		if (!board.getMember().equals(member)) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "본인이 작성한 글만 수정할 수 있습니다.");
 		}
+
+		// XSS 방지
+		String cleanTitle = XssSanitizer.clean(boardUpdateRequestDto.getTitle());
+		String cleanContent = XssSanitizer.clean(boardUpdateRequestDto.getContent());
+		boardUpdateRequestDto.setTitle(cleanTitle);
+		boardUpdateRequestDto.setContent(cleanContent);
 
 		board.update(boardUpdateRequestDto);
 	}

@@ -57,6 +57,9 @@ dependencies {
     // AWS SDK
     implementation 'software.amazon.awssdk:s3:2.29.52'
 
+    // XSS 방지
+    implementation 'org.jsoup:jsoup:1.20.1'
+
     // 개발 편의성
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
     compileOnly 'org.projectlombok:lombok'
