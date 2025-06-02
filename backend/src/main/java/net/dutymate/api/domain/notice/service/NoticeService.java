@@ -13,6 +13,7 @@ import net.dutymate.api.domain.notice.dto.NoticeDetailResponseDto;
 import net.dutymate.api.domain.notice.dto.NoticeRequestDto;
 import net.dutymate.api.domain.notice.dto.NoticeResponseDto;
 import net.dutymate.api.domain.notice.repository.NoticeRepository;
+import net.dutymate.api.global.xss.XssSanitizer;
 
 import lombok.RequiredArgsConstructor;
 
@@ -42,6 +43,12 @@ public class NoticeService {
 	public void createNotice(Member member, NoticeRequestDto noticeRequestDto) {
 		checkAdmin(member);
 
+		// XSS 방지
+		String cleanTitle = XssSanitizer.clean(noticeRequestDto.getTitle());
+		String cleanContent = XssSanitizer.clean(noticeRequestDto.getContent());
+		noticeRequestDto.setTitle(cleanTitle);
+		noticeRequestDto.setContent(cleanContent);
+
 		noticeRepository.save(noticeRequestDto.toNotice());
 	}
 
@@ -51,6 +58,12 @@ public class NoticeService {
 
 		Notice notice = noticeRepository.findById(noticeId)
 			.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "공지사항이 존재하지 않습니다."));
+
+		// XSS 방지
+		String cleanTitle = XssSanitizer.clean(noticeRequestDto.getTitle());
+		String cleanContent = XssSanitizer.clean(noticeRequestDto.getContent());
+		noticeRequestDto.setTitle(cleanTitle);
+		noticeRequestDto.setContent(cleanContent);
 
 		notice.update(noticeRequestDto.getTitle(), noticeRequestDto.getContent(), noticeRequestDto.getIsPinned());
 	}
