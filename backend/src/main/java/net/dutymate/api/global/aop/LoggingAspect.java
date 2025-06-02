@@ -34,7 +34,7 @@ public class LoggingAspect {
 	private static final String RETURN_VALUE_FORMAT = "Return Value: {}";
 	private static final int NANO_TO_MILLI = 1_000_000;
 
-	@Pointcut("execution(* net.dutymate.api.*.controller.*.*(..))")
+	@Pointcut("execution(* net.dutymate.api..controller..*(..))")
 	private void cut() {
 
 	}
