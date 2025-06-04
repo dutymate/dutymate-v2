@@ -84,7 +84,7 @@ public class MemberService {
 	private static final String DEMO_NAME = "데모계정";
 	private static final String DEMO_HOSPITAL_NAME = "듀티메이트병원";
 	private static final String DEMO_WARD_NAME = "듀티병동";
-	private static final String DEFAULT_PROFILE_IMAGE_NAME = "default_profile_image.jpg";
+	private static final String DEFAULT_PROFILE_IMAGE_NAME = "default_profile.jpg";
 	private static final Integer DEMO_TEMP_NURSE_CNT = 10;
 	private static final Integer DEMO_AUTO_GEN_CNT = 1;
 	private static final Integer DEFAULT_AUTO_GEN_CNT = 1;
@@ -472,7 +472,7 @@ public class MemberService {
 		String dirName = "profile";
 		String fileName = s3Service.extractFileNameFromUrl(fileUrl, dirName);
 
-		if (fileName.equals("default_profile.png")) {
+		if (fileName.equals(DEFAULT_PROFILE_IMAGE_NAME)) {
 			return ProfileImgResponseDto.of(s3Service.addBasicProfileImgUrl());
 		}
 
