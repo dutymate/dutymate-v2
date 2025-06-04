@@ -64,7 +64,6 @@ public class S3Service {
 				.bucket(bucket)
 				.key(key)
 				.build();
-			System.out.println("deleteObjectRequest = " + deleteObjectRequest.toString());
 			s3Client.deleteObject(deleteObjectRequest);
 		} catch (Exception e) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "S3 이미지 삭제 중 오류 발생");
